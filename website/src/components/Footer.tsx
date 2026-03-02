@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Github } from 'lucide-react';
 
-const GITHUB_URL = 'https://github.com/HikaruEgashira/pleno-anonymize';
+const GITHUB_URL = 'https://github.com/plenoai/pleno-anonymize';
 
 export default function Footer() {
   return (

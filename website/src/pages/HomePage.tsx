@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/useAuth';
 
-const GITHUB_URL = 'https://github.com/HikaruEgashira/pleno-anonymize';
+const GITHUB_URL = 'https://github.com/plenoai/pleno-anonymize';
 
 const Button = ({
   variant = 'primary',
@@ -87,7 +87,7 @@ const Header = () => {
   const { isAuthenticated, login, logout, isLoading } = useAuth();
 
   useEffect(() => {
-    fetch('https://api.github.com/repos/HikaruEgashira/pleno-anonymize')
+    fetch('https://api.github.com/repos/plenoai/pleno-anonymize')
       .then((res) => res.json())
       .then((data) => {
         if (data.stargazers_count !== undefined) {

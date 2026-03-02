@@ -5,7 +5,7 @@
     "description": "\nPII (Personal Information) anonymization server with Japanese support.\n\n## Features\n- **Text PII Detection** - Detect personal information in text using Presidio + spaCy-LLM\n- **Text PII Redaction** - Anonymize personal information by replacing with placeholders\n- **Image PII Redaction** - Redact PII from images using OCR\n- **API Proxies** - Transparent proxies to OpenAI, Anthropic, and Gemini APIs with automatic PII redaction\n\n## Supported Entity Types\n- `PERSON` - Person names\n- `EMAIL_ADDRESS` - Email addresses\n- `PHONE_NUMBER` - Phone numbers\n\n## API Proxy Endpoints\nAll proxy endpoints automatically redact PII before sending to the upstream API,\nand restore original values in the response.\n\n| Endpoint | Upstream API |\n|----------|-------------|\n| `/api/openai/{path}` | OpenAI (Chat Completions & Responses API) |\n| `/api/anthropic/{path}` | Anthropic Messages API |\n| `/api/gemini/{path}` | Google Gemini API |\n",
     "contact": {
       "name": "pleno-anonymize",
-      "url": "https://github.com/HikaruEgashira/pleno-anonymize"
+      "url": "https://github.com/plenoai/pleno-anonymize"
     },
     "version": "1.0.0"
   },

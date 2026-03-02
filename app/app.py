@@ -97,7 +97,7 @@ and restore original values in the response.
     version="1.0.0",
     contact={
         "name": "pleno-anonymize",
-        "url": "https://github.com/HikaruEgashira/pleno-anonymize",
+        "url": "https://github.com/plenoai/pleno-anonymize",
     },
     docs_url=None,  # Disable default Swagger UI
     redoc_url=None,  # Disable ReDoc
