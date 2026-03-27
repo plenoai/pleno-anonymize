@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'app/**'
+      - 'Dockerfile'
+      - '.github/workflows/release.yml'
 
 permissions:
   contents: write
@@ -11,6 +15,10 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      created: ${{ steps.check.outputs.created }}
     steps:
       - uses: actions/checkout@v4
 
@@ -23,9 +31,21 @@ jobs:
         run: |
           VERSION=$(grep -Po '(?<=version = ")[^"]+' app/pyproject.toml)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag=v$VERSION-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if tag exists
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "v${{ steps.version.outputs.version }}" > /dev/null 2>&1; then
+            echo "created=false" >> $GITHUB_OUTPUT
+          else
+            echo "created=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Create Release
+        if: steps.check.outputs.created == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
@@ -33,21 +53,9 @@ jobs:
           generate_release_notes: true
           make_latest: true
 
-      - name: Cleanup old releases
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          KEEP_COUNT=10
-
-          gh release list --limit 1000 --json tagName,createdAt \
-            --jq "[.[] | select(.tagName | test(\"^v${VERSION}-[a-f0-9]+$\"))] | sort_by(.createdAt) | reverse | .[${KEEP_COUNT}:] | .[].tagName" \
-            | while read -r tag; do
-              [ -n "$tag" ] && gh release delete "$tag" --yes --cleanup-tag && echo "Deleted: $tag"
-            done
-
   deploy:
     runs-on: ubuntu-latest
+    needs: release
     steps:
       - uses: actions/checkout@v4
 
