@@ -1015,18 +1015,6 @@ wheels = [
 ]
 
 [[package]]
-name = "mangum"
-version = "0.20.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/04/76/03462d8f745a12b40d96b674c6d9c4182594571edc28b47d6ddd9a819ed5/mangum-0.20.0.tar.gz", hash = "sha256:0050447b60d832dcc45cc9d917c9e0f4e9174e2d9630f621d567510d51d286bd", size = 128418 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/1d/67/9398a64b5a97a9125fac1b168917cfa7f9d81eddc23bf50dacd4ff999aed/mangum-0.20.0-py3-none-any.whl", hash = "sha256:c945eadc41916f73b6086c0c69935ef4b1d23d27de8dc74ed47b20e204335407", size = 18024 },
-]
-
-[[package]]
 name = "marisa-trie"
 version = "1.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1547,7 +1535,6 @@ dependencies = [
     { name = "httpx" },
     { name = "langchain" },
     { name = "langchain-community" },
-    { name = "mangum" },
     { name = "openai" },
     { name = "pillow" },
     { name = "presidio-analyzer" },
@@ -1556,7 +1543,6 @@ dependencies = [
     { name = "scalar-fastapi" },
     { name = "spacy" },
     { name = "spacy-llm" },
-    { name = "typer" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -1566,7 +1552,6 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "langchain", specifier = ">=0.3.27" },
     { name = "langchain-community", specifier = ">=0.3.27" },
-    { name = "mangum", specifier = ">=0.17.0" },
     { name = "openai", specifier = ">=1.0.0" },
     { name = "pillow", specifier = ">=10.0.0" },
     { name = "presidio-analyzer", specifier = ">=2.2" },
@@ -1575,7 +1560,6 @@ requires-dist = [
     { name = "scalar-fastapi", specifier = ">=1.6.0" },
     { name = "spacy", specifier = ">=3.7" },
     { name = "spacy-llm", specifier = ">=0.7.3" },
-    { name = "typer", specifier = ">=0.9.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.35.0" },
 ]
 
