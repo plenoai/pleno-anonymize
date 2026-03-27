@@ -1,0 +1,9 @@
+.git
+.github
+website
+packages
+docs
+*.md
+flake.nix
+flake.lock
+.gitmodules

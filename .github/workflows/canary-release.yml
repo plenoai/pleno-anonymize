@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  build-and-release:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,9 +19,6 @@ jobs:
       - uses: astral-sh/setup-uv@v4
         with:
           version: "latest"
-
-      - name: Install dependencies
-        run: uv sync
 
       - name: Get version
         id: version
@@ -52,3 +49,14 @@ jobs:
             | while read -r tag; do
               [ -n "$tag" ] && gh release delete "$tag" --yes --cleanup-tag && echo "Deleted: $tag"
             done
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
