@@ -6,14 +6,13 @@ import io
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Tuple
 import httpx
-from fastapi import Depends, FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response
+from presidio_anonymizer.entities import OperatorConfig
 from pydantic import BaseModel
-
-from auth import verify_token
 from scalar_fastapi import get_scalar_api_reference
 from PIL import Image
 
-# Lazy initialization for Lambda cold start optimization
+# Lazy initialization for cold start optimization
 _nlp = None
 _analyzer = None
 _anonymizer = None
@@ -37,11 +36,7 @@ def _init_presidio():
             super().__init__()
             self.nlp = {"en": loaded_spacy_model}
 
-    lambda_task_root = os.getenv("LAMBDA_TASK_ROOT")
-    if lambda_task_root:
-        config_path = Path(lambda_task_root) / "config.cfg"
-    else:
-        config_path = Path(__file__).parent / "config.cfg"
+    config_path = Path(__file__).parent / "config.cfg"
 
     _nlp = assemble(str(config_path))
     loaded_engine = LoadedSpacyNlpEngine(_nlp)
@@ -125,7 +120,7 @@ class RedactRequest(BaseModel):
     fill_color: Optional[List[int]] = [0, 0, 0]  # RGB for image redaction
 
 @app.post("/api/analyze", tags=["PII Detection"])
-async def analyze(req: AnalyzeRequest, _user: dict = Depends(verify_token)):
+async def analyze(req: AnalyzeRequest):
     """
     Detect PII entities in text.
 
@@ -165,7 +160,7 @@ async def analyze(req: AnalyzeRequest, _user: dict = Depends(verify_token)):
     ]
 
 @app.post("/api/redact", tags=["PII Redaction"])
-async def redact(req: RedactRequest, _user: dict = Depends(verify_token)):
+async def redact(req: RedactRequest):
     """
     Redact (anonymize) PII in text and/or images.
 
@@ -962,11 +957,3 @@ async def gemini_proxy(request: Request, path: str):
         headers=dict(response.headers),
         media_type=response.headers.get("content-type"),
     )
-
-
-# AWS Lambda handler
-try:
-    from mangum import Mangum
-    handler = Mangum(app)
-except ImportError:
-    handler = None
