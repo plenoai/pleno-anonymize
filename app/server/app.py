@@ -140,7 +140,7 @@ and restore original values in the response.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://plenoai.github.io",
+        "https://plenoai.com",
         "http://localhost:5173",
     ],
     allow_methods=["POST"],
