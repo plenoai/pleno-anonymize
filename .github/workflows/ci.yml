@@ -1,0 +1,40 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uvx ruff check app/
+      - run: uvx ruff format --check app/
+
+  deploy:
+    needs: check
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-pleno-anonymize
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - uses: docker/setup-buildx-action@v3
+      - run: flyctl auth docker
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: registry.fly.io/pleno-anonymize:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - run: flyctl deploy --image registry.fly.io/pleno-anonymize:${{ github.sha }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
