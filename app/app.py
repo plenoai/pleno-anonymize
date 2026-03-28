@@ -39,7 +39,14 @@ def _init_presidio():
 
     # Load Japanese NER model from packages/models/ja_ner_ja-0.1.0
     app_dir = Path(__file__).parent
-    model_path = app_dir.parent / "packages" / "models" / "ja_ner_ja-0.1.0" / "ja_ner_ja" / "ja_ner_ja-0.1.0"
+    model_path = (
+        app_dir.parent
+        / "packages"
+        / "models"
+        / "ja_ner_ja-0.1.0"
+        / "ja_ner_ja"
+        / "ja_ner_ja-0.1.0"
+    )
     _nlp_ja = spacy.load(str(model_path))
 
     # Try to load English model, fallback to None if not available
