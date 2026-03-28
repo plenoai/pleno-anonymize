@@ -27,7 +27,6 @@ def _init_presidio():
         return
 
     import spacy
-    from pathlib import Path
     from presidio_analyzer import AnalyzerEngine
     from presidio_analyzer.nlp_engine import SpacyNlpEngine
     from presidio_anonymizer import AnonymizerEngine
