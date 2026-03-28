@@ -16,7 +16,7 @@ COPY packages/models/ja_ner_ja-0.1.0 packages/models/ja_ner_ja-0.1.0
 RUN uv pip install packages/models/ja_ner_ja-0.1.0
 
 # アプリケーションコードをコピー
-COPY app/app.py app/recognizers_ja.py app/
+COPY app/server/ server/
 
 FROM python:3.12-slim
 
@@ -27,4 +27,4 @@ COPY --from=builder /workspace /workspace
 COPY --from=builder /root /root
 
 EXPOSE 8080
-CMD ["uv", "run", "uvicorn", "app.app:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uv", "run", "uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "8080"]

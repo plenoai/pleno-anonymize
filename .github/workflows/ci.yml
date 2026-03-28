@@ -11,8 +11,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: uvx ruff check app/
-      - run: uvx ruff format --check app/
+      - run: uvx ruff check app/server/
+      - run: uvx ruff format --check app/server/
 
   deploy:
     needs: check
