@@ -5,4 +5,12 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: '/pleno-anonymize/',
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://anonymize.plenoai.com',
+        changeOrigin: true,
+      },
+    },
+  },
 })

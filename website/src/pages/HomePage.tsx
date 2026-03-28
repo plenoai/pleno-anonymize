@@ -103,12 +103,19 @@ const Header = () => {
             <ShieldCheck className="h-5 w-5 text-[#171717] dark:text-[#ededed]" />
             <span className="font-medium text-[#171717] dark:text-[#ededed]">Pleno Anonymize</span>
           </Link>
-          <a
-            href={GITHUB_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] hover:bg-[#f5f5f5] dark:hover:bg-[#2a2a2a] transition-colors"
-          >
+          <div className="flex items-center gap-3">
+            <Link
+              to="/playground"
+              className="px-3 py-1.5 text-sm font-medium text-[#666] dark:text-[#8f8f8f] hover:text-[#171717] dark:hover:text-[#ededed] transition-colors"
+            >
+              Playground
+            </Link>
+            <a
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] hover:bg-[#f5f5f5] dark:hover:bg-[#2a2a2a] transition-colors"
+            >
             <Github className="h-4 w-4 text-[#171717] dark:text-[#ededed]" />
             <span className="text-sm font-medium text-[#171717] dark:text-[#ededed]">GitHub</span>
             {starCount !== null && (
@@ -118,6 +125,7 @@ const Header = () => {
               </span>
             )}
           </a>
+          </div>
         </div>
       </div>
     </header>
