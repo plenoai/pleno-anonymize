@@ -8,8 +8,8 @@ WORKDIR /app
 COPY app/pyproject.toml uv.lock ./
 RUN uv sync --no-dev --frozen --no-install-project
 
-# spaCyモデルを事前ダウンロード
-RUN uv run python -m spacy download en_core_web_sm
+# spaCyモデルを事前ダウンロード（uv pip で直接インストール）
+RUN uv pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
 
 COPY app/app.py app/config.cfg ./
 
