@@ -3,16 +3,30 @@ import { ShieldCheck, CheckCircle2, ArrowLeft } from 'lucide-react';
 // CheckCircle2 used in entity cards
 import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
+import scores from '@scores';
 
-const BENCHMARK_DATA = [
-  { entity: 'PERSON', label: '人名', precision: 0.99, recall: 0.9551, f1: 0.9723, threshold: 0.9, color: '#3b82f6' },
-  { entity: 'ADDRESS', label: '住所', precision: 1.0, recall: 1.0, f1: 1.0, threshold: 0.85, color: '#8b5cf6' },
-  { entity: 'ORGANIZATION', label: '組織名', precision: 0.9683, recall: 0.9482, f1: 0.9581, threshold: 0.85, color: '#06b6d4' },
-  { entity: 'DATE_OF_BIRTH', label: '生年月日', precision: 1.0, recall: 0.9926, f1: 0.9963, threshold: 0.8, color: '#f59e0b' },
-  { entity: 'BANK_ACCOUNT', label: '銀行口座', precision: 0.9375, recall: 0.9756, f1: 0.9562, threshold: 0.8, color: '#10b981' },
-];
+const ENTITY_CONFIG: Record<string, { label: string; threshold: number; color: string; order: number }> = {
+  PERSON:        { label: '人名',     threshold: 0.9,  color: '#3b82f6', order: 0 },
+  ADDRESS:       { label: '住所',     threshold: 0.85, color: '#8b5cf6', order: 1 },
+  ORGANIZATION:  { label: '組織名',   threshold: 0.85, color: '#06b6d4', order: 2 },
+  DATE_OF_BIRTH: { label: '生年月日', threshold: 0.8,  color: '#f59e0b', order: 3 },
+  BANK_ACCOUNT:  { label: '銀行口座', threshold: 0.8,  color: '#10b981', order: 4 },
+};
 
-const OVERALL = { precision: 0.9822, recall: 0.971, f1: 0.9766, threshold: 0.88 };
+const BENCHMARK_DATA = Object.entries(scores.ents_per_type)
+  .filter(([entity]) => entity in ENTITY_CONFIG)
+  .map(([entity, { p, r, f }]) => ({
+    entity,
+    label: ENTITY_CONFIG[entity].label,
+    precision: p,
+    recall: r,
+    f1: f,
+    threshold: ENTITY_CONFIG[entity].threshold,
+    color: ENTITY_CONFIG[entity].color,
+  }))
+  .sort((a, b) => ENTITY_CONFIG[a.entity].order - ENTITY_CONFIG[b.entity].order);
+
+const OVERALL = { precision: scores.ents_p, recall: scores.ents_r, f1: scores.ents_f, threshold: 0.88 };
 
 const COMPARISON_MODELS = [
   { name: 'pleno_ner_ja', label: 'pleno_ner_ja (ours)', shortLabel: 'ours', color: '#10b981', highlight: true },
@@ -24,13 +38,20 @@ const COMPARISON_MODELS = [
 
 // ja_core_news: GPE→ADDRESS, ORG→ORGANIZATION, DATE→DATE_OF_BIRTH にマッピング済み
 // bert-ner-japanese: 人名→PERSON, 地名→ADDRESS, 法人名/施設名→ORGANIZATION にマッピング済み
-const COMPARISON_DATA: Record<string, Record<string, number>> = {
-  PERSON:        { pleno_ner_ja: 0.9723, bert_ner_ja: 0.8860, ja_core_news_lg: 0.8543, ja_core_news_md: 0.8698, ja_core_news_sm: 0.4724 },
-  ADDRESS:       { pleno_ner_ja: 1.0,    bert_ner_ja: 0.6903, ja_core_news_lg: 0.6604, ja_core_news_md: 0.7299, ja_core_news_sm: 0.2444 },
-  ORGANIZATION:  { pleno_ner_ja: 0.9581, bert_ner_ja: 0.5908, ja_core_news_lg: 0.5900, ja_core_news_md: 0.5578, ja_core_news_sm: 0.4419 },
-  DATE_OF_BIRTH: { pleno_ner_ja: 0.9963, bert_ner_ja: 0,      ja_core_news_lg: 0.9060, ja_core_news_md: 0.9343, ja_core_news_sm: 0.8675 },
-  BANK_ACCOUNT:  { pleno_ner_ja: 0.9562, bert_ner_ja: 0,      ja_core_news_lg: 0,      ja_core_news_md: 0,      ja_core_news_sm: 0      },
+const EXTERNAL_SCORES: Record<string, Record<string, number>> = {
+  PERSON:        { bert_ner_ja: 0.8860, ja_core_news_lg: 0.8543, ja_core_news_md: 0.8698, ja_core_news_sm: 0.4724 },
+  ADDRESS:       { bert_ner_ja: 0.6903, ja_core_news_lg: 0.6604, ja_core_news_md: 0.7299, ja_core_news_sm: 0.2444 },
+  ORGANIZATION:  { bert_ner_ja: 0.5908, ja_core_news_lg: 0.5900, ja_core_news_md: 0.5578, ja_core_news_sm: 0.4419 },
+  DATE_OF_BIRTH: { bert_ner_ja: 0,      ja_core_news_lg: 0.9060, ja_core_news_md: 0.9343, ja_core_news_sm: 0.8675 },
+  BANK_ACCOUNT:  { bert_ner_ja: 0,      ja_core_news_lg: 0,      ja_core_news_md: 0,      ja_core_news_sm: 0      },
 };
+
+const COMPARISON_DATA: Record<string, Record<string, number>> = Object.fromEntries(
+  Object.entries(EXTERNAL_SCORES).map(([entity, ext]) => [
+    entity,
+    { pleno_ner_ja: scores.ents_per_type[entity]?.f ?? 0, ...ext },
+  ])
+);
 
 const ENTITY_LABELS: Record<string, string> = {
   PERSON: '人名', ADDRESS: '住所', ORGANIZATION: '組織名',

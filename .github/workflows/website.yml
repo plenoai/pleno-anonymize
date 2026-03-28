@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'website/**'
+      - 'packages/training/output/scores.json'
       - '.github/workflows/website.yml'
 
 permissions:
