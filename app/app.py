@@ -21,12 +21,13 @@ _image_redactor = None
 
 def _init_presidio():
     """Lazy initialization of Presidio components."""
-    global _nlp_ja, _nlp_en, _analyzer, _anonymizer
+    global _nlp_ja, _nlp_en, _analyzer, _anonymizer, _image_redactor
 
     if _analyzer is not None:
         return
 
     import spacy
+    from pathlib import Path
     from presidio_analyzer import AnalyzerEngine
     from presidio_analyzer.nlp_engine import SpacyNlpEngine
     from presidio_anonymizer import AnonymizerEngine
@@ -37,10 +38,23 @@ def _init_presidio():
             super().__init__()
             self.nlp = models
 
-    _nlp_ja = spacy.load("pleno_ner_ja")
-    _nlp_en = spacy.load("en_core_web_sm")
+    # Load Japanese NER model from packages/models/ja_ner_ja-0.1.0
+    app_dir = Path(__file__).parent
+    model_path = app_dir.parent / "packages" / "models" / "ja_ner_ja-0.1.0" / "ja_ner_ja" / "ja_ner_ja-0.1.0"
+    _nlp_ja = spacy.load(str(model_path))
 
-    engine = MultiLangSpacyNlpEngine({"ja": _nlp_ja, "en": _nlp_en})
+    # Try to load English model, fallback to None if not available
+    try:
+        _nlp_en = spacy.load("en_core_web_sm")
+    except OSError:
+        _nlp_en = None
+
+    # Build models dict with available models
+    models = {"ja": _nlp_ja}
+    if _nlp_en is not None:
+        models["en"] = _nlp_en
+
+    engine = MultiLangSpacyNlpEngine(models)
     _analyzer = AnalyzerEngine(nlp_engine=engine)
 
     for recognizer in ALL_JA_RECOGNIZERS:
