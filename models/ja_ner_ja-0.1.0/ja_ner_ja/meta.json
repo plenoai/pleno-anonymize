@@ -6,7 +6,7 @@
   "author":"",
   "email":"",
   "url":"",
-  "license":"",
+  "license":"CC0-1.0",
   "spacy_version":">=3.8.13,<3.9.0",
   "spacy_git_version":"fdca647",
   "vectors":{
