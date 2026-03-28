@@ -30,7 +30,7 @@ def _init_presidio():
     from presidio_analyzer import AnalyzerEngine
     from presidio_analyzer.nlp_engine import SpacyNlpEngine
     from presidio_anonymizer import AnonymizerEngine
-    from recognizers_ja import ALL_JA_RECOGNIZERS
+    from app.recognizers_ja import ALL_JA_RECOGNIZERS
 
     class MultiLangSpacyNlpEngine(SpacyNlpEngine):
         def __init__(self, models: dict):
