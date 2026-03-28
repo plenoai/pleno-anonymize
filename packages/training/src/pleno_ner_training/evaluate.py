@@ -2,7 +2,8 @@
 
 - エンティティ別 precision / recall / F1
 - 全体の加重平均F1
-- 全角・半角混在テスト
+- Recall下限チェック（漏洩リスク防止）
+- 偽陽性率の明示的レポート
 """
 
 import json
@@ -21,6 +22,15 @@ ACCEPTANCE_CRITERIA: dict[str, float] = {
     "BANK_ACCOUNT": 0.80,
 }
 OVERALL_F1_THRESHOLD = 0.88
+
+# Recall下限: F1が高くてもRecallが低い = PII漏洩リスク
+RECALL_MINIMUMS: dict[str, float] = {
+    "PERSON": 0.85,
+    "ADDRESS": 0.80,
+    "ORGANIZATION": 0.80,
+    "DATE_OF_BIRTH": 0.75,
+    "BANK_ACCOUNT": 0.75,
+}
 
 
 def load_test_docs(nlp: spacy.Language, path: Path) -> list:
@@ -57,26 +67,59 @@ def print_report(scores: dict) -> bool:
     ents_per_type = scores.get("ents_per_type", {})
     all_pass = True
 
-    print(f"{'Entity':<20} {'Precision':>10} {'Recall':>10} {'F1':>10} {'Threshold':>10} {'Pass':>6}")
-    print("-" * 70)
+    print(f"{'Entity':<20} {'Precision':>10} {'Recall':>10} {'F1':>10} {'F1 Thr':>8} {'R Thr':>8} {'Pass':>6}")
+    print("-" * 80)
 
     for label, threshold in ACCEPTANCE_CRITERIA.items():
         stats = ents_per_type.get(label, {"p": 0, "r": 0, "f": 0})
         p = stats.get("p", 0)
         r = stats.get("r", 0)
         f = stats.get("f", 0)
-        passed = f >= threshold
+
+        f1_ok = f >= threshold
+        recall_min = RECALL_MINIMUMS.get(label, 0)
+        recall_ok = r >= recall_min
+        passed = f1_ok and recall_ok
+
         if not passed:
             all_pass = False
-        print(f"{label:<20} {p:>10.4f} {r:>10.4f} {f:>10.4f} {threshold:>10.2f} {'OK' if passed else 'FAIL':>6}")
+
+        status = "OK" if passed else ("R_LOW" if not recall_ok else "FAIL")
+        print(f"{label:<20} {p:>10.4f} {r:>10.4f} {f:>10.4f} {threshold:>8.2f} {recall_min:>8.2f} {status:>6}")
 
     overall_f1 = scores.get("ents_f", 0)
+    overall_r = scores.get("ents_r", 0)
     overall_pass = overall_f1 >= OVERALL_F1_THRESHOLD
     if not overall_pass:
         all_pass = False
 
-    print("-" * 70)
-    print(f"{'Overall':<20} {scores.get('ents_p', 0):>10.4f} {scores.get('ents_r', 0):>10.4f} {overall_f1:>10.4f} {OVERALL_F1_THRESHOLD:>10.2f} {'OK' if overall_pass else 'FAIL':>6}")
+    print("-" * 80)
+    print(f"{'Overall':<20} {scores.get('ents_p', 0):>10.4f} {overall_r:>10.4f} {overall_f1:>10.4f} {OVERALL_F1_THRESHOLD:>8.2f} {'':>8} {'OK' if overall_pass else 'FAIL':>6}")
+
+    # 偽陽性の分析
+    print("\n=== False Positive Analysis ===")
+    overall_p = scores.get("ents_p", 0)
+    fp_rate = 1.0 - overall_p if overall_p else 1.0
+    print(f"Overall FP rate (1-Precision): {fp_rate:.4f}")
+    for label in ACCEPTANCE_CRITERIA:
+        stats = ents_per_type.get(label, {"p": 0})
+        p = stats.get("p", 0)
+        label_fp = 1.0 - p if p else 1.0
+        print(f"  {label:<20} FP rate: {label_fp:.4f}")
+
+    # Recall警告（漏洩リスク）
+    print("\n=== Leakage Risk (Low Recall) ===")
+    leakage_warnings = []
+    for label, recall_min in RECALL_MINIMUMS.items():
+        stats = ents_per_type.get(label, {"r": 0})
+        r = stats.get("r", 0)
+        if r < recall_min:
+            leakage_warnings.append(f"  WARNING: {label} recall={r:.4f} < {recall_min:.2f}")
+    if leakage_warnings:
+        for w in leakage_warnings:
+            print(w)
+    else:
+        print("  No leakage risks detected.")
 
     print(f"\nVerdict: {'PASS' if all_pass else 'FAIL'}")
     return all_pass

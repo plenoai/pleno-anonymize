@@ -83,6 +83,31 @@ PATTERN_ENTITIES: tuple[EntityType, ...] = (
         description_ja="IPアドレス",
         examples=("192.168.1.1", "10.0.0.1"),
     ),
+    EntityType(
+        label="MY_NUMBER_CORPORATE",
+        description_ja="法人番号",
+        examples=("1234567890123", "1 2345 6789 0123"),
+    ),
+    EntityType(
+        label="HEALTH_INSURANCE",
+        description_ja="健康保険証番号（被保険者番号）",
+        examples=("記号 12345 番号 678901", "保険者番号 01130012"),
+    ),
+    EntityType(
+        label="RESIDENCE_CARD",
+        description_ja="在留カード番号",
+        examples=("AB12345678CD", "CD98765432EF"),
+    ),
+    EntityType(
+        label="POSTAL_CODE",
+        description_ja="郵便番号",
+        examples=("〒150-0001", "150-0001", "１５０−０００１"),
+    ),
+    EntityType(
+        label="URL",
+        description_ja="URL",
+        examples=("https://example.com", "http://example.co.jp/path?q=1"),
+    ),
 )
 
 ALL_ENTITIES = NER_ENTITIES + PATTERN_ENTITIES

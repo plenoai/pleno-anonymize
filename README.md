@@ -1,6 +1,6 @@
 # pleno-anonymize
 
-日本語対応 PII（個人情報）匿名化サーバー。カスタム日本語NERモデル + Presidio を使用。
+日本語対応 PII(個人情報) 匿名化サービス
 
 - **Website:** https://plenoai.com/pleno-anonymize/
 - **Playground:** https://plenoai.com/pleno-anonymize/playground
@@ -24,11 +24,16 @@
 |---|---|
 | `EMAIL_ADDRESS` | メールアドレス |
 | `PHONE_NUMBER` | 電話番号（全角/半角） |
-| `MY_NUMBER` | マイナンバー |
+| `MY_NUMBER` | マイナンバー（個人番号） |
+| `MY_NUMBER_CORPORATE` | 法人番号 |
 | `CREDIT_CARD` | クレジットカード番号 |
 | `PASSPORT` | パスポート番号 |
 | `DRIVER_LICENSE` | 運転免許証番号 |
+| `HEALTH_INSURANCE` | 健康保険証番号 |
+| `RESIDENCE_CARD` | 在留カード番号 |
+| `POSTAL_CODE` | 郵便番号 |
 | `IP_ADDRESS` | IPアドレス |
+| `URL` | URL |
 
 ## API
 

@@ -222,7 +222,7 @@ const FeaturesSection = () => (
           主要機能
         </h2>
         <p className="mx-auto max-w-2xl text-[#666] dark:text-[#8f8f8f]">
-          日本語対応の個人情報（PII）検出・匿名化サーバー
+          日本語対応の個人情報(PII) 匿名化サービス
         </p>
       </motion.div>
 
