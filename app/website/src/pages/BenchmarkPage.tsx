@@ -16,18 +16,20 @@ const OVERALL = { precision: 0.9822, recall: 0.971, f1: 0.9766, threshold: 0.88 
 
 const COMPARISON_MODELS = [
   { name: 'pleno_ner_ja', label: 'pleno_ner_ja (ours)', shortLabel: 'ours', color: '#10b981', highlight: true },
+  { name: 'bert_ner_ja', label: 'bert-ner-japanese (HF)', shortLabel: 'HF', color: '#f59e0b', highlight: false },
   { name: 'ja_core_news_lg', label: 'ja_core_news_lg', shortLabel: 'lg', color: '#6b7280', highlight: false },
   { name: 'ja_core_news_md', label: 'ja_core_news_md', shortLabel: 'md', color: '#9ca3af', highlight: false },
   { name: 'ja_core_news_sm', label: 'ja_core_news_sm', shortLabel: 'sm', color: '#d1d5db', highlight: false },
 ];
 
 // ja_core_news: GPE→ADDRESS, ORG→ORGANIZATION, DATE→DATE_OF_BIRTH にマッピング済み
+// bert-ner-japanese: 人名→PERSON, 地名→ADDRESS, 法人名/施設名→ORGANIZATION にマッピング済み
 const COMPARISON_DATA: Record<string, Record<string, number>> = {
-  PERSON:        { pleno_ner_ja: 0.9723, ja_core_news_lg: 0.8543, ja_core_news_md: 0.8698, ja_core_news_sm: 0.4724 },
-  ADDRESS:       { pleno_ner_ja: 1.0,    ja_core_news_lg: 0.6604, ja_core_news_md: 0.7299, ja_core_news_sm: 0.2444 },
-  ORGANIZATION:  { pleno_ner_ja: 0.9581, ja_core_news_lg: 0.5900, ja_core_news_md: 0.5578, ja_core_news_sm: 0.4419 },
-  DATE_OF_BIRTH: { pleno_ner_ja: 0.9963, ja_core_news_lg: 0.9060, ja_core_news_md: 0.9343, ja_core_news_sm: 0.8675 },
-  BANK_ACCOUNT:  { pleno_ner_ja: 0.9562, ja_core_news_lg: 0,      ja_core_news_md: 0,      ja_core_news_sm: 0      },
+  PERSON:        { pleno_ner_ja: 0.9723, bert_ner_ja: 0.8860, ja_core_news_lg: 0.8543, ja_core_news_md: 0.8698, ja_core_news_sm: 0.4724 },
+  ADDRESS:       { pleno_ner_ja: 1.0,    bert_ner_ja: 0.6903, ja_core_news_lg: 0.6604, ja_core_news_md: 0.7299, ja_core_news_sm: 0.2444 },
+  ORGANIZATION:  { pleno_ner_ja: 0.9581, bert_ner_ja: 0.5908, ja_core_news_lg: 0.5900, ja_core_news_md: 0.5578, ja_core_news_sm: 0.4419 },
+  DATE_OF_BIRTH: { pleno_ner_ja: 0.9963, bert_ner_ja: 0,      ja_core_news_lg: 0.9060, ja_core_news_md: 0.9343, ja_core_news_sm: 0.8675 },
+  BANK_ACCOUNT:  { pleno_ner_ja: 0.9562, bert_ner_ja: 0,      ja_core_news_lg: 0,      ja_core_news_md: 0,      ja_core_news_sm: 0      },
 };
 
 const ENTITY_LABELS: Record<string, string> = {
@@ -36,10 +38,10 @@ const ENTITY_LABELS: Record<string, string> = {
 };
 
 const SIZE_DATA: Record<string, number> = {
-  pleno_ner_ja: 6.3, ja_core_news_lg: 583.8, ja_core_news_md: 56.0, ja_core_news_sm: 13.8
+  pleno_ner_ja: 6.3, bert_ner_ja: 440, ja_core_news_lg: 583.8, ja_core_news_md: 56.0, ja_core_news_sm: 13.8,
 };
 const LATENCY_DATA: Record<string, number> = {
-  pleno_ner_ja: 2.8, ja_core_news_lg: 6.9, ja_core_news_md: 6.8, ja_core_news_sm: 6.7.8
+  pleno_ner_ja: 2.8, bert_ner_ja: 17.7, ja_core_news_lg: 6.9, ja_core_news_md: 6.8, ja_core_news_sm: 6.7,
 };
 
 
