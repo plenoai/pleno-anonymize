@@ -1,9 +1,9 @@
 .git
 .github
-website
-packages
 docs
 *.md
 flake.nix
 flake.lock
 .gitmodules
+packages/training
+packages/models/ja_ner_ja-0.1.0/ja_ner_ja/__pycache__
