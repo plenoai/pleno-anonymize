@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'app/website/**'
+      - 'website/**'
       - '.github/workflows/website.yml'
 
 permissions:
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: app/website
+        working-directory: website
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -30,13 +30,13 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: app/website/pnpm-lock.yaml
+          cache-dependency-path: website/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: cp dist/index.html dist/404.html
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: app/website/dist
+          path: website/dist
 
   deploy:
     needs: build

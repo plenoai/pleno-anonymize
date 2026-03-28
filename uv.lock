@@ -13,7 +13,7 @@ resolution-markers = [
 
 [manifest]
 members = [
-    "pleno-anonymize-app",
+    "pleno-anonymize-server",
     "pleno-ner-training",
 ]
 
@@ -1774,9 +1774,9 @@ wheels = [
 ]
 
 [[package]]
-name = "pleno-anonymize-app"
+name = "pleno-anonymize-server"
 version = "0.1.0"
-source = { virtual = "app" }
+source = { virtual = "server" }
 dependencies = [
     { name = "fastapi" },
     { name = "httpx" },

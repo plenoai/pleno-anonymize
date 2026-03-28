@@ -5,7 +5,7 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 WORKDIR /workspace
 
 # 依存関係のみ先にインストール（キャッシュ最適化）
-COPY app/pyproject.toml uv.lock ./
+COPY server/pyproject.toml uv.lock ./
 RUN uv sync --no-dev --frozen --no-install-project
 
 # spaCyモデル（英語）を事前ダウンロード
@@ -16,7 +16,7 @@ COPY packages/models/ja_ner_ja-0.1.0 packages/models/ja_ner_ja-0.1.0
 RUN uv pip install packages/models/ja_ner_ja-0.1.0
 
 # アプリケーションコードをコピー
-COPY app/server/ server/
+COPY server/src/ src/
 
 FROM python:3.12-slim
 
@@ -27,4 +27,4 @@ COPY --from=builder /workspace /workspace
 COPY --from=builder /root /root
 
 EXPOSE 8080
-CMD ["uv", "run", "uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uv", "run", "uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8080"]

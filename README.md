@@ -67,9 +67,8 @@ curl -X POST https://anonymize.plenoai.com/api/openai/v1/chat/completions \
 ## プロジェクト構成
 
 ```
-app/
-  server/        # FastAPI バックエンド
-  website/       # React フロントエンド (GitHub Pages)
+server/          # FastAPI バックエンド
+website/         # React フロントエンド (GitHub Pages)
 packages/
   models/        # 日本語NERモデル (CC0-1.0)
   training/      # モデル訓練パイプライン
@@ -79,5 +78,5 @@ packages/
 
 ```bash
 uv sync
-uv run uvicorn app.server.app:app --port 8080
+cd server && uv run uvicorn src.app:app --port 8080
 ```
