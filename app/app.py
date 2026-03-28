@@ -12,7 +12,8 @@ from scalar_fastapi import get_scalar_api_reference
 from PIL import Image
 
 # Lazy initialization for cold start optimization
-_nlp = None
+_nlp_ja = None
+_nlp_en = None
 _analyzer = None
 _anonymizer = None
 _image_redactor = None
@@ -20,26 +21,31 @@ _image_redactor = None
 
 def _init_presidio():
     """Lazy initialization of Presidio components."""
-    global _nlp, _analyzer, _anonymizer
+    global _nlp_ja, _nlp_en, _analyzer, _anonymizer
 
     if _analyzer is not None:
         return
 
-    from spacy_llm.util import assemble
+    import spacy
     from presidio_analyzer import AnalyzerEngine
     from presidio_analyzer.nlp_engine import SpacyNlpEngine
     from presidio_anonymizer import AnonymizerEngine
+    from recognizers_ja import ALL_JA_RECOGNIZERS
 
-    class LoadedSpacyNlpEngine(SpacyNlpEngine):
-        def __init__(self, loaded_spacy_model):
+    class MultiLangSpacyNlpEngine(SpacyNlpEngine):
+        def __init__(self, models: dict):
             super().__init__()
-            self.nlp = {"en": loaded_spacy_model}
+            self.nlp = models
 
-    config_path = Path(__file__).parent / "config.cfg"
+    _nlp_ja = spacy.load("pleno_ner_ja")
+    _nlp_en = spacy.load("en_core_web_sm")
 
-    _nlp = assemble(str(config_path))
-    loaded_engine = LoadedSpacyNlpEngine(_nlp)
-    _analyzer = AnalyzerEngine(nlp_engine=loaded_engine)
+    engine = MultiLangSpacyNlpEngine({"ja": _nlp_ja, "en": _nlp_en})
+    _analyzer = AnalyzerEngine(nlp_engine=engine)
+
+    for recognizer in ALL_JA_RECOGNIZERS:
+        _analyzer.registry.add_recognizer(recognizer)
+
     _anonymizer = AnonymizerEngine()
 
 
@@ -69,15 +75,27 @@ app = FastAPI(
 PII (Personal Information) anonymization server with Japanese support.
 
 ## Features
-- **Text PII Detection** - Detect personal information in text using Presidio + spaCy-LLM
+- **Text PII Detection** - Detect personal information in text using custom Japanese NER model + Presidio
 - **Text PII Redaction** - Anonymize personal information by replacing with placeholders
 - **Image PII Redaction** - Redact PII from images using OCR
 - **API Proxies** - Transparent proxies to OpenAI, Anthropic, and Gemini APIs with automatic PII redaction
 
-## Supported Entity Types
-- `PERSON` - Person names
+## Supported Entity Types (Japanese)
+### NER Model
+- `PERSON` - Person names (人名)
+- `ADDRESS` - Addresses (住所)
+- `ORGANIZATION` - Organization names (組織名)
+- `DATE_OF_BIRTH` - Date of birth (生��月日)
+- `BANK_ACCOUNT` - Bank account info (銀行口座)
+
+### Pattern-based
 - `EMAIL_ADDRESS` - Email addresses
-- `PHONE_NUMBER` - Phone numbers
+- `PHONE_NUMBER` - Phone numbers (全角/半角)
+- `MY_NUMBER` - My Number (マイナンバ���)
+- `CREDIT_CARD` - Credit card numbers
+- `PASSPORT` - Passport numbers
+- `DRIVER_LICENSE` - Driver license numbers
+- `IP_ADDRESS` - IP addresses
 
 ## API Proxy Endpoints
 All proxy endpoints automatically redact PII before sending to the upstream API,
@@ -110,14 +128,14 @@ async def scalar_docs():
 
 class AnalyzeRequest(BaseModel):
     text: str
-    language: str = "en"
+    language: str = "ja"
     entities: Optional[List[str]] = None
 
 
 class RedactRequest(BaseModel):
     text: Optional[str] = None
     image: Optional[str] = None  # base64 encoded image or data URL
-    language: str = "en"
+    language: str = "ja"
     entities: Optional[List[str]] = None
     operators: Optional[Dict[str, Dict[str, Any]]] = None
     fill_color: Optional[List[int]] = [0, 0, 0]  # RGB for image redaction

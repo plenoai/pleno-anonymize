@@ -1,0 +1,71 @@
+{
+  "token_acc": 1.0,
+  "token_p": 1.0,
+  "token_r": 1.0,
+  "token_f": 1.0,
+  "sents_p": null,
+  "sents_r": null,
+  "sents_f": null,
+  "tag_acc": 0.9865164339305263,
+  "pos_acc": 0.9865164339305263,
+  "morph_acc": 0.9865164339305263,
+  "morph_micro_p": 1.0,
+  "morph_micro_r": 1.0,
+  "morph_micro_f": 1.0,
+  "morph_per_feat": {
+    "Reading": {
+      "p": 1.0,
+      "r": 1.0,
+      "f": 1.0
+    },
+    "Inflection": {
+      "p": 1.0,
+      "r": 1.0,
+      "f": 1.0
+    }
+  },
+  "dep_uas": null,
+  "dep_las": null,
+  "dep_las_per_type": null,
+  "ents_p": 0.9821989528795811,
+  "ents_r": 0.9710144927536232,
+  "ents_f": 0.9765747006767308,
+  "ents_per_type": {
+    "PERSON": {
+      "p": 0.9900332225913622,
+      "r": 0.9551282051282052,
+      "f": 0.9722675367047308
+    },
+    "ORGANIZATION": {
+      "p": 0.9682539682539683,
+      "r": 0.9481865284974094,
+      "f": 0.9581151832460734
+    },
+    "ADDRESS": {
+      "p": 1.0,
+      "r": 1.0,
+      "f": 1.0
+    },
+    "BANK_ACCOUNT": {
+      "p": 0.9375,
+      "r": 0.975609756097561,
+      "f": 0.9561752988047808
+    },
+    "DATE_OF_BIRTH": {
+      "p": 1.0,
+      "r": 0.9925925925925926,
+      "f": 0.996282527881041
+    }
+  },
+  "cats_score": 0.0,
+  "cats_score_desc": "macro F",
+  "cats_micro_p": 0.0,
+  "cats_micro_r": 0.0,
+  "cats_micro_f": 0.0,
+  "cats_macro_p": 0.0,
+  "cats_macro_r": 0.0,
+  "cats_macro_f": 0.0,
+  "cats_macro_auc": 0.0,
+  "cats_f_per_type": {},
+  "cats_auc_per_type": {}
+}
