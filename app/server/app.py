@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any, Tuple
 import httpx
 from fastapi import FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from presidio_anonymizer.entities import OperatorConfig
 from pydantic import BaseModel
 from scalar_fastapi import get_scalar_api_reference
@@ -134,6 +135,16 @@ and restore original values in the response.
     },
     docs_url=None,  # Disable default Swagger UI
     redoc_url=None,  # Disable ReDoc
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://plenoai.github.io",
+        "http://localhost:5173",
+    ],
+    allow_methods=["POST"],
+    allow_headers=["Content-Type"],
 )
 
 

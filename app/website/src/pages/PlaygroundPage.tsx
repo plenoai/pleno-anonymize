@@ -16,7 +16,7 @@ import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
 
 const GITHUB_URL = 'https://github.com/HikaruEgashira/pleno-anonymize';
-const API_BASE = '';
+const API_BASE = 'https://anonymize.plenoai.com';
 
 interface AnalyzeResult {
   entity_type: string;
