@@ -1,6 +1,5 @@
 import os
 import json
-import re
 import base64
 import io
 from pathlib import Path
@@ -58,9 +57,11 @@ def get_image_redactor():
     global _image_redactor
     if _image_redactor is None:
         from presidio_image_redactor import ImageRedactorEngine, ImageAnalyzerEngine
+
         image_analyzer = ImageAnalyzerEngine(analyzer_engine=get_analyzer())
         _image_redactor = ImageRedactorEngine(image_analyzer_engine=image_analyzer)
     return _image_redactor
+
 
 app = FastAPI(
     title="pleno-anonymize",
@@ -106,10 +107,12 @@ async def scalar_docs():
         title="pleno-anonymize API",
     )
 
+
 class AnalyzeRequest(BaseModel):
     text: str
     language: str = "en"
     entities: Optional[List[str]] = None
+
 
 class RedactRequest(BaseModel):
     text: Optional[str] = None
@@ -118,6 +121,7 @@ class RedactRequest(BaseModel):
     entities: Optional[List[str]] = None
     operators: Optional[Dict[str, Dict[str, Any]]] = None
     fill_color: Optional[List[int]] = [0, 0, 0]  # RGB for image redaction
+
 
 @app.post("/api/analyze", tags=["PII Detection"])
 async def analyze(req: AnalyzeRequest):
@@ -144,9 +148,7 @@ async def analyze(req: AnalyzeRequest):
     ```
     """
     results = get_analyzer().analyze(
-        text=req.text,
-        language=req.language,
-        entities=req.entities
+        text=req.text, language=req.language, entities=req.entities
     )
     return [
         {
@@ -154,10 +156,11 @@ async def analyze(req: AnalyzeRequest):
             "start": r.start,
             "end": r.end,
             "score": r.score,
-            "text": req.text[r.start:r.end],
+            "text": req.text[r.start : r.end],
         }
         for r in results
     ]
+
 
 @app.post("/api/redact", tags=["PII Redaction"])
 async def redact(req: RedactRequest):
@@ -192,9 +195,7 @@ async def redact(req: RedactRequest):
 
     if req.text:
         results = get_analyzer().analyze(
-            text=req.text,
-            language=req.language,
-            entities=req.entities
+            text=req.text, language=req.language, entities=req.entities
         )
         anonymizers = {}
         for r in results:
@@ -202,15 +203,15 @@ async def redact(req: RedactRequest):
             if et not in anonymizers:
                 cfg = req.operators.get(et) if req.operators else None
                 if not cfg:
-                    anonymizers[et] = OperatorConfig("replace", {"new_value": f"<{et}>"})
+                    anonymizers[et] = OperatorConfig(
+                        "replace", {"new_value": f"<{et}>"}
+                    )
                 else:
                     operator_name = cfg.get("type", "replace")
                     params = {k: v for k, v in cfg.items() if k != "type"}
                     anonymizers[et] = OperatorConfig(operator_name, params)
         out = get_anonymizer().anonymize(
-            text=req.text,
-            analyzer_results=results,
-            operators=anonymizers
+            text=req.text, analyzer_results=results, operators=anonymizers
         )
         result["text"] = out.text
         result["items"] = [it.operator for it in out.items]
@@ -220,7 +221,9 @@ async def redact(req: RedactRequest):
         if image_data.startswith("data:"):
             header, data = image_data.split(",", 1)
             image_bytes = base64.b64decode(data)
-            mime_type = header.split(";")[0].split(":")[1] if ":" in header else "image/png"
+            mime_type = (
+                header.split(";")[0].split(":")[1] if ":" in header else "image/png"
+            )
         else:
             image_bytes = base64.b64decode(image_data)
             mime_type = "image/png"
@@ -246,10 +249,14 @@ async def redact(req: RedactRequest):
 
 OPENAI_API_BASE = os.getenv("OPENAI_API_BASE", "https://api.openai.com")
 ANTHROPIC_API_BASE = os.getenv("ANTHROPIC_API_BASE", "https://api.anthropic.com")
-GEMINI_API_BASE = os.getenv("GEMINI_API_BASE", "https://generativelanguage.googleapis.com")
+GEMINI_API_BASE = os.getenv(
+    "GEMINI_API_BASE", "https://generativelanguage.googleapis.com"
+)
 
 
-def redact_text_with_mapping(text: str, language: str = "en") -> Tuple[str, Dict[str, str]]:
+def redact_text_with_mapping(
+    text: str, language: str = "en"
+) -> Tuple[str, Dict[str, str]]:
     """Redact PII from text and return mapping for de-anonymization."""
     results = get_analyzer().analyze(text=text, language=language)
 
@@ -260,10 +267,10 @@ def redact_text_with_mapping(text: str, language: str = "en") -> Tuple[str, Dict
     redacted_text = text
 
     for r in results_sorted:
-        original = text[r.start:r.end]
+        original = text[r.start : r.end]
         placeholder = f"<{r.entity_type}_{r.start}>"
         mapping[placeholder] = original
-        redacted_text = redacted_text[:r.start] + placeholder + redacted_text[r.end:]
+        redacted_text = redacted_text[: r.start] + placeholder + redacted_text[r.end :]
 
     return redacted_text, mapping
 
@@ -307,7 +314,9 @@ async def redact_image(image_url: str, http_client: httpx.AsyncClient) -> str:
     return f"data:{mime_type};base64,{encoded}"
 
 
-async def redact_openai_request(body: dict, http_client: httpx.AsyncClient) -> Tuple[dict, Dict[str, str]]:
+async def redact_openai_request(
+    body: dict, http_client: httpx.AsyncClient
+) -> Tuple[dict, Dict[str, str]]:
     combined_mapping = {}
 
     if "messages" not in body:
@@ -339,14 +348,23 @@ async def redact_openai_request(body: dict, http_client: httpx.AsyncClient) -> T
                         redacted_parts.append(part)
                 elif isinstance(part, dict) and part.get("type") == "image_url":
                     image_url_obj = part.get("image_url", {})
-                    url = image_url_obj.get("url", "") if isinstance(image_url_obj, dict) else ""
+                    url = (
+                        image_url_obj.get("url", "")
+                        if isinstance(image_url_obj, dict)
+                        else ""
+                    )
                     if url:
                         try:
                             redacted_url = await redact_image(url, http_client)
                             redacted_part = part.copy()
                             redacted_part["image_url"] = {"url": redacted_url}
-                            if isinstance(image_url_obj, dict) and "detail" in image_url_obj:
-                                redacted_part["image_url"]["detail"] = image_url_obj["detail"]
+                            if (
+                                isinstance(image_url_obj, dict)
+                                and "detail" in image_url_obj
+                            ):
+                                redacted_part["image_url"]["detail"] = image_url_obj[
+                                    "detail"
+                                ]
                             redacted_parts.append(redacted_part)
                         except Exception:
                             redacted_parts.append(part)
@@ -396,7 +414,10 @@ def deanonymize_openai_response(body: dict, mapping: Dict[str, str]) -> dict:
 
 # --- Anthropic Messages API ---
 
-async def redact_anthropic_request(body: dict, http_client: httpx.AsyncClient) -> Tuple[dict, Dict[str, str]]:
+
+async def redact_anthropic_request(
+    body: dict, http_client: httpx.AsyncClient
+) -> Tuple[dict, Dict[str, str]]:
     """Redact PII from Anthropic Messages API request."""
     combined_mapping = {}
 
@@ -441,7 +462,7 @@ async def redact_anthropic_request(body: dict, http_client: httpx.AsyncClient) -
                                 redacted_part["source"] = {
                                     "type": "base64",
                                     "media_type": media_type,
-                                    "data": redacted_data
+                                    "data": redacted_data,
                                 }
                                 redacted_parts.append(redacted_part)
                             except Exception:
@@ -519,7 +540,10 @@ def deanonymize_anthropic_response(body: dict, mapping: Dict[str, str]) -> dict:
 
 # --- OpenAI Responses API ---
 
-async def redact_responses_api_request(body: dict, http_client: httpx.AsyncClient) -> Tuple[dict, Dict[str, str]]:
+
+async def redact_responses_api_request(
+    body: dict, http_client: httpx.AsyncClient
+) -> Tuple[dict, Dict[str, str]]:
     """Redact PII from OpenAI Responses API request."""
     combined_mapping = {}
 
@@ -561,11 +585,15 @@ async def redact_responses_api_request(body: dict, http_client: httpx.AsyncClien
                                 combined_mapping.update(mapping)
                             else:
                                 redacted_parts.append(part)
-                        elif isinstance(part, dict) and part.get("type") == "input_image":
+                        elif (
+                            isinstance(part, dict) and part.get("type") == "input_image"
+                        ):
                             image_url = part.get("image_url", "")
                             if image_url:
                                 try:
-                                    redacted_url = await redact_image(image_url, http_client)
+                                    redacted_url = await redact_image(
+                                        image_url, http_client
+                                    )
                                     redacted_part = part.copy()
                                     redacted_part["image_url"] = redacted_url
                                     redacted_parts.append(redacted_part)
@@ -636,7 +664,10 @@ def deanonymize_responses_api_response(body: dict, mapping: Dict[str, str]) -> d
 
 # --- Gemini API ---
 
-async def redact_gemini_request(body: dict, http_client: httpx.AsyncClient) -> Tuple[dict, Dict[str, str]]:
+
+async def redact_gemini_request(
+    body: dict, http_client: httpx.AsyncClient
+) -> Tuple[dict, Dict[str, str]]:
     """Redact PII from Gemini API request."""
     combined_mapping = {}
 
@@ -676,7 +707,7 @@ async def redact_gemini_request(body: dict, http_client: httpx.AsyncClient) -> T
                                 redacted_part = part.copy()
                                 redacted_part["inline_data"] = {
                                     "mime_type": mime_type,
-                                    "data": redacted_data
+                                    "data": redacted_data,
                                 }
                                 redacted_parts.append(redacted_part)
                             except Exception:
@@ -759,7 +790,11 @@ def deanonymize_gemini_response(body: dict, mapping: Dict[str, str]) -> dict:
     return result
 
 
-@app.api_route("/api/openai/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"], tags=["OpenAI Proxy"])
+@app.api_route(
+    "/api/openai/{path:path}",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
+    tags=["OpenAI Proxy"],
+)
 async def openai_proxy(request: Request, path: str):
     """
     Proxy to OpenAI API with automatic PII redaction.
@@ -796,12 +831,16 @@ async def openai_proxy(request: Request, path: str):
                 body_json = json.loads(body)
                 # Chat Completions API (messages key)
                 if "messages" in body_json:
-                    redacted_body, mapping = await redact_openai_request(body_json, client)
+                    redacted_body, mapping = await redact_openai_request(
+                        body_json, client
+                    )
                     body = json.dumps(redacted_body).encode("utf-8")
                 # Responses API (input key)
                 elif "input" in body_json:
                     is_responses_api = True
-                    redacted_body, mapping = await redact_responses_api_request(body_json, client)
+                    redacted_body, mapping = await redact_responses_api_request(
+                        body_json, client
+                    )
                     body = json.dumps(redacted_body).encode("utf-8")
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -820,7 +859,9 @@ async def openai_proxy(request: Request, path: str):
         try:
             response_json = json.loads(response.content)
             if is_responses_api:
-                deanonymized = deanonymize_responses_api_response(response_json, mapping)
+                deanonymized = deanonymize_responses_api_response(
+                    response_json, mapping
+                )
             else:
                 deanonymized = deanonymize_openai_response(response_json, mapping)
             response_content = json.dumps(deanonymized).encode("utf-8")
@@ -835,7 +876,11 @@ async def openai_proxy(request: Request, path: str):
     )
 
 
-@app.api_route("/api/anthropic/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"], tags=["Anthropic Proxy"])
+@app.api_route(
+    "/api/anthropic/{path:path}",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
+    tags=["Anthropic Proxy"],
+)
 async def anthropic_proxy(request: Request, path: str):
     """
     Proxy to Anthropic Messages API with automatic PII redaction.
@@ -868,7 +913,9 @@ async def anthropic_proxy(request: Request, path: str):
             try:
                 body_json = json.loads(body)
                 if "messages" in body_json:
-                    redacted_body, mapping = await redact_anthropic_request(body_json, client)
+                    redacted_body, mapping = await redact_anthropic_request(
+                        body_json, client
+                    )
                     body = json.dumps(redacted_body).encode("utf-8")
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
@@ -898,7 +945,11 @@ async def anthropic_proxy(request: Request, path: str):
     )
 
 
-@app.api_route("/api/gemini/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"], tags=["Gemini Proxy"])
+@app.api_route(
+    "/api/gemini/{path:path}",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
+    tags=["Gemini Proxy"],
+)
 async def gemini_proxy(request: Request, path: str):
     """
     Proxy to Google Gemini API with automatic PII redaction.
@@ -929,7 +980,9 @@ async def gemini_proxy(request: Request, path: str):
             try:
                 body_json = json.loads(body)
                 if "contents" in body_json:
-                    redacted_body, mapping = await redact_gemini_request(body_json, client)
+                    redacted_body, mapping = await redact_gemini_request(
+                        body_json, client
+                    )
                     body = json.dumps(redacted_body).encode("utf-8")
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
