@@ -14,22 +14,40 @@ from spacy.scorer import Scorer
 from spacy.tokens import DocBin
 from spacy.training import Example
 
-ACCEPTANCE_CRITERIA: dict[str, float] = {
-    "PERSON": 0.90,
-    "ADDRESS": 0.85,
-    "ORGANIZATION": 0.85,
-    "DATE_OF_BIRTH": 0.80,
-    "BANK_ACCOUNT": 0.80,
+ACCEPTANCE_CRITERIA: dict[str, dict[str, float]] = {
+    "ja": {
+        "PERSON": 0.90,
+        "ADDRESS": 0.85,
+        "ORGANIZATION": 0.85,
+        "DATE_OF_BIRTH": 0.80,
+        "BANK_ACCOUNT": 0.80,
+    },
+    "en": {
+        "PERSON": 0.85,
+        "ADDRESS": 0.80,
+        "ORGANIZATION": 0.80,
+        "DATE_OF_BIRTH": 0.75,
+        "BANK_ACCOUNT": 0.75,
+    },
 }
-OVERALL_F1_THRESHOLD = 0.88
+OVERALL_F1_THRESHOLD: dict[str, float] = {"ja": 0.88, "en": 0.80}
 
 # Recall下限: F1が高くてもRecallが低い = PII漏洩リスク
-RECALL_MINIMUMS: dict[str, float] = {
-    "PERSON": 0.85,
-    "ADDRESS": 0.80,
-    "ORGANIZATION": 0.80,
-    "DATE_OF_BIRTH": 0.75,
-    "BANK_ACCOUNT": 0.75,
+RECALL_MINIMUMS: dict[str, dict[str, float]] = {
+    "ja": {
+        "PERSON": 0.85,
+        "ADDRESS": 0.80,
+        "ORGANIZATION": 0.80,
+        "DATE_OF_BIRTH": 0.75,
+        "BANK_ACCOUNT": 0.75,
+    },
+    "en": {
+        "PERSON": 0.80,
+        "ADDRESS": 0.75,
+        "ORGANIZATION": 0.75,
+        "DATE_OF_BIRTH": 0.70,
+        "BANK_ACCOUNT": 0.70,
+    },
 }
 
 
@@ -60,9 +78,13 @@ def evaluate_model(
     return scores
 
 
-def print_report(scores: dict) -> bool:
+def print_report(scores: dict, language: str = "ja") -> bool:
     """評価結果を表示し、合格基準をチェックする."""
-    print("=== Evaluation Report ===\n")
+    criteria = ACCEPTANCE_CRITERIA[language]
+    recall_mins = RECALL_MINIMUMS[language]
+    f1_threshold = OVERALL_F1_THRESHOLD[language]
+
+    print(f"=== Evaluation Report ({language}) ===\n")
 
     ents_per_type = scores.get("ents_per_type", {})
     all_pass = True
@@ -70,14 +92,14 @@ def print_report(scores: dict) -> bool:
     print(f"{'Entity':<20} {'Precision':>10} {'Recall':>10} {'F1':>10} {'F1 Thr':>8} {'R Thr':>8} {'Pass':>6}")
     print("-" * 80)
 
-    for label, threshold in ACCEPTANCE_CRITERIA.items():
+    for label, threshold in criteria.items():
         stats = ents_per_type.get(label, {"p": 0, "r": 0, "f": 0})
         p = stats.get("p", 0)
         r = stats.get("r", 0)
         f = stats.get("f", 0)
 
         f1_ok = f >= threshold
-        recall_min = RECALL_MINIMUMS.get(label, 0)
+        recall_min = recall_mins.get(label, 0)
         recall_ok = r >= recall_min
         passed = f1_ok and recall_ok
 
@@ -89,19 +111,19 @@ def print_report(scores: dict) -> bool:
 
     overall_f1 = scores.get("ents_f", 0)
     overall_r = scores.get("ents_r", 0)
-    overall_pass = overall_f1 >= OVERALL_F1_THRESHOLD
+    overall_pass = overall_f1 >= f1_threshold
     if not overall_pass:
         all_pass = False
 
     print("-" * 80)
-    print(f"{'Overall':<20} {scores.get('ents_p', 0):>10.4f} {overall_r:>10.4f} {overall_f1:>10.4f} {OVERALL_F1_THRESHOLD:>8.2f} {'':>8} {'OK' if overall_pass else 'FAIL':>6}")
+    print(f"{'Overall':<20} {scores.get('ents_p', 0):>10.4f} {overall_r:>10.4f} {overall_f1:>10.4f} {f1_threshold:>8.2f} {'':>8} {'OK' if overall_pass else 'FAIL':>6}")
 
     # 偽陽性の分析
     print("\n=== False Positive Analysis ===")
     overall_p = scores.get("ents_p", 0)
     fp_rate = 1.0 - overall_p if overall_p else 1.0
     print(f"Overall FP rate (1-Precision): {fp_rate:.4f}")
-    for label in ACCEPTANCE_CRITERIA:
+    for label in criteria:
         stats = ents_per_type.get(label, {"p": 0})
         p = stats.get("p", 0)
         label_fp = 1.0 - p if p else 1.0
@@ -110,7 +132,7 @@ def print_report(scores: dict) -> bool:
     # Recall警告（漏洩リスク）
     print("\n=== Leakage Risk (Low Recall) ===")
     leakage_warnings = []
-    for label, recall_min in RECALL_MINIMUMS.items():
+    for label, recall_min in recall_mins.items():
         stats = ents_per_type.get(label, {"r": 0})
         r = stats.get("r", 0)
         if r < recall_min:
@@ -130,16 +152,21 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="NERモデル評価")
     parser.add_argument("--model", required=True, help="モデルパスまたはパッケージ名")
+    parser.add_argument("--language", default="ja", choices=list(ACCEPTANCE_CRITERIA))
     parser.add_argument(
         "--test-data",
         type=Path,
-        default=Path(__file__).parents[2] / "data" / "processed" / "test.spacy",
+        default=None,
     )
     parser.add_argument("--output-json", type=Path, default=None)
     args = parser.parse_args()
 
-    scores = evaluate_model(args.model, args.test_data)
-    passed = print_report(scores)
+    test_data = args.test_data or (
+        Path(__file__).parents[2] / "data" / "processed" / args.language / "test.spacy"
+    )
+
+    scores = evaluate_model(args.model, test_data)
+    passed = print_report(scores, language=args.language)
 
     if args.output_json:
         args.output_json.parent.mkdir(parents=True, exist_ok=True)

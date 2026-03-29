@@ -1,0 +1,22 @@
+Generate {{ num_docs }} realistic English medical record excerpts following these rules.
+
+## Rules
+- Each record must be independent with different patients and details
+- Mark PII entities with the following XML tags:
+  - <PERSON>full name (patient, doctor, or emergency contact)</PERSON>
+  - <ADDRESS>full mailing address</ADDRESS>
+  - <ORGANIZATION>hospital, clinic, or insurance company name</ORGANIZATION>
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH>
+  - <BANK_ACCOUNT>bank account or payment information</BANK_ACCOUNT> (only when applicable)
+- Text outside tags must be natural English prose
+- Include patient intake forms, referral letters, and medical summaries
+- Most records should include date of birth (common in medical forms)
+- Mix date formats: "February 20, 1978", "02/20/1978", "20 Feb 1978"
+- Addresses should include full street address, city, state, zip code
+- Each record should be 100-300 words
+
+## Output format
+Separate each record with `---DOC_SEPARATOR---`
+
+## Topic examples
+- Patient intake form, specialist referral letter, insurance claim summary, emergency contact form, prescription order with patient details

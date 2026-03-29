@@ -1,0 +1,20 @@
+Generate {{ num_docs }} realistic English resume/CV excerpts following these rules.
+
+## Rules
+- Each resume must be independent with different candidates
+- Mark PII entities with the following XML tags:
+  - <PERSON>full name</PERSON>
+  - <ADDRESS>full mailing address</ADDRESS>
+  - <ORGANIZATION>school, company, or institution name</ORGANIZATION>
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH> (only when applicable)
+- Include both the personal information header and work/education history sections
+- Mix name formats: first-last, with middle name, with suffixes (Jr., III)
+- Addresses should include street, city, state, zip code
+- Organizations should include companies, universities, and professional associations
+- Each resume excerpt should be 100-300 words
+
+## Output format
+Separate each resume with `---DOC_SEPARATOR---`
+
+## Topic examples
+- Fresh graduate resume, experienced professional CV, academic CV with publications, part-time job application, executive resume with board memberships

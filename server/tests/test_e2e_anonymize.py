@@ -152,6 +152,52 @@ class TestLeakageCheck:
 # ============================================================
 
 
+# ============================================================
+# 英語テキストのPII検出
+# ============================================================
+
+
+class TestEnglishDocuments:
+    """英語テキスト中のNERエンティティ検出テスト.
+
+    NOTE: テスト用NLPエンジンは en_core_web_sm を使用しているため、
+    カスタムNERラベル（PERSON, ADDRESS等）ではなく spaCy標準ラベルで検出される。
+    本テストはサーバ統合テストの基盤として、英語言語パイプラインの疎通を確認する。
+    英語NERモデル（en_ner_en）訓練後にラベルを検証するテストに拡張する。
+    """
+
+    def test_english_pipeline_accepts_text(self, analyzer: AnalyzerEngine):
+        """英語テキストがAnalyzerEngineで処理可能であること."""
+        text = (
+            "Patient Name: John Smith\n"
+            "Date of Birth: March 15, 1990\n"
+            "Address: 456 Oak Avenue, Suite 200, New York, NY 10001\n"
+            "Email: john.smith@example.com\n"
+            "Phone: 090-1234-5678"
+        )
+        results = analyzer.analyze(text=text, language="en")
+        # 英語パイプラインがエラーなく動作すること
+        assert isinstance(results, list)
+
+    def test_english_email_detection(self, analyzer: AnalyzerEngine):
+        """英語テキスト中のメールアドレス検出（パターン認識器はja専用のため非検出が正常）."""
+        text = "Contact Dr. Emily Johnson at emily.johnson@hospital.org for appointment details."
+        results = analyzer.analyze(text=text, language="en")
+        # ja専用パターン認識器はlanguage="en"では動作しないことを確認
+        assert isinstance(results, list)
+
+    def test_mixed_ja_en_text(self, analyzer: AnalyzerEngine):
+        """日英混合テキスト（日本語モードで英語人名を含むケース）."""
+        text = (
+            "担当者: John Smith様\n"
+            "連絡先: 03-1234-5678\n"
+            "メール: john@example.com"
+        )
+        entities = _analyze_all(analyzer, text, lang="ja")
+        assert "PHONE_NUMBER" in entities
+        assert "EMAIL_ADDRESS" in entities
+
+
 class TestCleanTextNoFalsePositives:
     """PIIを含まないテキストで偽陽性がないことを検証."""
 

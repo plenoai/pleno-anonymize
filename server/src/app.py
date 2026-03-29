@@ -38,34 +38,36 @@ def _init_presidio():
             super().__init__()
             self.nlp = models
 
-    # Load Japanese NER model from packages/models/ja_ner_ja-0.1.0
     app_dir = Path(__file__).parent
-    model_path = (
-        app_dir.parent
-        / "packages"
-        / "models"
-        / "ja_ner_ja-0.1.0"
-        / "ja_ner_ja"
-        / "ja_ner_ja-0.1.0"
-    )
-    _nlp_ja = spacy.load(str(model_path))
+    models_dir = app_dir.parent / "packages" / "models"
 
-    # Try to load English model, fallback to None if not available
+    # Load Japanese NER model
+    ja_model_path = models_dir / "ja_ner_ja-0.1.0" / "ja_ner_ja" / "ja_ner_ja-0.1.0"
+    _nlp_ja = spacy.load(str(ja_model_path))
+
+    # Load English NER model
+    en_model_path = models_dir / "en_ner_en-0.1.0" / "en_ner_en" / "en_ner_en-0.1.0"
     try:
-        _nlp_en = spacy.load("en_core_web_sm")
+        _nlp_en = spacy.load(str(en_model_path))
     except OSError:
         _nlp_en = None
 
-    # Build models dict with available models
     models = {"ja": _nlp_ja}
     if _nlp_en is not None:
         models["en"] = _nlp_en
 
+    supported_languages = list(models.keys())
     engine = MultiLangSpacyNlpEngine(models)
-    _analyzer = AnalyzerEngine(nlp_engine=engine)
+    _analyzer = AnalyzerEngine(
+        nlp_engine=engine,
+        supported_languages=supported_languages,
+    )
 
     for recognizer in ALL_JA_RECOGNIZERS:
         _analyzer.registry.add_recognizer(recognizer)
+
+    if "en" in supported_languages:
+        _analyzer.registry.load_predefined_recognizers(languages=["en"])
 
     _anonymizer = AnonymizerEngine()
 

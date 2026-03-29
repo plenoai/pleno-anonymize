@@ -1,6 +1,6 @@
 """JSON アノテーションデータを spaCy DocBin 形式に変換する.
 
-- ja_core_news_sm のトークナイザーを使用
+- 言語別トークナイザーを使用 (ja/en)
 - char_span による トークン境界アライメント
 - train/dev/test 分割
 """
@@ -94,24 +94,29 @@ def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description="JSON → spaCy DocBin 変換")
+    parser.add_argument("--language", default="ja", choices=["ja", "en"])
     parser.add_argument(
         "--input",
         type=Path,
-        default=Path(__file__).parents[2] / "data" / "raw" / "generated.json",
+        default=None,
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path(__file__).parents[2] / "data" / "processed",
+        default=None,
     )
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
-    print("Loading spaCy Japanese tokenizer...")
-    nlp = spacy.blank("ja")
+    data_root = Path(__file__).parents[2] / "data"
+    input_path = args.input or (data_root / "raw" / args.language / "generated.json")
+    output_dir = args.output_dir or (data_root / "processed" / args.language)
 
-    print(f"Loading data from {args.input}...")
-    with open(args.input, encoding="utf-8") as f:
+    print(f"Loading spaCy tokenizer for '{args.language}'...")
+    nlp = spacy.blank(args.language)
+
+    print(f"Loading data from {input_path}...")
+    with open(input_path, encoding="utf-8") as f:
         data = json.load(f)
 
     print(f"Converting {len(data)} documents...")
@@ -131,11 +136,11 @@ def main() -> None:
     train, dev, test = split_data(docs, seed=args.seed)
     print(f"Split: train={len(train)}, dev={len(dev)}, test={len(test)}")
 
-    save_docbin(train, args.output_dir / "train.spacy")
-    save_docbin(dev, args.output_dir / "dev.spacy")
-    save_docbin(test, args.output_dir / "test.spacy")
+    save_docbin(train, output_dir / "train.spacy")
+    save_docbin(dev, output_dir / "dev.spacy")
+    save_docbin(test, output_dir / "test.spacy")
 
-    print(f"Output: {args.output_dir}")
+    print(f"Output: {output_dir}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,22 @@
+Generate {{ num_docs }} realistic English business email excerpts following these rules.
+
+## Rules
+- Each email must be independent with different senders, recipients, and content
+- Mark PII entities with the following XML tags:
+  - <PERSON>full name</PERSON>
+  - <ADDRESS>full mailing address</ADDRESS>
+  - <ORGANIZATION>company or institution name</ORGANIZATION>
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH> (only when applicable)
+  - <BANK_ACCOUNT>bank account information</BANK_ACCOUNT> (only when applicable)
+- Text outside tags must be natural English prose
+- Write in formal business email style
+- Mix name formats: first-last, with middle initials, with titles (Mr./Ms./Dr.)
+- Addresses should include street, city, state/province, postal code, and sometimes country
+- Mix date formats: "January 15, 1990", "01/15/1990", "15 Jan 1990"
+- Each email should be 100-300 words
+
+## Output format
+Separate each email with `---DOC_SEPARATOR---`
+
+## Topic examples
+- Invoice submission to a client, new customer registration confirmation, bank account change notification, follow-up after a business meeting, employee transfer announcement

@@ -9,24 +9,33 @@ from src.recognizers_ja import ALL_JA_RECOGNIZERS
 
 
 class _TestNlpEngine(SpacyNlpEngine):
-    """en_core_web_smを直接ロードしてja言語として使用するNLPエンジン."""
+    """テスト用NLPエンジン（ja/en両言語対応）."""
 
     def __init__(self):
         super().__init__()
-        self.nlp = {"ja": spacy.load("en_core_web_sm")}
+        nlp_en = spacy.load("en_core_web_sm")
+        self.nlp = {"ja": nlp_en, "en": nlp_en}
 
 
 @pytest.fixture(scope="session")
 def analyzer() -> AnalyzerEngine:
-    """パターン認識器付きAnalyzerEngine."""
+    """パターン認識器付きAnalyzerEngine（ja/en対応）."""
     nlp_engine = _TestNlpEngine()
 
-    registry = RecognizerRegistry(supported_languages=["ja"])
+    registry = RecognizerRegistry(supported_languages=["ja", "en"])
     for recognizer in ALL_JA_RECOGNIZERS:
         registry.add_recognizer(recognizer)
+
+    # Presidio requires at least one recognizer per supported language.
+    # Load default English recognizers from Presidio's built-in registry.
+    default_registry = RecognizerRegistry(supported_languages=["en"])
+    default_registry.load_predefined_recognizers(languages=["en"])
+    for recognizer in default_registry.recognizers:
+        if "en" in recognizer.supported_language:
+            registry.add_recognizer(recognizer)
 
     return AnalyzerEngine(
         registry=registry,
         nlp_engine=nlp_engine,
-        supported_languages=["ja"],
+        supported_languages=["ja", "en"],
     )

@@ -1,0 +1,21 @@
+Generate {{ num_docs }} realistic English financial document excerpts following these rules.
+
+## Rules
+- Each document must be independent with different parties and details
+- Mark PII entities with the following XML tags:
+  - <PERSON>full name</PERSON>
+  - <ADDRESS>full mailing address</ADDRESS>
+  - <ORGANIZATION>bank or financial institution name</ORGANIZATION>
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH> (only when applicable)
+  - <BANK_ACCOUNT>bank account information (bank name, routing number, account number, account type)</BANK_ACCOUNT>
+- Text outside tags must be natural English prose
+- Include various financial document types
+- Bank account info should include details like: "Chase Bank, Routing: 021000021, Account: 123456789, Checking"
+- Mix date formats: "March 15, 1985", "03/15/1985", "15-Mar-1985"
+- Each document should be 100-300 words
+
+## Output format
+Separate each document with `---DOC_SEPARATOR---`
+
+## Topic examples
+- Bank account opening form, wire transfer authorization, loan application, direct deposit setup, power of attorney for financial matters

@@ -10,6 +10,32 @@ class EntityType:
     examples: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class LangConfig:
+    system_prompt: str
+    prompts_subdir: str
+
+
+LANG_CONFIGS: dict[str, LangConfig] = {
+    "ja": LangConfig(
+        system_prompt=(
+            "あなたは日本語のPII（個人情報）を含むリアルなテキストを生成する専門家です。"
+            "指定されたXMLタグ形式で正確にPIIエンティティをマークアップしてください。"
+            "タグは必ず正しく閉じ、ネストしないでください。"
+        ),
+        prompts_subdir="ja",
+    ),
+    "en": LangConfig(
+        system_prompt=(
+            "You are an expert at generating realistic English text containing PII (personally identifiable information). "
+            "Mark PII entities precisely using the specified XML tag format. "
+            "Tags must be properly closed and must not be nested."
+        ),
+        prompts_subdir="en",
+    ),
+}
+
+
 # NERモデルが担当する文脈依存エンティティ
 NER_ENTITIES: tuple[EntityType, ...] = (
     EntityType(

@@ -1,6 +1,6 @@
-"""GPT-5.4-miniを用いた日本語PII合成データ生成パイプライン.
+"""PII合成データ生成パイプライン（多言語対応）.
 
-XMLタグ付きの日本語テキストを生成し、文字オフセットベースの
+XMLタグ付きテキストを生成し、文字オフセットベースの
 アノテーションJSONに変換する。
 """
 
@@ -14,7 +14,7 @@ from jinja2 import Environment, FileSystemLoader
 from openai import OpenAI
 from tqdm import tqdm
 
-from pleno_ner_training.entity_types import NER_LABELS
+from pleno_ner_training.entity_types import NER_LABELS, LANG_CONFIGS
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 DOC_SEPARATOR = "---DOC_SEPARATOR---"
@@ -88,13 +88,16 @@ def generate_batch(
     client: OpenAI,
     template_name: str,
     num_docs: int,
-    model: str = "gpt-5.4-mini",
+    language: str = "ja",
+    model: str = "gpt-5.4-nano",
     max_retries: int = 3,
 ) -> list[dict]:
     """1つのテンプレートからバッチ生成する."""
     import time
 
-    env = Environment(loader=FileSystemLoader(str(PROMPTS_DIR)))
+    lang_config = LANG_CONFIGS[language]
+    prompts_subdir = PROMPTS_DIR / lang_config.prompts_subdir
+    env = Environment(loader=FileSystemLoader(str(prompts_subdir)))
     template = env.get_template(template_name)
     prompt = template.render(num_docs=num_docs)
 
@@ -103,14 +106,7 @@ def generate_batch(
             response = client.chat.completions.create(
                 model=model,
                 messages=[
-                    {
-                        "role": "system",
-                        "content": (
-                            "あなたは日本語のPII（個人情報）を含むリアルなテキストを生成する専門家です。"
-                            "指定されたXMLタグ形式で正確にPIIエンティティをマークアップしてください。"
-                            "タグは必ず正しく閉じ、ネストしないでください。"
-                        ),
-                    },
+                    {"role": "system", "content": lang_config.system_prompt},
                     {"role": "user", "content": prompt},
                 ],
                 temperature=0.9,
@@ -154,12 +150,17 @@ def _save_incremental(path: Path, all_docs: list[dict]) -> None:
 
 def generate_dataset(
     output_dir: Path,
+    language: str = "ja",
     docs_per_template: int = 20,
     batches_per_template: int = 50,
-    model: str = "gpt-5.4-mini",
+    model: str = "gpt-5.4-nano",
     max_workers: int = 5,
 ) -> None:
-    """全テンプレートからデータセットを生成する."""
+    """指定言語のテンプレートからデータセットを生成する."""
+    if language not in LANG_CONFIGS:
+        print(f"[ERROR] Unsupported language: {language}. Available: {list(LANG_CONFIGS)}", file=sys.stderr)
+        raise SystemExit(1)
+
     client = OpenAI()
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -169,7 +170,13 @@ def generate_dataset(
     if initial_count > 0:
         print(f"Resuming: {initial_count} existing documents loaded")
 
-    templates = list(PROMPTS_DIR.glob("*.j2"))
+    lang_config = LANG_CONFIGS[language]
+    prompts_subdir = PROMPTS_DIR / lang_config.prompts_subdir
+    templates = list(prompts_subdir.glob("*.j2"))
+    if not templates:
+        print(f"[ERROR] No templates found in {prompts_subdir}", file=sys.stderr)
+        raise SystemExit(1)
+
     failed = 0
     save_interval = 5  # 5バッチごとに保存
     batch_count = 0
@@ -184,13 +191,14 @@ def generate_dataset(
                     client,
                     template_name,
                     docs_per_template,
+                    language,
                     model,
                 )
                 tasks.append((future, template_name, batch_idx))
 
         for future, template_name, batch_idx in tqdm(
             [(f, t, b) for f, t, b in tasks],
-            desc="Generating",
+            desc=f"Generating ({language})",
             total=len(tasks),
         ):
             try:
@@ -216,7 +224,7 @@ def generate_dataset(
             entity_counts[ent["label"]] = entity_counts.get(ent["label"], 0) + 1
 
     new_docs = len(all_docs) - initial_count
-    print(f"\n=== Generation Summary ===")
+    print(f"\n=== Generation Summary ({language}) ===")
     print(f"Total documents: {len(all_docs)} (new: {new_docs})")
     print(f"Failed batches: {failed}")
     print(f"Entity counts:")
@@ -228,20 +236,24 @@ def generate_dataset(
 def main() -> None:
     import argparse
 
-    parser = argparse.ArgumentParser(description="日本語PII合成データ生成")
+    parser = argparse.ArgumentParser(description="PII合成データ生成")
+    parser.add_argument("--language", default="ja", choices=list(LANG_CONFIGS))
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path(__file__).parents[2] / "data" / "raw",
+        default=None,
     )
     parser.add_argument("--docs-per-template", type=int, default=20)
     parser.add_argument("--batches-per-template", type=int, default=50)
-    parser.add_argument("--model", default="gpt-5.4-mini")
+    parser.add_argument("--model", default="gpt-5.4-nano")
     parser.add_argument("--max-workers", type=int, default=5)
     args = parser.parse_args()
 
+    output_dir = args.output_dir or (Path(__file__).parents[2] / "data" / "raw" / args.language)
+
     generate_dataset(
-        output_dir=args.output_dir,
+        output_dir=output_dir,
+        language=args.language,
         docs_per_template=args.docs_per_template,
         batches_per_template=args.batches_per_template,
         model=args.model,
