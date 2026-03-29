@@ -1,6 +1,7 @@
-.PHONY: generate convert train train-cnn evaluate package clean
+.PHONY: generate convert train train-cnn evaluate package clean \
+       generate-en convert-en train-en evaluate-en package-en all-en
 
-MODEL ?= gpt-5.4-mini
+MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
 BATCHES_PER_TEMPLATE ?= 50
 MAX_WORKERS ?= 5
@@ -11,9 +12,12 @@ DATA_PROCESSED = data/processed
 OUTPUT_DIR = output
 MODELS_DIR = ../models
 
+# === 日本語 (既存) ===
+
 generate:
 	uv run python -m pleno_ner_training.generate_data \
-		--output-dir $(DATA_RAW) \
+		--language ja \
+		--output-dir $(DATA_RAW)/ja \
 		--docs-per-template $(DOCS_PER_TEMPLATE) \
 		--batches-per-template $(BATCHES_PER_TEMPLATE) \
 		--model $(MODEL) \
@@ -21,26 +25,28 @@ generate:
 
 convert:
 	uv run python -m pleno_ner_training.convert_to_docbin \
-		--input $(DATA_RAW)/generated.json \
-		--output-dir $(DATA_PROCESSED)
+		--language ja \
+		--input $(DATA_RAW)/ja/generated.json \
+		--output-dir $(DATA_PROCESSED)/ja
 
 train:
 	uv run python -m spacy train configs/train_transformer.cfg \
 		--output $(OUTPUT_DIR) \
-		--paths.train $(DATA_PROCESSED)/train.spacy \
-		--paths.dev $(DATA_PROCESSED)/dev.spacy \
+		--paths.train $(DATA_PROCESSED)/ja/train.spacy \
+		--paths.dev $(DATA_PROCESSED)/ja/dev.spacy \
 		--gpu-id $(GPU_ID)
 
 train-cnn:
 	uv run python -m spacy train configs/train_cnn.cfg \
 		--output $(OUTPUT_DIR) \
-		--paths.train $(DATA_PROCESSED)/train.spacy \
-		--paths.dev $(DATA_PROCESSED)/dev.spacy
+		--paths.train $(DATA_PROCESSED)/ja/train.spacy \
+		--paths.dev $(DATA_PROCESSED)/ja/dev.spacy
 
 evaluate:
 	uv run python -m pleno_ner_training.evaluate \
 		--model $(OUTPUT_DIR)/model-best \
-		--test-data $(DATA_PROCESSED)/test.spacy \
+		--language ja \
+		--test-data $(DATA_PROCESSED)/ja/test.spacy \
 		--output-json $(OUTPUT_DIR)/scores.json
 
 package:
@@ -49,6 +55,48 @@ package:
 		--name ner_ja \
 		--version 0.1.0 \
 		--build wheel
+
+# === 英語 ===
+
+generate-en:
+	uv run python -m pleno_ner_training.generate_data \
+		--language en \
+		--output-dir $(DATA_RAW)/en \
+		--docs-per-template $(DOCS_PER_TEMPLATE) \
+		--batches-per-template $(BATCHES_PER_TEMPLATE) \
+		--model $(MODEL) \
+		--max-workers $(MAX_WORKERS)
+
+convert-en:
+	uv run python -m pleno_ner_training.convert_to_docbin \
+		--language en \
+		--input $(DATA_RAW)/en/generated.json \
+		--output-dir $(DATA_PROCESSED)/en
+
+train-en:
+	uv run python -m spacy train configs/train_transformer_en.cfg \
+		--output $(OUTPUT_DIR)/en \
+		--paths.train $(DATA_PROCESSED)/en/train.spacy \
+		--paths.dev $(DATA_PROCESSED)/en/dev.spacy \
+		--gpu-id $(GPU_ID)
+
+
+evaluate-en:
+	uv run python -m pleno_ner_training.evaluate \
+		--model $(OUTPUT_DIR)/en/model-best \
+		--language en \
+		--test-data $(DATA_PROCESSED)/en/test.spacy \
+		--output-json $(OUTPUT_DIR)/en/scores.json
+
+package-en:
+	mkdir -p $(MODELS_DIR)
+	uv run python -m spacy package $(OUTPUT_DIR)/en/model-best $(MODELS_DIR) \
+		--name ner_en \
+		--version 0.1.0
+
+all-en: generate-en convert-en train-en evaluate-en package-en
+
+# === 共通 ===
 
 clean:
 	rm -rf $(OUTPUT_DIR) $(DATA_RAW) $(DATA_PROCESSED)

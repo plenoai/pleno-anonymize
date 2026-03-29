@@ -59,7 +59,7 @@ const ENTITY_LABELS: Record<string, string> = {
 };
 
 const SIZE_DATA: Record<string, number> = {
-  pleno_ner_ja: 6.3, bert_ner_ja: 440, ja_core_news_lg: 583.8, ja_core_news_md: 56.0, ja_core_news_sm: 13.8,
+  pleno_ner_ja: 18, bert_ner_ja: 440, ja_core_news_lg: 529, ja_core_news_md: 40, ja_core_news_sm: 11,
 };
 const LATENCY_DATA: Record<string, number> = {
   pleno_ner_ja: 2.8, bert_ner_ja: 17.7, ja_core_news_lg: 6.9, ja_core_news_md: 6.8, ja_core_news_sm: 6.7,

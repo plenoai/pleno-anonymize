@@ -1,6 +1,7 @@
 # Project-specific
 CLAUDE.md
 .claude/
+.mcp.json
 
 # Python
 __pycache__/
