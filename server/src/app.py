@@ -46,7 +46,7 @@ def _init_presidio():
     _nlp_ja = spacy.load(str(ja_model_path))
 
     # Load English NER model
-    en_model_path = models_dir / "en_ner_en-0.1.0" / "en_ner_en" / "en_ner_en-0.1.0"
+    en_model_path = models_dir / "en_ner_en-0.2.0" / "en_ner_en" / "en_ner_en-0.2.0"
     try:
         _nlp_en = spacy.load(str(en_model_path))
     except OSError:
