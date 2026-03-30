@@ -10,9 +10,15 @@ Generate {{ num_docs }} realistic English medical record excerpts following thes
   - <BANK_ACCOUNT>bank account or payment information</BANK_ACCOUNT> (only when applicable)
 - Text outside tags must be natural English prose
 - Include patient intake forms, referral letters, and medical summaries
-- Most records should include date of birth (common in medical forms)
-- Mix date formats: "February 20, 1978", "02/20/1978", "20 Feb 1978"
-- Addresses should include full street address, city, state, zip code
+- EVERY record MUST include a date of birth (standard in medical forms)
+- Date of birth formats MUST vary across:
+  - "February 20, 1978", "02/20/1978", "20 Feb 1978"
+  - "DOB: 02/20/1978", "Date of Birth: February 20, 1978"
+  - "D.O.B.: 1978-02-20", "Born: 20 February 1978"
+  - "Birthday: Feb 20, 1978"
+- Use DOB context prefixes: "Date of Birth:", "DOB:", "D.O.B.:", "Born:", "Birthday:"
+- Addresses: full US format with street, apt/suite, city, state, zip code
+- Mix name formats: first-last, with middle initial, Dr./Prof. titles, hyphenated surnames
 - Each record should be 100-300 words
 
 ## Output format

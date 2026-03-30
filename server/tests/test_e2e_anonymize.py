@@ -158,13 +158,67 @@ class TestLeakageCheck:
 
 
 class TestEnglishDocuments:
-    """英語テキスト中のNERエンティティ検出テスト.
+    """英語テキスト中のPII検出テスト.
 
-    NOTE: テスト用NLPエンジンは en_core_web_sm を使用しているため、
-    カスタムNERラベル（PERSON, ADDRESS等）ではなく spaCy標準ラベルで検出される。
-    本テストはサーバ統合テストの基盤として、英語言語パイプラインの疎通を確認する。
-    英語NERモデル（en_ner_en）訓練後にラベルを検証するテストに拡張する。
+    JA実文書テスト(TestRealWorldDocuments)の翻訳等価テスト。
+    EN/JA比較ベンチマークとして使用する。
     """
+
+    def test_medical_intake_form(self, analyzer: AnalyzerEngine):
+        """Medical intake form — mirrors JA test_medical_intake_form."""
+        text = (
+            "Patient Name: John Smith\n"
+            "Date of Birth: March 15, 1990\n"
+            "Address: 456 Oak Avenue, Suite 200, New York, NY 10001\n"
+            "Phone: (212) 555-0134\n"
+            "Email: john.smith@example.com\n"
+            "Insurance ID: BC-12345-678\n"
+            "Referring physician: Dr. Emily Johnson"
+        )
+        results = analyzer.analyze(text=text, language="en")
+        detected = {r.entity_type for r in results}
+        assert "EMAIL_ADDRESS" in detected
+
+    def test_hr_document(self, analyzer: AnalyzerEngine):
+        """HR document — mirrors JA test_hr_document."""
+        text = (
+            "Employee Name: Jane R. Doe\n"
+            "SSN: 123-45-6789\n"
+            "Bank Account: Chase Bank, Routing: 021000021, Account: 987654321, Checking\n"
+            "Passport: 123456789\n"
+            "Phone: (415) 555-0198\n"
+            "Email: jane.doe@company.com"
+        )
+        results = analyzer.analyze(text=text, language="en")
+        detected = {r.entity_type for r in results}
+        assert "EMAIL_ADDRESS" in detected
+
+    def test_corporate_registration(self, analyzer: AnalyzerEngine):
+        """Corporate registration — mirrors JA test_corporate_registration."""
+        text = (
+            "Company: Acme Corporation\n"
+            "EIN: 12-3456789\n"
+            "Address: 100 Technology Drive, Mountain View, CA 94043\n"
+            "CEO: Robert J. Wilson III\n"
+            "Website: https://acme-corp.com"
+        )
+        results = analyzer.analyze(text=text, language="en")
+        detected = {r.entity_type for r in results}
+        assert "URL" in detected
+
+    def test_financial_transfer_form(self, analyzer: AnalyzerEngine):
+        """Financial transfer form — mirrors JA test_financial_transfer_form."""
+        text = (
+            "Sender: Michael O'Brien\n"
+            "Address: 789 Elm Drive, Apt 3B, Chicago, IL 60601\n"
+            "Credit Card: 4111-1111-1111-1111\n"
+            "Wire to: Bank of America, ABA: 026009593, Acct: 456789012\n"
+            "IP Address: 192.168.1.100"
+        )
+        results = analyzer.analyze(text=text, language="en")
+        detected = {r.entity_type for r in results}
+        assert "CREDIT_CARD" in detected
+        assert "IP_ADDRESS" in detected
 
     def test_english_pipeline_accepts_text(self, analyzer: AnalyzerEngine):
         """英語テキストがAnalyzerEngineで処理可能であること."""
@@ -176,14 +230,6 @@ class TestEnglishDocuments:
             "Phone: 090-1234-5678"
         )
         results = analyzer.analyze(text=text, language="en")
-        # 英語パイプラインがエラーなく動作すること
-        assert isinstance(results, list)
-
-    def test_english_email_detection(self, analyzer: AnalyzerEngine):
-        """英語テキスト中のメールアドレス検出（パターン認識器はja専用のため非検出が正常）."""
-        text = "Contact Dr. Emily Johnson at emily.johnson@hospital.org for appointment details."
-        results = analyzer.analyze(text=text, language="en")
-        # ja専用パターン認識器はlanguage="en"では動作しないことを確認
         assert isinstance(results, list)
 
     def test_mixed_ja_en_text(self, analyzer: AnalyzerEngine):

@@ -2,6 +2,9 @@ packages/training/data/raw/**/*.json filter=lfs diff=lfs merge=lfs -text
 packages/models/**/model filter=lfs diff=lfs merge=lfs -text
 packages/models/**/*.bin filter=lfs diff=lfs merge=lfs -text
 packages/models/**/*.safetensors filter=lfs diff=lfs merge=lfs -text
+packages/models/**/vectors filter=lfs diff=lfs merge=lfs -text
+packages/models/**/key2row filter=lfs diff=lfs merge=lfs -text
+packages/models/**/strings.json filter=lfs diff=lfs merge=lfs -text
 packages/training/output/**/model filter=lfs diff=lfs merge=lfs -text
 packages/training/output/**/*.bin filter=lfs diff=lfs merge=lfs -text
 packages/training/output/**/*.safetensors filter=lfs diff=lfs merge=lfs -text

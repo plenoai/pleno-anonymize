@@ -80,6 +80,15 @@ train-en:
 		--paths.dev $(DATA_PROCESSED)/en/dev.spacy \
 		--gpu-id $(GPU_ID)
 
+train-en-cnn:
+	uv run python -m spacy train configs/train_cnn_en.cfg \
+		--output $(OUTPUT_DIR)/en \
+		--paths.train $(DATA_PROCESSED)/en/train.spacy \
+		--paths.dev $(DATA_PROCESSED)/en/dev.spacy
+
+augment-en:
+	uv run python -m pleno_ner_training.augment_en_data --augment-count 1000
+
 
 evaluate-en:
 	uv run python -m pleno_ner_training.evaluate \

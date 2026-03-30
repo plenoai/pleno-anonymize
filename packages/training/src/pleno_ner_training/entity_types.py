@@ -8,6 +8,7 @@ class EntityType:
     label: str
     description_ja: str
     examples: tuple[str, ...]
+    examples_en: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -42,6 +43,7 @@ NER_ENTITIES: tuple[EntityType, ...] = (
         label="PERSON",
         description_ja="人名",
         examples=("山田太郎", "ヤマダ タロウ", "田中花子", "Yamada Taro"),
+        examples_en=("John Smith", "Emily R. Johnson", "Jean-Pierre Dupont", "Michael O'Brien Jr."),
     ),
     EntityType(
         label="ADDRESS",
@@ -51,16 +53,29 @@ NER_ENTITIES: tuple[EntityType, ...] = (
             "大阪府大阪市北区梅田1丁目1-1",
             "〒150-0001 東京都渋谷区神宮前1-2-3 ABCビル5階",
         ),
+        examples_en=(
+            "123 Main Street, New York, NY 10001",
+            "456 Oak Avenue, Suite 200, San Francisco, CA 94102",
+            "10 Downing Street, London SW1A 2AA, United Kingdom",
+        ),
     ),
     EntityType(
         label="ORGANIZATION",
         description_ja="組織名",
         examples=("株式会社プレノ", "プレノAI合同会社", "東京大学", "厚生労働省"),
+        examples_en=("Acme Corporation", "MIT", "FDA", "Red Cross"),
     ),
     EntityType(
         label="DATE_OF_BIRTH",
         description_ja="生年月日",
         examples=("1990年1月15日", "平成2年1月15日", "昭和40年3月1日生まれ"),
+        examples_en=(
+            "January 15, 1990",
+            "01/15/1990",
+            "1990-01-15",
+            "15 Jan 1990",
+            "DOB: 03/15/1985",
+        ),
     ),
     EntityType(
         label="BANK_ACCOUNT",
@@ -68,6 +83,10 @@ NER_ENTITIES: tuple[EntityType, ...] = (
         examples=(
             "三菱UFJ銀行 渋谷支店 普通 1234567",
             "みずほ銀行 本店 当座 9876543",
+        ),
+        examples_en=(
+            "Chase Bank, Routing: 021000021, Account: 123456789, Checking",
+            "Bank of America, ABA: 026009593, Acct: 987654321, Savings",
         ),
     ),
 )

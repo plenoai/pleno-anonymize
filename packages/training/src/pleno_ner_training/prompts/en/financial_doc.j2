@@ -10,8 +10,17 @@ Generate {{ num_docs }} realistic English financial document excerpts following 
   - <BANK_ACCOUNT>bank account information (bank name, routing number, account number, account type)</BANK_ACCOUNT>
 - Text outside tags must be natural English prose
 - Include various financial document types
-- Bank account info should include details like: "Chase Bank, Routing: 021000021, Account: 123456789, Checking"
-- Mix date formats: "March 15, 1985", "03/15/1985", "15-Mar-1985"
+- Bank account formats MUST vary across these patterns:
+  - "Chase Bank, Routing: 021000021, Account: 123456789, Checking"
+  - "Bank of America, ABA: 026009593, Acct: 987654321, Savings"
+  - "Wells Fargo, Routing No. 121000248, Account No. 456789012"
+  - "Citibank N.A., RT# 021000089, Account# 112233445"
+  - Include credit union and international wire formats (SWIFT/IBAN) occasionally
+- Date of birth formats MUST vary: "March 15, 1985", "03/15/1985", "15-Mar-1985", "1985-03-15", "DOB: 03/15/1985", "Born: March 15, 1985"
+- Every document MUST contain at least one BANK_ACCOUNT entity
+- Most documents should contain a DATE_OF_BIRTH for identity verification
+- Mix name formats: first-last, with middle name/initial, hyphenated, with suffixes
+- Addresses: full US/UK/Canadian format with street, city, state/province, postal code
 - Each document should be 100-300 words
 
 ## Output format

@@ -6,12 +6,16 @@ Generate {{ num_docs }} realistic English customer support ticket excerpts follo
   - <PERSON>full name</PERSON>
   - <ADDRESS>full mailing address</ADDRESS>
   - <ORGANIZATION>company or institution name</ORGANIZATION>
-  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH> (only when applicable)
-  - <BANK_ACCOUNT>bank account information</BANK_ACCOUNT> (only when applicable)
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH> (only when applicable, e.g., identity verification)
+  - <BANK_ACCOUNT>bank account information (bank name, routing number, account number, account type)</BANK_ACCOUNT> (only when applicable, e.g., refunds)
 - Text outside tags must be natural English prose
 - Include both customer messages and agent responses
-- Mix name formats: first-last, with middle initials, with titles
-- Addresses should include street, city, state/province, postal code
+- Mix name formats: first-last, with middle initials, with titles, hyphenated, with apostrophes
+- Addresses: full street address, city, state/province, postal code; mix US/UK/Canadian formats
+- When date of birth appears, vary formats: "01/15/1990", "January 15, 1990", "1990-01-15", "15 Jan 1990"
+- When bank account appears, include bank name + routing/ABA + account number + account type
+- At least 30% of tickets should include identity verification with DATE_OF_BIRTH
+- At least 30% of tickets should include refund/payment with BANK_ACCOUNT
 - Each ticket should be 100-300 words
 
 ## Output format

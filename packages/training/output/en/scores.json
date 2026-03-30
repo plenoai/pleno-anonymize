@@ -1,0 +1,60 @@
+{
+  "token_acc": 1.0,
+  "token_p": 1.0,
+  "token_r": 1.0,
+  "token_f": 1.0,
+  "sents_p": null,
+  "sents_r": null,
+  "sents_f": null,
+  "tag_acc": null,
+  "pos_acc": null,
+  "morph_acc": null,
+  "morph_micro_p": null,
+  "morph_micro_r": null,
+  "morph_micro_f": null,
+  "morph_per_feat": null,
+  "dep_uas": null,
+  "dep_las": null,
+  "dep_las_per_type": null,
+  "ents_p": 0.9658119658119658,
+  "ents_r": 0.9806023481368045,
+  "ents_f": 0.9731509625126645,
+  "ents_per_type": {
+    "ORGANIZATION": {
+      "p": 0.9617834394904459,
+      "r": 0.9700214132762313,
+      "f": 0.9658848614072495
+    },
+    "PERSON": {
+      "p": 0.9711141678129298,
+      "r": 0.9915730337078652,
+      "f": 0.9812369701181376
+    },
+    "DATE_OF_BIRTH": {
+      "p": 0.9521276595744681,
+      "r": 0.9675675675675676,
+      "f": 0.9597855227882037
+    },
+    "ADDRESS": {
+      "p": 0.9881516587677726,
+      "r": 0.9834905660377359,
+      "f": 0.9858156028368794
+    },
+    "BANK_ACCOUNT": {
+      "p": 0.9171270718232044,
+      "r": 0.9707602339181286,
+      "f": 0.9431818181818181
+    }
+  },
+  "cats_score": 0.0,
+  "cats_score_desc": "macro F",
+  "cats_micro_p": 0.0,
+  "cats_micro_r": 0.0,
+  "cats_micro_f": 0.0,
+  "cats_macro_p": 0.0,
+  "cats_macro_r": 0.0,
+  "cats_macro_f": 0.0,
+  "cats_macro_auc": 0.0,
+  "cats_f_per_type": {},
+  "cats_auc_per_type": {}
+}

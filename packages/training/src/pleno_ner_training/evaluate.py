@@ -23,14 +23,14 @@ ACCEPTANCE_CRITERIA: dict[str, dict[str, float]] = {
         "BANK_ACCOUNT": 0.80,
     },
     "en": {
-        "PERSON": 0.85,
-        "ADDRESS": 0.80,
-        "ORGANIZATION": 0.80,
-        "DATE_OF_BIRTH": 0.75,
-        "BANK_ACCOUNT": 0.75,
+        "PERSON": 0.90,
+        "ADDRESS": 0.85,
+        "ORGANIZATION": 0.85,
+        "DATE_OF_BIRTH": 0.80,
+        "BANK_ACCOUNT": 0.80,
     },
 }
-OVERALL_F1_THRESHOLD: dict[str, float] = {"ja": 0.88, "en": 0.80}
+OVERALL_F1_THRESHOLD: dict[str, float] = {"ja": 0.88, "en": 0.88}
 
 # Recall下限: F1が高くてもRecallが低い = PII漏洩リスク
 RECALL_MINIMUMS: dict[str, dict[str, float]] = {
@@ -42,11 +42,11 @@ RECALL_MINIMUMS: dict[str, dict[str, float]] = {
         "BANK_ACCOUNT": 0.75,
     },
     "en": {
-        "PERSON": 0.80,
-        "ADDRESS": 0.75,
-        "ORGANIZATION": 0.75,
-        "DATE_OF_BIRTH": 0.70,
-        "BANK_ACCOUNT": 0.70,
+        "PERSON": 0.85,
+        "ADDRESS": 0.80,
+        "ORGANIZATION": 0.80,
+        "DATE_OF_BIRTH": 0.75,
+        "BANK_ACCOUNT": 0.75,
     },
 }
 
