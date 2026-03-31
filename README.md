@@ -25,29 +25,19 @@ Purpose-built for Japanese PII that generic NER models miss: My Number, full-wid
 
 ## Quick Start
 
-### Docker (recommended)
+```bash
+curl -X POST https://anonymize.plenoai.com/api/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"text": "John Doe lives at 123 Main St. Email: john@example.com", "language": "en"}'
+```
+
+Or try the [Playground](https://plenoai.com/pleno-anonymize/playground) in your browser.
+
+### Self-hosting
 
 ```bash
 docker build -t pleno-anonymize .
 docker run -p 8080:8080 pleno-anonymize
-```
-
-### Local Development
-
-```bash
-# Server
-cd server && uv sync && uv run uvicorn src.app:app --port 8080
-
-# Frontend
-cd website && npm install && npm run dev
-```
-
-### Verify
-
-```bash
-curl -X POST http://localhost:8080/api/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"text": "John Doe lives at 123 Main St. Email: john@example.com", "language": "en"}'
 ```
 
 ## Supported Entities
