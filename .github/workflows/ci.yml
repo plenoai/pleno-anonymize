@@ -14,8 +14,20 @@ jobs:
       - run: uvx ruff check server/src/
       - run: uvx ruff format --check server/src/
 
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --frozen
+        working-directory: server
+      - run: uv run pytest tests/ -v
+        working-directory: server
+
   deploy:
-    needs: check
+    needs: [check, test]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     concurrency:

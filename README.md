@@ -1,82 +1,181 @@
 # pleno-anonymize
 
-日本語対応 PII(個人情報) 匿名化サービス
+Japanese-first PII anonymization service — **F1 97.7% (ja) / 97.9% (en)**
 
-- **Website:** https://plenoai.com/pleno-anonymize/
+Purpose-built for Japanese PII that generic NER models miss: My Number, full-width phone numbers, Japanese-style addresses. Also provides transparent LLM API proxies with automatic PII redaction.
+
 - **Playground:** https://plenoai.com/pleno-anonymize/playground
 - **Benchmark:** https://plenoai.com/pleno-anonymize/benchmark
 - **API Docs:** https://anonymize.plenoai.com/docs
-- **Production API:** https://anonymize.plenoai.com
 
-## 対応エンティティ
+## Use Cases
 
-### NERモデル (ja_ner_ja)
-| エンティティ | 説明 |
+- **PII protection for LLM calls** — Auto-mask PII before sending to OpenAI/Anthropic/Gemini, restore in response
+- **Log & data cleaning** — Anonymize internal logs and customer data
+- **Compliance** — Pre-process data for APPI (Japan) and GDPR compliance
+
+## Model Performance
+
+| Language | F1 | Precision | Recall | Benchmark |
+|---|---|---|---|---|
+| ja (CNN) | 97.7% | 98.2% | 97.1% | [Details](https://plenoai.com/pleno-anonymize/benchmark) |
+| en (Transformer) | 97.9% | 97.3% | 98.6% | [Details](https://plenoai.com/pleno-anonymize/benchmark) |
+
+> spaCy's built-in model (`ja_core_news_lg`) achieves ~60-70% F1 on Japanese PII detection. pleno-anonymize significantly improves accuracy through fine-tuning on Japanese PII-specific data.
+
+## Quick Start
+
+### Docker (recommended)
+
+```bash
+docker build -t pleno-anonymize .
+docker run -p 8080:8080 pleno-anonymize
+```
+
+### Local Development
+
+```bash
+# Server
+cd server && uv sync && uv run uvicorn src.app:app --port 8080
+
+# Frontend
+cd website && npm install && npm run dev
+```
+
+### Verify
+
+```bash
+curl -X POST http://localhost:8080/api/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"text": "John Doe lives at 123 Main St. Email: john@example.com", "language": "en"}'
+```
+
+## Supported Entities
+
+### NER Model (ja/en)
+| Entity | Description |
 |---|---|
-| `PERSON` | 人名 |
-| `ADDRESS` | 住所 |
-| `ORGANIZATION` | 組織名 |
-| `DATE_OF_BIRTH` | 生年月日 |
-| `BANK_ACCOUNT` | 銀行口座 |
+| `PERSON` | Person names |
+| `ADDRESS` | Addresses |
+| `ORGANIZATION` | Organization names |
+| `DATE_OF_BIRTH` | Date of birth |
+| `BANK_ACCOUNT` | Bank account info |
 
-### パターンベース
-| エンティティ | 説明 |
+### Pattern-based
+| Entity | Description |
 |---|---|
-| `EMAIL_ADDRESS` | メールアドレス |
-| `PHONE_NUMBER` | 電話番号（全角/半角） |
-| `MY_NUMBER` | マイナンバー（個人番号） |
-| `MY_NUMBER_CORPORATE` | 法人番号 |
-| `CREDIT_CARD` | クレジットカード番号 |
-| `PASSPORT` | パスポート番号 |
-| `DRIVER_LICENSE` | 運転免許証番号 |
-| `HEALTH_INSURANCE` | 健康保険証番号 |
-| `RESIDENCE_CARD` | 在留カード番号 |
-| `POSTAL_CODE` | 郵便番号 |
-| `IP_ADDRESS` | IPアドレス |
-| `URL` | URL |
+| `EMAIL_ADDRESS` | Email addresses |
+| `PHONE_NUMBER` | Phone numbers (full-width/half-width) |
+| `MY_NUMBER` | My Number (Japanese individual number) |
+| `MY_NUMBER_CORPORATE` | Corporate number |
+| `CREDIT_CARD` | Credit card numbers |
+| `PASSPORT` | Passport numbers |
+| `DRIVER_LICENSE` | Driver license numbers |
+| `HEALTH_INSURANCE` | Health insurance card numbers |
+| `RESIDENCE_CARD` | Residence card numbers |
+| `POSTAL_CODE` | Postal codes |
+| `IP_ADDRESS` | IP addresses |
+| `URL` | URLs |
 
 ## API
 
-### `POST /api/analyze` - PII検出
+### `POST /api/analyze` — PII Detection
 
 ```bash
 curl -X POST https://anonymize.plenoai.com/api/analyze \
   -H "Content-Type: application/json" \
-  -d '{"text": "佐藤太郎の電話番号は090-1234-5678です。", "language": "ja"}'
+  -d '{"text": "John Doe, phone: 090-1234-5678", "language": "en"}'
 ```
 
-### `POST /api/redact` - PII匿名化
+### `POST /api/redact` — PII Redaction
 
 ```bash
 curl -X POST https://anonymize.plenoai.com/api/redact \
   -H "Content-Type: application/json" \
-  -d '{"text": "佐藤太郎の電話番号は090-1234-5678です。", "language": "ja"}'
+  -d '{"text": "John Doe, phone: 090-1234-5678", "language": "en"}'
 ```
 
-### `POST /api/openai/*` - OpenAI APIプロキシ
+### LLM API Proxy
 
-リクエスト内のPIIを自動マスキングしてOpenAI APIに送信し、レスポンスで復元します。
+Automatically masks PII in requests before forwarding to LLM APIs, then restores original values in responses.
+
+| Endpoint | Upstream API |
+|---|---|
+| `POST /api/openai/*` | OpenAI (Chat Completions & Responses API) |
+| `POST /api/anthropic/*` | Anthropic Messages API |
+| `POST /api/gemini/*` | Google Gemini API |
 
 ```bash
 curl -X POST https://anonymize.plenoai.com/api/openai/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_OPENAI_API_KEY" \
-  -d '{"model": "gpt-4o", "messages": [{"role": "user", "content": "佐藤太郎さんについて教えて"}]}'
+  -H "Authorization: Bearer $OPENAI_API_KEY" \
+  -d '{"model": "gpt-4o", "messages": [{"role": "user", "content": "Tell me about John Doe"}]}'
 ```
 
-## プロジェクト構成
+### Health Checks
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /health` | Liveness probe |
+| `GET /ready` | Readiness probe (NLP models loaded) |
+
+## Deployment & Operations
+
+### Resource Requirements
+
+| Item | Value |
+|---|---|
+| Memory | Minimum 1GB |
+| Docker image | ~1.2GB (includes NER models) |
+| Cold start | ~15-30s (initial model loading) |
+
+### Environment Variables
+
+| Variable | Description | Default |
+|---|---|---|
+| `OPENAI_API_BASE` | OpenAI API base URL | `https://api.openai.com` |
+| `ANTHROPIC_API_BASE` | Anthropic API base URL | `https://api.anthropic.com` |
+| `GEMINI_API_BASE` | Gemini API base URL | `https://generativelanguage.googleapis.com` |
+
+> Only required for LLM proxy endpoints. The analyze/redact endpoints need no environment variables.
+
+## Data Flow
 
 ```
-server/          # FastAPI バックエンド
-website/         # React フロントエンド (GitHub Pages)
+[User] → [pleno-anonymize API]
+               │
+               ├─ /api/analyze, /api/redact
+               │    → Local NER + Presidio for PII detection/redaction
+               │    → No external API calls
+               │
+               └─ /api/openai/*, /api/anthropic/*, /api/gemini/*
+                    → PII detection → Mask → LLM API → Restore response
+                    → Mapping lives in request memory only (never persisted)
+```
+
+- analyze/redact endpoints never send data externally
+- Proxy endpoints only send masked text to LLM APIs
+- PII mappings are discarded from memory when the request completes
+
+## Project Structure
+
+```
+server/          # FastAPI backend
+website/         # React frontend (GitHub Pages)
 packages/
-  models/        # 日本語NERモデル (CC0-1.0)
-  training/      # モデル訓練パイプライン
+  models/        # NER models (ja: v0.1.0, en: v0.1.0)
+  training/      # Model training pipeline
+docs/
+  PRIVACY.md     # Privacy policy
+  DPIA.md        # Data Protection Impact Assessment
+  adr/           # Architecture Decision Records
 ```
 
-## 開発
+## License & Legal
 
-```bash
-uv sync
-cd server && uv run uvicorn src.app:app --port 8080
-```
+**AGPL-3.0** — Modifications must be released under the same license.
+
+- Internal use: No AGPL disclosure obligation for modifications
+- SaaS distribution: Source code disclosure required when serving over a network
+
+Details: [Privacy Policy](docs/PRIVACY.md) / [DPIA](docs/DPIA.md)

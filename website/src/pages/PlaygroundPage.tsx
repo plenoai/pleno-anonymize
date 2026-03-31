@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useMemo, memo } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo, memo, useReducer } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldCheck,
@@ -158,35 +158,96 @@ function buildHighlightedText(text: string, entities: AnalyzeResult[]) {
   return segments;
 }
 
+interface PlaygroundState {
+  inputText: string;
+  mode: Mode;
+  entities: AnalyzeResult[];
+  redactedText: string;
+  loading: boolean;
+  error: string;
+  hasResult: boolean;
+  copied: boolean;
+  scanProgress: number;
+  sampleOpen: boolean;
+}
+
+type PlaygroundAction =
+  | { type: 'SET_INPUT_TEXT'; payload: string }
+  | { type: 'SET_MODE'; payload: Mode }
+  | { type: 'RESET_RESULTS' }
+  | { type: 'START_SCAN' }
+  | { type: 'ADVANCE_SCAN_PROGRESS'; payload: number }
+  | { type: 'ANALYZE_SUCCESS'; payload: { entities: AnalyzeResult[] } }
+  | { type: 'REDACT_SUCCESS'; payload: { redactedText: string; entities: AnalyzeResult[] } }
+  | { type: 'SCAN_ERROR'; payload: string }
+  | { type: 'SCAN_COMPLETE' }
+  | { type: 'FINISH_LOADING' }
+  | { type: 'SET_COPIED'; payload: boolean }
+  | { type: 'SET_SAMPLE_OPEN'; payload: boolean };
+
+const initialState: PlaygroundState = {
+  inputText: '',
+  mode: 'analyze',
+  entities: [],
+  redactedText: '',
+  loading: false,
+  error: '',
+  hasResult: false,
+  copied: false,
+  scanProgress: 0,
+  sampleOpen: false,
+};
+
+function playgroundReducer(state: PlaygroundState, action: PlaygroundAction): PlaygroundState {
+  switch (action.type) {
+    case 'SET_INPUT_TEXT':
+      return { ...state, inputText: action.payload };
+    case 'SET_MODE':
+      return { ...state, mode: action.payload };
+    case 'RESET_RESULTS':
+      return { ...state, entities: [], redactedText: '', hasResult: false, error: '' };
+    case 'START_SCAN':
+      return { ...state, loading: true, error: '', scanProgress: 0 };
+    case 'ADVANCE_SCAN_PROGRESS':
+      return { ...state, scanProgress: Math.min(state.scanProgress + action.payload, 90) };
+    case 'ANALYZE_SUCCESS':
+      return { ...state, entities: action.payload.entities, redactedText: '', hasResult: true };
+    case 'REDACT_SUCCESS':
+      return {
+        ...state,
+        redactedText: action.payload.redactedText,
+        entities: action.payload.entities,
+        hasResult: true,
+      };
+    case 'SCAN_ERROR':
+      return { ...state, error: action.payload };
+    case 'SCAN_COMPLETE':
+      return { ...state, scanProgress: 100 };
+    case 'FINISH_LOADING':
+      return { ...state, loading: false };
+    case 'SET_COPIED':
+      return { ...state, copied: action.payload };
+    case 'SET_SAMPLE_OPEN':
+      return { ...state, sampleOpen: action.payload };
+  }
+}
+
 export default function PlaygroundPage() {
-  const [inputText, setInputText] = useState('');
-  const [mode, setMode] = useState<Mode>('analyze');
-  const [entities, setEntities] = useState<AnalyzeResult[]>([]);
-  const [redactedText, setRedactedText] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [hasResult, setHasResult] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [scanProgress, setScanProgress] = useState(0);
-  const [sampleOpen, setSampleOpen] = useState(false);
+  const [state, dispatch] = useReducer(playgroundReducer, initialState);
+  const { inputText, mode, entities, redactedText, loading, error, hasResult, copied, scanProgress, sampleOpen } = state;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scanInterval = useRef<ReturnType<typeof setInterval>>();
 
   const resetResults = useCallback(() => {
-    setEntities([]);
-    setRedactedText('');
-    setHasResult(false);
-    setError('');
+    dispatch({ type: 'RESET_RESULTS' });
   }, []);
 
   const runAnalysis = useCallback(async () => {
     if (!inputText.trim()) return;
-    setLoading(true);
-    setError('');
-    setScanProgress(0);
+    dispatch({ type: 'START_SCAN' });
 
     scanInterval.current = setInterval(() => {
-      setScanProgress((p) => Math.min(p + Math.random() * 30, 90));
+      dispatch({ type: 'ADVANCE_SCAN_PROGRESS', payload: Math.random() * 30 });
     }, 250);
 
     try {
@@ -196,34 +257,31 @@ export default function PlaygroundPage() {
       if (mode === 'analyze') {
         const res = await fetch(`${API_BASE}/api/analyze`, { method: 'POST', headers, body });
         if (!res.ok) throw new Error(`API error: ${res.status}`);
-        setEntities(await res.json());
-        setRedactedText('');
+        dispatch({ type: 'ANALYZE_SUCCESS', payload: { entities: await res.json() } });
       } else {
         const [redactRes, analyzeRes] = await Promise.all([
           fetch(`${API_BASE}/api/redact`, { method: 'POST', headers, body }),
           fetch(`${API_BASE}/api/analyze`, { method: 'POST', headers, body }),
         ]);
         if (!redactRes.ok) throw new Error(`API error: ${redactRes.status}`);
-        setRedactedText((await redactRes.json() as RedactResult).text);
-        if (analyzeRes.ok) {
-          setEntities(await analyzeRes.json());
-        }
+        const redacted = (await redactRes.json() as RedactResult).text;
+        const analyzedEntities = analyzeRes.ok ? await analyzeRes.json() : [];
+        dispatch({ type: 'REDACT_SUCCESS', payload: { redactedText: redacted, entities: analyzedEntities } });
       }
-      setHasResult(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Unknown error');
+      dispatch({ type: 'SCAN_ERROR', payload: e instanceof Error ? e.message : 'Unknown error' });
     } finally {
       clearInterval(scanInterval.current);
-      setScanProgress(100);
-      setTimeout(() => setLoading(false), 300);
+      dispatch({ type: 'SCAN_COMPLETE' });
+      setTimeout(() => dispatch({ type: 'FINISH_LOADING' }), 300);
     }
   }, [inputText, mode]);
 
   const handleCopy = useCallback(() => {
     const text = mode === 'redact' && redactedText ? redactedText : JSON.stringify(entities, null, 2);
     navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    dispatch({ type: 'SET_COPIED', payload: true });
+    setTimeout(() => dispatch({ type: 'SET_COPIED', payload: false }), 2000);
   }, [mode, redactedText, entities]);
 
   const segments = useMemo(
@@ -295,8 +353,14 @@ export default function PlaygroundPage() {
                     <span className="text-xs font-mono text-[#666] uppercase tracking-wider">Input</span>
                     <div className="relative">
                       <button
-                        onClick={() => setSampleOpen(!sampleOpen)}
-                        className="flex items-center gap-1.5 text-xs text-[#555] hover:text-[#999] transition-colors"
+                        onClick={() => dispatch({ type: 'SET_SAMPLE_OPEN', payload: !sampleOpen })}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') dispatch({ type: 'SET_SAMPLE_OPEN', payload: false });
+                        }}
+                        aria-expanded={sampleOpen}
+                        aria-haspopup="listbox"
+                        aria-label="サンプルテキストを選択"
+                        className="flex items-center gap-1.5 text-xs text-[#555] hover:text-[#999] transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:rounded"
                       >
                         サンプル
                         <ChevronDown className={`h-3 w-3 transition-transform ${sampleOpen ? 'rotate-180' : ''}`} />
@@ -307,15 +371,20 @@ export default function PlaygroundPage() {
                             initial={{ opacity: 0, y: -4 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -4 }}
+                            role="listbox"
+                            aria-label="サンプルテキスト一覧"
                             className="absolute top-full left-0 mt-2 w-80 z-20 rounded-lg border border-[#2a2a2a] bg-[#161616] shadow-2xl overflow-hidden"
                           >
                             {SAMPLE_TEXTS.map((sample, i) => (
                               <button
                                 key={i}
+                                role="option"
+                                aria-selected={inputText === sample}
                                 onClick={() => {
-                                  setInputText(sample);
+                                  dispatch({ type: 'SET_INPUT_TEXT', payload: sample });
                                   resetResults();
-                                  setSampleOpen(false);
+                                  dispatch({ type: 'SET_SAMPLE_OPEN', payload: false });
+                                  textareaRef.current?.focus();
                                 }}
                                 className="w-full text-left px-4 py-3 text-sm text-[#999] hover:text-[#ededed] hover:bg-[#1a1a1a] transition-colors border-b border-[#1f1f1f] last:border-0 line-clamp-2"
                               >
@@ -329,30 +398,43 @@ export default function PlaygroundPage() {
                   </div>
                   <span className="text-xs font-mono text-[#444]">{inputText.length} chars</span>
                 </div>
-                <textarea
+                <label htmlFor="playground-input" className="sr-only">
+                個人情報を含むテキストを入力
+              </label>
+              <textarea
+                  id="playground-input"
                   ref={textareaRef}
                   value={inputText}
                   onChange={(e) => {
-                    setInputText(e.target.value);
+                    dispatch({ type: 'SET_INPUT_TEXT', payload: e.target.value });
                     resetResults();
                   }}
+                  onKeyDown={(e) => {
+                    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                      e.preventDefault();
+                      runAnalysis();
+                    }
+                  }}
                   placeholder="個人情報を含むテキストを入力..."
-                  className="w-full min-h-[180px] bg-transparent text-[#e5e5e5] text-[15px] leading-relaxed px-4 py-4 resize-y placeholder:text-[#333] focus:outline-none"
+                  aria-label="PII検出対象のテキスト入力"
+                  className="w-full min-h-[180px] bg-transparent text-[#e5e5e5] text-[15px] leading-relaxed px-4 py-4 resize-y placeholder:text-[#333] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-0"
                   style={{ fontFamily: "'SF Mono', 'Fira Code', 'JetBrains Mono', monospace" }}
                 />
               </div>
 
               {/* Controls */}
               <div className="flex items-center gap-3">
-                <div className="flex items-center rounded-lg border border-[#1f1f1f] bg-[#111] p-0.5">
+                <div className="flex items-center rounded-lg border border-[#1f1f1f] bg-[#111] p-0.5" role="radiogroup" aria-label="処理モード">
                   {(['analyze', 'redact'] as Mode[]).map((m) => (
                     <button
                       key={m}
+                      role="radio"
+                      aria-checked={mode === m}
                       onClick={() => {
-                        setMode(m);
+                        dispatch({ type: 'SET_MODE', payload: m });
                         resetResults();
                       }}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                      className={`px-4 py-2 text-sm font-medium rounded-md transition-all focus-visible:ring-2 focus-visible:ring-emerald-500/50 ${
                         mode === m
                           ? 'bg-[#1f1f1f] text-[#ededed]'
                           : 'text-[#666] hover:text-[#999]'
@@ -366,7 +448,9 @@ export default function PlaygroundPage() {
                 <button
                   onClick={runAnalysis}
                   disabled={loading || !inputText.trim()}
-                  className="flex items-center gap-2 px-5 py-2 rounded-lg bg-[#ededed] text-[#0a0a0a] text-sm font-medium hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  aria-label={loading ? 'スキャン中...' : '実行 (⌘+Enter)'}
+                  title="⌘+Enter / Ctrl+Enter"
+                  className="flex items-center gap-2 px-5 py-2 rounded-lg bg-[#ededed] text-[#0a0a0a] text-sm font-medium hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0a]"
                 >
                   <Play className="h-3.5 w-3.5" />
                   {loading ? 'Scanning...' : 'Run'}
@@ -374,10 +458,10 @@ export default function PlaygroundPage() {
 
                 <button
                   onClick={() => {
-                    setInputText('');
+                    dispatch({ type: 'SET_INPUT_TEXT', payload: '' });
                     resetResults();
                   }}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#1f1f1f] text-[#666] text-sm hover:text-[#999] hover:border-[#2a2a2a] transition-all"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#1f1f1f] text-[#666] text-sm hover:text-[#999] hover:border-[#2a2a2a] transition-all focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0a]"
                 >
                   <Eraser className="h-3.5 w-3.5" />
                   Clear
@@ -409,9 +493,10 @@ export default function PlaygroundPage() {
                     initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
+                    role="alert"
                     className="flex items-center gap-3 px-4 py-3 rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 text-sm"
                   >
-                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                    <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
                     {error}
                   </motion.div>
                 )}
@@ -435,7 +520,8 @@ export default function PlaygroundPage() {
                       </div>
                       <button
                         onClick={handleCopy}
-                        className="flex items-center gap-1.5 text-xs text-[#555] hover:text-[#999] transition-colors"
+                        aria-label={copied ? 'コピー済み' : '結果をコピー'}
+                        className="flex items-center gap-1.5 text-xs text-[#555] hover:text-[#999] transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:rounded"
                       >
                         {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
                         {copied ? 'Copied' : 'Copy'}
@@ -445,6 +531,8 @@ export default function PlaygroundPage() {
                     <div
                       className="px-4 py-4 text-[15px] leading-relaxed min-h-[120px]"
                       style={{ fontFamily: "'SF Mono', 'Fira Code', 'JetBrains Mono', monospace" }}
+                      aria-live="polite"
+                      aria-label="検出結果"
                     >
                       {mode === 'analyze' ? (
                         <div className="flex flex-wrap">
@@ -456,6 +544,8 @@ export default function PlaygroundPage() {
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: i * 0.03 }}
                                 className="relative inline-block mx-0.5 group"
+                                role="mark"
+                                aria-label={`${seg.type}: ${seg.text} (信頼度${Math.round(seg.score * 100)}%)`}
                               >
                                 <span
                                   className="relative z-10 px-1.5 py-0.5 rounded-md border"
