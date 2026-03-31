@@ -1,7 +1,9 @@
+import asyncio
 import os
 import json
 import base64
 import io
+from functools import partial
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Tuple
 import httpx
@@ -45,8 +47,8 @@ def _init_presidio():
     ja_model_path = models_dir / "ja_ner_ja-0.1.0" / "ja_ner_ja" / "ja_ner_ja-0.1.0"
     _nlp_ja = spacy.load(str(ja_model_path))
 
-    # Load English NER model
-    en_model_path = models_dir / "en_ner_en-0.2.0" / "en_ner_en" / "en_ner_en-0.2.0"
+    # Load English NER model (CNN/tok2vec version for low-resource deployment)
+    en_model_path = models_dir / "en_ner_en-0.1.0" / "en_ner_en" / "en_ner_en-0.1.0"
     try:
         _nlp_en = spacy.load(str(en_model_path))
     except OSError:
@@ -198,8 +200,10 @@ async def analyze(req: AnalyzeRequest):
     ]
     ```
     """
-    results = get_analyzer().analyze(
-        text=req.text, language=req.language, entities=req.entities
+    loop = asyncio.get_event_loop()
+    results = await loop.run_in_executor(
+        None,
+        partial(get_analyzer().analyze, text=req.text, language=req.language, entities=req.entities),
     )
     return [
         {
@@ -245,25 +249,29 @@ async def redact(req: RedactRequest):
     result = {}
 
     if req.text:
-        results = get_analyzer().analyze(
-            text=req.text, language=req.language, entities=req.entities
-        )
-        anonymizers = {}
-        for r in results:
-            et = r.entity_type
-            if et not in anonymizers:
-                cfg = req.operators.get(et) if req.operators else None
-                if not cfg:
-                    anonymizers[et] = OperatorConfig(
-                        "replace", {"new_value": f"<{et}>"}
-                    )
-                else:
-                    operator_name = cfg.get("type", "replace")
-                    params = {k: v for k, v in cfg.items() if k != "type"}
-                    anonymizers[et] = OperatorConfig(operator_name, params)
-        out = get_anonymizer().anonymize(
-            text=req.text, analyzer_results=results, operators=anonymizers
-        )
+        def _redact_text():
+            results = get_analyzer().analyze(
+                text=req.text, language=req.language, entities=req.entities
+            )
+            anonymizers = {}
+            for r in results:
+                et = r.entity_type
+                if et not in anonymizers:
+                    cfg = req.operators.get(et) if req.operators else None
+                    if not cfg:
+                        anonymizers[et] = OperatorConfig(
+                            "replace", {"new_value": f"<{et}>"}
+                        )
+                    else:
+                        operator_name = cfg.get("type", "replace")
+                        params = {k: v for k, v in cfg.items() if k != "type"}
+                        anonymizers[et] = OperatorConfig(operator_name, params)
+            return get_anonymizer().anonymize(
+                text=req.text, analyzer_results=results, operators=anonymizers
+            )
+
+        loop = asyncio.get_event_loop()
+        out = await loop.run_in_executor(None, _redact_text)
         result["text"] = out.text
         result["items"] = [it.operator for it in out.items]
 

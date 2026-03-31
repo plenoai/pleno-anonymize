@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldCheck,
@@ -85,7 +85,7 @@ const SAMPLE_TEXTS = [
 
 type Mode = 'analyze' | 'redact';
 
-const Header = () => {
+const Header = memo(function Header() {
   const [starCount, setStarCount] = useState<number | null>(null);
 
   useEffect(() => {
@@ -136,7 +136,7 @@ const Header = () => {
       </div>
     </header>
   );
-};
+});
 
 function buildHighlightedText(text: string, entities: AnalyzeResult[]) {
   if (entities.length === 0) return [{ text, type: null as string | null, score: 0 }];
@@ -186,35 +186,25 @@ export default function PlaygroundPage() {
     setScanProgress(0);
 
     scanInterval.current = setInterval(() => {
-      setScanProgress((p) => Math.min(p + Math.random() * 15, 90));
-    }, 100);
+      setScanProgress((p) => Math.min(p + Math.random() * 30, 90));
+    }, 250);
 
     try {
+      const body = JSON.stringify({ text: inputText });
+      const headers = { 'Content-Type': 'application/json' };
+
       if (mode === 'analyze') {
-        const res = await fetch(`${API_BASE}/api/analyze`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: inputText }),
-        });
+        const res = await fetch(`${API_BASE}/api/analyze`, { method: 'POST', headers, body });
         if (!res.ok) throw new Error(`API error: ${res.status}`);
-        const data: AnalyzeResult[] = await res.json();
-        setEntities(data);
+        setEntities(await res.json());
         setRedactedText('');
       } else {
-        const res = await fetch(`${API_BASE}/api/redact`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: inputText }),
-        });
-        if (!res.ok) throw new Error(`API error: ${res.status}`);
-        const data: RedactResult = await res.json();
-        setRedactedText(data.text);
-        // Also run analyze to get entities
-        const analyzeRes = await fetch(`${API_BASE}/api/analyze`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: inputText }),
-        });
+        const [redactRes, analyzeRes] = await Promise.all([
+          fetch(`${API_BASE}/api/redact`, { method: 'POST', headers, body }),
+          fetch(`${API_BASE}/api/analyze`, { method: 'POST', headers, body }),
+        ]);
+        if (!redactRes.ok) throw new Error(`API error: ${redactRes.status}`);
+        setRedactedText((await redactRes.json() as RedactResult).text);
         if (analyzeRes.ok) {
           setEntities(await analyzeRes.json());
         }
@@ -236,12 +226,19 @@ export default function PlaygroundPage() {
     setTimeout(() => setCopied(false), 2000);
   }, [mode, redactedText, entities]);
 
-  const segments = hasResult && mode === 'analyze' ? buildHighlightedText(inputText, entities) : [];
+  const segments = useMemo(
+    () => (hasResult && mode === 'analyze' ? buildHighlightedText(inputText, entities) : []),
+    [hasResult, mode, inputText, entities],
+  );
 
-  const entityCounts = entities.reduce<Record<string, number>>((acc, e) => {
-    acc[e.entity_type] = (acc[e.entity_type] || 0) + 1;
-    return acc;
-  }, {});
+  const entityCounts = useMemo(
+    () =>
+      entities.reduce<Record<string, number>>((acc, e) => {
+        acc[e.entity_type] = (acc[e.entity_type] || 0) + 1;
+        return acc;
+      }, {}),
+    [entities],
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0a0a0a]">

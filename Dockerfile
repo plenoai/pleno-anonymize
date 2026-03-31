@@ -8,12 +8,16 @@ WORKDIR /workspace
 COPY server/pyproject.toml uv.lock ./
 RUN uv sync --no-dev --frozen --no-install-project
 
-# spaCyモデル（英語）を事前ダウンロード
+# spaCyモデル（英語ベース）を事前ダウンロード
 RUN uv pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
 
-# 日本語NERモデルをコピー＆インストール
+# 日本語NERモデル（CNN/tok2vec）をコピー＆インストール
 COPY packages/models/ja_ner_ja-0.1.0 packages/models/ja_ner_ja-0.1.0
 RUN uv pip install packages/models/ja_ner_ja-0.1.0
+
+# 英語NERモデル（CNN/tok2vec）をコピー＆インストール
+COPY packages/models/en_ner_en-0.1.0 packages/models/en_ner_en-0.1.0
+RUN uv pip install packages/models/en_ner_en-0.1.0
 
 # アプリケーションコードをコピー
 COPY server/src/ src/
