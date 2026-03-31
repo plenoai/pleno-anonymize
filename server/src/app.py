@@ -125,10 +125,14 @@ def get_image_redactor():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Preload NER models at startup so first request is fast."""
-    loop = asyncio.get_event_loop()
-    await loop.run_in_executor(None, _init_presidio)
-    logger.info("Models loaded successfully")
+    """Warm up NER models in background after startup."""
+    import threading
+
+    def _warmup():
+        _init_presidio()
+        logger.info("Models loaded successfully")
+
+    threading.Thread(target=_warmup, daemon=True).start()
     yield
 
 
