@@ -23,7 +23,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: uv sync --frozen
         working-directory: server
-      - run: uv run python -m spacy download en_core_web_sm
+      - run: uv pip install en_core_web_sm@https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
         working-directory: server
       - run: uv run pytest tests/ -v
         working-directory: server
