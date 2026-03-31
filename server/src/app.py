@@ -6,6 +6,7 @@ import base64
 import io
 import time
 import uuid
+from contextlib import asynccontextmanager
 from functools import lru_cache, partial
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Tuple
@@ -115,8 +116,6 @@ def get_image_redactor():
         _image_redactor = ImageRedactorEngine(image_analyzer_engine=image_analyzer)
     return _image_redactor
 
-
-from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
