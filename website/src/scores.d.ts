@@ -24,3 +24,13 @@ declare module '@scores-en-cnn' {
   const scores: Scores;
   export default scores;
 }
+
+interface ExternalModelResult {
+  per_entity: Record<string, EntityScore>;
+  latency_ms_per_doc: number;
+}
+
+declare module '@external-scores-en' {
+  const scores: Record<string, ExternalModelResult>;
+  export default scores;
+}

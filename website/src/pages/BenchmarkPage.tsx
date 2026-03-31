@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, ArrowLeft, Globe, Zap, HardDrive, BookOpen } from 'lucide-react';
 import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
 import scoresJa from '@scores';
 import scoresEn from '@scores-en';
 import scoresEnCnn from '@scores-en-cnn';
+import externalScoresEn from '@external-scores-en';
 
 type Lang = 'ja' | 'en';
 
@@ -16,13 +17,15 @@ const LANG_LABELS: Record<Lang, { name: string; model: string; version: string }
 
 const SCORES: Record<Lang, typeof scoresJa> = { ja: scoresJa, en: scoresEn };
 
-const ENTITY_CONFIG: Record<string, { labelJa: string; labelEn: string; threshold: number; color: string; order: number }> = {
-  PERSON:        { labelJa: '人名',     labelEn: 'Person',       threshold: 0.9,  color: '#3b82f6', order: 0 },
-  ADDRESS:       { labelJa: '住所',     labelEn: 'Address',      threshold: 0.85, color: '#8b5cf6', order: 1 },
-  ORGANIZATION:  { labelJa: '組織名',   labelEn: 'Organization', threshold: 0.85, color: '#06b6d4', order: 2 },
-  DATE_OF_BIRTH: { labelJa: '生年月日', labelEn: 'Date of Birth',threshold: 0.8,  color: '#f59e0b', order: 3 },
-  BANK_ACCOUNT:  { labelJa: '銀行口座', labelEn: 'Bank Account', threshold: 0.8,  color: '#10b981', order: 4 },
+const ENTITY_CONFIG: Record<string, { labelJa: string; labelEn: string; threshold: number; recallMin: number; color: string; order: number }> = {
+  PERSON:        { labelJa: '人名',     labelEn: 'Person',       threshold: 0.9,  recallMin: 0.85, color: '#3b82f6', order: 0 },
+  ADDRESS:       { labelJa: '住所',     labelEn: 'Address',      threshold: 0.85, recallMin: 0.80, color: '#8b5cf6', order: 1 },
+  ORGANIZATION:  { labelJa: '組織名',   labelEn: 'Organization', threshold: 0.85, recallMin: 0.80, color: '#06b6d4', order: 2 },
+  DATE_OF_BIRTH: { labelJa: '生年月日', labelEn: 'Date of Birth',threshold: 0.8,  recallMin: 0.75, color: '#f59e0b', order: 3 },
+  BANK_ACCOUNT:  { labelJa: '銀行口座', labelEn: 'Bank Account', threshold: 0.8,  recallMin: 0.75, color: '#10b981', order: 4 },
 };
+
+const ENTITIES = Object.keys(ENTITY_CONFIG);
 
 function getBenchmarkData(lang: Lang) {
   const scores = SCORES[lang];
@@ -35,6 +38,7 @@ function getBenchmarkData(lang: Lang) {
       recall: r,
       f1: f,
       threshold: ENTITY_CONFIG[entity].threshold,
+      recallMin: ENTITY_CONFIG[entity].recallMin,
       color: ENTITY_CONFIG[entity].color,
     }))
     .sort((a, b) => ENTITY_CONFIG[a.entity].order - ENTITY_CONFIG[b.entity].order);
@@ -45,7 +49,7 @@ function getOverall(lang: Lang) {
   return { precision: s.ents_p, recall: s.ents_r, f1: s.ents_f, threshold: 0.88 };
 }
 
-// JA comparison models
+// JA comparison models (external scores hardcoded — no JA external benchmark JSON exists yet)
 const COMPARISON_MODELS_JA = [
   { name: 'pleno_ner_ja', label: 'pleno_ner_ja (ours)', shortLabel: 'ours', color: '#10b981', highlight: true },
   { name: 'bert_ner_ja', label: 'bert-ner-japanese (HF)', shortLabel: 'HF', color: '#f59e0b', highlight: false },
@@ -75,17 +79,26 @@ const EXTERNAL_SCORES_JA: Record<string, Record<string, number>> = {
   BANK_ACCOUNT:  { bert_ner_ja: 0,      ja_core_news_lg: 0,      ja_core_news_md: 0,      ja_core_news_sm: 0      },
 };
 
-const EXTERNAL_SCORES_EN: Record<string, Record<string, number>> = {
-  PERSON:        { pleno_ner_en_cnn: scoresEnCnn.ents_per_type.PERSON?.f ?? 0,        en_core_web_md: 0.5827, en_core_web_sm: 0.5117 },
-  ADDRESS:       { pleno_ner_en_cnn: scoresEnCnn.ents_per_type.ADDRESS?.f ?? 0,       en_core_web_md: 0,      en_core_web_sm: 0      },
-  ORGANIZATION:  { pleno_ner_en_cnn: scoresEnCnn.ents_per_type.ORGANIZATION?.f ?? 0,  en_core_web_md: 0.4807, en_core_web_sm: 0.4718 },
-  DATE_OF_BIRTH: { pleno_ner_en_cnn: scoresEnCnn.ents_per_type.DATE_OF_BIRTH?.f ?? 0, en_core_web_md: 0.1337, en_core_web_sm: 0.1324 },
-  BANK_ACCOUNT:  { pleno_ner_en_cnn: scoresEnCnn.ents_per_type.BANK_ACCOUNT?.f ?? 0,  en_core_web_md: 0,      en_core_web_sm: 0      },
-};
+// Derive EN external scores from JSON
+function buildExternalScoresEn(): Record<string, Record<string, number>> {
+  const result: Record<string, Record<string, number>> = {};
+  for (const entity of ENTITIES) {
+    result[entity] = {
+      pleno_ner_en_cnn: scoresEnCnn.ents_per_type[entity]?.f ?? 0,
+      ...Object.fromEntries(
+        Object.entries(externalScoresEn).map(([model, data]) => [
+          model,
+          data.per_entity[entity]?.f ?? 0,
+        ])
+      ),
+    };
+  }
+  return result;
+}
 
 const EXTERNAL_SCORES: Record<Lang, Record<string, Record<string, number>>> = {
   ja: EXTERNAL_SCORES_JA,
-  en: EXTERNAL_SCORES_EN,
+  en: buildExternalScoresEn(),
 };
 
 function getComparisonData(lang: Lang) {
@@ -100,13 +113,25 @@ function getComparisonData(lang: Lang) {
   );
 }
 
+// Derive EN latency from JSON
+function buildLatencyEn(): Record<string, number> {
+  const latency: Record<string, number> = {
+    pleno_ner_en: 52.9,
+    pleno_ner_en_cnn: 8.8,
+  };
+  for (const [model, data] of Object.entries(externalScoresEn)) {
+    latency[model] = data.latency_ms_per_doc;
+  }
+  return latency;
+}
+
 const SIZE_DATA: Record<Lang, Record<string, number>> = {
   ja: { pleno_ner_ja: 18, bert_ner_ja: 440, ja_core_news_lg: 529, ja_core_news_md: 40, ja_core_news_sm: 11 },
   en: { pleno_ner_en: 418, pleno_ner_en_cnn: 46, en_core_web_md: 54, en_core_web_sm: 15 },
 };
 const LATENCY_DATA: Record<Lang, Record<string, number>> = {
   ja: { pleno_ner_ja: 2.8, bert_ner_ja: 17.7, ja_core_news_lg: 6.9, ja_core_news_md: 6.8, ja_core_news_sm: 6.7 },
-  en: { pleno_ner_en: 52.9, pleno_ner_en_cnn: 8.8, en_core_web_md: 15.9, en_core_web_sm: 14.8 },
+  en: buildLatencyEn(),
 };
 
 const BarChart = ({ value, max = 1, color, delay = 0 }: { value: number; max?: number; color: string; delay?: number }) => (
@@ -121,8 +146,8 @@ const BarChart = ({ value, max = 1, color, delay = 0 }: { value: number; max?: n
   </div>
 );
 
-const ScoreRing = ({ value, size = 160, strokeWidth = 10, color = '#3b82f6', delay = 0 }: {
-  value: number; size?: number; strokeWidth?: number; color?: string; delay?: number;
+const ScoreRing = ({ value, size = 160, strokeWidth = 10, color = '#3b82f6', delay = 0, label = 'F1 Score' }: {
+  value: number; size?: number; strokeWidth?: number; color?: string; delay?: number; label?: string;
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -142,11 +167,152 @@ const ScoreRing = ({ value, size = 160, strokeWidth = 10, color = '#3b82f6', del
         <span className="text-3xl font-bold text-[#171717] dark:text-[#ededed]">
           {(value * 100).toFixed(1)}
         </span>
-        <span className="text-xs text-[#666] dark:text-[#8f8f8f]">F1 Score</span>
+        <span className="text-xs text-[#666] dark:text-[#8f8f8f]">{label}</span>
       </div>
     </div>
   );
 };
+
+function CrossLanguageSummary() {
+  const jaOverall = getOverall('ja');
+  const enOverall = getOverall('en');
+  const jaData = getBenchmarkData('ja');
+  const enData = getBenchmarkData('en');
+
+  return (
+    <motion.div className="mb-16 rounded-2xl border border-[#eaeaea] dark:border-[#333] bg-[#fafafa] dark:bg-[#111] p-8"
+      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+      <div className="mb-6 flex items-center gap-2">
+        <Globe className="h-5 w-5 text-[#666] dark:text-[#8f8f8f]" />
+        <h2 className="text-xl font-semibold text-[#171717] dark:text-[#ededed]">Cross-Language Summary</h2>
+      </div>
+
+      {/* Side-by-side rings */}
+      <div className="mb-8 grid gap-8 md:grid-cols-2">
+        {([['ja', jaOverall], ['en', enOverall]] as const).map(([l, ov]) => (
+          <div key={l} className="flex flex-col items-center gap-3">
+            <span className="text-sm font-medium text-[#666] dark:text-[#8f8f8f]">
+              {LANG_LABELS[l as Lang].name} — {LANG_LABELS[l as Lang].model} {LANG_LABELS[l as Lang].version}
+            </span>
+            <ScoreRing value={ov.f1} size={140} strokeWidth={10}
+              color={l === 'ja' ? '#3b82f6' : '#10b981'} delay={l === 'ja' ? 0.2 : 0.4} />
+            <div className="flex gap-6 text-xs text-[#666] dark:text-[#8f8f8f]">
+              <span>P: <span className="font-mono font-medium text-[#171717] dark:text-[#ededed]">{(ov.precision * 100).toFixed(1)}%</span></span>
+              <span>R: <span className="font-mono font-medium text-[#171717] dark:text-[#ededed]">{(ov.recall * 100).toFixed(1)}%</span></span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Per-entity comparison table */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-[#eaeaea] dark:border-[#333]">
+              <th className="py-2 text-left font-medium text-[#666] dark:text-[#8f8f8f]">Entity</th>
+              <th className="py-2 text-right font-medium text-[#3b82f6]">JA F1</th>
+              <th className="py-2 text-right font-medium text-[#10b981]">EN F1</th>
+              <th className="py-2 text-right font-medium text-[#666] dark:text-[#8f8f8f]">Delta</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ENTITIES.map((entity) => {
+              const jaF1 = jaData.find(d => d.entity === entity)?.f1 ?? 0;
+              const enF1 = enData.find(d => d.entity === entity)?.f1 ?? 0;
+              const delta = enF1 - jaF1;
+              return (
+                <tr key={entity} className="border-b border-[#f5f5f5] dark:border-[#222]">
+                  <td className="py-2">
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full" style={{ backgroundColor: ENTITY_CONFIG[entity].color }} />
+                      <span className="font-mono text-xs text-[#171717] dark:text-[#ededed]">{entity}</span>
+                    </div>
+                  </td>
+                  <td className="py-2 text-right font-mono text-[#171717] dark:text-[#ededed]">{(jaF1 * 100).toFixed(1)}%</td>
+                  <td className="py-2 text-right font-mono text-[#171717] dark:text-[#ededed]">{(enF1 * 100).toFixed(1)}%</td>
+                  <td className={`py-2 text-right font-mono ${delta >= 0 ? 'text-emerald-500' : 'text-red-400'}`}>
+                    {delta >= 0 ? '+' : ''}{(delta * 100).toFixed(1)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </motion.div>
+  );
+}
+
+function MethodologySection() {
+  return (
+    <motion.div className="mb-16 rounded-2xl border border-[#eaeaea] dark:border-[#333] bg-[#fafafa] dark:bg-[#111] p-8"
+      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+      <div className="mb-6 flex items-center gap-2">
+        <BookOpen className="h-5 w-5 text-[#666] dark:text-[#8f8f8f]" />
+        <h2 className="text-xl font-semibold text-[#171717] dark:text-[#ededed]">Methodology</h2>
+      </div>
+      <div className="grid gap-6 md:grid-cols-2">
+        <div>
+          <h3 className="mb-3 text-sm font-semibold text-[#171717] dark:text-[#ededed]">Training</h3>
+          <dl className="space-y-2 text-sm text-[#666] dark:text-[#8f8f8f]">
+            <div className="flex justify-between">
+              <dt>Architecture</dt>
+              <dd className="font-mono text-[#171717] dark:text-[#ededed]">spaCy TransitionBasedParser v2</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt>JA Backbone</dt>
+              <dd className="font-mono text-[#171717] dark:text-[#ededed]">cl-tohoku/bert-base-japanese-v3</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt>EN Backbone</dt>
+              <dd className="font-mono text-[#171717] dark:text-[#ededed]">roberta-base</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt>Max Epochs</dt>
+              <dd className="font-mono text-[#171717] dark:text-[#ededed]">30</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt>Optimizer</dt>
+              <dd className="font-mono text-[#171717] dark:text-[#ededed]">Adam (lr=5e-5, warmup)</dd>
+            </div>
+          </dl>
+        </div>
+        <div>
+          <h3 className="mb-3 text-sm font-semibold text-[#171717] dark:text-[#ededed]">Evaluation</h3>
+          <dl className="space-y-2 text-sm text-[#666] dark:text-[#8f8f8f]">
+            <div className="flex justify-between">
+              <dt>Metric</dt>
+              <dd className="font-mono text-[#171717] dark:text-[#ededed]">Exact span match (P/R/F1)</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt>Overall F1 Threshold</dt>
+              <dd className="font-mono text-[#171717] dark:text-[#ededed]">&ge; 88%</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt>Entities</dt>
+              <dd className="font-mono text-[#171717] dark:text-[#ededed]">5 PII types</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt>External Baselines</dt>
+              <dd className="font-mono text-[#171717] dark:text-[#ededed]">spaCy + HuggingFace</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt>Latency</dt>
+              <dd className="font-mono text-[#171717] dark:text-[#ededed]">CPU, ms/doc avg</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+      <div className="mt-6 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 p-4">
+        <p className="text-xs text-amber-800 dark:text-amber-300">
+          <strong>Safety Note:</strong> Per-entity recall minimums are enforced to prevent PII leakage.
+          A model with high F1 but low recall may miss sensitive entities in production.
+          Our acceptance criteria require recall &ge; 75-85% per entity type.
+        </p>
+      </div>
+    </motion.div>
+  );
+}
 
 export default function BenchmarkPage() {
   const [lang, setLang] = useState<Lang>('ja');
@@ -170,6 +336,9 @@ export default function BenchmarkPage() {
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-10">
+        {/* Cross-Language Summary */}
+        <CrossLanguageSummary />
+
         {/* Language Tabs */}
         <div className="mb-8 flex items-center gap-2">
           {(['ja', 'en'] as const).map((l) => (
@@ -241,7 +410,7 @@ export default function BenchmarkPage() {
               </div>
             ))}
           </div>
-          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
             {Object.entries(getComparisonData(lang)).map(([entity, scores], i) => (
               <motion.div key={entity}
                 className="rounded-xl border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] p-4"
@@ -285,11 +454,14 @@ export default function BenchmarkPage() {
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <div className="grid gap-4 md:grid-cols-2">
             {[
-              { title: 'Model Size', unit: 'MB', data: SIZE_DATA[lang], subtitle: 'Lower is better' },
-              { title: 'Inference Latency', unit: 'ms', data: LATENCY_DATA[lang], subtitle: 'Lower is better (ms/doc, CPU)' },
-            ].map(({ title, unit, data, subtitle }) => (
+              { title: 'Model Size', unit: 'MB', data: SIZE_DATA[lang], subtitle: 'Lower is better', icon: HardDrive },
+              { title: 'Inference Latency', unit: 'ms', data: LATENCY_DATA[lang], subtitle: 'Lower is better (ms/doc, CPU)', icon: Zap },
+            ].map(({ title, unit, data, subtitle, icon: Icon }) => (
               <div key={title} className="rounded-xl border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] p-6">
-                <h3 className="mb-1 text-lg font-semibold text-[#171717] dark:text-[#ededed]">{title}</h3>
+                <div className="mb-1 flex items-center gap-2">
+                  <Icon className="h-4 w-4 text-[#666] dark:text-[#8f8f8f]" />
+                  <h3 className="text-lg font-semibold text-[#171717] dark:text-[#ededed]">{title}</h3>
+                </div>
                 <p className="mb-6 text-xs text-[#999] dark:text-[#666]">{subtitle}</p>
                 <div className="flex items-end justify-center gap-4" style={{ height: 200 }}>
                   {COMPARISON_MODELS[lang].map((model, mi) => {
@@ -325,58 +497,84 @@ export default function BenchmarkPage() {
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <h2 className="mb-8 text-2xl font-bold text-[#171717] dark:text-[#ededed]">Entity Performance</h2>
           <div className="space-y-4">
-            {benchmarkData.map((item, i) => (
-              <motion.div key={item.entity}
-                className="rounded-xl border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] p-6"
-                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: i * 0.08 }}>
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
-                    <div>
-                      <span className="font-mono text-sm font-semibold text-[#171717] dark:text-[#ededed]">{item.entity}</span>
-                      <span className="ml-2 text-sm text-[#666] dark:text-[#8f8f8f]">{item.label}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-2xl font-bold text-[#171717] dark:text-[#ededed]">
-                      {(item.f1 * 100).toFixed(1)}
-                    </span>
-                    <span className="text-xs text-[#666] dark:text-[#8f8f8f]">F1</span>
-                    <CheckCircle2 className="ml-1 h-5 w-5 text-emerald-500" />
-                  </div>
-                </div>
-                <div className="grid gap-3 md:grid-cols-3">
-                  {[
-                    { label: 'Precision', value: item.precision },
-                    { label: 'Recall', value: item.recall },
-                  ].map(({ label, value }, j) => (
-                    <div key={label}>
-                      <div className="mb-1 flex justify-between text-xs text-[#666] dark:text-[#8f8f8f]">
-                        <span>{label}</span>
-                        <span className="font-mono">{(value * 100).toFixed(1)}%</span>
+            {benchmarkData.map((item, i) => {
+              const recallOk = item.recall >= item.recallMin;
+              const f1Ok = item.f1 >= item.threshold;
+              const passed = recallOk && f1Ok;
+              return (
+                <motion.div key={item.entity}
+                  className="rounded-xl border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] p-6"
+                  initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: i * 0.08 }}>
+                  <div className="mb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
+                      <div>
+                        <span className="font-mono text-sm font-semibold text-[#171717] dark:text-[#ededed]">{item.entity}</span>
+                        <span className="ml-2 text-sm text-[#666] dark:text-[#8f8f8f]">{item.label}</span>
                       </div>
-                      <BarChart value={value} color={item.color} delay={i * 0.08 + j * 0.05} />
                     </div>
-                  ))}
-                  <div>
-                    <div className="mb-1 flex justify-between text-xs text-[#666] dark:text-[#8f8f8f]">
-                      <span>Threshold</span>
-                      <span className="font-mono">{(item.threshold * 100).toFixed(0)}%</span>
-                    </div>
-                    <div className="relative h-2 w-full rounded-full bg-[#f0f0f0] dark:bg-[#2a2a2a] overflow-hidden">
-                      <div className="absolute h-full rounded-full bg-[#ddd] dark:bg-[#444]"
-                        style={{ width: `${item.threshold * 100}%` }} />
-                      <motion.div className="absolute h-full rounded-full" style={{ backgroundColor: item.color }}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${item.f1 * 100}%` }}
-                        transition={{ duration: 0.8, delay: i * 0.08, ease: 'easeOut' }} />
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-2xl font-bold text-[#171717] dark:text-[#ededed]">
+                        {(item.f1 * 100).toFixed(1)}
+                      </span>
+                      <span className="text-xs text-[#666] dark:text-[#8f8f8f]">F1</span>
+                      {passed
+                        ? <CheckCircle2 className="ml-1 h-5 w-5 text-emerald-500" />
+                        : <span className="ml-1 rounded bg-red-100 dark:bg-red-900/30 px-1.5 py-0.5 text-[10px] font-medium text-red-600 dark:text-red-400">FAIL</span>
+                      }
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                  <div className="grid gap-3 md:grid-cols-4">
+                    {[
+                      { label: 'Precision', value: item.precision },
+                      { label: 'Recall', value: item.recall },
+                    ].map(({ label, value }, j) => (
+                      <div key={label}>
+                        <div className="mb-1 flex justify-between text-xs text-[#666] dark:text-[#8f8f8f]">
+                          <span>{label}</span>
+                          <span className="font-mono">{(value * 100).toFixed(1)}%</span>
+                        </div>
+                        <BarChart value={value} color={item.color} delay={i * 0.08 + j * 0.05} />
+                      </div>
+                    ))}
+                    <div>
+                      <div className="mb-1 flex justify-between text-xs text-[#666] dark:text-[#8f8f8f]">
+                        <span>F1 Threshold</span>
+                        <span className="font-mono">{(item.threshold * 100).toFixed(0)}%</span>
+                      </div>
+                      <div className="relative h-2 w-full rounded-full bg-[#f0f0f0] dark:bg-[#2a2a2a] overflow-hidden">
+                        <div className="absolute h-full rounded-full bg-[#ddd] dark:bg-[#444]"
+                          style={{ width: `${item.threshold * 100}%` }} />
+                        <motion.div className="absolute h-full rounded-full" style={{ backgroundColor: item.color }}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${item.f1 * 100}%` }}
+                          transition={{ duration: 0.8, delay: i * 0.08, ease: 'easeOut' }} />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="mb-1 flex justify-between text-xs text-[#666] dark:text-[#8f8f8f]">
+                        <span>Recall Min</span>
+                        <span className={`font-mono ${!recallOk ? 'text-red-500' : ''}`}>{(item.recallMin * 100).toFixed(0)}%</span>
+                      </div>
+                      <div className="relative h-2 w-full rounded-full bg-[#f0f0f0] dark:bg-[#2a2a2a] overflow-hidden">
+                        <div className="absolute h-full rounded-full bg-[#ddd] dark:bg-[#444]"
+                          style={{ width: `${item.recallMin * 100}%` }} />
+                        <motion.div className="absolute h-full rounded-full"
+                          style={{ backgroundColor: recallOk ? item.color : '#ef4444' }}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${item.recall * 100}%` }}
+                          transition={{ duration: 0.8, delay: i * 0.08, ease: 'easeOut' }} />
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </motion.div>
+
+        {/* Methodology */}
+        <MethodologySection />
 
       </main>
 
