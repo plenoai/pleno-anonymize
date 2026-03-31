@@ -23,6 +23,8 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: uv sync --frozen
         working-directory: server
+      - run: uv run python -m spacy download en_core_web_sm
+        working-directory: server
       - run: uv run pytest tests/ -v
         working-directory: server
 

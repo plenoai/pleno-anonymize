@@ -8,35 +8,6 @@ Purpose-built for Japanese PII that generic NER models miss: My Number, full-wid
 - **Benchmark:** https://plenoai.com/pleno-anonymize/benchmark
 - **API Docs:** https://anonymize.plenoai.com/docs
 
-## Architecture
-
-```mermaid
-graph LR
-    User([User / App]) --> API[pleno-anonymize API]
-
-    subgraph PII Engine
-        NER[Custom NER<br/>ja + en]
-        PAT[Pattern Matching<br/>17 entity types]
-    end
-
-    API --> NER
-    API --> PAT
-
-    API -- masked text --> OpenAI[OpenAI]
-    API -- masked text --> Anthropic[Anthropic]
-    API -- masked text --> Gemini[Gemini]
-
-    OpenAI -- response --> API
-    Anthropic -- response --> API
-    Gemini -- response --> API
-
-    API -- restored response --> User
-
-    style API fill:#10b981,color:#fff
-    style NER fill:#3b82f6,color:#fff
-    style PAT fill:#3b82f6,color:#fff
-```
-
 ## Use Cases
 
 - **PII protection for LLM calls** — Auto-mask PII before sending to OpenAI/Anthropic/Gemini, restore in response
