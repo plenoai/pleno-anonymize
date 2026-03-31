@@ -10,6 +10,7 @@ export default defineConfig({
     alias: {
       '@scores': path.resolve(__dirname, '../packages/training/output/scores.json'),
       '@scores-en': path.resolve(__dirname, '../packages/training/output/en-transformer/scores.json'),
+      '@scores-en-cnn': path.resolve(__dirname, '../packages/training/output/en/scores.json'),
     },
   },
   server: {

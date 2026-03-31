@@ -19,3 +19,8 @@ declare module '@scores-en' {
   const scores: Scores;
   export default scores;
 }
+
+declare module '@scores-en-cnn' {
+  const scores: Scores;
+  export default scores;
+}

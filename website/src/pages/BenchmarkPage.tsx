@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
 import scoresJa from '@scores';
 import scoresEn from '@scores-en';
+import scoresEnCnn from '@scores-en-cnn';
 
 type Lang = 'ja' | 'en';
 
@@ -44,8 +45,8 @@ function getOverall(lang: Lang) {
   return { precision: s.ents_p, recall: s.ents_r, f1: s.ents_f, threshold: 0.88 };
 }
 
-// JA-only comparison models
-const COMPARISON_MODELS = [
+// JA comparison models
+const COMPARISON_MODELS_JA = [
   { name: 'pleno_ner_ja', label: 'pleno_ner_ja (ours)', shortLabel: 'ours', color: '#10b981', highlight: true },
   { name: 'bert_ner_ja', label: 'bert-ner-japanese (HF)', shortLabel: 'HF', color: '#f59e0b', highlight: false },
   { name: 'ja_core_news_lg', label: 'ja_core_news_lg', shortLabel: 'lg', color: '#6b7280', highlight: false },
@@ -53,7 +54,20 @@ const COMPARISON_MODELS = [
   { name: 'ja_core_news_sm', label: 'ja_core_news_sm', shortLabel: 'sm', color: '#d1d5db', highlight: false },
 ];
 
-const EXTERNAL_SCORES: Record<string, Record<string, number>> = {
+// EN comparison models
+const COMPARISON_MODELS_EN = [
+  { name: 'pleno_ner_en', label: 'pleno_ner_en (ours)', shortLabel: 'ours', color: '#10b981', highlight: true },
+  { name: 'pleno_ner_en_cnn', label: 'pleno_ner_en_cnn', shortLabel: 'cnn', color: '#3b82f6', highlight: false },
+  { name: 'en_core_web_md', label: 'en_core_web_md', shortLabel: 'md', color: '#9ca3af', highlight: false },
+  { name: 'en_core_web_sm', label: 'en_core_web_sm', shortLabel: 'sm', color: '#d1d5db', highlight: false },
+];
+
+const COMPARISON_MODELS: Record<Lang, typeof COMPARISON_MODELS_JA> = {
+  ja: COMPARISON_MODELS_JA,
+  en: COMPARISON_MODELS_EN,
+};
+
+const EXTERNAL_SCORES_JA: Record<string, Record<string, number>> = {
   PERSON:        { bert_ner_ja: 0.8860, ja_core_news_lg: 0.8543, ja_core_news_md: 0.8698, ja_core_news_sm: 0.4724 },
   ADDRESS:       { bert_ner_ja: 0.6903, ja_core_news_lg: 0.6604, ja_core_news_md: 0.7299, ja_core_news_sm: 0.2444 },
   ORGANIZATION:  { bert_ner_ja: 0.5908, ja_core_news_lg: 0.5900, ja_core_news_md: 0.5578, ja_core_news_sm: 0.4419 },
@@ -61,18 +75,38 @@ const EXTERNAL_SCORES: Record<string, Record<string, number>> = {
   BANK_ACCOUNT:  { bert_ner_ja: 0,      ja_core_news_lg: 0,      ja_core_news_md: 0,      ja_core_news_sm: 0      },
 };
 
-const COMPARISON_DATA: Record<string, Record<string, number>> = Object.fromEntries(
-  Object.entries(EXTERNAL_SCORES).map(([entity, ext]) => [
-    entity,
-    { pleno_ner_ja: scoresJa.ents_per_type[entity]?.f ?? 0, ...ext },
-  ])
-);
-
-const SIZE_DATA: Record<string, number> = {
-  pleno_ner_ja: 18, bert_ner_ja: 440, ja_core_news_lg: 529, ja_core_news_md: 40, ja_core_news_sm: 11,
+const EXTERNAL_SCORES_EN: Record<string, Record<string, number>> = {
+  PERSON:        { pleno_ner_en_cnn: scoresEnCnn.ents_per_type.PERSON?.f ?? 0,        en_core_web_md: 0.5827, en_core_web_sm: 0.5117 },
+  ADDRESS:       { pleno_ner_en_cnn: scoresEnCnn.ents_per_type.ADDRESS?.f ?? 0,       en_core_web_md: 0,      en_core_web_sm: 0      },
+  ORGANIZATION:  { pleno_ner_en_cnn: scoresEnCnn.ents_per_type.ORGANIZATION?.f ?? 0,  en_core_web_md: 0.4807, en_core_web_sm: 0.4718 },
+  DATE_OF_BIRTH: { pleno_ner_en_cnn: scoresEnCnn.ents_per_type.DATE_OF_BIRTH?.f ?? 0, en_core_web_md: 0.1337, en_core_web_sm: 0.1324 },
+  BANK_ACCOUNT:  { pleno_ner_en_cnn: scoresEnCnn.ents_per_type.BANK_ACCOUNT?.f ?? 0,  en_core_web_md: 0,      en_core_web_sm: 0      },
 };
-const LATENCY_DATA: Record<string, number> = {
-  pleno_ner_ja: 2.8, bert_ner_ja: 17.7, ja_core_news_lg: 6.9, ja_core_news_md: 6.8, ja_core_news_sm: 6.7,
+
+const EXTERNAL_SCORES: Record<Lang, Record<string, Record<string, number>>> = {
+  ja: EXTERNAL_SCORES_JA,
+  en: EXTERNAL_SCORES_EN,
+};
+
+function getComparisonData(lang: Lang) {
+  const ext = EXTERNAL_SCORES[lang];
+  const scores = SCORES[lang];
+  const ownModelName = lang === 'ja' ? 'pleno_ner_ja' : 'pleno_ner_en';
+  return Object.fromEntries(
+    Object.entries(ext).map(([entity, extScores]) => [
+      entity,
+      { [ownModelName]: scores.ents_per_type[entity]?.f ?? 0, ...extScores },
+    ])
+  );
+}
+
+const SIZE_DATA: Record<Lang, Record<string, number>> = {
+  ja: { pleno_ner_ja: 18, bert_ner_ja: 440, ja_core_news_lg: 529, ja_core_news_md: 40, ja_core_news_sm: 11 },
+  en: { pleno_ner_en: 418, pleno_ner_en_cnn: 46, en_core_web_md: 54, en_core_web_sm: 15 },
+};
+const LATENCY_DATA: Record<Lang, Record<string, number>> = {
+  ja: { pleno_ner_ja: 2.8, bert_ner_ja: 17.7, ja_core_news_lg: 6.9, ja_core_news_md: 6.8, ja_core_news_sm: 6.7 },
+  en: { pleno_ner_en: 52.9, pleno_ner_en_cnn: 8.8, en_core_web_md: 15.9, en_core_web_sm: 14.8 },
 };
 
 const BarChart = ({ value, max = 1, color, delay = 0 }: { value: number; max?: number; color: string; delay?: number }) => (
@@ -188,103 +222,103 @@ export default function BenchmarkPage() {
           </div>
         </motion.div>
 
-        {/* Model Comparison (JA only) */}
-        {lang === 'ja' && (
-          <motion.div className="mb-16"
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <h2 className="mb-2 text-2xl font-bold text-[#171717] dark:text-[#ededed]">Model Comparison</h2>
-            <p className="mb-8 text-sm text-[#666] dark:text-[#8f8f8f]">
-              F1 Score comparison against spaCy built-in Japanese models on PII detection test set
-            </p>
-            <div className="mb-6 flex flex-wrap gap-4">
-              {COMPARISON_MODELS.map((m) => (
-                <div key={m.name} className="flex items-center gap-2 text-sm">
-                  <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: m.color }} />
-                  <span className={m.highlight ? 'font-semibold text-[#171717] dark:text-[#ededed]' : 'text-[#666] dark:text-[#8f8f8f]'}>
-                    {m.label}
-                  </span>
+        {/* Model Comparison */}
+        <motion.div className="mb-16" key={`comparison-${lang}`}
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <h2 className="mb-2 text-2xl font-bold text-[#171717] dark:text-[#ededed]">Model Comparison</h2>
+          <p className="mb-8 text-sm text-[#666] dark:text-[#8f8f8f]">
+            {lang === 'ja'
+              ? 'F1 Score comparison against spaCy built-in Japanese models on PII detection test set'
+              : 'F1 Score comparison against spaCy English models and CNN variant on PII detection test set'}
+          </p>
+          <div className="mb-6 flex flex-wrap gap-4">
+            {COMPARISON_MODELS[lang].map((m) => (
+              <div key={m.name} className="flex items-center gap-2 text-sm">
+                <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: m.color }} />
+                <span className={m.highlight ? 'font-semibold text-[#171717] dark:text-[#ededed]' : 'text-[#666] dark:text-[#8f8f8f]'}>
+                  {m.label}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+            {Object.entries(getComparisonData(lang)).map(([entity, scores], i) => (
+              <motion.div key={entity}
+                className="rounded-xl border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] p-4"
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: i * 0.06 }}>
+                <div className="mb-4 text-center">
+                  <div className="font-mono text-xs font-semibold text-[#171717] dark:text-[#ededed]">{entity}</div>
+                  <div className="text-[10px] text-[#999] dark:text-[#666]">
+                    {lang === 'ja' ? ENTITY_CONFIG[entity]?.labelJa : ENTITY_CONFIG[entity]?.labelEn}
+                  </div>
                 </div>
-              ))}
-            </div>
-            <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-              {Object.entries(COMPARISON_DATA).map(([entity, scores], i) => (
-                <motion.div key={entity}
-                  className="rounded-xl border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] p-4"
-                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: i * 0.06 }}>
-                  <div className="mb-4 text-center">
-                    <div className="font-mono text-xs font-semibold text-[#171717] dark:text-[#ededed]">{entity}</div>
-                    <div className="text-[10px] text-[#999] dark:text-[#666]">{ENTITY_CONFIG[entity]?.labelJa}</div>
-                  </div>
-                  <div className="flex items-end justify-center gap-1.5" style={{ height: 180 }}>
-                    {COMPARISON_MODELS.map((model, mi) => {
-                      const score = scores[model.name];
-                      const heightPct = Math.max(score * 100, 2);
-                      return (
-                        <div key={model.name} className="flex flex-col items-center gap-1" style={{ width: 28 }}>
-                          <span className={`font-mono leading-none ${model.highlight ? 'font-bold text-[#171717] dark:text-[#ededed]' : 'text-[#bbb] dark:text-[#555]'}`}
-                            style={{ fontSize: 9 }}>
-                            {score > 0 ? (score * 100).toFixed(0) : '—'}
-                          </span>
-                          <div className="w-full rounded-t bg-[#f5f5f5] dark:bg-[#222] overflow-hidden relative" style={{ height: 160 }}>
-                            <motion.div
-                              className={`absolute bottom-0 w-full rounded-t ${model.highlight ? 'shadow-sm' : ''}`}
-                              style={{ backgroundColor: model.color }}
-                              initial={{ height: 0 }}
-                              animate={{ height: `${heightPct}%` }}
-                              transition={{ duration: 0.7, delay: i * 0.06 + mi * 0.08, ease: 'easeOut' }}
-                            />
-                          </div>
+                <div className="flex items-end justify-center gap-1.5" style={{ height: 180 }}>
+                  {COMPARISON_MODELS[lang].map((model, mi) => {
+                    const score = scores[model.name];
+                    const heightPct = Math.max(score * 100, 2);
+                    return (
+                      <div key={model.name} className="flex flex-col items-center gap-1" style={{ width: 28 }}>
+                        <span className={`font-mono leading-none ${model.highlight ? 'font-bold text-[#171717] dark:text-[#ededed]' : 'text-[#bbb] dark:text-[#555]'}`}
+                          style={{ fontSize: 9 }}>
+                          {score > 0 ? (score * 100).toFixed(0) : '—'}
+                        </span>
+                        <div className="w-full rounded-t bg-[#f5f5f5] dark:bg-[#222] overflow-hidden relative" style={{ height: 160 }}>
+                          <motion.div
+                            className={`absolute bottom-0 w-full rounded-t ${model.highlight ? 'shadow-sm' : ''}`}
+                            style={{ backgroundColor: model.color }}
+                            initial={{ height: 0 }}
+                            animate={{ height: `${heightPct}%` }}
+                            transition={{ duration: 0.7, delay: i * 0.06 + mi * 0.08, ease: 'easeOut' }}
+                          />
                         </div>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
 
-        {/* Size & Latency (JA only) */}
-        {lang === 'ja' && (
-          <motion.div className="mb-16"
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <div className="grid gap-4 md:grid-cols-2">
-              {[
-                { title: 'Model Size', unit: 'MB', data: SIZE_DATA, subtitle: 'Lower is better' },
-                { title: 'Inference Latency', unit: 'ms', data: LATENCY_DATA, subtitle: 'Lower is better (ms/doc, CPU)' },
-              ].map(({ title, unit, data, subtitle }) => (
-                <div key={title} className="rounded-xl border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] p-6">
-                  <h3 className="mb-1 text-lg font-semibold text-[#171717] dark:text-[#ededed]">{title}</h3>
-                  <p className="mb-6 text-xs text-[#999] dark:text-[#666]">{subtitle}</p>
-                  <div className="flex items-end justify-center gap-4" style={{ height: 200 }}>
-                    {COMPARISON_MODELS.map((model, mi) => {
-                      const val = data[model.name];
-                      const maxVal = Math.max(...Object.values(data));
-                      const heightPct = (val / maxVal) * 100;
-                      return (
-                        <div key={model.name} className="flex flex-col items-center gap-1.5" style={{ width: 48 }}>
-                          <span className={`font-mono text-xs ${model.highlight ? 'font-bold text-[#171717] dark:text-[#ededed]' : 'text-[#999] dark:text-[#666]'}`}>
-                            {val < 10 ? val.toFixed(1) : Math.round(val)}
-                            <span className="text-[9px]">{unit}</span>
-                          </span>
-                          <div className="w-full rounded-t bg-[#f5f5f5] dark:bg-[#222] overflow-hidden relative" style={{ height: 150 }}>
-                            <motion.div className="absolute bottom-0 w-full rounded-t"
-                              style={{ backgroundColor: model.highlight ? '#10b981' : model.color }}
-                              initial={{ height: 0 }}
-                              animate={{ height: `${heightPct}%` }}
-                              transition={{ duration: 0.7, delay: mi * 0.1, ease: 'easeOut' }}
-                            />
-                          </div>
-                          <span className="text-[9px] text-center text-[#999] dark:text-[#666] leading-tight">{model.shortLabel}</span>
+        {/* Size & Latency */}
+        <motion.div className="mb-16" key={`size-latency-${lang}`}
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <div className="grid gap-4 md:grid-cols-2">
+            {[
+              { title: 'Model Size', unit: 'MB', data: SIZE_DATA[lang], subtitle: 'Lower is better' },
+              { title: 'Inference Latency', unit: 'ms', data: LATENCY_DATA[lang], subtitle: 'Lower is better (ms/doc, CPU)' },
+            ].map(({ title, unit, data, subtitle }) => (
+              <div key={title} className="rounded-xl border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] p-6">
+                <h3 className="mb-1 text-lg font-semibold text-[#171717] dark:text-[#ededed]">{title}</h3>
+                <p className="mb-6 text-xs text-[#999] dark:text-[#666]">{subtitle}</p>
+                <div className="flex items-end justify-center gap-4" style={{ height: 200 }}>
+                  {COMPARISON_MODELS[lang].map((model, mi) => {
+                    const val = data[model.name];
+                    const maxVal = Math.max(...Object.values(data));
+                    const heightPct = (val / maxVal) * 100;
+                    return (
+                      <div key={model.name} className="flex flex-col items-center gap-1.5" style={{ width: 48 }}>
+                        <span className={`font-mono text-xs ${model.highlight ? 'font-bold text-[#171717] dark:text-[#ededed]' : 'text-[#999] dark:text-[#666]'}`}>
+                          {val < 10 ? val.toFixed(1) : Math.round(val)}
+                          <span className="text-[9px]">{unit}</span>
+                        </span>
+                        <div className="w-full rounded-t bg-[#f5f5f5] dark:bg-[#222] overflow-hidden relative" style={{ height: 150 }}>
+                          <motion.div className="absolute bottom-0 w-full rounded-t"
+                            style={{ backgroundColor: model.highlight ? '#10b981' : model.color }}
+                            initial={{ height: 0 }}
+                            animate={{ height: `${heightPct}%` }}
+                            transition={{ duration: 0.7, delay: mi * 0.1, ease: 'easeOut' }}
+                          />
                         </div>
-                      );
-                    })}
-                  </div>
+                        <span className="text-[9px] text-center text-[#999] dark:text-[#666] leading-tight">{model.shortLabel}</span>
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
+              </div>
+            ))}
+          </div>
+        </motion.div>
 
         {/* Per-Entity Results */}
         <motion.div className="mb-16" key={`entities-${lang}`}
