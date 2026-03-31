@@ -1,18 +1,32 @@
 import asyncio
+import logging
 import os
 import json
 import base64
 import io
-from functools import partial
+import time
+import uuid
+from functools import lru_cache, partial
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Tuple
 import httpx
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from presidio_anonymizer.entities import OperatorConfig
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from scalar_fastapi import get_scalar_api_reference
-from PIL import Image
+
+# Structured JSON logging
+logger = logging.getLogger("pleno-anonymize")
+logger.setLevel(logging.INFO)
+_handler = logging.StreamHandler()
+_handler.setFormatter(logging.Formatter(json.dumps({
+    "timestamp": "%(asctime)s",
+    "level": "%(levelname)s",
+    "logger": "%(name)s",
+    "message": "%(message)s",
+})))
+logger.addHandler(_handler)
 
 # Lazy initialization for cold start optimization
 _nlp_ja = None
@@ -84,6 +98,14 @@ def get_anonymizer():
     return _anonymizer
 
 
+@lru_cache(maxsize=256)
+def _cached_analyze(text: str, language: str, entities: tuple | None = None):
+    """Cache analyze results by (text, language, entities) to avoid redundant NER inference."""
+    return get_analyzer().analyze(
+        text=text, language=language, entities=list(entities) if entities else None
+    )
+
+
 def get_image_redactor():
     global _image_redactor
     if _image_redactor is None:
@@ -94,7 +116,19 @@ def get_image_redactor():
     return _image_redactor
 
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Preload NER models at startup so first request is fast."""
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, _init_presidio)
+    logger.info("Models loaded successfully")
+    yield
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title="pleno-anonymize",
     description="""
 PII (Personal Information) anonymization server with Japanese support.
@@ -147,9 +181,47 @@ app.add_middleware(
         "https://plenoai.com",
         "http://localhost:5173",
     ],
-    allow_methods=["POST"],
+    allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
+
+
+@app.middleware("http")
+async def request_logging_middleware(request: Request, call_next):
+    """Structured request logging. Never logs PII."""
+    request_id = str(uuid.uuid4())[:8]
+    start_time = time.monotonic()
+    response = await call_next(request)
+    duration_ms = round((time.monotonic() - start_time) * 1000)
+    logger.info(json.dumps({
+        "request_id": request_id,
+        "method": request.method,
+        "path": str(request.url.path),
+        "status": response.status_code,
+        "duration_ms": duration_ms,
+    }))
+    return response
+
+
+@app.get("/health", tags=["Operations"])
+async def health():
+    """Liveness probe. Returns 200 if the process is running."""
+    return {"status": "ok"}
+
+
+@app.get("/ready", tags=["Operations"])
+async def readiness():
+    """Readiness probe. Returns 200 only when NLP models are loaded."""
+    try:
+        _init_presidio()
+        return {"status": "ready"}
+    except Exception as e:
+        logger.error(json.dumps({"event": "readiness_check_failed", "error": str(e)}))
+        return Response(
+            content=json.dumps({"status": "not_ready", "error": str(e)}),
+            status_code=503,
+            media_type="application/json",
+        )
 
 
 @app.get("/docs", include_in_schema=False)
@@ -161,16 +233,19 @@ async def scalar_docs():
     )
 
 
+SUPPORTED_LANGUAGES = {"ja", "en"}
+
+
 class AnalyzeRequest(BaseModel):
-    text: str
-    language: str = "ja"
+    text: str = Field(..., min_length=1, max_length=100_000)
+    language: str = Field(default="ja", pattern=r"^(ja|en)$")
     entities: Optional[List[str]] = None
 
 
 class RedactRequest(BaseModel):
-    text: Optional[str] = None
+    text: Optional[str] = Field(default=None, max_length=100_000)
     image: Optional[str] = None  # base64 encoded image or data URL
-    language: str = "ja"
+    language: str = Field(default="ja", pattern=r"^(ja|en)$")
     entities: Optional[List[str]] = None
     operators: Optional[Dict[str, Dict[str, Any]]] = None
     fill_color: Optional[List[int]] = [0, 0, 0]  # RGB for image redaction
@@ -200,10 +275,11 @@ async def analyze(req: AnalyzeRequest):
     ]
     ```
     """
+    entities_key = tuple(req.entities) if req.entities else None
     loop = asyncio.get_event_loop()
     results = await loop.run_in_executor(
         None,
-        partial(get_analyzer().analyze, text=req.text, language=req.language, entities=req.entities),
+        partial(_cached_analyze, text=req.text, language=req.language, entities=entities_key),
     )
     return [
         {
@@ -249,9 +325,10 @@ async def redact(req: RedactRequest):
     result = {}
 
     if req.text:
+        entities_key = tuple(req.entities) if req.entities else None
         def _redact_text():
-            results = get_analyzer().analyze(
-                text=req.text, language=req.language, entities=req.entities
+            results = _cached_analyze(
+                text=req.text, language=req.language, entities=entities_key
             )
             anonymizers = {}
             for r in results:
@@ -287,6 +364,7 @@ async def redact(req: RedactRequest):
             image_bytes = base64.b64decode(image_data)
             mime_type = "image/png"
 
+        from PIL import Image
         img = Image.open(io.BytesIO(image_bytes))
         fill = tuple(req.fill_color) if req.fill_color else (0, 0, 0)
         redacted_img = get_image_redactor().redact(img, fill=fill)
@@ -317,7 +395,7 @@ def redact_text_with_mapping(
     text: str, language: str = "en"
 ) -> Tuple[str, Dict[str, str]]:
     """Redact PII from text and return mapping for de-anonymization."""
-    results = get_analyzer().analyze(text=text, language=language)
+    results = _cached_analyze(text=text, language=language)
 
     # Sort by start position descending to replace from end
     results_sorted = sorted(results, key=lambda r: r.start, reverse=True)
@@ -354,6 +432,7 @@ async def redact_image(image_url: str, http_client: httpx.AsyncClient) -> str:
         content_type = response.headers.get("content-type", "image/png")
         mime_type = content_type.split(";")[0]
 
+    from PIL import Image
     image = Image.open(io.BytesIO(image_bytes))
     redacted_image = get_image_redactor().redact(image, fill=(0, 0, 0))
 

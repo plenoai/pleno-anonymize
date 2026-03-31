@@ -1780,16 +1780,22 @@ source = { virtual = "server" }
 dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
-    { name = "langchain" },
-    { name = "langchain-community" },
-    { name = "openai" },
-    { name = "pillow" },
     { name = "presidio-analyzer" },
     { name = "presidio-anonymizer" },
-    { name = "presidio-image-redactor" },
     { name = "scalar-fastapi" },
     { name = "spacy", extra = ["ja"] },
     { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.optional-dependencies]
+image = [
+    { name = "pillow" },
+    { name = "presidio-image-redactor" },
+]
+proxy = [
+    { name = "langchain" },
+    { name = "langchain-community" },
+    { name = "openai" },
 ]
 
 [package.dev-dependencies]
@@ -1801,13 +1807,13 @@ dev = [
 requires-dist = [
     { name = "fastapi", specifier = ">=0.111" },
     { name = "httpx", specifier = ">=0.27.0" },
-    { name = "langchain", specifier = ">=0.3.27" },
-    { name = "langchain-community", specifier = ">=0.3.27" },
-    { name = "openai", specifier = ">=1.0.0" },
-    { name = "pillow", specifier = ">=10.0.0" },
+    { name = "langchain", marker = "extra == 'proxy'", specifier = ">=0.3.27" },
+    { name = "langchain-community", marker = "extra == 'proxy'", specifier = ">=0.3.27" },
+    { name = "openai", marker = "extra == 'proxy'", specifier = ">=1.0.0" },
+    { name = "pillow", marker = "extra == 'image'", specifier = ">=10.0.0" },
     { name = "presidio-analyzer", specifier = ">=2.2" },
     { name = "presidio-anonymizer", specifier = ">=2.2" },
-    { name = "presidio-image-redactor", specifier = ">=0.0.53" },
+    { name = "presidio-image-redactor", marker = "extra == 'image'", specifier = ">=0.0.53" },
     { name = "scalar-fastapi", specifier = ">=1.6.0" },
     { name = "spacy", extras = ["ja"], specifier = ">=3.8" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.35.0" },
