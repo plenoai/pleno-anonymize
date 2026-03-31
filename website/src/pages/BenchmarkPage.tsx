@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, CheckCircle2, ArrowLeft, Globe, Zap, HardDrive, BookOpen } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, ArrowLeft, Zap, HardDrive, BookOpen } from 'lucide-react';
 import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
 import scoresJa from '@scores';
@@ -190,75 +190,6 @@ const ScoreRing = ({ value, size = 160, strokeWidth = 10, color = '#3b82f6', del
   );
 };
 
-function CrossLanguageSummary() {
-  const jaOverall = getOverall('ja');
-  const enOverall = getOverall('en');
-  const jaData = getBenchmarkData('ja');
-  const enData = getBenchmarkData('en');
-
-  return (
-    <motion.div className="mb-16 rounded-2xl border border-[#eaeaea] dark:border-[#333] bg-[#fafafa] dark:bg-[#111] p-8"
-      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-      <div className="mb-6 flex items-center gap-2">
-        <Globe className="h-5 w-5 text-[#666] dark:text-[#8f8f8f]" />
-        <h2 className="text-xl font-semibold text-[#171717] dark:text-[#ededed]">Cross-Language Summary</h2>
-      </div>
-
-      {/* Side-by-side rings */}
-      <div className="mb-8 grid gap-8 md:grid-cols-2">
-        {([['ja', jaOverall], ['en', enOverall]] as const).map(([l, ov]) => (
-          <div key={l} className="flex flex-col items-center gap-3">
-            <span className="text-sm font-medium text-[#666] dark:text-[#8f8f8f]">
-              {LANG_LABELS[l as Lang].name} — {LANG_LABELS[l as Lang].model} {LANG_LABELS[l as Lang].version}
-            </span>
-            <ScoreRing value={ov.f1} size={140} strokeWidth={10}
-              color={l === 'ja' ? '#3b82f6' : '#10b981'} delay={l === 'ja' ? 0.2 : 0.4} />
-            <div className="flex gap-6 text-xs text-[#666] dark:text-[#8f8f8f]">
-              <span>P: <span className="font-mono font-medium text-[#171717] dark:text-[#ededed]">{(ov.precision * 100).toFixed(1)}%</span></span>
-              <span>R: <span className="font-mono font-medium text-[#171717] dark:text-[#ededed]">{(ov.recall * 100).toFixed(1)}%</span></span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Per-entity comparison table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-[#eaeaea] dark:border-[#333]">
-              <th className="py-2 text-left font-medium text-[#666] dark:text-[#8f8f8f]">Entity</th>
-              <th className="py-2 text-right font-medium text-[#3b82f6]">JA F1</th>
-              <th className="py-2 text-right font-medium text-[#10b981]">EN F1</th>
-              <th className="py-2 text-right font-medium text-[#666] dark:text-[#8f8f8f]">Delta</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ENTITIES.map((entity) => {
-              const jaF1 = jaData.find(d => d.entity === entity)?.f1 ?? 0;
-              const enF1 = enData.find(d => d.entity === entity)?.f1 ?? 0;
-              const delta = enF1 - jaF1;
-              return (
-                <tr key={entity} className="border-b border-[#f5f5f5] dark:border-[#222]">
-                  <td className="py-2">
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full" style={{ backgroundColor: ENTITY_CONFIG[entity].color }} />
-                      <span className="font-mono text-xs text-[#171717] dark:text-[#ededed]">{entity}</span>
-                    </div>
-                  </td>
-                  <td className="py-2 text-right font-mono text-[#171717] dark:text-[#ededed]">{(jaF1 * 100).toFixed(1)}%</td>
-                  <td className="py-2 text-right font-mono text-[#171717] dark:text-[#ededed]">{(enF1 * 100).toFixed(1)}%</td>
-                  <td className={`py-2 text-right font-mono ${delta >= 0 ? 'text-emerald-500' : 'text-red-400'}`}>
-                    {delta >= 0 ? '+' : ''}{(delta * 100).toFixed(1)}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </motion.div>
-  );
-}
 
 function MethodologySection() {
   return (
@@ -353,9 +284,6 @@ export default function BenchmarkPage() {
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-10">
-        {/* Cross-Language Summary */}
-        <CrossLanguageSummary />
-
         {/* Language Tabs */}
         <div className="mb-8 flex items-center gap-2">
           {(['ja', 'en'] as const).map((l) => (
