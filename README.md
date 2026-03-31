@@ -157,11 +157,6 @@ curl -X POST https://anonymize.plenoai.com/api/openai/v1/chat/completions \
 - Proxy endpoints only send masked text to LLM APIs
 - PII mappings are discarded from memory when the request completes
 
-## License & Legal
+## License
 
-**AGPL-3.0** — Modifications must be released under the same license.
-
-- Internal use: No AGPL disclosure obligation for modifications
-- SaaS distribution: Source code disclosure required when serving over a network
-
-Details: [Privacy Policy](docs/PRIVACY.md) / [DPIA](docs/DPIA.md)
+[AGPL-3.0](LICENSE) / [Privacy Policy](docs/PRIVACY.md) / [DPIA](docs/DPIA.md)
