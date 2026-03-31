@@ -72,14 +72,8 @@ const COMPARISON_MODELS: Record<Lang, typeof COMPARISON_MODELS_JA> = {
   en: COMPARISON_MODELS_EN,
 };
 
-// bert-ner-japanese scores (HuggingFace model, evaluated separately)
-const BERT_NER_JA_SCORES: Record<string, number> = {
-  PERSON: 0.8860, ADDRESS: 0.6903, ORGANIZATION: 0.5908, DATE_OF_BIRTH: 0, BANK_ACCOUNT: 0,
-};
-
 function buildExternalScores(
-  externalJson: Record<string, { per_entity: Record<string, { f: number }>; latency_ms_per_doc: number }>,
-  extraModels?: Record<string, Record<string, number>>,
+  externalJson: ExternalJson,
   cnnScores?: typeof scoresEnCnn,
 ): Record<string, Record<string, number>> {
   const result: Record<string, Record<string, number>> = {};
@@ -87,18 +81,15 @@ function buildExternalScores(
     const fromJson = Object.fromEntries(
       Object.entries(externalJson).map(([model, data]) => [model, data.per_entity[entity]?.f ?? 0])
     );
-    const fromExtra = extraModels
-      ? Object.fromEntries(Object.entries(extraModels).map(([model, scores]) => [model, scores[entity] ?? 0]))
-      : {};
     const fromCnn: Record<string, number> = cnnScores ? { pleno_ner_en_cnn: cnnScores.ents_per_type[entity]?.f ?? 0 } : {};
-    result[entity] = { ...fromExtra, ...fromCnn, ...fromJson };
+    result[entity] = { ...fromCnn, ...fromJson };
   }
   return result;
 }
 
 const EXTERNAL_SCORES: Record<Lang, Record<string, Record<string, number>>> = {
-  ja: buildExternalScores(externalScoresJa, { bert_ner_ja: BERT_NER_JA_SCORES }),
-  en: buildExternalScores(externalScoresEn, undefined, scoresEnCnn),
+  ja: buildExternalScores(externalScoresJa),
+  en: buildExternalScores(externalScoresEn, scoresEnCnn),
 };
 
 function getComparisonData(lang: Lang) {
@@ -113,24 +104,51 @@ function getComparisonData(lang: Lang) {
   );
 }
 
-function buildLatency(
-  externalJson: Record<string, { per_entity: Record<string, { f: number }>; latency_ms_per_doc: number }>,
-  ownModels: Record<string, number>,
+type ExternalJson = Record<string, { per_entity: Record<string, { f: number }>; latency_ms_per_doc: number; model_size_mb?: number }>;
+
+function buildMetric(
+  externalJson: ExternalJson,
+  ownScores: Record<string, typeof scoresJa>,
+  extract: (data: ExternalJson[string]) => number,
+  extractOwn: (s: typeof scoresJa) => number,
 ): Record<string, number> {
-  const latency = { ...ownModels };
-  for (const [model, data] of Object.entries(externalJson)) {
-    latency[model] = data.latency_ms_per_doc;
+  const result: Record<string, number> = {};
+  for (const [model, scores] of Object.entries(ownScores)) {
+    result[model] = extractOwn(scores);
   }
-  return latency;
+  for (const [model, data] of Object.entries(externalJson)) {
+    result[model] = extract(data);
+  }
+  return result;
 }
 
 const SIZE_DATA: Record<Lang, Record<string, number>> = {
-  ja: { pleno_ner_ja: 18, bert_ner_ja: 440, ja_core_news_lg: 529, ja_core_news_md: 40, ja_core_news_sm: 11 },
-  en: { pleno_ner_en: 418, pleno_ner_en_cnn: 46, en_core_web_md: 54, en_core_web_sm: 15 },
+  ja: buildMetric(
+    externalScoresJa,
+    { pleno_ner_ja: scoresJa },
+    (d) => d.model_size_mb ?? 0,
+    (s) => s.model_size_mb ?? 0,
+  ),
+  en: buildMetric(
+    externalScoresEn,
+    { pleno_ner_en: scoresEn, pleno_ner_en_cnn: scoresEnCnn },
+    (d) => d.model_size_mb ?? 0,
+    (s) => s.model_size_mb ?? 0,
+  ),
 };
 const LATENCY_DATA: Record<Lang, Record<string, number>> = {
-  ja: buildLatency(externalScoresJa, { pleno_ner_ja: 2.8, bert_ner_ja: 17.7 }),
-  en: buildLatency(externalScoresEn, { pleno_ner_en: 52.9, pleno_ner_en_cnn: 8.8 }),
+  ja: buildMetric(
+    externalScoresJa,
+    { pleno_ner_ja: scoresJa },
+    (d) => d.latency_ms_per_doc,
+    (s) => s.latency_ms_per_doc ?? 0,
+  ),
+  en: buildMetric(
+    externalScoresEn,
+    { pleno_ner_en: scoresEn, pleno_ner_en_cnn: scoresEnCnn },
+    (d) => d.latency_ms_per_doc,
+    (s) => s.latency_ms_per_doc ?? 0,
+  ),
 };
 
 const BarChart = ({ value, max = 1, color, delay = 0 }: { value: number; max?: number; color: string; delay?: number }) => (

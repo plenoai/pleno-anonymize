@@ -1,4 +1,4 @@
-.PHONY: generate convert train train-cnn evaluate benchmark-external package clean \
+.PHONY: generate convert train train-cnn evaluate benchmark-external benchmark-huggingface package clean \
        generate-en convert-en train-en evaluate-en benchmark-external-en package-en all-en
 
 MODEL ?= gpt-5.4-nano
@@ -54,6 +54,12 @@ benchmark-external:
 		--language ja \
 		--test-data $(DATA_PROCESSED)/ja/test.spacy \
 		--output $(OUTPUT_DIR)/ja/external_scores.json
+
+benchmark-huggingface:
+	uv run python -m pleno_ner_training.benchmark_huggingface \
+		--language ja \
+		--test-data $(DATA_PROCESSED)/ja/test.spacy \
+		--merge-into $(OUTPUT_DIR)/ja/external_scores.json
 
 package:
 	mkdir -p $(MODELS_DIR)

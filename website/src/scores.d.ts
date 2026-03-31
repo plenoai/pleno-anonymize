@@ -8,6 +8,8 @@ interface Scores {
   ents_r: number;
   ents_f: number;
   ents_per_type: Record<string, EntityScore>;
+  model_size_mb?: number;
+  latency_ms_per_doc?: number;
 }
 
 declare module '@scores' {
@@ -28,6 +30,7 @@ declare module '@scores-en-cnn' {
 interface ExternalModelResult {
   per_entity: Record<string, EntityScore>;
   latency_ms_per_doc: number;
+  model_size_mb?: number;
 }
 
 declare module '@external-scores-ja' {

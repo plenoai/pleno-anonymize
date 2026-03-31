@@ -98,7 +98,19 @@ def evaluate_external(model_name: str, test_path: Path, language: str = "en") ->
 
     latency_ms = (total_time / total_docs * 1000) if total_docs else 0
 
-    return {"per_entity": results, "latency_ms_per_doc": latency_ms}
+    # モデルサイズ測定
+    model_path = Path(nlp.path) if nlp.path else None
+    model_size_mb = 0.0
+    if model_path and model_path.exists():
+        model_size_mb = sum(
+            f.stat().st_size for f in model_path.rglob("*") if f.is_file()
+        ) / (1024 * 1024)
+
+    return {
+        "per_entity": results,
+        "latency_ms_per_doc": latency_ms,
+        "model_size_mb": round(model_size_mb, 1),
+    }
 
 
 def main() -> None:

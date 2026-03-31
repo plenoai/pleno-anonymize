@@ -62,18 +62,32 @@ def evaluate_model(
     test_path: Path,
 ) -> dict:
     """モデルをテストデータで評価する."""
+    import time
+
     nlp = spacy.load(model_path)
     gold_docs = load_test_docs(nlp, test_path)
 
     examples = []
+    total_time = 0.0
     for gold_doc in gold_docs:
-        pred_doc = nlp.make_doc(gold_doc.text)
+        start = time.perf_counter()
         pred_doc = nlp(gold_doc.text)
+        total_time += time.perf_counter() - start
         example = Example(pred_doc, gold_doc)
         examples.append(example)
 
     scorer = Scorer()
     scores = scorer.score(examples)
+
+    # レイテンシ測定
+    latency_ms = (total_time / len(gold_docs) * 1000) if gold_docs else 0
+    scores["latency_ms_per_doc"] = round(latency_ms, 1)
+
+    # モデルサイズ測定
+    model_dir = Path(nlp.path) if nlp.path else Path(model_path)
+    if model_dir.exists():
+        size_bytes = sum(f.stat().st_size for f in model_dir.rglob("*") if f.is_file())
+        scores["model_size_mb"] = round(size_bytes / (1024 * 1024), 1)
 
     return scores
 

@@ -67,5 +67,7 @@
   "cats_macro_f": 0.0,
   "cats_macro_auc": 0.0,
   "cats_f_per_type": {},
-  "cats_auc_per_type": {}
+  "cats_auc_per_type": {},
+  "latency_ms_per_doc": 8.0,
+  "model_size_mb": 6.3
 }
