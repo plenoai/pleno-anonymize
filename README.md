@@ -157,20 +157,6 @@ curl -X POST https://anonymize.plenoai.com/api/openai/v1/chat/completions \
 - Proxy endpoints only send masked text to LLM APIs
 - PII mappings are discarded from memory when the request completes
 
-## Project Structure
-
-```
-server/          # FastAPI backend
-website/         # React frontend (GitHub Pages)
-packages/
-  models/        # NER models (ja: v0.1.0, en: v0.1.0)
-  training/      # Model training pipeline
-docs/
-  PRIVACY.md     # Privacy policy
-  DPIA.md        # Data Protection Impact Assessment
-  adr/           # Architecture Decision Records
-```
-
 ## License & Legal
 
 **AGPL-3.0** — Modifications must be released under the same license.
