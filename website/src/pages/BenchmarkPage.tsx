@@ -151,55 +151,6 @@ export default function BenchmarkPage() {
           ))}
         </div>
 
-        {/* EN/JA Comparison Summary */}
-        <motion.div className="mb-10 rounded-2xl border border-[#eaeaea] dark:border-[#333] bg-[#fafafa] dark:bg-[#111] p-6"
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <h2 className="mb-4 text-lg font-semibold text-[#171717] dark:text-[#ededed]">EN / JA Comparison</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[#eaeaea] dark:border-[#333]">
-                  <th className="py-2 text-left font-medium text-[#666] dark:text-[#8f8f8f]">Entity</th>
-                  <th className="py-2 text-right font-mono font-medium text-[#666] dark:text-[#8f8f8f]">JA F1</th>
-                  <th className="py-2 text-right font-mono font-medium text-[#666] dark:text-[#8f8f8f]">EN F1</th>
-                  <th className="py-2 text-right font-mono font-medium text-[#666] dark:text-[#8f8f8f]">Gap</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(ENTITY_CONFIG)
-                  .sort(([,a], [,b]) => a.order - b.order)
-                  .map(([entity, cfg]) => {
-                    const jaF = scoresJa.ents_per_type[entity]?.f ?? 0;
-                    const enF = scoresEn.ents_per_type[entity]?.f ?? 0;
-                    const gap = (enF - jaF) * 100;
-                    return (
-                      <tr key={entity} className="border-b border-[#f5f5f5] dark:border-[#222]">
-                        <td className="py-2">
-                          <span className="inline-block h-2 w-2 rounded-full mr-2" style={{ backgroundColor: cfg.color }} />
-                          <span className="font-mono text-xs text-[#171717] dark:text-[#ededed]">{entity}</span>
-                          <span className="ml-1 text-xs text-[#999] dark:text-[#666]">{cfg.labelEn}</span>
-                        </td>
-                        <td className="py-2 text-right font-mono text-[#171717] dark:text-[#ededed]">{(jaF * 100).toFixed(1)}%</td>
-                        <td className="py-2 text-right font-mono text-[#171717] dark:text-[#ededed]">{(enF * 100).toFixed(1)}%</td>
-                        <td className={`py-2 text-right font-mono ${gap >= 0 ? 'text-emerald-500' : 'text-orange-500'}`}>
-                          {gap >= 0 ? '+' : ''}{gap.toFixed(1)}pp
-                        </td>
-                      </tr>
-                    );
-                  })}
-                <tr className="font-semibold">
-                  <td className="py-2 text-[#171717] dark:text-[#ededed]">Overall</td>
-                  <td className="py-2 text-right font-mono text-[#171717] dark:text-[#ededed]">{(scoresJa.ents_f * 100).toFixed(1)}%</td>
-                  <td className="py-2 text-right font-mono text-[#171717] dark:text-[#ededed]">{(scoresEn.ents_f * 100).toFixed(1)}%</td>
-                  <td className={`py-2 text-right font-mono ${(scoresEn.ents_f - scoresJa.ents_f) >= 0 ? 'text-emerald-500' : 'text-orange-500'}`}>
-                    {((scoresEn.ents_f - scoresJa.ents_f) * 100) >= 0 ? '+' : ''}{((scoresEn.ents_f - scoresJa.ents_f) * 100).toFixed(1)}pp
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
-
         {/* Overall Score */}
         <motion.div className="mb-16 rounded-2xl border border-[#eaeaea] dark:border-[#333] bg-[#fafafa] dark:bg-[#111] p-8"
           key={lang} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
