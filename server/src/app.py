@@ -21,12 +21,18 @@ from scalar_fastapi import get_scalar_api_reference
 logger = logging.getLogger("pleno-anonymize")
 logger.setLevel(logging.INFO)
 _handler = logging.StreamHandler()
-_handler.setFormatter(logging.Formatter(json.dumps({
-    "timestamp": "%(asctime)s",
-    "level": "%(levelname)s",
-    "logger": "%(name)s",
-    "message": "%(message)s",
-})))
+_handler.setFormatter(
+    logging.Formatter(
+        json.dumps(
+            {
+                "timestamp": "%(asctime)s",
+                "level": "%(levelname)s",
+                "logger": "%(name)s",
+                "message": "%(message)s",
+            }
+        )
+    )
+)
 logger.addHandler(_handler)
 
 # Lazy initialization for cold start optimization
@@ -192,13 +198,17 @@ async def request_logging_middleware(request: Request, call_next):
     start_time = time.monotonic()
     response = await call_next(request)
     duration_ms = round((time.monotonic() - start_time) * 1000)
-    logger.info(json.dumps({
-        "request_id": request_id,
-        "method": request.method,
-        "path": str(request.url.path),
-        "status": response.status_code,
-        "duration_ms": duration_ms,
-    }))
+    logger.info(
+        json.dumps(
+            {
+                "request_id": request_id,
+                "method": request.method,
+                "path": str(request.url.path),
+                "status": response.status_code,
+                "duration_ms": duration_ms,
+            }
+        )
+    )
     return response
 
 
@@ -278,7 +288,9 @@ async def analyze(req: AnalyzeRequest):
     loop = asyncio.get_event_loop()
     results = await loop.run_in_executor(
         None,
-        partial(_cached_analyze, text=req.text, language=req.language, entities=entities_key),
+        partial(
+            _cached_analyze, text=req.text, language=req.language, entities=entities_key
+        ),
     )
     return [
         {
@@ -325,6 +337,7 @@ async def redact(req: RedactRequest):
 
     if req.text:
         entities_key = tuple(req.entities) if req.entities else None
+
         def _redact_text():
             results = _cached_analyze(
                 text=req.text, language=req.language, entities=entities_key
@@ -364,6 +377,7 @@ async def redact(req: RedactRequest):
             mime_type = "image/png"
 
         from PIL import Image
+
         img = Image.open(io.BytesIO(image_bytes))
         fill = tuple(req.fill_color) if req.fill_color else (0, 0, 0)
         redacted_img = get_image_redactor().redact(img, fill=fill)
@@ -432,6 +446,7 @@ async def redact_image(image_url: str, http_client: httpx.AsyncClient) -> str:
         mime_type = content_type.split(";")[0]
 
     from PIL import Image
+
     image = Image.open(io.BytesIO(image_bytes))
     redacted_image = get_image_redactor().redact(image, fill=(0, 0, 0))
 
