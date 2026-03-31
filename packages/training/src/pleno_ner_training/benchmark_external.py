@@ -2,24 +2,47 @@
 
 spaCy組み込みモデルを我々のテストデータで評価し、
 エンティティラベルをマッピングしてF1スコアを算出する。
+JA / EN 両対応。
 """
 
 import json
 import time
-from collections import defaultdict
 from pathlib import Path
 
 import spacy
 from spacy.tokens import DocBin
 
-
-LABEL_MAP: dict[str, str] = {
+LABEL_MAP_EN: dict[str, str] = {
     "PERSON": "PERSON",
     "ORG": "ORGANIZATION",
     "GPE": "ADDRESS",
     "LOC": "ADDRESS",
     "FAC": "ADDRESS",
     "DATE": "DATE_OF_BIRTH",
+}
+
+LABEL_MAP_JA: dict[str, str] = {
+    "Person": "PERSON",
+    "PERSON": "PERSON",
+    "ORG": "ORGANIZATION",
+    "Organization": "ORGANIZATION",
+    "GPE": "ADDRESS",
+    "LOC": "ADDRESS",
+    "FAC": "ADDRESS",
+    "City": "ADDRESS",
+    "Country": "ADDRESS",
+    "DATE": "DATE_OF_BIRTH",
+    "Date": "DATE_OF_BIRTH",
+}
+
+LABEL_MAPS: dict[str, dict[str, str]] = {
+    "en": LABEL_MAP_EN,
+    "ja": LABEL_MAP_JA,
+}
+
+DEFAULT_MODELS: dict[str, list[str]] = {
+    "en": ["en_core_web_sm", "en_core_web_md"],
+    "ja": ["ja_core_news_sm", "ja_core_news_md", "ja_core_news_lg"],
 }
 
 TARGET_LABELS = {"PERSON", "ORGANIZATION", "ADDRESS", "DATE_OF_BIRTH", "BANK_ACCOUNT"}
@@ -30,10 +53,11 @@ def load_gold_docs(nlp: spacy.Language, test_path: Path) -> list:
     return list(db.get_docs(nlp.vocab))
 
 
-def evaluate_external(model_name: str, test_path: Path) -> dict:
+def evaluate_external(model_name: str, test_path: Path, language: str = "en") -> dict:
     nlp = spacy.load(model_name)
-    gold_nlp = spacy.blank("en")
+    gold_nlp = spacy.blank(language)
     gold_docs = load_gold_docs(gold_nlp, test_path)
+    label_map = LABEL_MAPS[language]
 
     counts: dict[str, dict[str, int]] = {
         label: {"tp": 0, "fp": 0, "fn": 0} for label in TARGET_LABELS
@@ -53,7 +77,7 @@ def evaluate_external(model_name: str, test_path: Path) -> dict:
 
         pred_ents: set[tuple[int, int, str]] = set()
         for ent in pred_doc.ents:
-            mapped = LABEL_MAP.get(ent.label_)
+            mapped = label_map.get(ent.label_)
             if mapped:
                 pred_ents.add((ent.start_char, ent.end_char, mapped))
 
@@ -81,17 +105,22 @@ def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--models", nargs="+", default=["en_core_web_sm", "en_core_web_md"])
-    parser.add_argument("--test-data", type=Path,
-                        default=Path(__file__).parents[2] / "data" / "processed" / "en" / "test.spacy")
+    parser.add_argument("--language", default="en", choices=["ja", "en"])
+    parser.add_argument("--models", nargs="+", default=None)
+    parser.add_argument("--test-data", type=Path, default=None)
     parser.add_argument("--output", type=Path, default=None)
     args = parser.parse_args()
 
+    models = args.models or DEFAULT_MODELS[args.language]
+    test_data = args.test_data or (
+        Path(__file__).parents[2] / "data" / "processed" / args.language / "test.spacy"
+    )
+
     all_results = {}
-    for model_name in args.models:
+    for model_name in models:
         print(f"\nEvaluating {model_name}...")
         try:
-            result = evaluate_external(model_name, args.test_data)
+            result = evaluate_external(model_name, test_data, language=args.language)
             all_results[model_name] = result
             print(f"  Latency: {result['latency_ms_per_doc']:.1f} ms/doc")
             for label, scores in result["per_entity"].items():

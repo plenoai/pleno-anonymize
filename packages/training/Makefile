@@ -1,5 +1,5 @@
-.PHONY: generate convert train train-cnn evaluate package clean \
-       generate-en convert-en train-en evaluate-en package-en all-en
+.PHONY: generate convert train train-cnn evaluate benchmark-external package clean \
+       generate-en convert-en train-en evaluate-en benchmark-external-en package-en all-en
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
@@ -49,6 +49,12 @@ evaluate:
 		--test-data $(DATA_PROCESSED)/ja/test.spacy \
 		--output-json $(OUTPUT_DIR)/scores.json
 
+benchmark-external:
+	uv run python -m pleno_ner_training.benchmark_external \
+		--language ja \
+		--test-data $(DATA_PROCESSED)/ja/test.spacy \
+		--output $(OUTPUT_DIR)/ja/external_scores.json
+
 package:
 	mkdir -p $(MODELS_DIR)
 	uv run python -m spacy package $(OUTPUT_DIR)/model-best $(MODELS_DIR) \
@@ -97,11 +103,18 @@ evaluate-en:
 		--test-data $(DATA_PROCESSED)/en/test.spacy \
 		--output-json $(OUTPUT_DIR)/en/scores.json
 
+benchmark-external-en:
+	uv run python -m pleno_ner_training.benchmark_external \
+		--language en \
+		--test-data $(DATA_PROCESSED)/en/test.spacy \
+		--output $(OUTPUT_DIR)/en/external_scores.json
+
 package-en:
 	mkdir -p $(MODELS_DIR)
 	uv run python -m spacy package $(OUTPUT_DIR)/en/model-best $(MODELS_DIR) \
 		--name ner_en \
-		--version 0.1.0
+		--version 0.1.1 \
+		--build wheel
 
 all-en: generate-en convert-en train-en evaluate-en package-en
 

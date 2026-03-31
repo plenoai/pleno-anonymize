@@ -6,7 +6,6 @@ CLAUDE.md
 # Training outputs — models are reproducible, only keep scores
 packages/training/output/**/model-best/
 packages/training/output/**/model-last/
-packages/training/output/**/external_scores*.json
 
 # Python
 __pycache__/

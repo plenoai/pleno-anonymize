@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import scoresJa from '@scores';
 import scoresEn from '@scores-en';
 import scoresEnCnn from '@scores-en-cnn';
+import externalScoresJa from '@external-scores-ja';
 import externalScoresEn from '@external-scores-en';
 
 type Lang = 'ja' | 'en';
@@ -71,34 +72,33 @@ const COMPARISON_MODELS: Record<Lang, typeof COMPARISON_MODELS_JA> = {
   en: COMPARISON_MODELS_EN,
 };
 
-const EXTERNAL_SCORES_JA: Record<string, Record<string, number>> = {
-  PERSON:        { bert_ner_ja: 0.8860, ja_core_news_lg: 0.8543, ja_core_news_md: 0.8698, ja_core_news_sm: 0.4724 },
-  ADDRESS:       { bert_ner_ja: 0.6903, ja_core_news_lg: 0.6604, ja_core_news_md: 0.7299, ja_core_news_sm: 0.2444 },
-  ORGANIZATION:  { bert_ner_ja: 0.5908, ja_core_news_lg: 0.5900, ja_core_news_md: 0.5578, ja_core_news_sm: 0.4419 },
-  DATE_OF_BIRTH: { bert_ner_ja: 0,      ja_core_news_lg: 0.9060, ja_core_news_md: 0.9343, ja_core_news_sm: 0.8675 },
-  BANK_ACCOUNT:  { bert_ner_ja: 0,      ja_core_news_lg: 0,      ja_core_news_md: 0,      ja_core_news_sm: 0      },
+// bert-ner-japanese scores (HuggingFace model, evaluated separately)
+const BERT_NER_JA_SCORES: Record<string, number> = {
+  PERSON: 0.8860, ADDRESS: 0.6903, ORGANIZATION: 0.5908, DATE_OF_BIRTH: 0, BANK_ACCOUNT: 0,
 };
 
-// Derive EN external scores from JSON
-function buildExternalScoresEn(): Record<string, Record<string, number>> {
+function buildExternalScores(
+  externalJson: Record<string, { per_entity: Record<string, { f: number }>; latency_ms_per_doc: number }>,
+  extraModels?: Record<string, Record<string, number>>,
+  cnnScores?: typeof scoresEnCnn,
+): Record<string, Record<string, number>> {
   const result: Record<string, Record<string, number>> = {};
   for (const entity of ENTITIES) {
-    result[entity] = {
-      pleno_ner_en_cnn: scoresEnCnn.ents_per_type[entity]?.f ?? 0,
-      ...Object.fromEntries(
-        Object.entries(externalScoresEn).map(([model, data]) => [
-          model,
-          data.per_entity[entity]?.f ?? 0,
-        ])
-      ),
-    };
+    const fromJson = Object.fromEntries(
+      Object.entries(externalJson).map(([model, data]) => [model, data.per_entity[entity]?.f ?? 0])
+    );
+    const fromExtra = extraModels
+      ? Object.fromEntries(Object.entries(extraModels).map(([model, scores]) => [model, scores[entity] ?? 0]))
+      : {};
+    const fromCnn: Record<string, number> = cnnScores ? { pleno_ner_en_cnn: cnnScores.ents_per_type[entity]?.f ?? 0 } : {};
+    result[entity] = { ...fromExtra, ...fromCnn, ...fromJson };
   }
   return result;
 }
 
 const EXTERNAL_SCORES: Record<Lang, Record<string, Record<string, number>>> = {
-  ja: EXTERNAL_SCORES_JA,
-  en: buildExternalScoresEn(),
+  ja: buildExternalScores(externalScoresJa, { bert_ner_ja: BERT_NER_JA_SCORES }),
+  en: buildExternalScores(externalScoresEn, undefined, scoresEnCnn),
 };
 
 function getComparisonData(lang: Lang) {
@@ -113,13 +113,12 @@ function getComparisonData(lang: Lang) {
   );
 }
 
-// Derive EN latency from JSON
-function buildLatencyEn(): Record<string, number> {
-  const latency: Record<string, number> = {
-    pleno_ner_en: 52.9,
-    pleno_ner_en_cnn: 8.8,
-  };
-  for (const [model, data] of Object.entries(externalScoresEn)) {
+function buildLatency(
+  externalJson: Record<string, { per_entity: Record<string, { f: number }>; latency_ms_per_doc: number }>,
+  ownModels: Record<string, number>,
+): Record<string, number> {
+  const latency = { ...ownModels };
+  for (const [model, data] of Object.entries(externalJson)) {
     latency[model] = data.latency_ms_per_doc;
   }
   return latency;
@@ -130,8 +129,8 @@ const SIZE_DATA: Record<Lang, Record<string, number>> = {
   en: { pleno_ner_en: 418, pleno_ner_en_cnn: 46, en_core_web_md: 54, en_core_web_sm: 15 },
 };
 const LATENCY_DATA: Record<Lang, Record<string, number>> = {
-  ja: { pleno_ner_ja: 2.8, bert_ner_ja: 17.7, ja_core_news_lg: 6.9, ja_core_news_md: 6.8, ja_core_news_sm: 6.7 },
-  en: buildLatencyEn(),
+  ja: buildLatency(externalScoresJa, { pleno_ner_ja: 2.8, bert_ner_ja: 17.7 }),
+  en: buildLatency(externalScoresEn, { pleno_ner_en: 52.9, pleno_ner_en_cnn: 8.8 }),
 };
 
 const BarChart = ({ value, max = 1, color, delay = 0 }: { value: number; max?: number; color: string; delay?: number }) => (

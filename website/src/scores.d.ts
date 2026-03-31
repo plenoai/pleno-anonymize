@@ -30,6 +30,11 @@ interface ExternalModelResult {
   latency_ms_per_doc: number;
 }
 
+declare module '@external-scores-ja' {
+  const scores: Record<string, ExternalModelResult>;
+  export default scores;
+}
+
 declare module '@external-scores-en' {
   const scores: Record<string, ExternalModelResult>;
   export default scores;
