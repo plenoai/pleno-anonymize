@@ -33,13 +33,6 @@ curl -X POST https://anonymize.plenoai.com/api/analyze \
 
 Or try the [Playground](https://plenoai.com/pleno-anonymize/playground) in your browser.
 
-### Self-hosting
-
-```bash
-docker build -t pleno-anonymize .
-docker run -p 8080:8080 pleno-anonymize
-```
-
 ## Supported Entities
 
 ### NER Model (ja/en)
@@ -102,50 +95,12 @@ curl -X POST https://anonymize.plenoai.com/api/openai/v1/chat/completions \
   -d '{"model": "gpt-4o", "messages": [{"role": "user", "content": "Tell me about John Doe"}]}'
 ```
 
-### Health Checks
+## Self-hosting
 
-| Endpoint | Purpose |
-|---|---|
-| `GET /health` | Liveness probe |
-| `GET /ready` | Readiness probe (NLP models loaded) |
-
-## Deployment & Operations
-
-### Resource Requirements
-
-| Item | Value |
-|---|---|
-| Memory | Minimum 1GB |
-| Docker image | ~1.2GB (includes NER models) |
-| Cold start | ~15-30s (initial model loading) |
-
-### Environment Variables
-
-| Variable | Description | Default |
-|---|---|---|
-| `OPENAI_API_BASE` | OpenAI API base URL | `https://api.openai.com` |
-| `ANTHROPIC_API_BASE` | Anthropic API base URL | `https://api.anthropic.com` |
-| `GEMINI_API_BASE` | Gemini API base URL | `https://generativelanguage.googleapis.com` |
-
-> Only required for LLM proxy endpoints. The analyze/redact endpoints need no environment variables.
-
-## Data Flow
-
+```bash
+docker build -t pleno-anonymize .
+docker run -p 8080:8080 pleno-anonymize
 ```
-[User] → [pleno-anonymize API]
-               │
-               ├─ /api/analyze, /api/redact
-               │    → Local NER + Presidio for PII detection/redaction
-               │    → No external API calls
-               │
-               └─ /api/openai/*, /api/anthropic/*, /api/gemini/*
-                    → PII detection → Mask → LLM API → Restore response
-                    → Mapping lives in request memory only (never persisted)
-```
-
-- analyze/redact endpoints never send data externally
-- Proxy endpoints only send masked text to LLM APIs
-- PII mappings are discarded from memory when the request completes
 
 ## License
 
