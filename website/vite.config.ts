@@ -9,6 +9,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@scores': path.resolve(__dirname, '../packages/training/output/scores.json'),
+      '@scores-en': path.resolve(__dirname, '../packages/training/output/en-transformer/scores.json'),
     },
   },
   server: {
