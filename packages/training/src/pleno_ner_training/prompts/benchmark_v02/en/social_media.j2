@@ -1,0 +1,38 @@
+Generate {{ num_docs }} realistic English social media posts and chat messages for PII detection benchmarking.
+
+## Purpose
+Benchmark data for evaluating PII detection in informal, noisy text. These should be genuinely hard for NER models.
+
+## Rules
+- Mark PII entities with XML tags:
+  - <PERSON>name</PERSON>
+  - <ADDRESS>address</ADDRESS>
+  - <ORGANIZATION>organization</ORGANIZATION>
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH> (only when applicable)
+  - <BANK_ACCOUNT>bank account info</BANK_ACCOUNT> (only when applicable)
+- **CRITICAL: Include many PII-like expressions that are NOT PII (no tags)**
+
+## Style requirements (must differ from training data)
+- Informal, conversational, abbreviated English
+- Include these challenging patterns:
+  - Lowercase/abbreviated names: "@<PERSON>mike johnson</PERSON> hey wanna grab lunch"
+  - Nicknames with real names: "my friend <PERSON>Big Mike Thompson</PERSON> says..."
+  - Names with typos: "<PERSON>Jonh Smith</PERSON>" (intentional misspelling)
+  - Abbreviated addresses in DMs: "send it to <ADDRESS>742 Evergreen Terrace, Springfield, IL 62704</ADDRESS> thx"
+  - Venmo/payment context: "send to my account <BANK_ACCOUNT>Chase Bank, Routing: 021000021, Acct: 887654321, Checking</BANK_ACCOUNT>"
+  - Birthday mentions: "omg <PERSON>Sarah Chen</PERSON> bday is <DATE_OF_BIRTH>march 15 1995</DATE_OF_BIRTH>!! party time"
+  - Internet slang around PII: "<PERSON>Dave O'Brien</PERSON> lmaooo u wild"
+  - Code-switching: "<PERSON>Takeshi Yamamoto</PERSON> just moved to <ADDRESS>456 Oak Ave, Portland, OR 97201</ADDRESS>"
+  - Twitter/Reddit style posts with @mentions and hashtags
+  - Very short posts (10-30 words) mixed with longer ones (50-150 words)
+
+## Confusing expressions (do NOT tag)
+- Brand/product names that look like person names ("Jack Daniel's", "Jimmy John's", "Wendy's")
+- City/state mentions without full addresses ("in NYC", "heading to LA", "Chicago vibes")
+- Dates that aren't birthdays ("see you on march 15", "deadline is friday")
+- Slang/nicknames without real identity ("bro", "fam", "my dude")
+- Company mentions in casual context ("Amazon delivery", "Netflix and chill" - no ORG tag)
+- Username handles that aren't real names ("@coolcat99", "@ninja_dev")
+
+## Output format
+Separate each post with `---DOC_SEPARATOR---`

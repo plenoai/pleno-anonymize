@@ -7,6 +7,10 @@ CLAUDE.md
 packages/training/output/**/model-best/
 packages/training/output/**/model-last/
 
+# Benchmark data — reproducible via `make benchmark-v02-generate`, only keep scores
+packages/training/data/benchmark/**/raw.json
+packages/training/data/benchmark/**/*.spacy
+
 # Python
 __pycache__/
 *.py[cod]

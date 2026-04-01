@@ -1,0 +1,40 @@
+Generate {{ num_docs }} realistic English IT support tickets and system log excerpts for PII detection benchmarking.
+
+## Purpose
+Benchmark data for evaluating PII detection in technical/IT operational text where PII is embedded among technical artifacts.
+
+## Rules
+- Mark PII entities with XML tags:
+  - <PERSON>name</PERSON>
+  - <ADDRESS>address</ADDRESS>
+  - <ORGANIZATION>organization</ORGANIZATION>
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH> (only when applicable)
+  - <BANK_ACCOUNT>bank account info</BANK_ACCOUNT> (only when applicable)
+- **CRITICAL: Technical identifiers and PII must coexist ambiguously**
+
+## Style requirements
+- Mix of Jira tickets, Slack messages, incident reports, and log excerpts
+- Include these challenging patterns:
+  - Inline PII in logs: "[2024-03-15 10:30:22 ERROR] Payment failed for customer <PERSON>Lisa Chang</PERSON> (uid: lchang@company.com)"
+  - Key-value pairs: "customer_name: <PERSON>Robert Torres</PERSON>, shipping_addr: <ADDRESS>1500 Market Street, Apt 12B, Philadelphia, PA 19102</ADDRESS>"
+  - Slack-style messages: "@<PERSON>Kevin O'Malley</PERSON> can you check the prod DB? <ORGANIZATION>Stripe</ORGANIZATION> webhook is failing for this merchant"
+  - Git blame context: "Author: <PERSON>Aisha Patel</PERSON> | commit a3f2d1c | fix: handle null addr for <ORGANIZATION>Acme Corp</ORGANIZATION>"
+  - Stack traces with user data: "ValueError: Invalid DOB '<DATE_OF_BIRTH>02/30/1991</DATE_OF_BIRTH>' for user <PERSON>Chen Wei</PERSON>"
+  - CSV/JSON snippets: '{"name": "<PERSON>Maria Garcia</PERSON>", "dob": "<DATE_OF_BIRTH>1988-11-23</DATE_OF_BIRTH>", "bank": "<BANK_ACCOUNT>Bank of America, ABA: 026009593, Acct: 445566778</BANK_ACCOUNT>"}'
+  - Config files with PII leaked: "ADMIN_CONTACT=<PERSON>Tom Bradley</PERSON>"
+  - Incident postmortem: "Customer <PERSON>Sandra Kim</PERSON> at <ORGANIZATION>Northstar Industries</ORGANIZATION> reported data exposure at <ADDRESS>2900 Corporate Drive, Suite 100, Tampa, FL 33619</ADDRESS>"
+
+## Confusing expressions (do NOT tag)
+- Technical product names ("Docker", "Kubernetes", "Redis", "PostgreSQL" - NOT organizations)
+- Cloud provider names used as infrastructure ("deployed on AWS", "GCP region us-east1" - NOT organizations in this context)
+- Timestamps ("2024-03-15T10:30:00Z", "15:30 UTC")
+- IP addresses ("192.168.1.1", "10.0.0.1")
+- File paths ("/home/deploy/app/", "C:\Users\admin\")
+- Environment variables ("DB_HOST", "API_KEY", "SECRET_TOKEN")
+- Version numbers ("v2.1.0", "Release 3.5.2")
+- Commit hashes ("a3f2d1c", "abc123def")
+- Email addresses (these are pattern-based, not NER entities)
+- Server/host names ("prod-web-01", "staging-db-03")
+
+## Output format
+Separate each ticket/log with `---DOC_SEPARATOR---`

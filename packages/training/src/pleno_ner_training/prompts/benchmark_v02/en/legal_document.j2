@@ -1,0 +1,38 @@
+Generate {{ num_docs }} realistic English legal document excerpts for PII detection benchmarking.
+
+## Purpose
+Benchmark data for evaluating PII detection in complex legal prose with dense entity boundaries.
+
+## Rules
+- Mark PII entities with XML tags:
+  - <PERSON>name</PERSON>
+  - <ADDRESS>address</ADDRESS>
+  - <ORGANIZATION>organization</ORGANIZATION>
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH> (only when applicable)
+  - <BANK_ACCOUNT>bank account info</BANK_ACCOUNT> (only when applicable)
+- **CRITICAL: Include many PII-like expressions that are NOT PII**
+
+## Style requirements
+- Formal legal prose (contracts, court filings, depositions, affidavits)
+- Include these challenging patterns:
+  - Adjacent entities with minimal separation: "<ORGANIZATION>Smith & Associates LLP</ORGANIZATION>, located at <ADDRESS>1200 Pennsylvania Avenue NW, Suite 400, Washington, DC 20004</ADDRESS>"
+  - Parties referenced by role after first mention: "<PERSON>Margaret Elizabeth O'Connor-Williams</PERSON> (hereinafter 'Plaintiff')" - subsequent "Plaintiff" has no tag
+  - Complex organization names: "<ORGANIZATION>The Board of Trustees of the Leland Stanford Junior University</ORGANIZATION>"
+  - Names with legal suffixes: "<PERSON>Robert James Harrison III, Esq.</PERSON>"
+  - Nested organizations: "<ORGANIZATION>Goldman Sachs Group, Inc.</ORGANIZATION>, a subsidiary of..."
+  - Addresses in legal descriptions: "the property located at <ADDRESS>8842 Wilshire Boulevard, Beverly Hills, CA 90211</ADDRESS>, Lot 42, Block 7"
+  - Escrow account details: "deposited into <BANK_ACCOUNT>JPMorgan Chase, ABA: 021000021, Trust Account: 992837465</BANK_ACCOUNT>"
+  - Identity verification in affidavits: "born on <DATE_OF_BIRTH>the fifteenth day of March, nineteen hundred and eighty-five</DATE_OF_BIRTH>"
+  - Written-out dates for DOB: "<DATE_OF_BIRTH>March 15, 1985</DATE_OF_BIRTH>"
+  - Witness signatures with addresses
+
+## Confusing expressions (do NOT tag)
+- Case names ("Smith v. Johnson", "Roe v. Wade" - these are case citations, not person names)
+- Statutory references ("Section 230", "Article III", "26 U.S.C. § 501")
+- Effective dates, filing dates, execution dates (NOT date of birth)
+- "State of California", "Commonwealth of Virginia" (jurisdictions, not addresses)
+- Legal entity type suffixes alone ("Inc.", "LLC", "Corp.")
+- "John Doe" / "Jane Doe" placeholder names (no tag - these are legal placeholders)
+
+## Output format
+Separate each document with `---DOC_SEPARATOR---`

@@ -1,0 +1,43 @@
+以下の条件に従い、日本語と英語が混在するテキストを{{ num_docs }}件生成してください。
+
+## 目的
+日本の実環境では日英混在テキストが極めて多い。この現実的な状況でのPII検出を評価します。
+
+## 条件
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>人名</PERSON>
+  - <ADDRESS>住所</ADDRESS>
+  - <ORGANIZATION>組織名</ORGANIZATION>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>（該当する場合のみ）
+  - <BANK_ACCOUNT>銀行口座情報</BANK_ACCOUNT>（該当する場合のみ）
+
+## 文体の要件
+- 日本語の文中に英語の固有名詞が混在すること
+- 以下のパターンを含めること:
+  - 外国人名のカタカナ表記: 「<PERSON>マイケル・ジョンソン</PERSON>さんが来日した」
+  - 外国人名のローマ字表記: 「<PERSON>Michael Johnson</PERSON>氏は」
+  - 外国人名のカタカナ+ローマ字併記: 「<PERSON>マイケル・ジョンソン（Michael Johnson）</PERSON>」
+  - 日本人名のローマ字表記: 「<PERSON>Taro Yamada</PERSON>はプレゼンを担当」
+  - 英語の会社名: 「<ORGANIZATION>Apple Inc.</ORGANIZATION>の日本法人」
+  - 日英混在の住所: 「<ADDRESS>Tokyo-to, Shibuya-ku, Jingumae 1-2-3</ADDRESS>」
+  - 英語形式の住所: 「<ADDRESS>1-2-3 Jingumae, Shibuya-ku, Tokyo 150-0001</ADDRESS>」
+  - 国際送金の口座: 「<BANK_ACCOUNT>SMBC, SWIFT: SMBCJPJT, Account: 1234567</BANK_ACCOUNT>」
+  - 英語形式の生年月日: 「DOB: <DATE_OF_BIRTH>March 15, 1990</DATE_OF_BIRTH>」
+  - 和暦+西暦併記: 「<DATE_OF_BIRTH>平成2年（1990年）3月15日</DATE_OF_BIRTH>」
+
+## 紛らわしい表現（タグを付けないこと）
+- 英語の一般語（"meeting"、"deadline"、"report"）
+- 技術用語（"API"、"SDK"、"database"）
+- 英語の商品名・サービス名（"iPhone"、"Gmail"、"Zoom"）
+- 地名の英語表記（"Tokyo"、"Osaka"単体はタグなし）
+- カタカナの一般名詞（「ミーティング」「プロジェクト」「マネージャー」）
+
+## テーマ例
+- 外資系企業の社内メモ
+- 国際会議の参加者リスト風テキスト
+- 在留外国人の行政手続き
+- グローバルプロジェクトの議事録風テキスト
+- 外国人観光客対応の報告書
+
+## 出力形式
+各テキストを `---DOC_SEPARATOR---` で区切って出力してください。

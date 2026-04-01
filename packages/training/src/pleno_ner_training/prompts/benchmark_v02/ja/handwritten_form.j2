@@ -1,0 +1,42 @@
+以下の条件に従い、手書きフォームをOCR転記したような日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+実環境のPII検出ベンチマーク用データです。OCR転記特有の誤り・ノイズを含むテキストでのPII検出を評価します。
+
+## 条件
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>人名</PERSON>（誤字を含む場合でもタグ付け）
+  - <ADDRESS>住所</ADDRESS>（不完全でもタグ付け）
+  - <ORGANIZATION>組織名</ORGANIZATION>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>
+  - <BANK_ACCOUNT>銀行口座情報</BANK_ACCOUNT>
+- **重要: OCR転記特有のノイズを再現すること**
+
+## 文体の要件
+- フォーム項目名 + 手書き値の転記スタイル
+- 以下のノイズパターンを含めること:
+  - 漢字の誤認識: 「<PERSON>田申太郎</PERSON>」（田中→田申）、「<PERSON>鈴木一朗</PERSON>」（一郎→一朗）
+  - フリガナの部分欠落: 「フリガナ: タナ力 タロウ」
+  - 住所の数字混乱: 「<ADDRESS>東京都渋谷区神宮前l-2-3</ADDRESS>」（1→l）
+  - 全角半角の不統一: 「<ADDRESS>大阪府大阪市北区梅田２丁目3-4</ADDRESS>」
+  - 項目の区切りが不明瞭: 「氏名<PERSON>山田花子</PERSON>生年月日<DATE_OF_BIRTH>平成2年3月15日</DATE_OF_BIRTH>住所<ADDRESS>神奈川県横浜市中区山下町123</ADDRESS>」
+  - 記入欄の空白が潰れたケース: 「勤務先:<ORGANIZATION>株式会社サンプル</ORGANIZATION>TEL:03-1234-5678」
+  - 走り書きの転記: 「<BANK_ACCOUNT>三菱UFJ 新宿 フツウ 0123456</BANK_ACCOUNT>」（略記）
+  - 和暦の略記: 「<DATE_OF_BIRTH>S40.5.10</DATE_OF_BIRTH>」「<DATE_OF_BIRTH>H2/3/15</DATE_OF_BIRTH>」
+  - 旧字体・異体字: 「<PERSON>髙橋眞一</PERSON>」「<ADDRESS>東京都澁谷区</ADDRESS>」
+- 表形式の転記:
+  ```
+  【申込者情報】
+  氏名: <PERSON>渡邊誠</PERSON>
+  生年月日: <DATE_OF_BIRTH>昭和55年12月1日</DATE_OF_BIRTH>
+  現住所: <ADDRESS>千葉県千葉市中央区中央1-2-3</ADDRESS>
+  ```
+
+## 紛らわしい表現（タグを付けないこと）
+- フォームの項目名そのもの（「氏名」「住所」「生年月日」）
+- 記入例・サンプル値として明示されたもの（「例: 山田太郎」はタグなし）
+- チェックボックスの選択肢（「男・女」「有・無」）
+- 申込日・受付日（フォーム上部の事務処理日付）
+
+## 出力形式
+各フォームを `---DOC_SEPARATOR---` で区切って出力してください。

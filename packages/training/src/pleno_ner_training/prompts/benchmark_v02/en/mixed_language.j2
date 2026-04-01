@@ -1,0 +1,46 @@
+Generate {{ num_docs }} English texts that include names, places, and entities from diverse cultural/linguistic backgrounds.
+
+## Purpose
+In production, PII detection must handle multi-cultural names, non-Western address formats, and international organizations. This tests cross-cultural entity recognition.
+
+## Rules
+- Mark PII entities with XML tags:
+  - <PERSON>name</PERSON>
+  - <ADDRESS>address</ADDRESS>
+  - <ORGANIZATION>organization</ORGANIZATION>
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH> (only when applicable)
+  - <BANK_ACCOUNT>bank account info</BANK_ACCOUNT> (only when applicable)
+
+## Style requirements
+- English text with entities from diverse cultural backgrounds
+- Include these challenging patterns:
+  - CJK names in English text: "<PERSON>Takeshi Yamamoto</PERSON> submitted the report"
+  - Arabic/South Asian names: "<PERSON>Mohammed Al-Rashid bin Abdullah</PERSON>", "<PERSON>Priyanka Jayawardena</PERSON>"
+  - Eastern European names: "<PERSON>Katarzyna Wojciechowska</PERSON>", "<PERSON>Dmitri Petrovich Volkov</PERSON>"
+  - Names with diacritics: "<PERSON>José María García-López</PERSON>", "<PERSON>François Müller</PERSON>"
+  - Single-word names: "<PERSON>Sukarno</PERSON>", "<PERSON>Bono</PERSON>" (as real names)
+  - Non-Western address formats in English:
+    - "<ADDRESS>3-5-12 Roppongi, Minato-ku, Tokyo 106-0032, Japan</ADDRESS>"
+    - "<ADDRESS>Flat 4, 28 King's Road, London SW3 4RP, UK</ADDRESS>"
+    - "<ADDRESS>Unit 1205, Tower B, Cyber City, Gurugram 122002, India</ADDRESS>"
+  - International bank info:
+    - "<BANK_ACCOUNT>HSBC, SWIFT: HSBCHKHH, Account: 123-456789-001</BANK_ACCOUNT>"
+    - "<BANK_ACCOUNT>Deutsche Bank, IBAN: DE89370400440532013000</BANK_ACCOUNT>"
+  - Non-standard DOB formats:
+    - "<DATE_OF_BIRTH>15 March 1990</DATE_OF_BIRTH>" (day-first)
+    - "<DATE_OF_BIRTH>1990/03/15</DATE_OF_BIRTH>" (Asian format)
+  - International organizations:
+    - "<ORGANIZATION>Tata Consultancy Services</ORGANIZATION>"
+    - "<ORGANIZATION>Samsung Electronics Co., Ltd.</ORGANIZATION>"
+    - "<ORGANIZATION>Bayerische Motoren Werke AG</ORGANIZATION>"
+
+## Confusing expressions (NO tags)
+- Country names used as adjectives ("Japanese cuisine", "French wine")
+- Cultural references ("Bollywood", "K-pop", "anime")
+- Language names ("speaks Mandarin", "fluent in Arabic")
+- Currency references ("100 yen", "50 euros")
+- Time zone references ("JST", "CET", "EST")
+- Romanized common words that look like names ("Sushi", "Manga", "Safari")
+
+## Output format
+Separate each text with `---DOC_SEPARATOR---`

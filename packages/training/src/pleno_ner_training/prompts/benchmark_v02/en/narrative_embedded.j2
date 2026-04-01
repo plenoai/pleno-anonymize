@@ -1,0 +1,42 @@
+Generate {{ num_docs }} English texts where PII is naturally embedded in narrative/prose context, NOT in forms or structured formats.
+
+## Purpose
+Measure PII detection in prose text that is fundamentally different from training data (forms, emails, structured documents).
+
+## Rules
+- Mark PII entities with XML tags:
+  - <PERSON>name</PERSON>
+  - <ADDRESS>address</ADDRESS>
+  - <ORGANIZATION>organization</ORGANIZATION>
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH> (only when applicable)
+  - <BANK_ACCOUNT>bank account info</BANK_ACCOUNT> (only when applicable)
+
+## CRITICAL: Style requirements
+- **NEVER use form fields, key-value pairs, bullet points, or email format**
+- Write in flowing narrative prose:
+  - Novel-style: "<PERSON>Sarah Mitchell</PERSON> had lived at <ADDRESS>1423 Birch Lane, Apt 7, Eugene, OR 97401</ADDRESS> for three years before the letter arrived."
+  - Diary-style: "Ran into <PERSON>Marcus Chen</PERSON> today. He mentioned he'd just started at <ORGANIZATION>Deloitte Consulting</ORGANIZATION>."
+  - Memoir-style: "My grandmother, <PERSON>Eleanor Rose Patterson</PERSON>, was born on <DATE_OF_BIRTH>December 7, 1941</DATE_OF_BIRTH> in a small town in Maine."
+  - Journalistic: "According to <PERSON>Detective Frank Morales</PERSON>, the suspect's last known address was <ADDRESS>508 West 32nd Street, Apartment 4F, New York, NY 10001</ADDRESS>."
+  - Testimonial: "<PERSON>Dr. Anita Krishnamurthy</PERSON>, who practices at <ORGANIZATION>Cedar Sinai Neurological Institute</ORGANIZATION>, testified that..."
+  - Conversational retelling: "So <PERSON>Jake O'Brien</PERSON> tells me his company <ORGANIZATION>Brightpath Analytics LLC</ORGANIZATION> just got funded."
+
+## Challenging entity placement
+- Entities mid-sentence without field labels
+- Two entities connected by conjunctions: "<PERSON>Lisa Park</PERSON> and <PERSON>David Okonkwo</PERSON> both worked at <ORGANIZATION>Meridian Health Systems</ORGANIZATION>"
+- Addresses as locative modifiers: "at <ADDRESS>2200 Pacific Coast Highway, Suite 310, Malibu, CA 90265</ADDRESS>"
+- Organization as sentence subject in complex clause: "<ORGANIZATION>The National Institute of Standards and Technology</ORGANIZATION> published..."
+- Names in quoted speech: "'Ask <PERSON>Rosa Gutierrez</PERSON> about the deadline,' he said."
+- DOB in passing: "<PERSON>Timothy Walsh</PERSON>, born <DATE_OF_BIRTH>April 3, 1992</DATE_OF_BIRTH>, was the youngest..."
+- Bank info in narrative: "She wired the deposit to <BANK_ACCOUNT>First National Bank, Routing: 091000019, Account: 223344556, Checking</BANK_ACCOUNT>"
+
+## Confusing expressions (NO tags)
+- Character/historical names in cultural references
+- Place names as modifiers ("the Boston accent", "a Texas-sized problem")
+- Temporal expressions ("that summer of '92", "the March 2020 lockdown")
+- Landmark names ("the Brooklyn Bridge", "Central Park")
+- Company names as adjectives ("Google-level engineering")
+- Pronoun re-references after first named mention
+
+## Output format
+Separate each text with `---DOC_SEPARATOR---`. Each text should be 100-300 words.

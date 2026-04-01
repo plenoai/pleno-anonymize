@@ -1,0 +1,56 @@
+Generate {{ num_docs }} English texts that contain ZERO actual PII but are full of PII-like expressions.
+
+## Purpose
+Pure negative data for measuring false positive rates of PII detection models.
+
+## CRITICAL RULE
+- **Do NOT use any XML tags at all**
+- **No text should contain actual PII**
+- **Every text should contain many PII-like expressions**
+
+## PII-like non-PII expressions to include
+
+### Person-name-like (NOT actual PII)
+- Brand names: Jack Daniel's, Jimmy John's, Ben & Jerry's, Sam's Club, Trader Joe's, Wendy's, Tim Hortons
+- Place-name derived businesses: Boston Market, California Pizza Kitchen, Texas Roadhouse
+- Historical/fictional names: "Leonardo da Vinci's technique", "Sherlock Holmes methodology"
+- Generic role references: "the manager", "Dr. Smith" (generic), "Professor Johnson" (generic lecture context)
+- Single surname references: "according to Smith (2024)", "the Johnson report"
+- Product lines named after people: "the Ford Mustang", "Tesla Model 3", "Hewlett-Packard"
+
+### Address-like (NOT actual PII)
+- Landmark references: "near Wall Street", "on Broadway", "the White House"
+- General location: "downtown Chicago", "in the Bay Area", "Silicon Valley"
+- Fictional addresses: "221B Baker Street" (literary reference)
+- Directions: "north of Main Street", "the corner of 5th and Broadway"
+- Zip code regions: "the 90210 area", "10001 zip code"
+
+### Date-like (NOT DOB)
+- Historical dates: "on July 4, 1776", "December 7, 1941"
+- Business dates: "Q1 2024 earnings", "fiscal year ending March 31"
+- Deadlines: "due by March 15, 2025", "submit before 04/01/2024"
+- Event dates: "the 2024 Olympics", "Super Bowl LVIII on February 11"
+
+### Organization-like (NOT actual org PII)
+- Generic references: "the company", "our firm", "the agency"
+- Government bodies in general context: "the FDA recommends", "per IRS guidelines"
+- Standards bodies: "ISO 9001 certified", "IEEE standard"
+
+### Account-like numbers (NOT bank accounts)
+- Order numbers: "Order #ORD-2024-78543"
+- Confirmation codes: "Confirmation: ABC123DEF"
+- Serial numbers: "S/N: XK4829-001"
+- Member IDs: "Member #: 98765432"
+- Phone numbers: "call 1-800-555-0123"
+
+## Topic examples
+- Product review blog posts
+- Travel guides about cities
+- Historical article excerpts
+- Business/finance commentary (market analysis, not personal finance)
+- Technology reviews and comparisons
+- Restaurant and food criticism
+- Sports commentary
+
+## Output format
+Separate each text with `---DOC_SEPARATOR---`. Each text should be 50-200 words.

@@ -1,0 +1,39 @@
+Generate {{ num_docs }} realistic English news article excerpts for PII detection benchmarking.
+
+## Purpose
+Benchmark data for evaluating PII detection in narrative journalistic prose with high entity density and ambiguity.
+
+## Rules
+- Mark PII entities with XML tags:
+  - <PERSON>name</PERSON>
+  - <ADDRESS>address</ADDRESS>
+  - <ORGANIZATION>organization</ORGANIZATION>
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH> (only when applicable)
+  - <BANK_ACCOUNT>bank account info</BANK_ACCOUNT> (only when applicable)
+- **CRITICAL: Include MANY non-PII expressions that look similar to PII**
+
+## Style requirements
+- AP/Reuters-style news writing
+- Include these challenging patterns:
+  - Title + name + age: "<PERSON>Dr. Amanda Rivera</PERSON>, 42, of <ADDRESS>1847 Elm Street, Austin, TX 78701</ADDRESS>"
+  - Abbreviated re-references: first mention "<PERSON>James Robert Martinez</PERSON>", later "Martinez" (no tag on re-reference)
+  - Crime reporting addresses: "the incident occurred at <ADDRESS>3200 Block of Sunset Boulevard, Los Angeles, CA 90028</ADDRESS>"
+  - Quoted speech with names: '"I never expected this," said <PERSON>Patricia Nguyen</PERSON>, a longtime resident.'
+  - Organization + location combos: "<ORGANIZATION>Google</ORGANIZATION>'s campus in Mountain View" (Mountain View alone = no tag)
+  - Public figures with birth dates in profiles: "<PERSON>Elena Vasquez</PERSON>, born <DATE_OF_BIRTH>July 4, 1978</DATE_OF_BIRTH> in rural Ohio"
+  - Fraud/embezzlement stories with account info: "authorities traced the funds to <BANK_ACCOUNT>Wells Fargo, Routing: 121000248, Account: 776543210, Savings</BANK_ACCOUNT>"
+  - Multi-person articles: 3-5 different named persons per article
+  - International names: <PERSON>Yuki Tanaka</PERSON>, <PERSON>Priya Sharma</PERSON>, <PERSON>Ahmed Al-Hassan</PERSON>
+
+## Confusing expressions (do NOT tag)
+- City/state/country names without street addresses ("in Boston", "across Texas", "from Japan")
+- Ages in parentheses ("(42)" - not DOB)
+- Historical dates ("founded in 1952", "since 2019")
+- Event names with place names ("Boston Marathon", "Davos Forum")
+- Government bodies used as source attribution ("the White House said", "according to the Pentagon")
+- Newspaper/media names ("The New York Times reported", "CNN confirmed")
+- Nicknames/titles without real identity ("the suspect", "a witness", "sources say")
+- Building names ("the Empire State Building", "Pentagon")
+
+## Output format
+Separate each article with `---DOC_SEPARATOR---`

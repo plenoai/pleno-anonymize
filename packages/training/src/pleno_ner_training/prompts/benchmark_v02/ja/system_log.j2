@@ -1,0 +1,37 @@
+以下の条件に従い、日本語のITシステムログ・チケットを{{ num_docs }}件生成してください。
+
+## 目的
+実環境のPII検出ベンチマーク用データです。IT運用文書にPIIが混入するケースを再現します。
+
+## 条件
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>人名</PERSON>
+  - <ADDRESS>住所</ADDRESS>
+  - <ORGANIZATION>組織名</ORGANIZATION>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>（該当する場合のみ）
+  - <BANK_ACCOUNT>銀行口座情報</BANK_ACCOUNT>（該当する場合のみ）
+- **重要: 技術用語・識別子とPIIが混在する状況を作ること**
+
+## 文体の要件
+- IT業界特有の文体（日英混在、技術用語、箇条書き）
+- 以下の難しいパターンを含めること:
+  - ユーザーID/メールアドレスの近くの人名: 「ユーザー <PERSON>中村慎太郎</PERSON> (user_id: nakamura_s) から問い合わせ」
+  - エラーログ内のPII: 「[ERROR] 顧客 <PERSON>高橋花子</PERSON> の決済処理でタイムアウト」
+  - 構造化データ内のPII: 「name: <PERSON>渡辺一郎</PERSON>, addr: <ADDRESS>福岡県福岡市博多区博多駅前2-1-1</ADDRESS>」
+  - JSONやCSV風のフォーマット内にPII
+  - IPアドレス・URL（タグなし）の近くにPII
+  - Slack風メッセージ: 「@<PERSON>佐々木健太</PERSON> 本番DBのマイグレーション完了しました」
+  - Gitコミットメッセージ風: 「fix: <PERSON>小林直人</PERSON>さんの報告した顧客データ不整合を修正」
+- デプロイ先住所: 「<ORGANIZATION>NTTデータ</ORGANIZATION> <ADDRESS>東京都江東区豊洲3-3-3</ADDRESS> データセンター」
+- 経費精算システムの口座: 「振込先: <BANK_ACCOUNT>りそな銀行 新宿支店 普通 7654321</BANK_ACCOUNT>」
+
+## 紛らわしい表現（タグを付けないこと）
+- サーバー名・ホスト名（「tokyo-prod-01」「osaka-db-master」）
+- タイムスタンプ（「2024-03-15T10:30:00Z」「15:30」）
+- バージョン番号（「v2.1.0」「Release 3.5」）
+- 環境変数名（「DB_HOST」「API_KEY」）
+- 技術的な固有名詞（「Docker」「Kubernetes」「AWS」→ ORGANIZATIONではない）
+- ファイルパス（「/home/user/data/」）
+
+## 出力形式
+各ログ/チケットを `---DOC_SEPARATOR---` で区切って出力してください。

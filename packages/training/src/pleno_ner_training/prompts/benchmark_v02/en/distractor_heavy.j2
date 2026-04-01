@@ -1,0 +1,45 @@
+Generate {{ num_docs }} English texts that are HEAVY on PII-like distractors but contain very few actual PII entities.
+
+## Purpose
+Benchmark data for measuring false positive rates of PII detection models. Texts should have many expressions that LOOK like PII but are NOT.
+
+## Rules
+- Mark PII entities with XML tags:
+  - <PERSON>name</PERSON>
+  - <ADDRESS>address</ADDRESS>
+  - <ORGANIZATION>organization</ORGANIZATION>
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH> (only when applicable)
+  - <BANK_ACCOUNT>bank account info</BANK_ACCOUNT> (only when applicable)
+
+## CRITICAL RULE
+- **Each document must contain only 1-2 actual PII entities**
+- **Each document must contain 5+ PII-like expressions WITHOUT tags**
+- The ratio of non-PII to PII should be at least 3:1
+
+## PII-like non-PII expressions (NO tags)
+- Brand/product names resembling person names: "Jack Daniel's", "Jimmy John's", "Ben & Jerry's", "Sam's Club", "Trader Joe's"
+- City/state mentions without full address: "in Chicago", "moved to California", "the Houston office"
+- Building/landmark names: "the Empire State Building", "Rockefeller Center", "Silicon Valley"
+- Event dates: "the March 15 deadline", "Q4 2024 earnings", "fiscal year 2025"
+- Historical/fictional names: references to characters, historical figures
+- Title + last name only: "Dr. Smith said", "Professor Johnson noted" (surname-only = no tag)
+- Number sequences: phone numbers, zip codes, order numbers, SSN-like sequences
+- Company names used as adjectives: "the Google approach", "Apple-style design", "Amazon delivery"
+- Abbreviated org references: "the company", "our firm", "the agency"
+- Date-like patterns that aren't DOB: "report due 03/15/2024", "founded in 1985", "updated on Jan 5"
+- Account-like numbers: "order #12345678", "confirmation 98765432", "ticket ID 2024-0315"
+
+## Actual PII to include (WITH tags, only 1-2 per doc)
+- Full person name: <PERSON>Jennifer Michelle Santos</PERSON>
+- Complete street address: <ADDRESS>2847 Oak Boulevard, Unit 5C, Denver, CO 80205</ADDRESS>
+- Formal organization name: <ORGANIZATION>Pacific Northwest Medical Associates</ORGANIZATION>
+
+## Topic examples
+- Blog posts (travel, food reviews, daily life)
+- Product reviews (electronics, restaurants, books)
+- Forum posts (questions, advice, experiences)
+- Workplace chat (project updates, casual discussion)
+- Newsletter excerpts
+
+## Output format
+Separate each text with `---DOC_SEPARATOR---`. Each text should be 50-200 words.

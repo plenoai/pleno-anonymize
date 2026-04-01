@@ -1,11 +1,13 @@
 .PHONY: generate convert train train-cnn evaluate benchmark-external benchmark-huggingface package clean \
-       generate-en convert-en train-en evaluate-en benchmark-external-en package-en all-en
+       generate-en augment-en convert-en train-en evaluate-en benchmark-external-en package-en all-en \
+       benchmark-v02-generate benchmark-v02-generate-en benchmark-v02-evaluate benchmark-v02-evaluate-en
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
 BATCHES_PER_TEMPLATE ?= 50
 MAX_WORKERS ?= 5
 GPU_ID ?= 0
+DOTENVX = dotenvx run -f ../../.env --
 
 DATA_RAW = data/raw
 DATA_PROCESSED = data/processed
@@ -15,7 +17,7 @@ MODELS_DIR = ../models
 # === 日本語 (既存) ===
 
 generate:
-	uv run python -m pleno_ner_training.generate_data \
+	$(DOTENVX) uv run python -m pleno_ner_training.generate_data \
 		--language ja \
 		--output-dir $(DATA_RAW)/ja \
 		--docs-per-template $(DOCS_PER_TEMPLATE) \
@@ -71,7 +73,7 @@ package:
 # === 英語 ===
 
 generate-en:
-	uv run python -m pleno_ner_training.generate_data \
+	$(DOTENVX) uv run python -m pleno_ner_training.generate_data \
 		--language en \
 		--output-dir $(DATA_RAW)/en \
 		--docs-per-template $(DOCS_PER_TEMPLATE) \
@@ -79,10 +81,17 @@ generate-en:
 		--model $(MODEL) \
 		--max-workers $(MAX_WORKERS)
 
+augment-en:
+	uv run python -m pleno_ner_training.augment_en_data \
+		--input $(DATA_RAW)/en/generated.json \
+		--output $(DATA_RAW)/en/augmented.json \
+		--augment-count 1000
+
 convert-en:
 	uv run python -m pleno_ner_training.convert_to_docbin \
 		--language en \
 		--input $(DATA_RAW)/en/generated.json \
+		--augment $(DATA_RAW)/en/augmented.json \
 		--output-dir $(DATA_PROCESSED)/en
 
 train-en:
@@ -97,10 +106,6 @@ train-en-cnn:
 		--output $(OUTPUT_DIR)/en \
 		--paths.train $(DATA_PROCESSED)/en/train.spacy \
 		--paths.dev $(DATA_PROCESSED)/en/dev.spacy
-
-augment-en:
-	uv run python -m pleno_ner_training.augment_en_data --augment-count 1000
-
 
 evaluate-en:
 	uv run python -m pleno_ner_training.evaluate \
@@ -122,7 +127,37 @@ package-en:
 		--version 0.1.1 \
 		--build wheel
 
-all-en: generate-en convert-en train-en evaluate-en package-en
+all-en: generate-en augment-en convert-en train-en evaluate-en package-en
+
+# === Benchmark v0.2.0 ===
+
+BENCHMARK_BATCHES ?= 10
+
+benchmark-v02-generate:
+	$(DOTENVX) uv run python -m pleno_ner_training.generate_benchmark \
+		--language ja \
+		--docs-per-template $(DOCS_PER_TEMPLATE) \
+		--batches-per-template $(BENCHMARK_BATCHES) \
+		--model $(MODEL) \
+		--max-workers $(MAX_WORKERS)
+
+benchmark-v02-generate-en:
+	$(DOTENVX) uv run python -m pleno_ner_training.generate_benchmark \
+		--language en \
+		--docs-per-template $(DOCS_PER_TEMPLATE) \
+		--batches-per-template $(BENCHMARK_BATCHES) \
+		--model $(MODEL) \
+		--max-workers $(MAX_WORKERS)
+
+benchmark-v02-evaluate:
+	uv run python -m pleno_ner_training.evaluate_benchmark \
+		--model $(OUTPUT_DIR)/model-best \
+		--language ja
+
+benchmark-v02-evaluate-en:
+	uv run python -m pleno_ner_training.evaluate_benchmark \
+		--model $(OUTPUT_DIR)/en-transformer/model-best \
+		--language en
 
 # === 共通 ===
 

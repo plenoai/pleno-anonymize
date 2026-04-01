@@ -1,0 +1,46 @@
+Generate {{ num_docs }} realistic English texts that simulate OCR-transcribed handwritten forms and notes for PII detection benchmarking.
+
+## Purpose
+Benchmark data for evaluating PII detection in noisy, OCR-imperfect text with formatting inconsistencies.
+
+## Rules
+- Mark PII entities with XML tags:
+  - <PERSON>name</PERSON> (even with OCR errors)
+  - <ADDRESS>address</ADDRESS> (even if incomplete)
+  - <ORGANIZATION>organization</ORGANIZATION>
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH>
+  - <BANK_ACCOUNT>bank account info</BANK_ACCOUNT>
+- **CRITICAL: Simulate realistic OCR noise and transcription artifacts**
+
+## Style requirements
+- Form fields with handwritten values, messy formatting
+- Include these challenging patterns:
+  - OCR character substitutions: "<PERSON>Rober+ Sm1th</PERSON>" (t→+, i→1)
+  - Missing spaces: "Name:<PERSON>Jennifer Williams</PERSON>DOB:<DATE_OF_BIRTH>04/22/1987</DATE_OF_BIRTH>"
+  - Mixed case from OCR: "<PERSON>DAVID PARK</PERSON>" (all caps from block letters)
+  - Partial addresses: "<ADDRESS>742 Maple St Apt 3B Denver CO 80202</ADDRESS>" (no commas, no state abbreviation period)
+  - Abbreviated bank info: "<BANK_ACCOUNT>BofA Rt 026009593 Acct 334455667</BANK_ACCOUNT>"
+  - Faded/unclear DOB: "<DATE_OF_BIRTH>O3/15/85</DATE_OF_BIRTH>" (0→O from OCR)
+  - Field labels merged with values: "First Name <PERSON>Angela M. Rodriguez</PERSON> Last Name"
+  - Multiple PII on single line: "<PERSON>Thomas Lee</PERSON> <DATE_OF_BIRTH>11/30/1976</DATE_OF_BIRTH> <ADDRESS>890 Pine Road Columbus OH 43215</ADDRESS>"
+  - Crossed-out text artifacts: "<PERSON>James Michael Carter</PERSON>" (original name kept despite strikethrough)
+  - Handwriting-style abbreviations: "b/d: <DATE_OF_BIRTH>Jan 5 79</DATE_OF_BIRTH>", "addr: <ADDRESS>15 Main St Bos MA 02101</ADDRESS>"
+  - Form table format:
+    ```
+    | Name          | <PERSON>Nancy O'Dell</PERSON>                    |
+    | DOB           | <DATE_OF_BIRTH>06/18/1963</DATE_OF_BIRTH>        |
+    | Address       | <ADDRESS>321 Cedar Lane, Miami, FL 33101</ADDRESS>|
+    | Employer      | <ORGANIZATION>Southeast Medical Group</ORGANIZATION> |
+    ```
+  - International name formats: "<PERSON>NGUYEN, Thi Minh</PERSON>" (last-name-first from form)
+
+## Confusing expressions (do NOT tag)
+- Form field labels ("Name:", "Address:", "Date of Birth:", "Employer:")
+- Example/placeholder text ("e.g., John Smith", "SAMPLE", "N/A")
+- Checkboxes and selection marks ("[ X ] Male [ ] Female", "YES / NO")
+- Form dates (date received, date processed - NOT DOB)
+- Page numbers, form numbers ("Page 2 of 3", "Form W-4")
+- Illegible marks transcribed as symbols ("???", "---", "[illegible]")
+
+## Output format
+Separate each form with `---DOC_SEPARATOR---`
