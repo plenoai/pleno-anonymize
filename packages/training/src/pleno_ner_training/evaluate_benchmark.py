@@ -13,7 +13,7 @@ from spacy.scorer import Scorer
 from spacy.tokens import DocBin
 from spacy.training import Example
 
-BENCHMARK_VERSION = "v0.2.0"
+BENCHMARK_VERSIONS = ["v0.2.0", "v0.3.0"]
 
 
 def load_benchmark_docs(nlp: spacy.Language, path: Path) -> list:
@@ -58,8 +58,9 @@ def print_benchmark_report(
     language: str,
 ) -> None:
     """全モデルのベンチマーク結果を比較表示する."""
+    version = results.pop("_version", "")
     print(f"\n{'=' * 90}")
-    print(f"  Benchmark {BENCHMARK_VERSION} Results ({language})")
+    print(f"  Benchmark {version} Results ({language})")
     print(f"{'=' * 90}\n")
 
     labels = ["PERSON", "ADDRESS", "ORGANIZATION", "DATE_OF_BIRTH", "BANK_ACCOUNT"]
@@ -126,24 +127,25 @@ def print_benchmark_report(
 def main() -> None:
     import argparse
 
-    parser = argparse.ArgumentParser(description=f"Benchmark {BENCHMARK_VERSION} evaluation")
+    parser = argparse.ArgumentParser(description="Benchmark evaluation")
     parser.add_argument("--model", required=True, help="Primary model path")
     parser.add_argument("--language", default="ja", choices=["ja", "en"])
+    parser.add_argument("--version", default="v0.3.0", choices=BENCHMARK_VERSIONS)
     parser.add_argument("--benchmark-data", type=Path, default=None)
     parser.add_argument("--output-json", type=Path, default=None)
     args = parser.parse_args()
 
     data_root = Path(__file__).parents[2] / "data"
     benchmark_path = args.benchmark_data or (
-        data_root / "benchmark" / BENCHMARK_VERSION / args.language / "test.spacy"
+        data_root / "benchmark" / args.version / args.language / "test.spacy"
     )
 
     if not benchmark_path.exists():
         print(f"[ERROR] Benchmark data not found: {benchmark_path}", file=sys.stderr)
-        print("Run: make benchmark-v02-generate first", file=sys.stderr)
+        print(f"Run: make benchmark-{args.version.replace('.', '')}-generate first", file=sys.stderr)
         raise SystemExit(1)
 
-    results: dict[str, dict] = {}
+    results: dict[str, dict] = {"_version": args.version}
 
     # プライマリモデル評価
     print(f"Evaluating {args.model}...")
@@ -153,7 +155,7 @@ def main() -> None:
 
     # 結果保存
     output_path = args.output_json or (
-        data_root / "benchmark" / BENCHMARK_VERSION / args.language / "scores.json"
+        data_root / "benchmark" / args.version / args.language / "scores.json"
     )
     output_path.parent.mkdir(parents=True, exist_ok=True)
 

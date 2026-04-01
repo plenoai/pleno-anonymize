@@ -1,0 +1,46 @@
+Generate {{ num_docs }} English texts simulating corrupted structured data (CSV, JSON, XML, logs) containing PII.
+
+## Purpose
+Measure PII detection in broken data pipeline output — a common production scenario.
+
+## Rules
+- Mark PII entities with XML tags:
+  - <PERSON>name</PERSON>
+  - <ADDRESS>address</ADDRESS>
+  - <ORGANIZATION>organization</ORGANIZATION>
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH>
+  - <BANK_ACCOUNT>bank account info</BANK_ACCOUNT>
+
+## Corruption patterns
+
+### Broken CSV (misaligned quotes, embedded newlines)
+"<PERSON>Jennifer Williams</PERSON>","<DATE_OF_BIRTH>1987-04-22</DATE_OF_BIRTH>","<ADDRESS>742 Maple St
+Apt 3B, Denver, CO 80202</ADDRESS>","<ORGANIZATION>Rocky Mountain Health</ORGANIZATION>","<BANK_ACCOUNT>First National, RT: 091000019, Acct: 223344556</BANK_ACCOUNT>"
+
+### Truncated JSON
+{"customer": {"name": "<PERSON>David Park</PERSON>", "dob": "<DATE_OF_BIRTH>11/30/1976</DATE_OF_BIRTH>", "addr": "<ADDRESS>890 Pine Rd, Columbus, OH 43215</ADDRESS>", "employer": "<ORGANIZATION>Nationwide Insurance</ORGANIZATION>", "bank": "<BANK_ACCOUNT>Huntington, ABA: 044000024, Acct: 667788
+
+### Mixed log formats
+[2024-03-15T10:30:22Z] WARN payment_svc: failed tx for cust=<PERSON>Angela M. Rodriguez</PERSON> addr=<ADDRESS>1500 Market St, Philadelphia, PA 19102</ADDRESS> bank=<BANK_ACCOUNT>PNC Bank, Routing: 043000096, Acct: 998877665</BANK_ACCOUNT> org=<ORGANIZATION>Temple University Hospital</ORGANIZATION> dob=<DATE_OF_BIRTH>19880315</DATE_OF_BIRTH>
+
+### Email thread corruption (quoted replies, broken headers)
+> From: <PERSON>Thomas Lee</PERSON> <<PERSON>Thomas Lee</PERSON>@company.com>
+> To: <PERSON>Nancy O'Dell</PERSON>
+> Subject: Account update
+>
+> Please update the shipping to <ADDRESS>321 Cedar Lane, Miami, FL 33101</ADDRESS>
+> New bank: <BANK_ACCOUNT>BofA, ABA: 026009593, Acct: 112233445, Savings</BANK_ACCOUNT>
+>> Original by <PERSON>Kevin O'Malley</PERSON> at <ORGANIZATION>Southeast Medical Group</ORGANIZATION>
+
+### HTML with broken tags
+<div class="record"><PERSON>Sandra Kim</PERSON><br><span class="dob"><DATE_OF_BIRTH>06/18/1963</DATE_OF_BIRTH></span> <ORGANIZATION>Northstar Industries</ORGANIZATION> <ADDRESS>2900 Corporate Dr, Tampa, FL 33619</ADDRESS></div
+
+## Confusing expressions (NO tags)
+- Field names: "name", "addr", "dob", "bank"
+- Timestamps: "2024-03-15T10:30:22Z"
+- HTML tags: <div>, <span>, <br>
+- Log levels: WARN, INFO, ERROR
+- Email headers: From, To, Subject
+
+## Output format
+Separate each text with `---DOC_SEPARATOR---`.

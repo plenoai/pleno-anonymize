@@ -1,0 +1,31 @@
+Generate {{ num_docs }} English texts with high PII entity density (8-15 entities per document).
+
+## Purpose
+Measure entity segmentation ability when many entities appear close together.
+
+## Rules
+- Mark PII entities with XML tags:
+  - <PERSON>name</PERSON>
+  - <ADDRESS>address</ADDRESS>
+  - <ORGANIZATION>organization</ORGANIZATION>
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH>
+  - <BANK_ACCOUNT>bank account info</BANK_ACCOUNT>
+- **Include 8-15 entities per document**
+- Minimize non-entity text between entities
+
+## Dense patterns
+
+### Directory listing
+"<PERSON>Sarah Chen</PERSON>, <ORGANIZATION>Meridian Health</ORGANIZATION>, <ADDRESS>500 George St, New Brunswick, NJ 08901</ADDRESS> | <PERSON>David O'Brien</PERSON>, <ORGANIZATION>Atlantic Financial</ORGANIZATION>, <ADDRESS>1200 Market St, Philadelphia, PA 19107</ADDRESS> | <PERSON>Priya Sharma</PERSON>, <ORGANIZATION>TechVentures Inc.</ORGANIZATION>, <ADDRESS>2000 K St NW, Washington, DC 20006</ADDRESS>"
+
+### Wire transfer form
+"From: <PERSON>James Wilson</PERSON> (DOB: <DATE_OF_BIRTH>07/14/1982</DATE_OF_BIRTH>), <ADDRESS>4521 Elm St, Portland, OR 97201</ADDRESS>, <ORGANIZATION>Pacific Northwest Partners</ORGANIZATION>. Wire from <BANK_ACCOUNT>Wells Fargo, Routing: 121000248, Account: 776543210</BANK_ACCOUNT> to <PERSON>Maria Garcia</PERSON>, <BANK_ACCOUNT>Chase, Routing: 021000021, Account: 998877665</BANK_ACCOUNT>, <ADDRESS>8700 Sunset Blvd, Los Angeles, CA 90069</ADDRESS>."
+
+### Accident report
+"<PERSON>Timothy Walsh</PERSON> (DOB: <DATE_OF_BIRTH>April 3, 1992</DATE_OF_BIRTH>, residing at <ADDRESS>1847 Oak Avenue, Austin, TX 78701</ADDRESS>, employed by <ORGANIZATION>Dell Technologies</ORGANIZATION>) collided with <PERSON>Angela Rodriguez</PERSON> (DOB: <DATE_OF_BIRTH>09/15/1988</DATE_OF_BIRTH>, <ADDRESS>302 Pine St, San Antonio, TX 78205</ADDRESS>) near <ADDRESS>intersection of Congress Ave and 6th St, Austin, TX 78701</ADDRESS>."
+
+### CSV-style data
+"<PERSON>Kevin Park</PERSON>,<DATE_OF_BIRTH>1995-08-22</DATE_OF_BIRTH>,<ADDRESS>1600 Amphitheatre Pkwy, Mountain View, CA 94043</ADDRESS>,<ORGANIZATION>Alphabet Inc.</ORGANIZATION>,<BANK_ACCOUNT>Silicon Valley Bank, Routing: 121140399, Acct: 112233445</BANK_ACCOUNT>"
+
+## Output format
+Separate each text with `---DOC_SEPARATOR---`. Each text 150-400 words.

@@ -1,0 +1,50 @@
+Generate {{ num_docs }} English texts containing ZERO actual PII but maximum false-positive pressure for every entity type.
+
+## CRITICAL RULE
+- **Do NOT use any XML tags**
+- **No text contains actual PII**
+- **Every text must contain expressions that LOOK like each entity type**
+
+## False positive traps by entity type
+
+### PERSON traps
+- Brand names: "Jack Daniel's Tennessee Whiskey", "Jimmy John's sandwich", "Ben & Jerry's ice cream"
+- Place-derived names: "the Ford dealership", "Wells Fargo ATM", "Morgan Stanley index"
+- Literary/historical: "Einstein's theory", "Shakespeare's works", "Darwin's finches"
+- Generic role: "Dr. Smith says" (generic example), "the Johnson family" (generic)
+- Sports teams: "the Warriors defeated the Lakers"
+
+### ADDRESS traps
+- Landmarks: "at Wall Street", "on Broadway", "near Times Square"
+- Directions: "north of Main Street and 5th Avenue"
+- Building names: "the Empire State Building lobby", "Rockefeller Center plaza"
+- Fictional: "221B Baker Street" (literary), "742 Evergreen Terrace" (TV)
+- General locations: "downtown Chicago", "the Bay Area", "Silicon Valley"
+- ZIP code contexts: "the 90210 zip code area"
+
+### DATE_OF_BIRTH traps
+- Historical: "on July 4, 1776", "December 7, 1941", "September 11, 2001"
+- Business: "Q4 2024 earnings", "fiscal year ending March 31, 2025"
+- Deadlines: "submit by 03/15/2025", "due April 1, 2024"
+- Events: "the 2024 Olympics", "Super Bowl on February 11"
+- Product dates: "manufactured 08/2023", "best before 12/25/2025"
+- Anniversaries: "celebrating 50 years since 1974"
+
+### ORGANIZATION traps
+- Generic: "the company announced", "our firm reported", "the agency confirmed"
+- Standards: "ISO 9001 certified", "per FDA guidelines", "OSHA compliant"
+- Products as org: "the Google approach", "an Apple-like design", "Amazon shipping"
+- Media: "CNN reported", "according to Reuters", "the Times published"
+
+### BANK_ACCOUNT traps
+- Order numbers: "Order #ORD-2024-0315-78543"
+- Confirmation: "Confirmation: ABC123DEF456"
+- Serial: "S/N: XK4829-001-AB"
+- Phone: "call 1-800-555-0123"
+- Routing-like: "FedEx tracking: 794644790132"
+
+## Topics
+- Product reviews, sports commentary, travel guides, food criticism, technology articles, market analysis
+
+## Output format
+Separate each text with `---DOC_SEPARATOR---`. Each text 50-200 words.

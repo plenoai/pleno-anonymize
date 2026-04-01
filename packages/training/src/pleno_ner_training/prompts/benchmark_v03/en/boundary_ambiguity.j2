@@ -1,0 +1,43 @@
+Generate {{ num_docs }} English texts where PII entity boundaries are ambiguous for exact-match evaluation.
+
+## Purpose
+Measure NER boundary detection precision. In exact match, even 1 character off = wrong.
+
+## Rules
+- Mark PII entities with XML tags:
+  - <PERSON>name</PERSON>
+  - <ADDRESS>address</ADDRESS>
+  - <ORGANIZATION>organization</ORGANIZATION>
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH>
+  - <BANK_ACCOUNT>bank account info</BANK_ACCOUNT>
+
+## Boundary ambiguity patterns
+
+### Person name boundaries
+- Titles: "<PERSON>Dr. Sarah Jane O'Brien-Smith III</PERSON>" (where does the name end?)
+- Suffixes: "<PERSON>Robert James Harrison Jr.</PERSON>, Esq." (Esq. is NOT part of the name)
+- Maiden names: "<PERSON>Lisa Marie Chen (née Wong)</PERSON>"
+- Email-adjacent: "<PERSON>Michael Torres</PERSON> (mtorres@company.com)"
+
+### Organization + address adjacency
+- "<ORGANIZATION>Goldman Sachs Group, Inc.</ORGANIZATION>, <ADDRESS>200 West Street, New York, NY 10282</ADDRESS>"
+- "<ORGANIZATION>Mayo Clinic</ORGANIZATION> at <ADDRESS>200 First Street SW, Rochester, MN 55905</ADDRESS>"
+- "headquartered at <ADDRESS>1 Infinite Loop, Cupertino, CA 95014</ADDRESS>, <ORGANIZATION>Apple Inc.</ORGANIZATION> reported..."
+
+### Address boundary
+- With building name: "<ADDRESS>350 Fifth Avenue, Suite 3300, Empire State Building, New York, NY 10118</ADDRESS>"
+- With floor: "<ADDRESS>1600 Pennsylvania Avenue NW, West Wing, Washington, DC 20500</ADDRESS>"
+- ZIP+4: "<ADDRESS>742 Evergreen Terrace, Springfield, IL 62704-1234</ADDRESS>"
+- Country included: "<ADDRESS>10 Downing Street, London SW1A 2AA, United Kingdom</ADDRESS>"
+
+### DOB boundary
+- Prefix inclusion: "Date of Birth: <DATE_OF_BIRTH>March 15, 1985</DATE_OF_BIRTH>" (prefix excluded)
+- Written out: "born on <DATE_OF_BIRTH>the fifteenth of March, nineteen eighty-five</DATE_OF_BIRTH>"
+- Parenthetical: "(<DATE_OF_BIRTH>03/15/1985</DATE_OF_BIRTH>)"
+
+### Bank account boundary
+- With name: "<BANK_ACCOUNT>Chase Bank, Routing: 021000021, Account: 123456789, Checking</BANK_ACCOUNT> (Beneficiary: <PERSON>John Smith</PERSON>)"
+- IBAN: "<BANK_ACCOUNT>IBAN: GB29 NWBK 6016 1331 9268 19</BANK_ACCOUNT>"
+
+## Output format
+Separate each text with `---DOC_SEPARATOR---`. Each text 100-300 words.

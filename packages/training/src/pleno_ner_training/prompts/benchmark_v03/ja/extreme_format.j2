@@ -1,0 +1,48 @@
+以下の条件に従い、PIIエンティティが極端に珍しいフォーマットで出現する日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+訓練データに存在しないフォーマットでのPII検出能力を測定します。
+
+## 条件
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>人名</PERSON>
+  - <ADDRESS>住所</ADDRESS>
+  - <ORGANIZATION>組織名</ORGANIZATION>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>
+  - <BANK_ACCOUNT>銀行口座情報</BANK_ACCOUNT>
+
+## 極端なフォーマットパターン
+
+### 人名の変則フォーマット
+- 全角スペース区切り: 「<PERSON>山　田　太　郎</PERSON>」
+- 姓名逆順（西洋式）: 「<PERSON>Taro YAMADA</PERSON>」
+- 読みのみ（ひらがな）: 「<PERSON>やまだ たろう</PERSON>」
+- 読みのみ（カタカナ）: 「<PERSON>ヤマダ タロウ</PERSON>」
+- 通名と本名: 「通名 <PERSON>金田太郎</PERSON>（本名 <PERSON>金 太郎</PERSON>）」
+
+### 住所の変則フォーマット
+- 漢数字: 「<ADDRESS>東京都渋谷区神宮前一丁目二番三号</ADDRESS>」
+- 英語交じり: 「<ADDRESS>Shibuya-ku, Jingumae 1-2-3, Tokyo</ADDRESS>」
+- 都道府県なし: 「<ADDRESS>渋谷区神宮前1-2-3</ADDRESS>」
+- 番地のみ: 「<ADDRESS>神宮前1-2-3-405</ADDRESS>」（文脈から住所と判断可能な場合）
+- 旧住所表記: 「<ADDRESS>東京都渋谷区大字神宮前字北沢壱百弐拾参番地</ADDRESS>」
+
+### 生年月日の変則フォーマット
+- 元号1文字略記: 「<DATE_OF_BIRTH>S40.5.10</DATE_OF_BIRTH>」「<DATE_OF_BIRTH>H2/3/15</DATE_OF_BIRTH>」「<DATE_OF_BIRTH>R1.5.1</DATE_OF_BIRTH>」
+- 年齢から推定: 「（<DATE_OF_BIRTH>昭和四十年五月十日</DATE_OF_BIRTH>生）」← 漢数字
+- スラッシュ区切り西暦: 「<DATE_OF_BIRTH>1990/03/15</DATE_OF_BIRTH>」
+- 西暦2桁: 「<DATE_OF_BIRTH>90.3.15</DATE_OF_BIRTH>」
+
+### 組織名の変則フォーマット
+- 括弧略記: 「（株）<ORGANIZATION>サンプルホールディングス</ORGANIZATION>」→ 全体で「<ORGANIZATION>（株）サンプルホールディングス</ORGANIZATION>」
+- 英語社名: 「<ORGANIZATION>Sony Group Corporation</ORGANIZATION>」
+- NPO/NGO: 「<ORGANIZATION>特定非営利活動法人子ども支援ネットワーク</ORGANIZATION>」
+- 旧字体: 「<ORGANIZATION>株式會社三菱重工業</ORGANIZATION>」
+
+### 銀行口座の変則フォーマット
+- 極端な略記: 「<BANK_ACCOUNT>UFJ 新宿 普 1234567</BANK_ACCOUNT>」
+- SWIFT形式: 「<BANK_ACCOUNT>MUFGJPJT 普通 00-1234567</BANK_ACCOUNT>」
+- ゆうちょ特殊形式: 「<BANK_ACCOUNT>ゆうちょ銀行 記号10100 番号12345671</BANK_ACCOUNT>」
+
+## 出力形式
+各テキストを `---DOC_SEPARATOR---` で区切って出力してください。各テキスト80〜250文字。

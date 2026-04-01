@@ -1,0 +1,53 @@
+Generate {{ num_docs }} English texts where PII entities appear in extremely unusual formats not seen in typical training data.
+
+## Purpose
+Measure detection of PII in rare but legitimate formats.
+
+## Rules
+- Mark PII entities with XML tags:
+  - <PERSON>name</PERSON>
+  - <ADDRESS>address</ADDRESS>
+  - <ORGANIZATION>organization</ORGANIZATION>
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH>
+  - <BANK_ACCOUNT>bank account info</BANK_ACCOUNT>
+
+## Extreme format patterns
+
+### Person names
+- ALL CAPS from forms: "<PERSON>JENNIFER MARIA GONZALEZ</PERSON>"
+- Last, First format: "<PERSON>NGUYEN, THI MINH ANH</PERSON>"
+- Single mononym: "<PERSON>Sukarno</PERSON>", "<PERSON>Madonna</PERSON>" (when used as real identity)
+- Hyphenated triple: "<PERSON>Jean-Pierre de la Croix-Beaumont</PERSON>"
+- With diacritics: "<PERSON>François-René Müller-Østergaard</PERSON>"
+- Initials only: "<PERSON>J. R. R. Tolkien</PERSON>" (when identifying a real person, not literary reference)
+
+### Addresses
+- PO Box: "<ADDRESS>P.O. Box 4521, Springfield, IL 62708</ADDRESS>"
+- Military: "<ADDRESS>PSC 42, Box 1234, APO AE 09096</ADDRESS>"
+- Rural route: "<ADDRESS>RR 2, Box 145, Jasper, IN 47546</ADDRESS>"
+- UK format: "<ADDRESS>Flat 4B, 28 King's Road, Chelsea, London SW3 4RP</ADDRESS>"
+- Without state abbreviation: "<ADDRESS>1234 Main Street, Los Angeles, California 90001</ADDRESS>"
+- All on one line no commas: "<ADDRESS>742 Oak Drive Apt 3B Denver CO 80202</ADDRESS>"
+
+### Date of birth
+- Written out: "<DATE_OF_BIRTH>the third of April, nineteen ninety-two</DATE_OF_BIRTH>"
+- Ordinal: "<DATE_OF_BIRTH>April 3rd, 1992</DATE_OF_BIRTH>"
+- Day-month-year: "<DATE_OF_BIRTH>03/04/1992</DATE_OF_BIRTH>" (ambiguous DD/MM vs MM/DD)
+- ISO compact: "<DATE_OF_BIRTH>19920403</DATE_OF_BIRTH>"
+- Two-digit year: "<DATE_OF_BIRTH>04/03/92</DATE_OF_BIRTH>"
+- With prefix: "b. <DATE_OF_BIRTH>3 Apr 1992</DATE_OF_BIRTH>"
+
+### Organizations
+- With "doing business as": "<ORGANIZATION>Acme Holdings LLC d/b/a Acme Services</ORGANIZATION>"
+- Foreign names: "<ORGANIZATION>Bayerische Motoren Werke Aktiengesellschaft</ORGANIZATION>"
+- Government: "<ORGANIZATION>U.S. Department of Health and Human Services</ORGANIZATION>"
+- Parenthetical abbreviation: "<ORGANIZATION>International Business Machines Corporation (IBM)</ORGANIZATION>"
+
+### Bank accounts
+- IBAN format: "<BANK_ACCOUNT>IBAN: DE89 3704 0044 0532 0130 00, BIC: COBADEFFXXX</BANK_ACCOUNT>"
+- Wire transfer: "<BANK_ACCOUNT>Beneficiary Bank: HSBC, SWIFT: HSBCHKHH, Acct: 123-456789-001</BANK_ACCOUNT>"
+- Abbreviated: "<BANK_ACCOUNT>BofA Rt 026009593 Acct 334455667 Chk</BANK_ACCOUNT>"
+- Credit union: "<BANK_ACCOUNT>Navy Federal CU, Routing: 256074974, Share: 0012345678</BANK_ACCOUNT>"
+
+## Output format
+Separate each text with `---DOC_SEPARATOR---`. Each text 80-250 words.

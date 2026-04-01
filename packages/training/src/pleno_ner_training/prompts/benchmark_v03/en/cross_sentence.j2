@@ -1,0 +1,37 @@
+Generate {{ num_docs }} English texts where PII entities are introduced and then re-referenced across sentences.
+
+## Purpose
+Test whether models correctly tag only the first full mention and ignore re-references.
+
+## Rules
+- Mark PII entities with XML tags:
+  - <PERSON>name</PERSON> (ONLY on first full-name mention)
+  - <ADDRESS>address</ADDRESS>
+  - <ORGANIZATION>organization</ORGANIZATION> (ONLY on first formal mention)
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH>
+  - <BANK_ACCOUNT>bank account info</BANK_ACCOUNT>
+- **Re-references use NO tags**: surname-only, pronouns, abbreviations, "the company", "the address"
+
+## Patterns
+
+### Person re-reference
+- First: "<PERSON>Dr. Amanda Rivera-Chen</PERSON> joined the team last month."
+- Re-ref (NO tag): "Rivera-Chen has extensive experience." / "She previously worked at..." / "Dr. Rivera noted..."
+
+### Organization re-reference
+- First: "<ORGANIZATION>The National Aeronautics and Space Administration</ORGANIZATION> published new findings."
+- Re-ref (NO tag): "NASA reported..." / "The agency confirmed..." / "It was founded in 1958."
+
+### Multi-person cross-reference
+- "<PERSON>James Wilson</PERSON> and <PERSON>Maria Garcia</PERSON> were partners at <ORGANIZATION>Brightpath Analytics LLC</ORGANIZATION>. Wilson handled finance while Garcia managed operations. The company was based at <ADDRESS>2900 Corporate Drive, Suite 100, Tampa, FL 33619</ADDRESS>. Their firm grew rapidly."
+
+### Same surname, different people
+- "<PERSON>Robert Johnson</PERSON> met with Johnson's client." (second "Johnson's" = no tag, ambiguous reference)
+- "<PERSON>Sarah Kim</PERSON>, a senior analyst, disagreed with Kim's supervisor." (Kim's supervisor = no tag)
+
+### Address re-reference
+- Full: "<ADDRESS>1423 Birch Lane, Apt 7, Eugene, OR 97401</ADDRESS>"
+- Re-ref (NO tag): "the Birch Lane address" / "that location" / "the Eugene property"
+
+## Output format
+Separate each text with `---DOC_SEPARATOR---`. Each text 100-300 words.

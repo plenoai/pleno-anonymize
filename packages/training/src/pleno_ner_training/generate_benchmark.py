@@ -1,11 +1,11 @@
-"""ベンチマーク v0.2.0 データ生成パイプライン.
+"""ベンチマークデータ生成パイプライン（マルチバージョン対応）.
 
 学習テンプレートとは完全に異なるドメインのテンプレートから
 評価専用データを生成し、DocBin形式に変換する。
 
 使い方:
-    python -m pleno_ner_training.generate_benchmark --language ja
-    python -m pleno_ner_training.generate_benchmark --language en
+    python -m pleno_ner_training.generate_benchmark --version v0.2.0 --language ja
+    python -m pleno_ner_training.generate_benchmark --version v0.3.0 --language en
 """
 
 import json
@@ -13,6 +13,7 @@ import re
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
@@ -26,36 +27,55 @@ from pleno_ner_training.generate_data import (
     validate_annotations,
 )
 
-BENCHMARK_PROMPTS_DIR = Path(__file__).parent / "prompts" / "benchmark_v02"
-BENCHMARK_VERSION = "v0.2.0"
+PROMPTS_ROOT = Path(__file__).parent / "prompts"
 
-# 高難度テンプレートはバッチ数を増やす（実環境の分布を反映）
-# 実環境では PII を含まないドキュメントが 60-80% を占める
-TEMPLATE_WEIGHT: dict[str, float] = {
-    "negative_only.j2": 6.0,  # 実環境ではPII無しドキュメントが大半
-    "distractor_heavy.j2": 2.5,  # 偽陽性の主要ソース（PII 1-2個 + 紛らわしい表現多数）
-    "narrative_embedded.j2": 2.0,  # 学習データと最も異なる文体
-    "mixed_language.j2": 1.5,  # 日英混在は実環境で頻出
+
+@dataclass(frozen=True)
+class BenchmarkConfig:
+    """バージョン別ベンチマーク設定."""
+
+    version: str
+    prompts_subdir: str
+    template_weights: dict[str, float] = field(default_factory=dict)
+
+
+BENCHMARK_CONFIGS: dict[str, BenchmarkConfig] = {
+    "v0.2.0": BenchmarkConfig(
+        version="v0.2.0",
+        prompts_subdir="benchmark_v02",
+        template_weights={
+            "negative_only.j2": 6.0,
+            "distractor_heavy.j2": 2.5,
+            "narrative_embedded.j2": 2.0,
+            "mixed_language.j2": 1.5,
+        },
+    ),
+    "v0.3.0": BenchmarkConfig(
+        version="v0.3.0",
+        prompts_subdir="benchmark_v03",
+        template_weights={
+            "adversarial_negative.j2": 4.0,
+            "type_confusion.j2": 2.0,
+            "boundary_ambiguity.j2": 2.0,
+            "corrupted_structured.j2": 1.5,
+            "cross_sentence.j2": 1.5,
+        },
+    ),
 }
-
-TAG_PATTERN = re.compile(
-    r"<(" + "|".join(NER_LABELS) + r")>(.*?)</\1>",
-    re.DOTALL,
-)
 
 
 def generate_benchmark_batch(
     client,
     template_name: str,
     num_docs: int,
-    language: str = "ja",
+    language: str,
+    prompts_dir: Path,
     model: str = "gpt-5.4-nano",
     max_retries: int = 3,
     batch_idx: int = 0,
 ) -> list[dict]:
     """ベンチマーク用バッチ生成。エンティティ0件のドキュメントも許可する."""
     lang_config = LANG_CONFIGS[language]
-    prompts_dir = BENCHMARK_PROMPTS_DIR / language
     env = Environment(loader=FileSystemLoader(str(prompts_dir)))
     template = env.get_template(template_name)
     prompt = template.render(num_docs=num_docs)
@@ -90,7 +110,6 @@ def generate_benchmark_batch(
         if not parsed["text"]:
             continue
 
-        # エンティティがある場合はバリデーション、ない場合もOK（陰性データ）
         if parsed["entities"] and not validate_annotations(parsed):
             continue
 
@@ -104,6 +123,7 @@ def generate_benchmark_batch(
 
 
 def generate_benchmark(
+    version: str = "v0.3.0",
     language: str = "ja",
     docs_per_template: int = 20,
     batches_per_template: int = 10,
@@ -116,20 +136,21 @@ def generate_benchmark(
 
     import spacy
 
+    config = BENCHMARK_CONFIGS[version]
     data_root = Path(__file__).parents[2] / "data"
-    output_dir = output_dir or (data_root / "benchmark" / BENCHMARK_VERSION / language)
+    output_dir = output_dir or (data_root / "benchmark" / version / language)
     raw_path = output_dir / "raw.json"
     docbin_path = output_dir / "test.spacy"
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    prompts_dir = BENCHMARK_PROMPTS_DIR / language
+    prompts_dir = PROMPTS_ROOT / config.prompts_subdir / language
     templates = sorted(prompts_dir.glob("*.j2"))
     if not templates:
         print(f"[ERROR] No templates in {prompts_dir}", file=sys.stderr)
         raise SystemExit(1)
 
-    print(f"=== Benchmark {BENCHMARK_VERSION} ({language}) ===")
+    print(f"=== Benchmark {version} ({language}) ===")
     print(f"Templates: {[t.name for t in templates]}")
     print(f"Config: {docs_per_template} docs/template x {batches_per_template} batches x {len(templates)} templates")
 
@@ -145,7 +166,7 @@ def generate_benchmark(
     tasks = []
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         for template_path in templates:
-            weight = TEMPLATE_WEIGHT.get(template_path.name, 1.0)
+            weight = config.template_weights.get(template_path.name, 1.0)
             n_batches = int(batches_per_template * weight)
             for batch_idx in range(n_batches):
                 future = executor.submit(
@@ -154,6 +175,7 @@ def generate_benchmark(
                     template_path.name,
                     docs_per_template,
                     language,
+                    prompts_dir,
                     model,
                     batch_idx=batch_idx,
                 )
@@ -171,11 +193,9 @@ def generate_benchmark(
                 failed += 1
                 print(f"[WARN] {template_name} batch {batch_idx}: {e}", file=sys.stderr)
 
-    # 保存
     with open(raw_path, "w", encoding="utf-8") as f:
         json.dump(all_docs, f, ensure_ascii=False, indent=2)
 
-    # 統計
     entity_counts: dict[str, int] = {}
     neg_docs = 0
     for doc in all_docs:
@@ -191,7 +211,6 @@ def generate_benchmark(
     for label, count in sorted(entity_counts.items()):
         print(f"  {label}: {count}")
 
-    # DocBin変換
     print(f"\nConverting to DocBin...")
     nlp = spacy.blank(language)
     docs, total_ents, align_fail = convert_to_docs(nlp, all_docs)
@@ -206,7 +225,8 @@ def generate_benchmark(
 def main() -> None:
     import argparse
 
-    parser = argparse.ArgumentParser(description=f"Benchmark {BENCHMARK_VERSION} data generation")
+    parser = argparse.ArgumentParser(description="Benchmark data generation")
+    parser.add_argument("--version", default="v0.3.0", choices=list(BENCHMARK_CONFIGS))
     parser.add_argument("--language", default="ja", choices=["ja", "en"])
     parser.add_argument("--docs-per-template", type=int, default=20)
     parser.add_argument("--batches-per-template", type=int, default=10)
@@ -216,6 +236,7 @@ def main() -> None:
     args = parser.parse_args()
 
     generate_benchmark(
+        version=args.version,
         language=args.language,
         docs_per_template=args.docs_per_template,
         batches_per_template=args.batches_per_template,
