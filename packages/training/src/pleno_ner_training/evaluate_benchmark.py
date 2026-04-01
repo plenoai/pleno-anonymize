@@ -13,7 +13,7 @@ from spacy.scorer import Scorer
 from spacy.tokens import DocBin
 from spacy.training import Example
 
-BENCHMARK_VERSIONS = ["v0.2.0", "v0.3.0"]
+BENCHMARK_VERSIONS = ["v0.2.0", "v0.3.0", "v0.4.0"]
 
 
 def load_benchmark_docs(nlp: spacy.Language, path: Path) -> list:

@@ -59,23 +59,41 @@ BUILDINGS = [
 ]
 
 # --- ORGANIZATION ---
-COMPANY_PREFIXES = ["株式会社", "有限会社", "合同会社", "一般社団法人", "NPO法人"]
+COMPANY_PREFIXES = ["株式会社", "有限会社", "合同会社", "一般社団法人", "NPO法人", "公益財団法人", "医療法人", "学校法人", "社会福祉法人"]
 COMPANY_NAMES = [
     "プレノ", "テックソリューションズ", "サンライズ", "グローバルテック",
     "ネクストイノベーション", "デジタルフロンティア", "スマートシステムズ",
     "フューチャーラボ", "クリエイティブワークス", "アドバンストテクノロジー",
+    "日本製鉄", "トヨタ自動車", "ソニーグループ", "パナソニック", "日立製作所",
+    "NTTデータ", "富士通", "三菱商事", "伊藤忠商事", "住友不動産",
+    "セブン&アイ・ホールディングス", "ファーストリテイリング", "リクルート",
+    "サイバーエージェント", "メルカリ", "ディー・エヌ・エー", "楽天グループ",
+    "野村證券", "大和証券", "東京海上日動", "損保ジャパン",
 ]
+COMPANY_SUFFIXES = ["ホールディングス", "グループ", "ジャパン", "インターナショナル"]
 UNIVERSITIES = [
     "東京大学", "京都大学", "大阪大学", "早稲田大学", "慶應義塾大学",
     "東北大学", "九州大学", "北海道大学", "名古屋大学", "筑波大学",
+    "一橋大学", "東京工業大学", "神戸大学", "横浜国立大学", "千葉大学",
+    "明治大学", "立教大学", "中央大学", "法政大学", "上智大学",
+    "同志社大学", "立命館大学", "関西学院大学", "青山学院大学",
 ]
 GOVERNMENT = [
     "厚生労働省", "国土交通省", "総務省", "経済産業省", "法務省",
     "財務省", "文部科学省", "環境省", "防衛省", "外務省",
+    "金融庁", "消費者庁", "デジタル庁", "警察庁", "国税庁",
+    "東京都庁", "大阪府庁", "内閣府", "宮内庁",
 ]
 HOSPITALS = [
     "東京医科大学病院", "慶應義塾大学病院", "順天堂大学医学部附属病院",
     "国立がん研究センター", "聖路加国際病院",
+    "東京大学医学部附属病院", "大阪大学医学部附属病院", "虎の門病院",
+    "国立国際医療研究センター", "東京女子医科大学病院",
+]
+RESEARCH_INSTITUTES = [
+    "理化学研究所", "産業技術総合研究所", "国立情報学研究所",
+    "宇宙航空研究開発機構", "日本原子力研究開発機構",
+    "国立環境研究所", "物質・材料研究機構",
 ]
 
 # --- BANK ---
@@ -126,15 +144,30 @@ def _random_address() -> str:
 
 
 def _random_org() -> str:
-    kind = random.choice(["company", "university", "government", "hospital"])
+    kind = random.choice(["company", "company", "university", "government", "hospital", "research"])
     if kind == "company":
         prefix = random.choice(COMPANY_PREFIXES)
         name = random.choice(COMPANY_NAMES)
-        return f"{prefix}{name}" if random.random() < 0.5 else f"{name}{prefix[:-1] if prefix.endswith('人') else ''}"
+        r = random.random()
+        if r < 0.35:
+            return f"{prefix}{name}"
+        elif r < 0.55:
+            return f"{name}"  # 略称パターン
+        elif r < 0.75:
+            suffix = random.choice(COMPANY_SUFFIXES)
+            return f"{name}{suffix}"
+        else:
+            return f"{prefix}{name}" if not prefix.endswith("人") else f"{prefix}{name}"
     elif kind == "university":
-        return random.choice(UNIVERSITIES)
+        uni = random.choice(UNIVERSITIES)
+        if random.random() < 0.3:
+            dept = random.choice(["法学部", "経済学部", "工学部", "医学部", "理学部", "文学部"])
+            return f"{uni}{dept}"
+        return uni
     elif kind == "government":
         return random.choice(GOVERNMENT)
+    elif kind == "research":
+        return random.choice(RESEARCH_INSTITUTES)
     else:
         return random.choice(HOSPITALS)
 
@@ -183,6 +216,12 @@ PERSON_TEMPLATES = [
     "署名: {person}",
     "以上の通り報告いたします。\n報告者: {person}",
     "{person}（{person_kana}）",
+    "患者名: {person}\n診察券番号: 12345",
+    "{person}先生にご相談ください。",
+    "面接官: {person}\n日時: 2024年4月1日 14:00",
+    "保証人: {person}\n住所: {address}",
+    "代表者: {person}\n{org}",
+    "被保険者名: {person}\n被保険者番号: 1234567890",
 ]
 
 ORG_TEMPLATES = [
@@ -191,6 +230,16 @@ ORG_TEMPLATES = [
     "{org}に勤務する{person}氏が受賞した。",
     "{org}と{org2}が業務提携を発表した。",
     "問い合わせ先: {org}",
+    "{person}は{org}の代表取締役を務めている。",
+    "{org}（以下「当社」）は、下記の通りお知らせいたします。",
+    "勤務先: {org}\n役職: 部長\n氏名: {person}",
+    "{org}の{person}部長より連絡がありました。",
+    "{org}への転職を希望しています。現在は{org2}に在籍中です。",
+    "契約先: {org}\n担当: {person}\n契約日: 2024年4月1日",
+    "所属: {org}\n社員番号: E-12345\n氏名: {person}",
+    "{person}様\n{org}人事部より内定通知をお送りします。",
+    "発注先: {org}\n発注番号: PO-2024-001",
+    "取引先: {org}\n振込先口座: {bank}",
 ]
 
 DOB_TEMPLATES = [
@@ -205,6 +254,11 @@ BANK_TEMPLATES = [
     "給与振込口座\n{bank}\n名義: {person}\n勤務先: {org}",
     "返金先口座: {bank}\n{person}様宛",
     "送金先情報\n{bank}\n受取人: {person}\n住所: {address}",
+    "お振込先\n{bank}\nお受取人名: {person}",
+    "口座情報: {bank}\n名義人: {person}\n住所: {address}",
+    "報酬振込先: {bank}\n受取人: {person}\n所属: {org}",
+    "引落口座: {bank}\n契約者: {person}",
+    "還付金振込先口座\n{bank}\n申請者: {person}\n生年月日: {dob}",
 ]
 
 COMBINED_TEMPLATES = [

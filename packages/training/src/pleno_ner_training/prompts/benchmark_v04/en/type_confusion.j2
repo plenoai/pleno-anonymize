@@ -1,0 +1,39 @@
+Generate {{ num_docs }} English texts where the same surface form could be different entity types depending on context.
+
+## Purpose
+Measure context-dependent entity typing accuracy. The same string can be PERSON, ORGANIZATION, or neither.
+
+## Rules
+- Mark PII entities with XML tags:
+  - <PERSON>name</PERSON>
+  - <ADDRESS>address</ADDRESS>
+  - <ORGANIZATION>organization</ORGANIZATION>
+  - <DATE_OF_BIRTH>date of birth</DATE_OF_BIRTH>
+  - <BANK_ACCOUNT>bank account info</BANK_ACCOUNT>
+
+## Type confusion patterns
+
+### Person name vs Organization
+- "<PERSON>Ford</PERSON> testified..." vs "<ORGANIZATION>Ford Motor Company</ORGANIZATION> announced..."
+- "<PERSON>Morgan Stanley Chen</PERSON>" (actual person name) vs "<ORGANIZATION>Morgan Stanley</ORGANIZATION>" (bank)
+- "<PERSON>Wells</PERSON> was interviewed" vs "<ORGANIZATION>Wells Fargo</ORGANIZATION> reported"
+
+### Date vs Date of Birth (include 4+ dates per doc, only 1 is DOB)
+- "The incident occurred on January 15, 2024. The victim, <PERSON>James Rivera</PERSON>, born <DATE_OF_BIRTH>June 3, 1989</DATE_OF_BIRTH>, filed the report on January 20, 2024. The hearing is scheduled for March 1, 2024."
+- "Effective April 1, 2024, the policy covers <PERSON>Maria Santos</PERSON> (DOB: <DATE_OF_BIRTH>11/22/1975</DATE_OF_BIRTH>). Enrollment began September 15, 2023. Claims must be filed by December 31, 2024."
+
+### Place name vs Address
+- "the Chicago office" (no tag) vs "<ADDRESS>233 S Wacker Dr, Suite 8400, Chicago, IL 60606</ADDRESS>"
+- "moved to California" (no tag) vs "<ADDRESS>456 Palm Avenue, Los Angeles, CA 90001</ADDRESS>"
+
+### Organization as adjective vs entity
+- "<ORGANIZATION>Google</ORGANIZATION> announced layoffs" (entity) vs "a Google-style interview" (no tag)
+- "<ORGANIZATION>Amazon</ORGANIZATION> reported earnings" (entity) vs "Amazon delivery arrived" (no tag)
+- "<ORGANIZATION>Apple</ORGANIZATION>'s CEO spoke" (entity) vs "I bought an Apple laptop" (no tag — product reference)
+
+### Account number vs other numbers
+- "<BANK_ACCOUNT>Bank of America, ABA: 026009593, Acct: 123456789</BANK_ACCOUNT>" vs "Order #123456789" (no tag)
+- "SSN: 123-45-6789" (no tag) vs "<BANK_ACCOUNT>Citibank, RT# 021000089, DDA: 445566778</BANK_ACCOUNT>"
+
+## Output format
+Separate each text with `---DOC_SEPARATOR---`. Each text 100-300 words.

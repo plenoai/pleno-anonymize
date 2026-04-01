@@ -1,0 +1,44 @@
+以下の条件に従い、PIIが通常出現しない文脈に埋め込まれた日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+NERモデルは「メール」「フォーム」「報告書」等のPII頻出文脈で高精度を発揮する。本テンプレートは、PIIが通常現れない文脈にPIIを配置し、文脈依存の検出バイアスを測定する。
+
+## 条件
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>人名</PERSON>
+  - <ADDRESS>住所</ADDRESS>
+  - <ORGANIZATION>組織名</ORGANIZATION>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>
+  - <BANK_ACCOUNT>銀行口座情報</BANK_ACCOUNT>
+
+## 反文脈パターン（PIIが通常出現しない文脈）
+
+### レシピ・料理手順内のPII
+「<PERSON>田中美咲</PERSON>直伝の肉じゃがレシピ。材料を<ADDRESS>東京都世田谷区三軒茶屋1-2-3</ADDRESS>の市場で購入。」
+
+### 技術仕様書・マニュアル内のPII
+「本機器は<ORGANIZATION>株式会社日立ハイテク</ORGANIZATION>が製造。修理窓口: <PERSON>佐藤健一</PERSON>（<ADDRESS>茨城県ひたちなか市新光町1-1</ADDRESS>）」
+
+### 小説・フィクション風テキスト内のPII（ただし架空ではなく実在風）
+「雨の降る<ADDRESS>京都府京都市左京区下鴨本通2-5</ADDRESS>の路地を、<PERSON>中村剛</PERSON>は足早に歩いた。<DATE_OF_BIRTH>昭和45年9月3日</DATE_OF_BIRTH>生まれの彼は」
+
+### 数学・統計テキスト内のPII
+「調査担当: <PERSON>高橋誠</PERSON>（<ORGANIZATION>統計数理研究所</ORGANIZATION>）。標本抽出地点: <ADDRESS>北海道札幌市中央区北5条西7丁目</ADDRESS>。」
+
+### 詩・歌詞風テキスト内のPII
+「あの日 <PERSON>渡辺麻衣</PERSON>は <ADDRESS>新潟県長岡市幸町3-8-1</ADDRESS>の古い家を出て」
+
+### Q&A・FAQ内のPII
+「Q: 返金先口座を教えてください。A: <BANK_ACCOUNT>三菱UFJ銀行 新宿支店 普通 1234567</BANK_ACCOUNT>（名義: <PERSON>山田太郎</PERSON>）です。」
+
+### 広告・宣伝文内のPII
+「<ORGANIZATION>株式会社サンライズ不動産</ORGANIZATION>が<ADDRESS>千葉県船橋市本町1-2-3</ADDRESS>に新築マンションを建設。お問い合わせは<PERSON>木村大介</PERSON>まで。」
+
+## 紛らわしい表現（タグなし）
+- 料理名に含まれる固有名詞（「吉野家風牛丼」）
+- 技術用語（「Bluetooth」「USB-C」「API」）
+- 架空の地名（「ある街の路地」）
+- 数値（「p < 0.05」「n = 100」）
+
+## 出力形式
+各テキストを `---DOC_SEPARATOR---` で区切って出力してください。各テキスト80〜250文字。

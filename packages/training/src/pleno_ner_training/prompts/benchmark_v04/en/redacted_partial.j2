@@ -1,0 +1,42 @@
+Generate {{ num_docs }} English texts simulating partially redacted documents where some PII remains visible.
+
+## Purpose
+In production, partially anonymized documents are re-processed. This tests detection of residual PII alongside redaction markers.
+
+## Rules
+- Tag ONLY the remaining (visible) PII
+- Do NOT tag redacted/hidden content
+
+## Patterns
+
+### Name partially redacted
+- "Applicant: [REDACTED] (contact: <PERSON>Sarah Mitchell</PERSON>)"
+- "Name: **** Supervisor: <PERSON>Dr. James Rivera</PERSON>"
+- "Author: ████████ Editor: <PERSON>Maria Santos</PERSON>"
+
+### Address partially redacted
+- "Home: [REDACTED] Office: <ADDRESS>200 West Street, New York, NY 10282</ADDRESS>"
+- "Previous: ████████ Current: <ADDRESS>456 Palm Avenue, Los Angeles, CA 90001</ADDRESS>"
+
+### Mixed redacted and visible PII
+"Claimant [REDACTED] (DOB: <DATE_OF_BIRTH>June 3, 1989</DATE_OF_BIRTH>) resides at [REDACTED ADDRESS].
+Employer: <ORGANIZATION>Meridian Health Systems</ORGANIZATION>
+Account: [REDACTED] → Updated to: <BANK_ACCOUNT>Wells Fargo, Routing: 121000248, Account: 776543210, Savings</BANK_ACCOUNT>"
+
+### Template placeholders mixed with real data
+- "{name} <PERSON>Kevin Park</PERSON> {address} <ADDRESS>1600 Amphitheatre Pkwy, Mountain View, CA 94043</ADDRESS>"
+- "<<FIRST_NAME>> <PERSON>Rosa Gutierrez</PERSON> <<LAST_NAME>>"
+
+### Redaction markers that look like PII
+- "[Person Name Redacted]" (no tag - this is a redaction marker)
+- "XXX-XX-1234" (partial SSN, no tag)
+- "[Address Removed]" (no tag)
+
+## Confusing expressions (NO tags)
+- Redaction markers: "[REDACTED]", "████", "****", "[REMOVED]"
+- Placeholders: "{name}", "<<FIELD>>", "[PLACEHOLDER]"
+- "Example:" prefixed sample data
+- Partial values: "***-**-1234", "J*** S****"
+
+## Output format
+Separate each text with `---DOC_SEPARATOR---`. Each text 80-300 words.

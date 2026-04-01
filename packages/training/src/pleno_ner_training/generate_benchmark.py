@@ -61,6 +61,23 @@ BENCHMARK_CONFIGS: dict[str, BenchmarkConfig] = {
             "cross_sentence.j2": 1.5,
         },
     ),
+    "v0.4.0": BenchmarkConfig(
+        version="v0.4.0",
+        prompts_subdir="benchmark_v04",
+        template_weights={
+            # v0.4.0 新軸
+            "adversarial_negative_v2.j2": 4.0,
+            "semantic_trap.j2": 2.5,
+            "minimal_context.j2": 2.0,
+            "redacted_partial.j2": 1.5,
+            # v0.3.0 から継承（難易度維持）
+            "boundary_ambiguity.j2": 2.0,
+            "type_confusion.j2": 2.0,
+            "extreme_format.j2": 1.0,
+            "dense_multi_entity.j2": 1.0,
+            "corrupted_structured.j2": 1.0,
+        },
+    ),
 }
 
 

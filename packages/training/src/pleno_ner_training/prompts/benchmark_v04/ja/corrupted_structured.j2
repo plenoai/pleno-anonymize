@@ -1,0 +1,47 @@
+以下の条件に従い、破損した構造化データ内にPIIが含まれる日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+CSV/JSON/XMLの破損データからのPII検出能力を測定します。実環境ではデータパイプラインの破損が頻繁に起きます。
+
+## 条件
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>人名</PERSON>
+  - <ADDRESS>住所</ADDRESS>
+  - <ORGANIZATION>組織名</ORGANIZATION>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>
+  - <BANK_ACCOUNT>銀行口座情報</BANK_ACCOUNT>
+
+## 破損パターン
+
+### CSV破損（クォートずれ、改行混入）
+「"<PERSON>山田太郎</PERSON>","<DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH>","<ADDRESS>東京都渋谷区1-2-3</ADDRESS>
+","<ORGANIZATION>株式会社ABC</ORGANIZATION>","<BANK_ACCOUNT>三菱UFJ 新宿 普通 1234567</BANK_ACCOUNT>"」
+
+### JSON破損（キーなし、括弧不整合）
+「{"name": "<PERSON>佐藤花子</PERSON>", "dob": "<DATE_OF_BIRTH>H2.3.15</DATE_OF_BIRTH>", "address": "<ADDRESS>大阪市北区梅田1-1</ADDRESS>", "company": "<ORGANIZATION>関西電力</ORGANIZATION>"」
+
+### TSV風（タブ区切りだが項目ずれ）
+「<PERSON>鈴木一郎</PERSON>	<DATE_OF_BIRTH>1985/11/23</DATE_OF_BIRTH>	<ADDRESS>神奈川県横浜市中区山下町123</ADDRESS>	<ORGANIZATION>横浜銀行</ORGANIZATION>	<BANK_ACCOUNT>横浜銀行 関内支店 普通 9876543</BANK_ACCOUNT>」
+
+### ログ混入（タイムスタンプ+構造化データ）
+「2024-03-15 10:30:22 [INFO] customer_update: name=<PERSON>高橋誠</PERSON> addr=<ADDRESS>福岡県福岡市博多区1-2-3</ADDRESS> org=<ORGANIZATION>九州電力</ORGANIZATION> dob=<DATE_OF_BIRTH>19780520</DATE_OF_BIRTH>」
+
+### メール転送の引用破損
+「> ---- 元のメッセージ ----
+> 送信者: <PERSON>中村美紀</PERSON>
+> 所属: <ORGANIZATION>日本IBM</ORGANIZATION>
+> 住所: <ADDRESS>東京都中央区日本橋箱崎町19-21</ADDRESS>
+>> 転送ここまで
+口座: <BANK_ACCOUNT>りそな銀行 日本橋支店 普通 1122334</BANK_ACCOUNT>」
+
+### HTMLタグ混入
+「<div class="profile"><span><PERSON>渡辺修</PERSON></span><br/><ORGANIZATION>NTTドコモ</ORGANIZATION><br/><ADDRESS>東京都千代田区永田町2-11-1</ADDRESS></div>」
+
+## 紛らわしい表現（タグを付けないこと）
+- フィールド名: "name", "address", "dob", "company"
+- タイムスタンプ: "2024-03-15 10:30:22"
+- HTMLタグ: <div>, <span>, <br/>
+- ログレベル: [INFO], [ERROR], [WARN]
+
+## 出力形式
+各テキストを `---DOC_SEPARATOR---` で区切って出力してください。

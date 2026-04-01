@@ -1,0 +1,42 @@
+Generate {{ num_docs }} English texts where PII appears with MINIMAL contextual clues — no field labels, no titles, no surrounding sentences.
+
+## Purpose
+Test entity detection based purely on surface form, without contextual scaffolding like "Name:", "Address:", "Mr./Mrs.", "born on", etc.
+
+## Rules
+- Mark PII entities with XML tags
+- **NO field labels** ("Name:", "Address:", "DOB:" etc.)
+- **NO titles or honorifics** ("Mr.", "Dr.", "Ms." etc.)
+- **Minimal surrounding text**
+
+## Minimal context patterns
+
+### Bare entity lists
+"<PERSON>Jennifer Williams</PERSON> <DATE_OF_BIRTH>04/22/1987</DATE_OF_BIRTH> <ADDRESS>742 Maple St Apt 3B Denver CO 80202</ADDRESS> <ORGANIZATION>Rocky Mountain Health</ORGANIZATION>"
+
+### No-honorific names in brief sentences
+"<PERSON>David Park</PERSON> arrived. <PERSON>Sandra Kim</PERSON> left."
+
+### Abrupt entity insertion
+"Meeting result: <PERSON>Angela Rodriguez</PERSON> <PERSON>Thomas Lee</PERSON> selected."
+"Ship to <ADDRESS>890 Pine Road Columbus OH 43215</ADDRESS> tomorrow."
+
+### Scribbled notes style
+"<PERSON>Wilson</PERSON> <PERSON>Garcia</PERSON> <PERSON>Chen</PERSON> — 3pm — <ADDRESS>1500 Market St Philadelphia PA 19102</ADDRESS>"
+
+### Delimiter-separated
+"<PERSON>Timothy Walsh</PERSON>|<ORGANIZATION>Dell Technologies</ORGANIZATION>|<ADDRESS>1847 Oak Avenue Austin TX 78701</ADDRESS>|<DATE_OF_BIRTH>04/03/1992</DATE_OF_BIRTH>"
+
+### Copy-paste fragments
+"<PERSON>Nancy O'Dell</PERSON><PERSON>Kevin O'Malley</PERSON><ORGANIZATION>Southeast Medical Group</ORGANIZATION><ADDRESS>321 Cedar Lane Miami FL 33101</ADDRESS>"
+
+### Standalone fragments
+Each text is a memo-style fragment. Complete sentences are not required.
+
+## Confusing expressions (NO tags)
+- Bare numbers: "03-1234-5678", "090-0000-1234"
+- Bare dates: "04/01/2024", "March 15", "next Friday"
+- Bare city names: "Chicago", "Boston", "Seattle" (not addresses)
+
+## Output format
+Separate each text with `---DOC_SEPARATOR---`. Each text 30-150 words.

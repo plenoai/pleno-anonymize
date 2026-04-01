@@ -1,0 +1,39 @@
+以下の条件に従い、PIIの周囲に文脈的手がかりが最小限しかない日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+NERモデルは「氏名:」「住所:」等のフィールドラベルや「さん」「様」等の敬称を手がかりにPIIを検出する。本テンプレートはこれらの手がかりを排除し、表層形のみでの検出能力を測定する。
+
+## 条件
+- 以下のPIIエンティティをXMLタグで囲むこと（フィールドラベルなし）
+
+## 最小文脈パターン
+
+### ラベルなしの列挙
+「<PERSON>山田太郎</PERSON> <DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH> <ADDRESS>渋谷区神宮前1-2-3</ADDRESS> <ORGANIZATION>ソフトバンク</ORGANIZATION>」
+
+### 敬称・助詞なしの人名
+「<PERSON>鈴木一郎</PERSON>は来た。<PERSON>高橋花子</PERSON>もいた。」（「さん」「氏」なし）
+
+### 文の途中に唐突に出現
+「会議の結果として<PERSON>中村直人</PERSON><PERSON>佐藤美咲</PERSON>が選出された。」
+「送付先<ADDRESS>東京都港区赤坂1-2-3</ADDRESS>に届いた。」
+
+### メモ・走り書き風
+「<PERSON>木村</PERSON> <PERSON>渡辺</PERSON> <PERSON>伊藤</PERSON> 3名 15時 <ADDRESS>新宿区西新宿2-8-1</ADDRESS>」
+
+### 記号区切り
+「<PERSON>山田太郎</PERSON>/<ORGANIZATION>ABC株式会社</ORGANIZATION>/<ADDRESS>港区芝5-1-1</ADDRESS>/<DATE_OF_BIRTH>H2.3.15</DATE_OF_BIRTH>」
+
+### コピペ痕跡
+「<PERSON>田中誠</PERSON><PERSON>佐藤花子</PERSON><PERSON>鈴木健太</PERSON><ORGANIZATION>株式会社XYZ</ORGANIZATION><ADDRESS>大阪市北区梅田1-1-1</ADDRESS>」
+
+### 独立した断片
+各テキストはメモ帳のような断片的テキストで、完全な文を構成しなくてもよい。
+
+## 紛らわしい表現（タグなし）
+- 数字の羅列: 「03-1234-5678」「090-0000-1234」
+- 日付の羅列: 「2024/4/1」「3月15日」「来週」
+- 単語の羅列: 「東京」「大阪」「名古屋」（地名のみ、住所ではない）
+
+## 出力形式
+各テキストを `---DOC_SEPARATOR---` で区切って出力してください。各テキスト30〜150文字。

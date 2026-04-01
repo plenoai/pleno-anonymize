@@ -1,0 +1,31 @@
+以下の条件に従い、1文書内に多数のPIIが密集する日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+エンティティが高密度で出現する場合のセグメンテーション能力を測定します。
+
+## 条件
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>人名</PERSON>
+  - <ADDRESS>住所</ADDRESS>
+  - <ORGANIZATION>組織名</ORGANIZATION>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>
+  - <BANK_ACCOUNT>銀行口座情報</BANK_ACCOUNT>
+- **1文書あたり8〜15個のエンティティを含めること**
+- エンティティ間の非エンティティテキストは最小限にすること
+
+## 高密度パターン
+
+### 名簿形式（区切りが最小）
+「<PERSON>山田太郎</PERSON>/<PERSON>佐藤花子</PERSON>/<PERSON>鈴木一郎</PERSON>（<ORGANIZATION>株式会社ABC</ORGANIZATION>所属、連絡先: <ADDRESS>東京都渋谷区1-2-3</ADDRESS>）」
+
+### 送金指示書
+「<PERSON>田中誠</PERSON>（<DATE_OF_BIRTH>S50.3.15</DATE_OF_BIRTH>）より<BANK_ACCOUNT>三菱UFJ銀行 新宿支店 普通 1234567</BANK_ACCOUNT>へ振込。受取人<PERSON>高橋美咲</PERSON>（<ORGANIZATION>株式会社XYZ</ORGANIZATION>）<BANK_ACCOUNT>みずほ銀行 渋谷支店 普通 7654321</BANK_ACCOUNT>」
+
+### 事故報告書
+「<DATE_OF_BIRTH>平成5年8月20日</DATE_OF_BIRTH>生まれの<PERSON>伊藤健二</PERSON>（<ADDRESS>千葉県船橋市本町1-2-3</ADDRESS>在住、<ORGANIZATION>日本電気株式会社</ORGANIZATION>勤務）が、<PERSON>中村美紀</PERSON>（<ADDRESS>東京都品川区大崎4-5-6</ADDRESS>在住）と<ADDRESS>神奈川県横浜市中区山下町7-8</ADDRESS>付近で接触事故」
+
+### CSV風データ
+「<PERSON>木村大介</PERSON>,<DATE_OF_BIRTH>1988-06-15</DATE_OF_BIRTH>,<ADDRESS>大阪府大阪市北区梅田1-1-1</ADDRESS>,<ORGANIZATION>パナソニック株式会社</ORGANIZATION>,<BANK_ACCOUNT>三井住友銀行 梅田支店 普通 9876543</BANK_ACCOUNT>」
+
+## 出力形式
+各テキストを `---DOC_SEPARATOR---` で区切って出力してください。各テキスト150〜400文字。

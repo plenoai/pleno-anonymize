@@ -1,0 +1,45 @@
+以下の条件に従い、エンティティの境界が曖昧な日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+NERモデルのエンティティ境界検出精度を測定します。exact matchでは1文字のズレも不正解です。
+
+## 条件
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>人名</PERSON>
+  - <ADDRESS>住所</ADDRESS>
+  - <ORGANIZATION>組織名</ORGANIZATION>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>
+  - <BANK_ACCOUNT>銀行口座情報</BANK_ACCOUNT>
+
+## 最重要: 境界が曖昧になるパターン
+
+### 組織名と人名の連続（空白なし）
+- 「<ORGANIZATION>株式会社日立製作所</ORGANIZATION><PERSON>山田太郎</PERSON>代表取締役」
+- 「<ORGANIZATION>合同会社プレノAI</ORGANIZATION>取締役<PERSON>佐藤花子</PERSON>」
+- 「<PERSON>鈴木一郎</PERSON><ORGANIZATION>東京大学</ORGANIZATION>教授」
+
+### 住所と組織名の連続
+- 「<ADDRESS>東京都千代田区丸の内1-1-1</ADDRESS><ORGANIZATION>三菱UFJフィナンシャル・グループ</ORGANIZATION>本社ビル」
+- 「<ORGANIZATION>株式会社ABC</ORGANIZATION>（本社: <ADDRESS>大阪府大阪市中央区本町4-5-6</ADDRESS>）」
+
+### 人名の範囲が不明確
+- 旧姓括弧つき: 「<PERSON>佐藤（旧姓 高橋）花子</PERSON>」
+- 敬称: 「<PERSON>山田太郎</PERSON>様」（様はタグ外）
+- 博士号つき: 「<PERSON>田中博</PERSON>博士」（「博」が名前の一部かタイトルか）
+- フリガナ併記: 「<PERSON>渡邊誠（ワタナベ マコト）</PERSON>」
+
+### 住所の範囲が不明確
+- 建物名込み: 「<ADDRESS>東京都港区六本木6-10-1 六本木ヒルズ森タワー42F</ADDRESS>」
+- 方書つき: 「<ADDRESS>京都市左京区下鴨本通1-1 メゾン下鴨203号室</ADDRESS>」
+- 郵便番号の位置: 「〒<ADDRESS>150-0001 東京都渋谷区神宮前1-2-3</ADDRESS>」
+
+### 口座情報の範囲
+- 名義人込み: 「<BANK_ACCOUNT>三菱UFJ銀行 新宿支店 普通 1234567</BANK_ACCOUNT>（名義: <PERSON>山田太郎</PERSON>）」
+- 略記: 「<BANK_ACCOUNT>みずほ 渋谷 フツウ 7654321</BANK_ACCOUNT>」
+
+### 生年月日の範囲
+- 前置詞つき: 「<DATE_OF_BIRTH>昭和40年5月10日</DATE_OF_BIRTH>生まれ」（「生まれ」はタグ外）
+- 括弧内: 「（<DATE_OF_BIRTH>1990年3月15日</DATE_OF_BIRTH>）」
+
+## 出力形式
+各テキストを `---DOC_SEPARATOR---` で区切って出力してください。各テキスト100〜300文字。

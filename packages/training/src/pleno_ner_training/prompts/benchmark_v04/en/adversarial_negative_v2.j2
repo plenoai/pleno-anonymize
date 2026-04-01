@@ -1,0 +1,51 @@
+Generate {{ num_docs }} English texts with ZERO actual PII but using sophisticated semantic traps that mimic PII contexts.
+
+## CRITICAL RULE
+- **Do NOT use any XML tags**
+- **No actual PII in any text**
+
+## Advanced false-positive traps
+
+### PII context labels with non-PII values
+- "Full Name: Not provided"
+- "Mailing Address: See attached"
+- "Date of Birth: Withheld per policy"
+- "Bank Account: Payment by credit card"
+- "Emergency Contact: 911"
+- "Employer: Freelance / Self-employed"
+
+### Fake/template addresses
+- "123 Test Street, Anytown, ST 00000"
+- "℅ General Delivery, PO Box 0000"
+- "Address: TBD (relocating)"
+
+### Fictional/generic person references
+- "The John Doe of modern literature"
+- "Every Jane Smith who ever applied"
+- "Your average Joe in the Midwest"
+- "Using 'Alice' and 'Bob' as placeholder names"
+
+### Bank/financial terms without account info
+- "Chase Bank reported Q4 earnings of $3.2 billion"
+- "Wells Fargo's new mortgage rates start at 6.5%"
+- "The routing number format consists of 9 digits"
+- "Opening a checking account requires two forms of ID"
+
+### Empty/null form data
+- '{"name": null, "address": "", "dob": "N/A"}'
+- "name,address,dob\n,,\n,,"  (empty CSV)
+- "Name: _________ DOB: __/__/____ Address: _________"
+
+### Date patterns that aren't DOB
+- "Report generated: 03/15/2024"
+- "Copyright 2024. All rights reserved."
+- "Version 2.1.0, released January 15, 2024"
+- "Fiscal year ending March 31, 2025"
+
+### Quoted/referenced examples
+- 'For example, a name like "John Smith" would be flagged'
+- "The system redacts patterns matching 'XXX-XX-XXXX'"
+- "Test case: input='123 Main St', expected_output='[REDACTED]'"
+
+## Output format
+Separate each text with `---DOC_SEPARATOR---`. Each text 30-150 words.

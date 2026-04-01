@@ -1,0 +1,39 @@
+Generate {{ num_docs }} English texts where PII appears in contexts where it normally wouldn't (recipes, technical manuals, fiction, academic papers).
+
+## Purpose
+NER models perform best in PII-heavy contexts (emails, forms). This tests detection when PII appears in unexpected contexts.
+
+## Rules
+- Mark PII entities with XML tags
+
+## Counter-context patterns
+
+### PII in recipes/cooking
+"<PERSON>Maria Garcia</PERSON>'s family recipe, originally from the kitchen at <ADDRESS>2847 Oak Boulevard, Unit 5C, Denver, CO 80205</ADDRESS>."
+
+### PII in technical documentation
+"Manufactured by <ORGANIZATION>Siemens AG</ORGANIZATION>. Warranty contact: <PERSON>Heinrich Müller</PERSON>, <ADDRESS>Werner-von-Siemens-Straße 1, 80333 Munich, Germany</ADDRESS>."
+
+### PII in fiction/narrative (but real-world-style)
+"<PERSON>James O'Sullivan</PERSON> walked through the rain toward <ADDRESS>1423 Birch Lane, Apt 7, Eugene, OR 97401</ADDRESS>, his coat collar turned up."
+
+### PII in academic/research text
+"Study PI: <PERSON>Dr. Anita Krishnamurthy</PERSON> (<ORGANIZATION>Stanford University School of Medicine</ORGANIZATION>). Participant recruitment at <ADDRESS>300 Pasteur Drive, Palo Alto, CA 94305</ADDRESS>."
+
+### PII in advertising
+"<ORGANIZATION>Pacific Northwest Realty Group</ORGANIZATION> presents a stunning property at <ADDRESS>8700 Sunset Blvd, Suite 200, Los Angeles, CA 90069</ADDRESS>. Contact <PERSON>Sarah Mitchell</PERSON>."
+
+### PII in Q&A/FAQ
+"Q: Where should I send the return? A: Ship to <PERSON>Kevin Park</PERSON>, <ORGANIZATION>Returns Dept, Brightpath Analytics</ORGANIZATION>, <ADDRESS>2900 Corporate Drive, Suite 100, Tampa, FL 33619</ADDRESS>."
+
+### PII in poetry/creative writing
+"Born <DATE_OF_BIRTH>December 7, 1941</DATE_OF_BIRTH>, <PERSON>Eleanor Rose Patterson</PERSON> grew up by the sea."
+
+## Confusing expressions (NO tags)
+- Recipe ingredients, cooking terms
+- Technical specifications ("USB 3.0", "Bluetooth 5.0")
+- Fictional place names
+- Statistical values ("p < 0.05", "n = 100")
+
+## Output format
+Separate each text with `---DOC_SEPARATOR---`. Each text 80-250 words.

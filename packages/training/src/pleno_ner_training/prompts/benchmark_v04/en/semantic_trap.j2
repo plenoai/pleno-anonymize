@@ -1,0 +1,48 @@
+Generate {{ num_docs }} English texts mixing semantic traps: PII-looking non-PII AND non-PII-looking actual PII in the same document.
+
+## Purpose
+Test whether the model can distinguish real PII from semantic decoys, and detect real PII even when context suggests otherwise.
+
+## Rules
+- Mark only ACTUAL PII entities with XML tags
+
+## Pattern 1: Looks like PII but isn't (NO tags)
+
+### Field labels with non-PII values
+- "Name: Not Applicable"
+- "Address: To Be Determined"
+- "Date of Birth: Unavailable"
+- "Bank Account: Cash payment only"
+- "Employer: Self-employed"
+
+### Template/placeholder text
+- "Name: [PLACEHOLDER]"
+- "Address: {address_field}"
+- "DOB: MM/DD/YYYY"
+- "Account: XXXX-XXXX-XXXX"
+
+### Example/sample data explicitly marked
+- "Example: John Doe, 123 Main St" (generic example, no tag)
+- "Sample data for testing purposes"
+
+## Pattern 2: Doesn't look like PII but IS (WITH tags)
+
+### Real PII without contextual clues
+- "<PERSON>Jennifer Williams</PERSON>, <PERSON>David Park</PERSON>" (no labels)
+- "<ADDRESS>742 Maple St Apt 3B, Denver, CO 80202</ADDRESS>" (no "Address:" label)
+- "<DATE_OF_BIRTH>04/22/1987</DATE_OF_BIRTH>" (no "DOB:" prefix)
+
+### Real PII in dismissive/negating context
+- "This is not a placeholder: <PERSON>Sandra Kim</PERSON>"
+- "The actual address is <ADDRESS>321 Cedar Lane, Miami, FL 33101</ADDRESS>, not a test"
+- "Changed to <BANK_ACCOUNT>Chase Bank, Routing: 021000021, Account: 887654321, Checking</BANK_ACCOUNT> (real account)"
+
+### Real PII near fake PII
+- "Name: N/A. Contact: <PERSON>Angela Rodriguez</PERSON>"
+- "Previous address: [REDACTED]. Current: <ADDRESS>1500 Market St, Philadelphia, PA 19102</ADDRESS>"
+
+## CRITICAL: Each document must contain BOTH patterns
+The model must correctly reject Pattern 1 (no tags) while detecting Pattern 2 (with tags) in the same document.
+
+## Output format
+Separate each text with `---DOC_SEPARATOR---`. Each text 80-250 words.

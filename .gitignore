@@ -1,11 +1,15 @@
 # Project-specific
 CLAUDE.md
-.claude/
+.claude/*
+!.claude/skills/
 .mcp.json
 
 # Training outputs — models are reproducible, only keep scores
 packages/training/output/**/model-best/
 packages/training/output/**/model-last/
+
+# Experiment logs (autotrain session logs, keep log.jsonl)
+packages/training/experiments/autotrain_*.log
 
 # Benchmark data — reproducible via `make benchmark-v02-generate`, only keep scores
 packages/training/data/benchmark/**/raw.json
