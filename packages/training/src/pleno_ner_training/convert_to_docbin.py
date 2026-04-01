@@ -105,6 +105,12 @@ def main() -> None:
         type=Path,
         default=None,
     )
+    parser.add_argument(
+        "--augment",
+        type=Path,
+        default=None,
+        help="Augmented data JSON to merge",
+    )
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
@@ -118,6 +124,13 @@ def main() -> None:
     print(f"Loading data from {input_path}...")
     with open(input_path, encoding="utf-8") as f:
         data = json.load(f)
+
+    if args.augment and args.augment.exists():
+        print(f"Loading augmented data from {args.augment}...")
+        with open(args.augment, encoding="utf-8") as f:
+            augmented = json.load(f)
+        data.extend(augmented)
+        print(f"Merged: {len(data)} total documents")
 
     print(f"Converting {len(data)} documents...")
     docs, total_entities, failures = convert_to_docs(nlp, data)

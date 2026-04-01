@@ -1,7 +1,8 @@
 .PHONY: generate convert train train-cnn evaluate benchmark-external benchmark-huggingface package clean \
        generate-en augment-en convert-en train-en evaluate-en benchmark-external-en package-en all-en \
        benchmark-v02-generate benchmark-v02-generate-en benchmark-v02-evaluate benchmark-v02-evaluate-en \
-       benchmark-v03-generate benchmark-v03-generate-en benchmark-v03-evaluate benchmark-v03-evaluate-en
+       benchmark-v03-generate benchmark-v03-generate-en benchmark-v03-evaluate benchmark-v03-evaluate-en \
+       benchmark-v04-generate benchmark-v04-generate-en benchmark-v04-evaluate benchmark-v04-evaluate-en
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
@@ -91,8 +92,7 @@ augment-ja:
 convert-v02:
 	uv run python -m pleno_ner_training.convert_to_docbin \
 		--language ja \
-		--input $(DATA_RAW)/ja-v02/generated.json \
-		--augment $(DATA_RAW)/ja-v02/augmented.json \
+		--input $(DATA_RAW)/ja-v02/augmented.json \
 		--output-dir $(DATA_PROCESSED)/ja-v02
 
 train-v02:
@@ -238,6 +238,34 @@ benchmark-v03-evaluate-en:
 	uv run python -m pleno_ner_training.evaluate_benchmark \
 		--model $(OUTPUT_DIR)/en-transformer/model-best \
 		--language en --version v0.3.0
+
+benchmark-v04-generate:
+	$(DOTENVX) uv run python -m pleno_ner_training.generate_benchmark \
+		--version v0.4.0 \
+		--language ja \
+		--docs-per-template $(DOCS_PER_TEMPLATE) \
+		--batches-per-template $(BENCHMARK_BATCHES) \
+		--model $(MODEL) \
+		--max-workers $(MAX_WORKERS)
+
+benchmark-v04-generate-en:
+	$(DOTENVX) uv run python -m pleno_ner_training.generate_benchmark \
+		--version v0.4.0 \
+		--language en \
+		--docs-per-template $(DOCS_PER_TEMPLATE) \
+		--batches-per-template $(BENCHMARK_BATCHES) \
+		--model $(MODEL) \
+		--max-workers $(MAX_WORKERS)
+
+benchmark-v04-evaluate:
+	uv run python -m pleno_ner_training.evaluate_benchmark \
+		--model $(OUTPUT_DIR)/model-best \
+		--language ja --version v0.4.0
+
+benchmark-v04-evaluate-en:
+	uv run python -m pleno_ner_training.evaluate_benchmark \
+		--model $(OUTPUT_DIR)/en-transformer/model-best \
+		--language en --version v0.4.0
 
 # === 共通 ===
 

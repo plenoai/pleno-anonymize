@@ -4,7 +4,7 @@
 set -e
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-MODEL_PATH="$PROJECT_ROOT/packages/models/ja_ner_ja-0.1.0"
+MODEL_PATH="$PROJECT_ROOT/packages/models/ja_ner_ja-0.2.0"
 VENV_PATH="$PROJECT_ROOT/.venv"
 
 # Activate venv if it exists

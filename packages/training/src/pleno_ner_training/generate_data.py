@@ -128,8 +128,12 @@ def generate_batch(
             continue
 
         parsed = parse_annotated_text(doc_text)
-        if parsed["text"] and parsed["entities"] and validate_annotations(parsed):
-            documents.append(parsed)
+        if not parsed["text"]:
+            continue
+        # エンティティがある場合はバリデーション、ない場合もOK（陰性データ）
+        if parsed["entities"] and not validate_annotations(parsed):
+            continue
+        documents.append(parsed)
 
     return documents
 
