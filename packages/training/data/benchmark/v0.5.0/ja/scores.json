@@ -32,6 +32,12 @@
     },
     "latency_ms_per_doc": 3.4,
     "model_size_mb": 8.0,
-    "num_docs": 2716
+    "num_docs": 2716,
+    "negative_docs": 629,
+    "negative_clean_docs": 359,
+    "negative_doc_clean_rate": 0.5707472178060413,
+    "negative_fp_total": 424,
+    "suite_kind": "benchmark",
+    "purpose": ""
   }
 }
