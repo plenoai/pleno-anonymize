@@ -1,0 +1,19 @@
+公開資料の本文は一般説明だが、添付 PDF の OCR に <PERSON>高橋直樹</PERSON>、<BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT>、<ADDRESS>横浜市中区本町2-3-4 グリーンハイツ502</ADDRESS> が残っていた。
+---DOC_SEPARATOR---
+一般ニュース記事に紐づく画像 OCR から <PERSON>林麻衣</PERSON>、<DATE_OF_BIRTH>昭和63年12月3日</DATE_OF_BIRTH>、<ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION> が読める。
+---DOC_SEPARATOR---
+会場案内の別添スキャンに <PERSON>木村誠</PERSON>、<ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS>、<BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT> が混入していた。
+---DOC_SEPARATOR---
+制度解説資料の添付 JPG OCR に <PERSON>岡田涼</PERSON>、<ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS>、<ORGANIZATION>青葉橋総合開発株式会社</ORGANIZATION> が残存。
+---DOC_SEPARATOR---
+広報記事のスクリーンショットから <PERSON>石田悠人</PERSON>、<DATE_OF_BIRTH>1991/03/28</DATE_OF_BIRTH>、<ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION> が判読された。
+---DOC_SEPARATOR---
+旅行コラムの添付画像に <PERSON>渡辺美咲</PERSON>、<ADDRESS>札幌市中央区北1条西2-3 北一条オフィス605</ADDRESS>、<BANK_ACCOUNT>ゆうちょ銀行記号10100番号12345671</BANK_ACCOUNT> が写っていた。
+---DOC_SEPARATOR---
+技術記事の付録 OCR から <PERSON>佐藤花子</PERSON>、<DATE_OF_BIRTH>昭和四十年五月十日</DATE_OF_BIRTH>、<ORGANIZATION>港南本店ソリューションズ株式会社</ORGANIZATION> が読み取れる。
+---DOC_SEPARATOR---
+一般向けパンフレットの添付スキャンに <PERSON>中村真由美</PERSON>、<ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS>、<ORGANIZATION>梅田業務支援センター株式会社</ORGANIZATION> が残っている。
+---DOC_SEPARATOR---
+運用ブログの図版 OCR に <PERSON>高橋直樹</PERSON> の DOB <DATE_OF_BIRTH>1988年6月15日</DATE_OF_BIRTH> と還付先 <BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT> が一度だけ出る。
+---DOC_SEPARATOR---
+公開レポートの別添画像から <PERSON>林麻衣</PERSON>、<ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS>、<ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION> が OCR 抽出される。

@@ -1,0 +1,19 @@
+運用スクリーンショット文字起こし: owner=sample_user_91 address=pending-town-1-2-3 dob=19XX/XX/XX bank=masked account org=unassigned route=0000。説明用ダミーのみ。
+---DOC_SEPARATOR---
+フォーム雛形の見本には 氏名sample_user、住所prefecture-city-block、生年月日YYYY/MM/DD、口座branch-main ordinary 0000000 と印字される。個人情報ではない。
+---DOC_SEPARATOR---
+社内 Wiki に sample_name_01, sample_name_02, sample_name_03 と並べた一覧があるが、これは文字幅確認用の固定値で実在氏名ではない。
+---DOC_SEPARATOR---
+管理画面の説明では `bank_account=TEMP-HOLD`、`organization=UNASSIGNED`、`address=pref-city-town-1-2-3` を初期値として使う。漏えい対象なし。
+---DOC_SEPARATOR---
+帳票レイアウト試験で 03-1234-5678、INV-778812、REQ-09-4412 を並べているが、問い合わせ番号や管理番号の見本であり金融情報ではない。
+---DOC_SEPARATOR---
+ダミー CSV: sample_user_07, YYYY-MM-DD, pref-city-town-1-2-3, org-unit-temp, branch-main ordinary 0000000。実データ投入禁止の注記付き。
+---DOC_SEPARATOR---
+画面定義の補足に 日本橋支店前ルート、渋谷オフィス街ルート、港南交流センタールート とあるが、一般経路名であり配送先ではない。
+---DOC_SEPARATOR---
+運用メモ owner sample_name_11 shipto prefecture-city-block dob unknown bank TEMP-HOLD org unassigned note for-layout-check-only。すべて仮値。
+---DOC_SEPARATOR---
+FAQ の見本回答には 「口座欄の branch-main ordinary 0000000 は dummy」「住所欄の pref-city-town-1-2-3 も dummy」と書かれている。
+---DOC_SEPARATOR---
+デバッグログ [INFO] sample_user moved to pref-city-town-1-2-3 on 2026/04/01 using branch-main ordinary 0000000。監視ルール説明のための固定文。

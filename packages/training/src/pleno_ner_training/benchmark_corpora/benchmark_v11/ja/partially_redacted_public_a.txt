@@ -1,0 +1,19 @@
+公開済み資料の大半は伏せ字だが、残部に <PERSON>高橋直樹</PERSON>、<ADDRESS>横浜市中区本町2-3-4 グリーンハイツ502</ADDRESS> が見える。
+---DOC_SEPARATOR---
+一般向け資料の氏名欄は [REDACTED] だが、注釈部に <PERSON>林麻衣</PERSON>、所属 <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION> が残存している。
+---DOC_SEPARATOR---
+本文は匿名化済みとされているが、脚注の一部に <BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT> と <PERSON>木村誠</PERSON> が残っている。
+---DOC_SEPARATOR---
+公開レポートの住所欄は一部伏せ字だが、<ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS> と <PERSON>岡田涼</PERSON> が読み取れる。
+---DOC_SEPARATOR---
+一般向け議事録の補遺が完全にマスクされておらず、<PERSON>石田悠人</PERSON>、<ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION>、<DATE_OF_BIRTH>1991/03/28</DATE_OF_BIRTH> が残っていた。
+---DOC_SEPARATOR---
+配布資料の付録は [非公開] 表記だが、残部から <PERSON>渡辺美咲</PERSON>、<ADDRESS>札幌市中央区北1条西2-3 北一条オフィス605</ADDRESS> が識別できる。
+---DOC_SEPARATOR---
+広報向けの資料は一部墨消しされているものの、<PERSON>佐藤花子</PERSON> と <BANK_ACCOUNT>三井住友銀行品川支店普通7722114</BANK_ACCOUNT> がそのまま残っている。
+---DOC_SEPARATOR---
+公開スライドでは匿名化済みとされるが、端の OCR 残りから <PERSON>中村真由美</PERSON>、<ORGANIZATION>梅田業務支援センター株式会社</ORGANIZATION> が判読できる。
+---DOC_SEPARATOR---
+一般記事の引用資料に [MASKED] が多い一方、<PERSON>高橋直樹</PERSON> の DOB <DATE_OF_BIRTH>1988年6月15日</DATE_OF_BIRTH> だけが生き残っている。
+---DOC_SEPARATOR---
+匿名化版の事例集で、残部の 1 行にだけ <PERSON>林麻衣</PERSON>、<ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS> が残っていた。

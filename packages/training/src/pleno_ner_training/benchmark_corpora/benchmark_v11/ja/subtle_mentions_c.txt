@@ -1,0 +1,19 @@
+技術ブログの本文は一般論だが、スクリーンショット中にだけ <PERSON>高橋直樹</PERSON> と <BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT> が写り込んでいる。
+---DOC_SEPARATOR---
+観光案内の脚注に配送控えが混ざり、宛名 <PERSON>木村誠</PERSON>、送付先 <ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS> が一度だけ現れる。
+---DOC_SEPARATOR---
+学会記事の注記部分にだけ <PERSON>林麻衣</PERSON>、所属 <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>、DOB <DATE_OF_BIRTH>昭和63年12月3日</DATE_OF_BIRTH> が含まれる。
+---DOC_SEPARATOR---
+地域ニュースの本文は一般情報だが、別添画像の票面に <PERSON>岡田涼</PERSON>、<ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS> が判読できる。
+---DOC_SEPARATOR---
+公共案内の脚注にだけ <PERSON>石田悠人</PERSON>、<ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION>、<DATE_OF_BIRTH>1991/03/28</DATE_OF_BIRTH> が載っていた。
+---DOC_SEPARATOR---
+製品紹介ページの末尾に誤って返金案内が残り、<PERSON>渡辺美咲</PERSON>、<BANK_ACCOUNT>ゆうちょ銀行記号10100番号12345671</BANK_ACCOUNT> が一度だけ出る。
+---DOC_SEPARATOR---
+エッセイ風の記事の本文に個人情報はないが、注釈の事例欄に <PERSON>中村真由美</PERSON>、<ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS> が混ざる。
+---DOC_SEPARATOR---
+一般向けコラムの脚注で <PERSON>佐藤花子</PERSON>、<ORGANIZATION>港南本店ソリューションズ株式会社</ORGANIZATION>、<ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS> が露出している。
+---DOC_SEPARATOR---
+会場レポートの補足資料に <PERSON>高橋直樹</PERSON> の DOB <DATE_OF_BIRTH>1988年6月15日</DATE_OF_BIRTH> が一度だけ記されている。本文は一般案内である。
+---DOC_SEPARATOR---
+運用記事の例外ケース欄に <PERSON>林麻衣</PERSON>、<ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS> が差し込まれていた。

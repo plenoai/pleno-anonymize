@@ -1,0 +1,19 @@
+導入ガイドでは owner=sample_name_41、address=pref-city-town-1-2-3、dob=YYYY/MM/DD、bank=branch-main ordinary 0000000 を固定の見本値として表示する。実在情報ではない。
+---DOC_SEPARATOR---
+操作説明の HTML 例には `<input placeholder=\"sample_user\">`、`<input placeholder=\"prefecture-city-block\">`、`<input placeholder=\"TEMP-HOLD\">` が並ぶ。UI 部品説明のみ。
+---DOC_SEPARATOR---
+マスキング機能の仕様では person_name、address_line、organization_name、bank_account をフィールド名として列挙するが、値はサンプル文字列に限定する。
+---DOC_SEPARATOR---
+アプリ設定マニュアルには 西新宿本社前ルート、日本橋支店前ルート、渋谷オフィス街ルート といった経路名が出るが、個人送付先ではない。
+---DOC_SEPARATOR---
+FAQ には「TEMP-HOLD は仮値」「UNASSIGNED は未設定」「pref-city-town-1-2-3 は説明用住所」と書かれているだけで、契約者情報は含まれない。
+---DOC_SEPARATOR---
+検証手順書で 2026/04/01, 2026/05/31, 2026/06/15 を例示しているが、これはリリース計画日であって生年月日ではない。
+---DOC_SEPARATOR---
+サンプル CSV 行 `sample_name_01,YYYY/MM/DD,pref-city-town-1-2-3,UNASSIGNED,branch-main ordinary 0000000` は画面幅確認用で、アップロードしてはならないと注記されている。
+---DOC_SEPARATOR---
+接続仕様書では 三井住友銀行、みずほ銀行、楽天銀行、ゆうちょ銀行 をシステム連携先のラベル例として使うが、名義人や支店番号は非掲載。
+---DOC_SEPARATOR---
+開発者ガイドにあるのは placeholder の見え方、ラベル文言、ボタン配置の説明だけで、利用者本人の氏名・住所・口座は入力しない前提である。
+---DOC_SEPARATOR---
+マニュアルの図版に 渋谷区役所前、中央病院前交差点、港南交流センター といった一般施設名が見える。漏えい対象ではない。

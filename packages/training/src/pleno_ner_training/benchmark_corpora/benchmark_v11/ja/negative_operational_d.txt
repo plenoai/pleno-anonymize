@@ -1,0 +1,19 @@
+教育資料には 氏名未入力 住所登録待ち 生年月日19XX-XX-XX 口座TEMP-HOLD 所属org-unit-temp という例示があるだけで、個人の記録ではない。
+---DOC_SEPARATOR---
+接続ガイド: institution_name に三井住友銀行、みずほ銀行、楽天銀行、ゆうちょ銀行を例示する。これは連携先の名称であり口座情報ではない。
+---DOC_SEPARATOR---
+会場案内に 西新宿本社前、中央病院前交差点、札幌北一条駅前、港南交流センター といった名称が並ぶ。どれも一般施設名である。
+---DOC_SEPARATOR---
+運用ドキュメントのコード例 `person_name=sample_user` `address_line=prefecture-city-block` `date_line=YYYY/MM/DD` `bank_line=branch-main ordinary 0000000`。実体なし。
+---DOC_SEPARATOR---
+画面文言一覧では 「氏名を入力してください」「住所を入力してください」「生年月日を入力してください」とあるだけで、本文中に actual value はない。
+---DOC_SEPARATOR---
+品質確認のメモでは sample-pref-sample-city, sample_name_01, branch-main ordinary 0000000 を繰り返し使って OCR 崩れを確認する。漏えい検知対象ではない。
+---DOC_SEPARATOR---
+技術仕様にある 2026/04/01, 2026/05/31, 2026/06/15 は運用スケジュールであり、被保険者や契約者の DOB ではない。
+---DOC_SEPARATOR---
+プロダクト説明: 渋谷区役所前画面、港南本店前画面、日本橋支店前画面という表示名を使うが、個人住所や勤務地録ではない。
+---DOC_SEPARATOR---
+サンプルログ `organization=UNASSIGNED, account=TEMP-HOLD, address=pref-city-town-1-2-3, dob=YYYY/MM/DD` は false-positive 耐性の確認用である。
+---DOC_SEPARATOR---
+マニュアル抜粋には `sample_user`, `pref-city-town-1-2-3`, `TEMP-HOLD`, `UNASSIGNED` がそのまま並ぶが、個人や法人の実データを表さない。
