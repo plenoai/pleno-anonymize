@@ -1,6 +1,6 @@
 # pleno-anonymize
 
-Japanese-first PII anonymization service — **F1 97.7% (ja) / 97.9% (en)**
+Japanese-first PII anonymization service — **F1 95.8% (ja) / 97.9% (en)**
 
 Purpose-built for Japanese PII that generic NER models miss: My Number, full-width phone numbers, Japanese-style addresses. Also provides transparent LLM API proxies with automatic PII redaction.
 
@@ -16,12 +16,23 @@ Purpose-built for Japanese PII that generic NER models miss: My Number, full-wid
 
 ## Model Performance
 
-| Language | F1 | Precision | Recall | Benchmark |
+| Language | Dev F1 | Precision | Recall | Benchmark (v0.4.0) |
 |---|---|---|---|---|
-| ja (CNN) | 97.7% | 98.2% | 97.1% | [Details](https://plenoai.com/pleno-anonymize/benchmark) |
-| en (Transformer) | 97.9% | 97.3% | 98.6% | [Details](https://plenoai.com/pleno-anonymize/benchmark) |
+| ja (CNN) | 95.8% | 95.3% | 96.3% | 75.3% |
+| en (Transformer) | 97.9% | 97.3% | 98.6% | 72.5% |
 
-> spaCy's built-in model (`ja_core_news_lg`) achieves ~60-70% F1 on Japanese PII detection. pleno-anonymize significantly improves accuracy through fine-tuning on Japanese PII-specific data.
+### Benchmark Progress (ja)
+
+| Benchmark | v0.2.0 | v0.3.0 | v0.4.0 | v0.5.0 |
+|---|---|---|---|---|
+| Overall F1 | 68.6% | 70.9% | 75.3% | 66.1% |
+| PERSON | 75.0% | 79.6% | 79.4% | 72.3% |
+| ADDRESS | 75.7% | 75.6% | 74.8% | 66.2% |
+| ORGANIZATION | 46.8% | 57.2% | 62.1% | 62.0% |
+| DATE_OF_BIRTH | 65.0% | 66.1% | 81.6% | 61.1% |
+| BANK_ACCOUNT | 86.0% | 75.8% | 74.5% | 63.9% |
+
+> Dev F1 measures performance on held-out training data. Benchmark F1 measures on adversarial, real-world-style test sets that progressively increase in difficulty. spaCy's built-in model (`ja_core_news_lg`) achieves ~60-70% F1 on Japanese PII detection.
 
 ## Quick Start
 
