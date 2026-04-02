@@ -3586,5 +3586,805 @@
       "version": "v0.11.0",
       "language": "ja"
     }
+  },
+  {
+    "text": "リリースノート 2026/04/01: sample_user 表示不具合を修正し、pref-city-town-1-2-3 などの placeholder が崩れないようにした。実データの変更はない。",
+    "entities": [],
+    "_meta": {
+      "template": "release_notes_a.txt",
+      "doc_idx": 0,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "バージョン 2026.05 の更新では branch-main ordinary 0000000、TEMP-HOLD、UNASSIGNED などの固定サンプル値を UI 説明から参照するようにした。",
+    "entities": [],
+    "_meta": {
+      "template": "release_notes_a.txt",
+      "doc_idx": 1,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "既知の制限: 日本橋支店前ルート、西新宿本社前ルート、港南本店前ルートの名称は一般経路ラベルであり、住所欄として扱ってはならない。",
+    "entities": [],
+    "_meta": {
+      "template": "release_notes_a.txt",
+      "doc_idx": 2,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "変更履歴には 03-1234-5678 を問い合わせ窓口、REQ-09-4412 をチケット番号、INV-778812 を請求番号の例として記すだけで、口座情報は含まれない。",
+    "entities": [],
+    "_meta": {
+      "template": "release_notes_a.txt",
+      "doc_idx": 3,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "今回の更新で person_name, address_line, organization_name, bank_account の各 UI ラベルを整理したが、actual value を同梱しない方針に変わりはない。",
+    "entities": [],
+    "_meta": {
+      "template": "release_notes_a.txt",
+      "doc_idx": 4,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "ヘルプ画面の改善では sample_name_01, sample_name_02, sample_name_03 を文字幅確認用に残した。実在氏名や顧客台帳データではない。",
+    "entities": [],
+    "_meta": {
+      "template": "release_notes_a.txt",
+      "doc_idx": 5,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "リリースノート 2026/05/31: 渋谷オフィス街、天神オフィス街、札幌北一条会場の地図表記を調整。一般地名の扱いであり個人住所ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "release_notes_a.txt",
+      "doc_idx": 6,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "フォームのサンプル表示に YYYY/MM/DD や 19XX-XX-XX を使うが、生年月日を意味しない。説明用のダミー日付である。",
+    "entities": [],
+    "_meta": {
+      "template": "release_notes_a.txt",
+      "doc_idx": 7,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "三井住友銀行API、みずほ銀行連携、楽天銀行SDK の名称は連携先ラベルとしてのみ登場する。名義人や口座番号は保持しない。",
+    "entities": [],
+    "_meta": {
+      "template": "release_notes_a.txt",
+      "doc_idx": 8,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "このリリースでは OCR 例として 氏名未入力、住所登録待ち、口座TEMP-HOLD を表示する。帳票雛形の説明であり実データではない。",
+    "entities": [],
+    "_meta": {
+      "template": "release_notes_a.txt",
+      "doc_idx": 9,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "製品紹介ページでは 港南交流センター対応、日本橋支店前導線対応、西新宿文化会館対応 といった特徴を並べるが、住所録や名義人情報は掲載しない。",
+    "entities": [],
+    "_meta": {
+      "template": "product_pages_a.txt",
+      "doc_idx": 0,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "FAQ には sample_user、pref-city-town-1-2-3、branch-main ordinary 0000000 のようなデモ値があるだけで、契約者本人の値ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "product_pages_a.txt",
+      "doc_idx": 1,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "サービス説明では 三井住友銀行、みずほ銀行、楽天銀行、ゆうちょ銀行 への接続可能性を示すが、実口座の保存は行わない。",
+    "entities": [],
+    "_meta": {
+      "template": "product_pages_a.txt",
+      "doc_idx": 2,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "導入事例のページに「中央病院前交差点」「渋谷区役所前」「札幌北一条駅前」という地名が出るが、ロケーション紹介であり配送先ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "product_pages_a.txt",
+      "doc_idx": 3,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "入力サンプルとして YYYY/MM/DD, TEMP-HOLD, UNASSIGNED, prefecture-city-block が掲載される。これらはチュートリアル用の固定文字列である。",
+    "entities": [],
+    "_meta": {
+      "template": "product_pages_a.txt",
+      "doc_idx": 4,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "料金ページの問い合わせ欄には 03-1234-5678 と REQ-09-4412 を記載しているが、金融情報や被保険者番号ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "product_pages_a.txt",
+      "doc_idx": 5,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "製品ページの図版に `<input placeholder=\\\"sample_user\\\">` や `<input placeholder=\\\"prefecture-city-block\\\">` が写るだけで、実利用者情報はない。",
+    "entities": [],
+    "_meta": {
+      "template": "product_pages_a.txt",
+      "doc_idx": 6,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "紹介ページでは 東京大学や渋谷区医師会支援センターの公開企画に対応と説明するが、利用者の個票とは無関係である。",
+    "entities": [],
+    "_meta": {
+      "template": "product_pages_a.txt",
+      "doc_idx": 7,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "デモ動画の字幕に sample_name_01, sample_name_02 が出るが、UI テスト用のラベルであり氏名データではない。",
+    "entities": [],
+    "_meta": {
+      "template": "product_pages_a.txt",
+      "doc_idx": 8,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "製品概要の本文には 港南本店前ルート、日本橋支店前ルート、渋谷オフィス街ルート が並ぶ。経路ラベルであって居住地ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "product_pages_a.txt",
+      "doc_idx": 9,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "ユーザーフォーラムの投稿では sample_user が「pref-city-town-1-2-3 という placeholder が見える」と質問しているだけで、本人情報は共有していない。",
+    "entities": [],
+    "_meta": {
+      "template": "forum_threads_a.txt",
+      "doc_idx": 0,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "別スレッドでは「branch-main ordinary 0000000 を例示に使うのはなぜか」と議論している。ダミー表示に関する質問で実口座ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "forum_threads_a.txt",
+      "doc_idx": 1,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "コミュニティ投稿に 渋谷オフィス街ルート、日本橋支店前ルート、西新宿本社前ルート の名称が出るが、地図ラベルの話に過ぎない。",
+    "entities": [],
+    "_meta": {
+      "template": "forum_threads_a.txt",
+      "doc_idx": 2,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "利用者どうしの会話で 2026/04/01, 2026/05/31, 2026/06/15 がアップデート予定日として挙がっている。DOB ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "forum_threads_a.txt",
+      "doc_idx": 3,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "フォーラムの回答では sample_name_01 や sample_name_02 をテスト名として使うことを勧めているだけで、実在の人名ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "forum_threads_a.txt",
+      "doc_idx": 4,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "議論スレッドでは 三井住友銀行API、みずほ銀行連携、楽天銀行SDK の比較をしているが、金融機関名の一般論であり口座情報は含まれない。",
+    "entities": [],
+    "_meta": {
+      "template": "forum_threads_a.txt",
+      "doc_idx": 5,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "コミュニティの FAQ には `<input placeholder=\\\"sample_user\\\">` が出るだけで、アカウント保有者の actual value は出てこない。",
+    "entities": [],
+    "_meta": {
+      "template": "forum_threads_a.txt",
+      "doc_idx": 6,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "「中央病院前交差点」という文言が誤検知されるかの話題がある。地点名の例示であり個別住所ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "forum_threads_a.txt",
+      "doc_idx": 7,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "フォーラムでは UNASSIGNED や TEMP-HOLD という値の意味を説明している。未設定や保留を表す UI ラベルである。",
+    "entities": [],
+    "_meta": {
+      "template": "forum_threads_a.txt",
+      "doc_idx": 8,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "旅行向けテンプレートに prefecture-city-block を使うかどうかを相談しているが、これはレイアウト用サンプルで実在住所ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "forum_threads_a.txt",
+      "doc_idx": 9,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "市民向けガイドでは 港南交流センター、西新宿文化会館、日本橋支店前広場 の利用方法を案内する。個人住所や連絡先を記載しない。",
+    "entities": [],
+    "_meta": {
+      "template": "municipal_guides_a.txt",
+      "doc_idx": 0,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "役所の手引きには 2026年4月1日、2026年5月31日、2026年6月15日 の開催日が並ぶだけで、生年月日を記録したものではない。",
+    "entities": [],
+    "_meta": {
+      "template": "municipal_guides_a.txt",
+      "doc_idx": 1,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "案内文に sample_user や pref-city-town-1-2-3 のような画面例が載るが、入力例としての固定文字列である。",
+    "entities": [],
+    "_meta": {
+      "template": "municipal_guides_a.txt",
+      "doc_idx": 2,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "問い合わせ先 03-1234-5678、企画番号 REQ-09-4412、案内番号 INV-778812 を掲載しているが、口座番号や居住地情報ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "municipal_guides_a.txt",
+      "doc_idx": 3,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "「中央病院前交差点」「渋谷区役所前」「札幌北一条駅前会場」といった地名・施設名は一般案内の一部であり、個人送付先ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "municipal_guides_a.txt",
+      "doc_idx": 4,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "ガイドブックの本文は 施設利用時間、持ち物、動線案内だけで構成される。氏名欄や住所欄はサンプル表示のみで実データは含まない。",
+    "entities": [],
+    "_meta": {
+      "template": "municipal_guides_a.txt",
+      "doc_idx": 5,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "運用の例に branch-main ordinary 0000000 や TEMP-HOLD を載せているが、これらは placeholder と明記されている。",
+    "entities": [],
+    "_meta": {
+      "template": "municipal_guides_a.txt",
+      "doc_idx": 6,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "公共案内では 三井住友銀行ビル前や楽天銀行展示ブースなどの名称をランドマークとして使う。金融口座の情報ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "municipal_guides_a.txt",
+      "doc_idx": 7,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "会場マップの説明に 東京大学、京都大学、渋谷区医師会支援センター の協力名が見えるが、個別の参加者情報は掲載しない。",
+    "entities": [],
+    "_meta": {
+      "template": "municipal_guides_a.txt",
+      "doc_idx": 8,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "手続案内において person_name、address_line、bank_account は入力欄名として列挙されるだけで、actual value を公開しない。",
+    "entities": [],
+    "_meta": {
+      "template": "municipal_guides_a.txt",
+      "doc_idx": 9,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "学内掲示では 東京大学公開講座、京都大学連携企画、渋谷区医師会支援センターの共同イベントを案内するだけで、個人名簿は含まれない。",
+    "entities": [],
+    "_meta": {
+      "template": "academic_notices_b.txt",
+      "doc_idx": 0,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "研究説明会のお知らせに 2026/04/01, 2026/05/31, 2026/06/15 といった日程があるが、研究参加者の DOB ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "academic_notices_b.txt",
+      "doc_idx": 1,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "学内システムの紹介に sample_user や pref-city-town-1-2-3 の表示例がある。UI モックであり実在データではない。",
+    "entities": [],
+    "_meta": {
+      "template": "academic_notices_b.txt",
+      "doc_idx": 2,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "講義資料には 03-1234-5678 を問い合わせ番号、REQ-09-4412 を受付番号として記載している。金融情報ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "academic_notices_b.txt",
+      "doc_idx": 3,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "大学だよりの地図説明に 西新宿本社前広場、日本橋支店前通り、港南交流センター が出るが、一般地名としての記述のみである。",
+    "entities": [],
+    "_meta": {
+      "template": "academic_notices_b.txt",
+      "doc_idx": 4,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "研究室ブログでは 三井住友銀行API、みずほ銀行連携、楽天銀行SDK の実験比較を紹介する。利用者口座を示すものではない。",
+    "entities": [],
+    "_meta": {
+      "template": "academic_notices_b.txt",
+      "doc_idx": 5,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "募集要項の補足に TEMP-HOLD や UNASSIGNED といったラベルが出るが、ダミー値の説明に留まる。",
+    "entities": [],
+    "_meta": {
+      "template": "academic_notices_b.txt",
+      "doc_idx": 6,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "論文公開のお知らせは 発表日時、会場、申込方法だけで構成され、申込者の送付先や氏名を含まない。",
+    "entities": [],
+    "_meta": {
+      "template": "academic_notices_b.txt",
+      "doc_idx": 7,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "共同研究の案内に sample_name_01 などの仮名義を使って UI 表示を説明している。実在の人物名ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "academic_notices_b.txt",
+      "doc_idx": 8,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "大学イベントのFAQには 港南本店前ルートや渋谷オフィス街ルートといったアクセス名が出るが、住所録ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "academic_notices_b.txt",
+      "doc_idx": 9,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "旅行ブログでは 渋谷オフィス街、日本橋支店前通り、港南本店前の海辺散歩を紹介するだけで、宿泊者の住所情報はない。",
+    "entities": [],
+    "_meta": {
+      "template": "travel_blogs_b.txt",
+      "doc_idx": 0,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "記事中の 2026/04/01, 2026/05/31, 2026/06/15 は祭りの日程であり、個人の生年月日や来店記録ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "travel_blogs_b.txt",
+      "doc_idx": 1,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "アプリ画面の紹介として sample_user や pref-city-town-1-2-3 のようなデモ値が出るが、旅行者実データではない。",
+    "entities": [],
+    "_meta": {
+      "template": "travel_blogs_b.txt",
+      "doc_idx": 2,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "観光地の目印として 三井住友銀行ビル前、楽天銀行展示ブース、ゆうちょ銀行広報コーナー を案内している。口座情報は含まれない。",
+    "entities": [],
+    "_meta": {
+      "template": "travel_blogs_b.txt",
+      "doc_idx": 3,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "道案内の記事に 中央病院前交差点、札幌北一条駅前会場、西新宿文化会館 といった施設名が見える。一般地名である。",
+    "entities": [],
+    "_meta": {
+      "template": "travel_blogs_b.txt",
+      "doc_idx": 4,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "問い合わせ先 03-1234-5678 や企画番号 REQ-09-4412 を載せるだけで、旅行者名や送付先は書かれていない。",
+    "entities": [],
+    "_meta": {
+      "template": "travel_blogs_b.txt",
+      "doc_idx": 5,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "旅行記の終盤で branch-main ordinary 0000000 や TEMP-HOLD がアプリの placeholder として登場するが、金融口座ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "travel_blogs_b.txt",
+      "doc_idx": 6,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "記事は 公園や会場の紹介が中心で、PERSON や ADDRESS の実値は出さない。サンプル欄も sample_name_01 などの仮文字列のみ。",
+    "entities": [],
+    "_meta": {
+      "template": "travel_blogs_b.txt",
+      "doc_idx": 7,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "旅先ガイドには 東京大学、港南交流センター、渋谷区役所前広場 といった一般施設名だけが記されている。",
+    "entities": [],
+    "_meta": {
+      "template": "travel_blogs_b.txt",
+      "doc_idx": 8,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "ブログの FAQ にある person_name や address_line は入力欄ラベルの説明であり、actual value を公開していない。",
+    "entities": [],
+    "_meta": {
+      "template": "travel_blogs_b.txt",
+      "doc_idx": 9,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "プレスリリースでは 港南交流センター、西新宿文化会館、日本橋支店前広場 での催事開催を案内する。来場者の個人情報は含まない。",
+    "entities": [],
+    "_meta": {
+      "template": "press_releases_a.txt",
+      "doc_idx": 0,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "発表資料に 2026年4月1日、2026年5月31日、2026年6月15日 の日付が並ぶが、イベント日程であって DOB ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "press_releases_a.txt",
+      "doc_idx": 1,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "広報資料の図版に sample_user や pref-city-town-1-2-3 が見えるが、UI モックのサンプル表示である。",
+    "entities": [],
+    "_meta": {
+      "template": "press_releases_a.txt",
+      "doc_idx": 2,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "問い合わせ先 03-1234-5678 と受付番号 REQ-09-4412 を記載しているだけで、口座や送付先の実データはない。",
+    "entities": [],
+    "_meta": {
+      "template": "press_releases_a.txt",
+      "doc_idx": 3,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "金融機関名として 三井住友銀行、みずほ銀行、楽天銀行、ゆうちょ銀行 が現れるが、サービス比較と協賛表記に留まる。",
+    "entities": [],
+    "_meta": {
+      "template": "press_releases_a.txt",
+      "doc_idx": 4,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "会場案内に 中央病院前交差点、渋谷区役所前、日本橋支店前通り が出るが、一般地点名であり個人住所ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "press_releases_a.txt",
+      "doc_idx": 5,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "発表文の末尾には person_name, address_line, bank_account といった入力ラベル名だけが載る。値は placeholder のみ。",
+    "entities": [],
+    "_meta": {
+      "template": "press_releases_a.txt",
+      "doc_idx": 6,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "資料は 展示会、講演会、地域連携企画 の紹介で構成され、契約者や患者の個票情報を含まない。",
+    "entities": [],
+    "_meta": {
+      "template": "press_releases_a.txt",
+      "doc_idx": 7,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "説明スライドに TEMP-HOLD や UNASSIGNED といったダミー値を置いているが、未設定値の説明である。",
+    "entities": [],
+    "_meta": {
+      "template": "press_releases_a.txt",
+      "doc_idx": 8,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "広報文には sample_name_01 などの仮名義しか出てこず、実在個人や送付先を公開しない。",
+    "entities": [],
+    "_meta": {
+      "template": "press_releases_a.txt",
+      "doc_idx": 9,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "初期設定ガイドでは sample_user、pref-city-town-1-2-3、branch-main ordinary 0000000 をデモ値として使う。利用者本人の情報を入力する前段階の説明である。",
+    "entities": [],
+    "_meta": {
+      "template": "onboarding_docs_a.txt",
+      "doc_idx": 0,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "オンボーディング資料には 2026/04/01, 2026/05/31, 2026/06/15 の研修日程が並ぶだけで、生年月日を記録したものではない。",
+    "entities": [],
+    "_meta": {
+      "template": "onboarding_docs_a.txt",
+      "doc_idx": 1,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "入力例の person_name, address_line, bank_account, organization_name はラベル名であり、actual value を公開しない。",
+    "entities": [],
+    "_meta": {
+      "template": "onboarding_docs_a.txt",
+      "doc_idx": 2,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "ガイド文に 西新宿本社前ルート、日本橋支店前ルート、港南本店前ルート という一般的な経路名が現れる。居住地や勤務先ではない。",
+    "entities": [],
+    "_meta": {
+      "template": "onboarding_docs_a.txt",
+      "doc_idx": 3,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "問い合わせ番号 03-1234-5678、企画番号 REQ-09-4412、見積番号 INV-778812 を載せるが、個人口座や送付先を示すものではない。",
+    "entities": [],
+    "_meta": {
+      "template": "onboarding_docs_a.txt",
+      "doc_idx": 4,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "チュートリアル画面の HTML に `<input placeholder=\\\"sample_user\\\">` などの部品が見える。実利用者の値は含まれない。",
+    "entities": [],
+    "_meta": {
+      "template": "onboarding_docs_a.txt",
+      "doc_idx": 5,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "説明では 三井住友銀行API、みずほ銀行連携、楽天銀行SDK の名称を使うだけで、名義人や支店番号の説明は行わない。",
+    "entities": [],
+    "_meta": {
+      "template": "onboarding_docs_a.txt",
+      "doc_idx": 6,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "テンプレート例に sample_name_01, sample_name_02, sample_name_03 を並べるが、表示幅確認用であり氏名データではない。",
+    "entities": [],
+    "_meta": {
+      "template": "onboarding_docs_a.txt",
+      "doc_idx": 7,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "導入資料には 中央病院前交差点、渋谷区役所前広場、札幌北一条駅前会場 という会場名が出る。一般施設名である。",
+    "entities": [],
+    "_meta": {
+      "template": "onboarding_docs_a.txt",
+      "doc_idx": 8,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "オンボーディングの最後に TEMP-HOLD や UNASSIGNED の意味を説明しているだけで、実在の契約情報や口座情報は無い。",
+    "entities": [],
+    "_meta": {
+      "template": "onboarding_docs_a.txt",
+      "doc_idx": 9,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
   }
 ]
