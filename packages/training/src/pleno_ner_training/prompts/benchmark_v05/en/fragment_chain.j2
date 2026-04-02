@@ -1,0 +1,38 @@
+Generate {{ num_docs }} English texts where short PII fragments are chained together and boundaries are easy to merge incorrectly.
+
+## Purpose
+Measure whether the model can split adjacent entities correctly when labels are absent and separators are weak.
+
+## PII Tag Format
+- `<PERSON>John Carter</PERSON>`
+- `<ADDRESS>123 Market Street, San Francisco, CA</ADDRESS>`
+- `<ORGANIZATION>Northwind Analytics LLC</ORGANIZATION>`
+- `<DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH>`
+- `<BANK_ACCOUNT>Chase Bank Midtown Branch Checking 1234567</BANK_ACCOUNT>`
+
+## Concrete Patterns
+
+### 1. Fragment lists
+- `<PERSON>John Carter</PERSON> / <PERSON>Mia Lopez</PERSON> / <ADDRESS>123 Market Street, San Francisco, CA</ADDRESS>`
+- `<PERSON>Olivia Reed</PERSON> <DATE_OF_BIRTH>1988-06-15</DATE_OF_BIRTH> <ADDRESS>44 Pine Road, Seattle, WA</ADDRESS>`
+- `<ORGANIZATION>Blue Harbor Systems Inc.</ORGANIZATION> <PERSON>Daniel Park</PERSON> <BANK_ACCOUNT>Chase Bank Midtown Branch Checking 1234567</BANK_ACCOUNT>`
+
+### 2. Weakly separated notes
+- `note <PERSON>Emma Hall</PERSON><PERSON>Noah Brooks</PERSON> <ADDRESS>88 River Ave, Austin, TX</ADDRESS>`
+- `list <PERSON>Ava Stone</PERSON>·<PERSON>Liam Cole</PERSON>·<ORGANIZATION>Red Maple Logistics</ORGANIZATION>`
+- `draft <PERSON>Grace Kim</PERSON> <ORGANIZATION>West Loop Data Lab</ORGANIZATION> <ADDRESS>205 Lake Street, Chicago, IL</ADDRESS>`
+
+### 3. Symbol-heavy joins
+- `<PERSON>Ella Moore</PERSON>|<DATE_OF_BIRTH>2001/07/21</DATE_OF_BIRTH>|<ADDRESS>77 Harbor Way, Boston, MA</ADDRESS>`
+- `<PERSON>Lucas Price</PERSON>,<ORGANIZATION>Silver Tide Ventures</ORGANIZATION>,<BANK_ACCOUNT>Bank of America South Branch Checking 4567890</BANK_ACCOUNT>`
+- `<ADDRESS>19 King Street, Denver, CO</ADDRESS>/<PERSON>Sophia Reed</PERSON>/<PERSON>Ethan Ford</PERSON>`
+
+### 4. Role words only
+- `reviewer <PERSON>Henry Scott</PERSON>`
+- `org <ORGANIZATION>North Pier Holdings</ORGANIZATION>`
+- `deposit <BANK_ACCOUNT>Wells Fargo Bay Branch Checking 9988776</BANK_ACCOUNT>`
+
+## Output Format
+- Separate each text with `---DOC_SEPARATOR---`
+- Each text should be 60-220 characters
+- Each text must include 3-6 PII entities across at least 2 entity types

@@ -1,0 +1,38 @@
+Generate {{ num_docs }} English texts where real PII survives inside corrupted structured data.
+
+## Purpose
+Measure whether the model can still find PII inside broken CSV, JSON, quoted replies, HTML fragments, and noisy logs.
+
+## PII Tag Format
+- `<PERSON>John Carter</PERSON>`
+- `<ADDRESS>123 Market Street, San Francisco, CA</ADDRESS>`
+- `<ORGANIZATION>Northwind Analytics LLC</ORGANIZATION>`
+- `<DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH>`
+- `<BANK_ACCOUNT>Chase Bank Midtown Branch Checking 1234567</BANK_ACCOUNT>`
+
+## Concrete Patterns
+
+### 1. CSV rows with broken newlines
+- `"row01","<PERSON>John Carter</PERSON>","<DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH>","<ADDRESS>123 Market Street, San Francisco, CA</ADDRESS>\n","<ORGANIZATION>Northwind Analytics LLC</ORGANIZATION>"`
+- `"row02","<PERSON>Mia Lopez</PERSON>","<ADDRESS>44 Pine Road, Seattle, WA</ADDRESS>\n","<BANK_ACCOUNT>Citibank West Branch Checking 3344556</BANK_ACCOUNT>"`
+- `"row03","<PERSON>Emma Hall</PERSON>","<ORGANIZATION>Red Maple Logistics</ORGANIZATION>","broken`
+
+### 2. JSON or missing keys
+- `{"name":"<PERSON>Daniel Park</PERSON>","dob":"<DATE_OF_BIRTH>H2.3.15</DATE_OF_BIRTH>","address":"<ADDRESS>88 River Ave, Austin, TX</ADDRESS>","org":"<ORGANIZATION>Silver Tide Ventures</ORGANIZATION>"`
+- `{"person":"<PERSON>Grace Kim</PERSON>","address":"<ADDRESS>205 Lake Street, Chicago, IL</ADDRESS>","bank":"<BANK_ACCOUNT>Bank of America South Branch Checking 4567890</BANK_ACCOUNT>"}`
+- `{person:"<PERSON>Henry Scott</PERSON>", dob:"<DATE_OF_BIRTH>1979-10-30</DATE_OF_BIRTH>", status:"open"`
+
+### 3. Reply quotes and HTML
+- `> From: <PERSON>Sophia Reed</PERSON>\n> Org: <ORGANIZATION>North Pier Holdings</ORGANIZATION>\n> Address: <ADDRESS>19 King Street, Denver, CO</ADDRESS>`
+- `<div><span><PERSON>Ava Stone</PERSON></span><br/><ORGANIZATION>Blue Harbor Systems Inc.</ORGANIZATION></div>`
+- `<li><BANK_ACCOUNT>Capital One Elm Branch Checking 2233445</BANK_ACCOUNT></li>`
+
+### 4. Log lines
+- `[INFO] customer_update name=<PERSON>Olivia Reed</PERSON> addr=<ADDRESS>77 Harbor Way, Boston, MA</ADDRESS> org=<ORGANIZATION>West Loop Data Lab</ORGANIZATION>`
+- `event=upsert dob=<DATE_OF_BIRTH>1988/06/15</DATE_OF_BIRTH> actor=<PERSON>Lucas Price</PERSON>`
+- `payment=<BANK_ACCOUNT>Wells Fargo Bay Branch Checking 9988776</BANK_ACCOUNT> status=queued`
+
+## Output Format
+- Separate each text with `---DOC_SEPARATOR---`
+- Each text should be 80-240 characters
+- Keep the corruption readable enough that a human can still see what the real PII value is

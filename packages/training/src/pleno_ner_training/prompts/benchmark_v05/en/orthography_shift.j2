@@ -1,0 +1,42 @@
+Generate {{ num_docs }} English texts where the same PII types appear in sharply different orthographic forms.
+
+## Purpose
+Measure robustness to script shifts, transliteration, abbreviations, compressed formatting, and mixed writing systems.
+
+## PII Tag Format
+- `<PERSON>Taro YAMADA</PERSON>`
+- `<ADDRESS>Shibuya-ku, Jingumae 1-2-3, Tokyo</ADDRESS>`
+- `<ORGANIZATION>Sony Group Corporation</ORGANIZATION>`
+- `<DATE_OF_BIRTH>S40.5.10</DATE_OF_BIRTH>`
+- `<BANK_ACCOUNT>MUFGJPJT Checking 00-1234567</BANK_ACCOUNT>`
+
+## Concrete Patterns
+
+### 1. Name variants
+- `<PERSON>Taro YAMADA</PERSON>`
+- `<PERSON>Yamada Taro</PERSON>`
+- `<PERSON>YA MA DA TARO</PERSON>`
+- `<PERSON>taro yamada</PERSON>`
+
+### 2. Address variants
+- `<ADDRESS>Shibuya-ku, Jingumae 1-2-3, Tokyo</ADDRESS>`
+- `<ADDRESS>Jingumae 1-2-3-405, Shibuya</ADDRESS>`
+- `<ADDRESS>1-2-3 Jingumae, Shibuya City, Tokyo</ADDRESS>`
+- `<ADDRESS>Tokyo-to Shibuya-ku Jingumae 1-2-3</ADDRESS>`
+
+### 3. Org / DOB / account abbreviations
+- `<ORGANIZATION>Sony Group Corporation</ORGANIZATION>`
+- `<ORGANIZATION>NPO Child Support Network</ORGANIZATION>`
+- `<ORGANIZATION>Sample Holdings Co., Ltd.</ORGANIZATION>`
+- `<DATE_OF_BIRTH>R1.5.1</DATE_OF_BIRTH>` / `<DATE_OF_BIRTH>90.3.15</DATE_OF_BIRTH>` / `<DATE_OF_BIRTH>1988/06/15</DATE_OF_BIRTH>`
+- `<BANK_ACCOUNT>UFJ Shinjuku Ord 1234567</BANK_ACCOUNT>` / `<BANK_ACCOUNT>MUFGJPJT Checking 00-1234567</BANK_ACCOUNT>`
+
+### 4. Mixed-form sentences
+- `<PERSON>Taro YAMADA</PERSON> / <ADDRESS>Shibuya-ku, Jingumae 1-2-3, Tokyo</ADDRESS> / <ORGANIZATION>Sony Group Corporation</ORGANIZATION>`
+- `<PERSON>taro yamada</PERSON> / <DATE_OF_BIRTH>S40.5.10</DATE_OF_BIRTH> / <BANK_ACCOUNT>UFJ Shinjuku Ord 1234567</BANK_ACCOUNT>`
+- `<PERSON>Yamada Taro</PERSON>, <ADDRESS>1-2-3 Jingumae, Shibuya City, Tokyo</ADDRESS>, <ORGANIZATION>NPO Child Support Network</ORGANIZATION>`
+
+## Output Format
+- Separate each text with `---DOC_SEPARATOR---`
+- Each text should be 70-220 characters
+- Each text must mix at least 2 orthographic styles

@@ -1,0 +1,38 @@
+Generate {{ num_docs }} English texts where address-like strings and organization-like strings are easy to confuse.
+
+## Purpose
+Measure ADDRESS vs ORGANIZATION confusion when names contain place words, branch words, or office words.
+
+## PII Tag Format
+- `<PERSON>John Carter</PERSON>`
+- `<ADDRESS>205 Lake Street, Chicago, IL</ADDRESS>`
+- `<ORGANIZATION>West Loop Data Lab</ORGANIZATION>`
+- `<DATE_OF_BIRTH>1988-06-15</DATE_OF_BIRTH>`
+- `<BANK_ACCOUNT>Chase Bank Midtown Branch Checking 1234567</BANK_ACCOUNT>`
+
+## Concrete Patterns
+
+### 1. Place words inside org names
+- `<ORGANIZATION>West Loop Data Lab</ORGANIZATION> ships to <ADDRESS>205 Lake Street, Chicago, IL</ADDRESS>`
+- `<ORGANIZATION>North Harbor Medical Association</ORGANIZATION> / <ADDRESS>19 King Street, Denver, CO</ADDRESS>`
+- `<ORGANIZATION>South Market Legal Office</ORGANIZATION> / <ADDRESS>123 Market Street, San Francisco, CA</ADDRESS>`
+
+### 2. Branch / office switching
+- `<BANK_ACCOUNT>Citibank West Branch Checking 3344556</BANK_ACCOUNT> belongs to <PERSON>Mia Lopez</PERSON>`
+- `Meet outside West Branch Office` is untagged, but `<ORGANIZATION>West Branch Support LLC</ORGANIZATION>` is tagged
+- `<ORGANIZATION>Midtown Headquarters Systems</ORGANIZATION> is located at <ADDRESS>44 Pine Road, Seattle, WA</ADDRESS>`
+
+### 3. Untagged facility-like phrases in the same text
+- `North Harbor campus entrance` stays untagged, but `<ORGANIZATION>North Harbor Health Network</ORGANIZATION>` is tagged
+- `Lake Street office block` stays untagged, but `<ADDRESS>205 Lake Street, Chicago, IL</ADDRESS>` is tagged
+- `Downtown branch lobby` stays untagged, but `<ORGANIZATION>Downtown Branch Operations Inc.</ORGANIZATION>` is tagged
+
+### 4. Supporting person / date / account cues
+- `<PERSON>Olivia Reed</PERSON> (<DATE_OF_BIRTH>1990/03/15</DATE_OF_BIRTH>) works at <ORGANIZATION>Blue Harbor Systems Inc.</ORGANIZATION>`
+- `<PERSON>Grace Kim</PERSON> ships to <ADDRESS>77 Harbor Way, Boston, MA</ADDRESS>`
+- `Deposit via <BANK_ACCOUNT>Bank of America South Branch Checking 4567890</BANK_ACCOUNT>`
+
+## Output Format
+- Separate each text with `---DOC_SEPARATOR---`
+- Each text should be 80-240 characters
+- Each text must include at least 1 ADDRESS and 1 ORGANIZATION

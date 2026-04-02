@@ -1,0 +1,39 @@
+Generate {{ num_docs }} English texts where PII-looking dummy values and genuine PII appear together.
+
+## Purpose
+Measure semantic discrimination so the model does not simply trust labels or reject anything described as a sample.
+
+## PII Tag Format
+- `<PERSON>John Carter</PERSON>`
+- `<ADDRESS>123 Market Street, San Francisco, CA</ADDRESS>`
+- `<ORGANIZATION>Northwind Analytics LLC</ORGANIZATION>`
+- `<DATE_OF_BIRTH>S40.5.10</DATE_OF_BIRTH>`
+- `<BANK_ACCOUNT>Chase Bank Midtown Branch Checking 1234567</BANK_ACCOUNT>`
+
+## Concrete Patterns
+
+### 1. Dummy labels plus real values
+- `Name: not provided. Address: hidden. But applicant is <PERSON>John Carter</PERSON>.`
+- `Account: send later. Actual transfer target is <BANK_ACCOUNT>Chase Bank Midtown Branch Checking 1234567</BANK_ACCOUNT>.`
+- `Location: online only. Delivery goes to <ADDRESS>44 Pine Road, Seattle, WA</ADDRESS>.`
+
+### 2. Example / note traps
+- `Example: <PERSON>Mia Lopez</PERSON> (real data)`
+- `This is not a test record: <ADDRESS>88 River Ave, Austin, TX</ADDRESS>`
+- `Not dummy: <DATE_OF_BIRTH>S40.5.10</DATE_OF_BIRTH>`
+
+### 3. Negation context
+- `<PERSON>Daniel Park</PERSON> not <PERSON>David Park</PERSON> is correct`
+- `It did not reach <ADDRESS>205 Lake Street, Chicago, IL</ADDRESS>`
+- `The active account is <BANK_ACCOUNT>Citibank West Branch Checking 3344556</BANK_ACCOUNT>, not the old one`
+
+### 4. Untagged dummy examples
+- `Name: placeholder`
+- `Address: sample city`
+- `DOB: 19XX-XX-XX`
+- `Account: cash only`
+
+## Output Format
+- Separate each text with `---DOC_SEPARATOR---`
+- Each text should be 70-220 characters
+- Every text must include both tagged real PII and untagged dummy values

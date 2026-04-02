@@ -35,9 +35,14 @@ def convert_to_docs(
 
         for ent_data in item["entities"]:
             total_entities += 1
+            start, end = ent_data["start"], ent_data["end"]
+            entity_text = text[start:end]
+            if not entity_text.strip() or entity_text != entity_text.strip():
+                alignment_failures += 1
+                continue
             span = doc.char_span(
-                ent_data["start"],
-                ent_data["end"],
+                start,
+                end,
                 label=ent_data["label"],
                 alignment_mode="expand",
             )

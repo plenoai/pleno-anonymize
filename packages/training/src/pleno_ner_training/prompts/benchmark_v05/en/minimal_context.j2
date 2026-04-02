@@ -1,0 +1,38 @@
+Generate {{ num_docs }} English texts with almost no contextual cues around the PII.
+
+## Purpose
+Measure whether the model can recover PII from surface form alone, without labels, honorifics, or explanatory phrases.
+
+## PII Tag Format
+- `<PERSON>John Carter</PERSON>`
+- `<ADDRESS>123 Market Street, San Francisco, CA</ADDRESS>`
+- `<ORGANIZATION>Northwind Analytics LLC</ORGANIZATION>`
+- `<DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH>`
+- `<BANK_ACCOUNT>Chase Bank Midtown Branch Checking 1234567</BANK_ACCOUNT>`
+
+## Concrete Patterns
+
+### 1. Label-free sequences
+- `<PERSON>John Carter</PERSON> <DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH> <ADDRESS>123 Market Street, San Francisco, CA</ADDRESS>`
+- `<PERSON>Mia Lopez</PERSON> <ORGANIZATION>Red Maple Logistics</ORGANIZATION> <ADDRESS>44 Pine Road, Seattle, WA</ADDRESS>`
+- `<PERSON>Daniel Park</PERSON> <BANK_ACCOUNT>Bank of America South Branch Checking 4567890</BANK_ACCOUNT>`
+
+### 2. Incomplete fragments
+- `copy <PERSON>Emma Hall</PERSON> <ADDRESS>88 River Ave, Austin, TX</ADDRESS>`
+- `list <PERSON>Ava Stone</PERSON> <PERSON>Liam Cole</PERSON> <ORGANIZATION>Blue Harbor Systems Inc.</ORGANIZATION>`
+- `send <ADDRESS>205 Lake Street, Chicago, IL</ADDRESS> <DATE_OF_BIRTH>S58.04.12</DATE_OF_BIRTH>`
+
+### 3. Symbols only
+- `<PERSON>Grace Kim</PERSON>/<ORGANIZATION>West Loop Data Lab</ORGANIZATION>/<ADDRESS>19 King Street, Denver, CO</ADDRESS>`
+- `<PERSON>Olivia Reed</PERSON>,<DATE_OF_BIRTH>1988/06/15</DATE_OF_BIRTH>,<ADDRESS>77 Harbor Way, Boston, MA</ADDRESS>`
+- `<PERSON>Henry Scott</PERSON>|<PERSON>Sophia Reed</PERSON>|<BANK_ACCOUNT>Citibank West Branch Checking 3344556</BANK_ACCOUNT>`
+
+### 4. Role words only
+- `review <PERSON>Lucas Price</PERSON>`
+- `org <ORGANIZATION>North Pier Holdings</ORGANIZATION>`
+- `deposit <BANK_ACCOUNT>Wells Fargo Bay Branch Checking 9988776</BANK_ACCOUNT>`
+
+## Output Format
+- Separate each text with `---DOC_SEPARATOR---`
+- Each text should be 40-180 characters
+- The text does not need to be a complete sentence, but the values should still look natural

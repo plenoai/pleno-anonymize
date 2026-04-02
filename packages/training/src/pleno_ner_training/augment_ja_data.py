@@ -60,6 +60,7 @@ BUILDINGS = [
 
 # --- ORGANIZATION ---
 COMPANY_PREFIXES = ["株式会社", "有限会社", "合同会社", "一般社団法人", "NPO法人", "公益財団法人", "医療法人", "学校法人", "社会福祉法人"]
+COMPANY_PREFIXES_ABBREV = ["（株）", "（有）", "（合）", "（一社）"]
 COMPANY_NAMES = [
     "プレノ", "テックソリューションズ", "サンライズ", "グローバルテック",
     "ネクストイノベーション", "デジタルフロンティア", "スマートシステムズ",
@@ -114,6 +115,12 @@ ERA_NAMES = {
     "平成": (1989, 2019),
     "令和": (2019, 2026),
 }
+ERA_ABBREV = {"昭和": "S", "平成": "H", "令和": "R"}
+KANJI_DIGITS = {
+    0: "〇", 1: "一", 2: "二", 3: "三", 4: "四",
+    5: "五", 6: "六", 7: "七", 8: "八", 9: "九",
+    10: "十", 20: "二十", 30: "三十", 40: "四十", 50: "五十", 60: "六十",
+}
 
 DOB_CONTEXTS = [
     "生年月日: {dob}",
@@ -121,6 +128,9 @@ DOB_CONTEXTS = [
     "{dob}生まれ",
     "{dob}生",
     "誕生日: {dob}",
+    "出生日: {dob}",
+    "生年月日（西暦）: {dob}",
+    "DOB: {dob}",
 ]
 
 
@@ -146,18 +156,27 @@ def _random_address() -> str:
 def _random_org() -> str:
     kind = random.choice(["company", "company", "university", "government", "hospital", "research"])
     if kind == "company":
-        prefix = random.choice(COMPANY_PREFIXES)
         name = random.choice(COMPANY_NAMES)
         r = random.random()
-        if r < 0.35:
+        if r < 0.25:
+            prefix = random.choice(COMPANY_PREFIXES)
             return f"{prefix}{name}"
+        elif r < 0.40:
+            return f"{name}"  # 略称パターン (NTTデータ, 日立製作所)
         elif r < 0.55:
-            return f"{name}"  # 略称パターン
-        elif r < 0.75:
             suffix = random.choice(COMPANY_SUFFIXES)
             return f"{name}{suffix}"
+        elif r < 0.70:
+            # 略称プレフィックス: （株）サンプル
+            abbrev = random.choice(COMPANY_PREFIXES_ABBREV)
+            return f"{abbrev}{name}"
+        elif r < 0.80:
+            # 後置法人格: サンプル株式会社
+            prefix = random.choice(["株式会社", "有限会社", "合同会社"])
+            return f"{name}{prefix}"
         else:
-            return f"{prefix}{name}" if not prefix.endswith("人") else f"{prefix}{name}"
+            prefix = random.choice(COMPANY_PREFIXES)
+            return f"{prefix}{name}"
     elif kind == "university":
         uni = random.choice(UNIVERSITIES)
         if random.random() < 0.3:
@@ -186,25 +205,76 @@ def _random_bank() -> str:
     return fmt.format(bank=bank, branch=branch, type=acct_type, num=acct_num)
 
 
+def _num_to_kanji(n: int) -> str:
+    """数値を漢数字に変換する (1-99)。"""
+    if n == 0:
+        return "〇"
+    if n <= 9:
+        return KANJI_DIGITS[n]
+    tens = (n // 10) * 10
+    ones = n % 10
+    result = KANJI_DIGITS.get(tens, "")
+    if ones:
+        result += KANJI_DIGITS[ones]
+    return result
+
+
 def _random_dob() -> str:
-    use_era = random.random() < 0.5
     year = random.randint(1950, 2005)
     month = random.randint(1, 12)
     day = random.randint(1, 28)
 
-    if use_era:
-        for era, (start, end) in ERA_NAMES.items():
-            if start <= year < end:
-                era_year = year - start + 1
-                return f"{era}{era_year}年{month}月{day}日"
-        return f"昭和{year - 1926 + 1}年{month}月{day}日"
+    # 30% era abbreviation (S40.5.10, H2/3/15, R1.5.1)
+    # 20% full era (昭和40年5月10日)
+    # 5% kanji numerals (昭和四十年五月十日)
+    # 5% compact YYYYMMDD
+    # 40% western formats
+    r = random.random()
+
+    # Find matching era
+    era_name = "昭和"
+    era_year = year - 1926 + 1
+    for era, (start, end) in ERA_NAMES.items():
+        if start <= year < end:
+            era_name = era
+            era_year = year - start + 1
+            break
+
+    if r < 0.30:
+        # Era abbreviation formats (S40.5.10, H2/3/15, R1.5.1)
+        abbrev = ERA_ABBREV[era_name]
+        sep = random.choice([".", "/", "-"])
+        if random.random() < 0.5:
+            return f"{abbrev}{era_year}{sep}{month}{sep}{day}"
+        else:
+            return f"{abbrev}{era_year:02d}{sep}{month:02d}{sep}{day:02d}"
+    elif r < 0.50:
+        # Full era formats
+        fmt_r = random.random()
+        if fmt_r < 0.4:
+            return f"{era_name}{era_year}年{month}月{day}日"
+        elif fmt_r < 0.7:
+            return f"{era_name}{era_year}年{month:02d}月{day:02d}日"
+        else:
+            return f"{era_name}{era_year}/{month:02d}/{day:02d}"
+    elif r < 0.55:
+        # Kanji numeral format (昭和四十年五月十日)
+        ey = _num_to_kanji(era_year)
+        em = _num_to_kanji(month)
+        ed = _num_to_kanji(day)
+        return f"{era_name}{ey}年{em}月{ed}日"
+    elif r < 0.60:
+        # Compact YYYYMMDD
+        return f"{year}{month:02d}{day:02d}"
     else:
-        fmt = random.choice([
+        # Western formats
+        return random.choice([
             f"{year}年{month}月{day}日",
+            f"{year}年{month:02d}月{day:02d}日",
             f"{year}/{month:02d}/{day:02d}",
             f"{year}-{month:02d}-{day:02d}",
+            f"{year}.{month:02d}.{day:02d}",
         ])
-        return fmt
 
 
 # --- テンプレート ---
@@ -247,6 +317,12 @@ DOB_TEMPLATES = [
     "患者名: {person}\n{dob}生まれ\n{org}に通院中",
     "受験者: {person}\n生年月日 {dob}\n所属: {org}",
     "被保険者: {person}\n生年月日: {dob}\n{address}在住",
+    "申請者: {person}\n出生日: {dob}\n連絡先住所: {address}",
+    "利用者名: {person}\n生年月日: {dob}\n勤務先: {org}",
+    "契約者: {person}（{dob}生）\n住所: {address}\n勤務先: {org}",
+    "入居者: {person}\n生年月日: {dob}\n口座: {bank}",
+    "児童名: {person}\n生年月日 {dob}\n保護者連絡先: {address}",
+    "被験者ID: SBJ-001\n氏名: {person}\n生年月日: {dob}",
 ]
 
 BANK_TEMPLATES = [
@@ -259,6 +335,49 @@ BANK_TEMPLATES = [
     "報酬振込先: {bank}\n受取人: {person}\n所属: {org}",
     "引落口座: {bank}\n契約者: {person}",
     "還付金振込先口座\n{bank}\n申請者: {person}\n生年月日: {dob}",
+]
+
+# --- ORG隣接パターン（スペースなしで人名と隣接） ---
+ORG_ADJACENT_TEMPLATES = [
+    "{org}{person}代表取締役",
+    "{org}取締役{person}",
+    "{person}{org}所属",
+    "{org}{person}部長より報告",
+    "送付先: {address}\n{org}{person}宛",
+    "{person}（{org}）に連絡してください。",
+    "担当: {org}{person}（内線1234）",
+    "{org}の{person}課長が{org2}との連携を発表した。",
+    "発信元: {person}（{org}営業部）\n宛先: {address}",
+    "{person}氏は{org}を退職し、{org2}に移籍した。",
+]
+
+# --- DOB複数日付パターン（1文書に複数日付、DOBは1つだけ） ---
+DOB_MULTIDATE_TEMPLATES = [
+    "報告日: 2024年4月1日\n対象者: {person}（{dob}生まれ）\n面談実施日: 2024年3月15日",
+    "入社日: 2010年4月1日\n{person}（{dob}生）は2024年3月31日付で退職届を提出した。",
+    "契約日: 令和6年4月1日\n契約者: {person}\n生年月日: {dob}\n更新日: 令和7年3月31日",
+    "作成日: 2024年1月15日\n被保険者: {person}\n生年月日: {dob}\n資格取得日: 2020年4月1日",
+    "受付日: 令和5年12月20日\n申請者: {person}\n{dob}生\n交付予定日: 令和6年1月10日",
+    "診察日: 2024年2月14日\n患者: {person}（{dob}生まれ）\n次回予約: 2024年3月14日\n住所: {address}",
+    "面接日: 2024年6月1日\n応募者: {person}\n生年月日 {dob}\n所属: {org}\n入社希望日: 2024年8月1日",
+    "発行日: 令和6年3月1日\n被験者: {person}\n生年月日: {dob}\n試験開始日: 令和6年4月15日\n試験終了日: 令和6年10月31日",
+]
+
+# --- 最小コンテキスト/構造化ノイズパターン ---
+MINIMAL_CONTEXT_TEMPLATES = [
+    "{person}/{org}/{address}/{dob}",
+    "{person} {dob} {address} {org}",
+    "{person}　{org}　{address}　{dob}",
+    "名前:{person}\n会社:{org}\n生年月日:{dob}",
+    "[{person}] [{org}] [{dob}] [{address}]",
+]
+
+# --- 構造化ノイズ内のエンティティ ---
+STRUCTURED_NOISE_TEMPLATES = [
+    '{{"name": "{person}", "company": "{org}", "dob": "{dob}"}}',
+    "name,company,dob,address\n{person},{org},{dob},{address}",
+    "2024-03-15 10:30:22 [INFO] customer_update: name={person} org={org} dob={dob}",
+    "<div class=\"profile\">{person} | {org} | {dob} | {address}</div>",
 ]
 
 COMBINED_TEMPLATES = [
@@ -361,45 +480,73 @@ def _build_doc(template: str, **kwargs) -> dict | None:
 
 
 def generate_augmented_docs(count: int = 1000) -> list[dict]:
-    """日本語拡張データを生成する。"""
+    """日本語拡張データを生成する。
+
+    v0.4.0ベンチマーク弱点を重点強化:
+    - ORGANIZATION: 隣接パターン、略称、構造化ノイズ
+    - DATE_OF_BIRTH: 元号略記、複数日付、最小コンテキスト
+    """
     docs = []
 
-    # PERSON多様化 (10%)
-    for _ in range(int(count * 0.10)):
-        name_type = random.choice(["kanji", "katakana", "foreign"])
+    # PERSON多様化 (8%)
+    for _ in range(int(count * 0.08)):
+        name_type = random.choice(["kanji", "kanji", "katakana", "foreign"])
         if name_type == "kanji":
             person = _random_person()
-            template = random.choice(PERSON_TEMPLATES[:5])
-            doc = _build_doc(template, person=person)
+            template = random.choice([t for t in PERSON_TEMPLATES if t != "{person}（{person_kana}）"])
+            doc = _build_doc(template, person=person, address=_random_address(), org=_random_org())
         elif name_type == "katakana":
             person = random.choice(KATAKANA_NAMES)
             kanji = _random_person()
-            template = PERSON_TEMPLATES[5]  # {person}（{person_kana}）
+            template = "{person}（{person_kana}）"
             doc = _build_doc(template, person=kanji, person_kana=person)
         else:
             person = random.choice(FOREIGN_NAMES)
-            template = random.choice(PERSON_TEMPLATES[:5])
-            doc = _build_doc(template, person=person)
+            template = random.choice([t for t in PERSON_TEMPLATES if t != "{person}（{person_kana}）"])
+            doc = _build_doc(template, person=person, address=_random_address(), org=_random_org())
         if doc:
             docs.append(doc)
 
-    # ORGANIZATION多様化 (15%)
-    for _ in range(int(count * 0.15)):
+    # ORGANIZATION標準テンプレート (12%)
+    for _ in range(int(count * 0.12)):
         org = _random_org()
         person = _random_person()
         org2 = _random_org()
+        bank = _random_bank()
         template = random.choice(ORG_TEMPLATES)
-        doc = _build_doc(template, org=org, person=person, org2=org2)
+        doc = _build_doc(template, org=org, person=person, org2=org2, bank=bank)
         if doc:
             docs.append(doc)
 
-    # DATE_OF_BIRTH多様化 (15%)
-    for _ in range(int(count * 0.15)):
+    # ORGANIZATION隣接パターン (10% - v0.4.0弱点)
+    for _ in range(int(count * 0.10)):
+        org = _random_org()
+        org2 = _random_org()
+        person = _random_person()
+        address = _random_address()
+        template = random.choice(ORG_ADJACENT_TEMPLATES)
+        doc = _build_doc(template, org=org, org2=org2, person=person, address=address)
+        if doc:
+            docs.append(doc)
+
+    # DATE_OF_BIRTH標準テンプレート (8%)
+    for _ in range(int(count * 0.08)):
         dob = _random_dob()
         person = _random_person()
         address = _random_address()
         org = _random_org()
         template = random.choice(DOB_TEMPLATES)
+        doc = _build_doc(template, person=person, dob=dob, address=address, org=org)
+        if doc:
+            docs.append(doc)
+
+    # DATE_OF_BIRTH複数日付パターン (10% - v0.4.0弱点)
+    for _ in range(int(count * 0.10)):
+        dob = _random_dob()
+        person = _random_person()
+        address = _random_address()
+        org = _random_org()
+        template = random.choice(DOB_MULTIDATE_TEMPLATES)
         doc = _build_doc(template, person=person, dob=dob, address=address, org=org)
         if doc:
             docs.append(doc)
@@ -410,13 +557,14 @@ def generate_augmented_docs(count: int = 1000) -> list[dict]:
         person = _random_person()
         address = _random_address()
         org = _random_org()
+        dob = _random_dob()
         template = random.choice(BANK_TEMPLATES)
-        doc = _build_doc(template, person=person, bank=bank, address=address, org=org)
+        doc = _build_doc(template, person=person, bank=bank, address=address, org=org, dob=dob)
         if doc:
             docs.append(doc)
 
-    # 全エンティティ含む文書 (10%)
-    for _ in range(int(count * 0.10)):
+    # 全エンティティ含む文書 (8%)
+    for _ in range(int(count * 0.08)):
         template = random.choice(COMBINED_TEMPLATES)
         doc = _build_doc(
             template,
@@ -429,14 +577,40 @@ def generate_augmented_docs(count: int = 1000) -> list[dict]:
         if doc:
             docs.append(doc)
 
-    # 負例: PIIなしテキスト (20%)
-    neg_count = int(count * 0.20)
+    # 最小コンテキスト (6% - v0.4.0弱点)
+    for _ in range(int(count * 0.06)):
+        template = random.choice(MINIMAL_CONTEXT_TEMPLATES)
+        doc = _build_doc(
+            template,
+            person=_random_person(),
+            dob=_random_dob(),
+            address=_random_address(),
+            org=_random_org(),
+        )
+        if doc:
+            docs.append(doc)
+
+    # 構造化ノイズ (6% - v0.4.0弱点)
+    for _ in range(int(count * 0.06)):
+        template = random.choice(STRUCTURED_NOISE_TEMPLATES)
+        doc = _build_doc(
+            template,
+            person=_random_person(),
+            dob=_random_dob(),
+            address=_random_address(),
+            org=_random_org(),
+        )
+        if doc:
+            docs.append(doc)
+
+    # 負例: PIIなしテキスト (12%)
+    neg_count = int(count * 0.12)
     for i in range(neg_count):
         text = NEGATIVE_TEXTS[i % len(NEGATIVE_TEXTS)]
         docs.append({"text": text, "entities": []})
 
-    # ディストラクタ: PII風の非PIIテキスト (20%)
-    dist_count = int(count * 0.20)
+    # ディストラクタ: PII風の非PIIテキスト (10%)
+    dist_count = int(count * 0.10)
     for i in range(dist_count):
         text = DISTRACTOR_TEXTS[i % len(DISTRACTOR_TEXTS)]
         docs.append({"text": text, "entities": []})

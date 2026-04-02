@@ -1,0 +1,36 @@
+以下の条件に従い、PIIらしく見えるが実データは一切含まない日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+偽陽性を誘うプレースホルダー、仕様書、入力例、ダミー値に対して誤検出しない能力を測定します。
+
+## 重要ルール
+- **実在の人名・住所・組織名・生年月日・口座情報は出さないこと**
+- **XMLタグは一切使わないこと**
+- フィールド名、プレースホルダー、仕様値、サンプル表記だけで構成すること
+
+## 誤検出を誘う具体パターン
+
+### 1. ラベルはあるが値がダミー
+- 「氏名: 未入力 / 住所: 登録待ち / 生年月日: YYYY-MM-DD / 口座: 受付停止中」
+- 「会社名: 法人未登録 / 所属: 外部委託 / 振込先: 後日案内」
+- 「name=<blank> address=<pending> dob=<unknown> account=<masked>」
+
+### 2. 仕様書・CSVヘッダー・テンプレート
+- 「name,dob,address,organization,bank_account」
+- 「{name: sample_name, address: prefecture-city-block, dob: YYYY/MM/DD}」
+- 「入力例: 氏名=sample_user, 住所=sample-pref-sample-city, 口座=bank-branch-kind-number」
+
+### 3. PIIっぽいが実体のない記号列
+- 「pref-city-town-1-2-3」「branch-main ordinary 0000000」「sample_name_01」
+- 「都道府県未選択 / 市区町村未設定 / 番地仮置き」
+- 「DOB=N/A, ACCOUNT=TEMP-HOLD, ORG=UNASSIGNED」
+
+### 4. 案内文・注意書き
+- 「以下はサンプル項目です。実データは入力しないでください。」
+- 「申請時点では個人情報を受領していません。」
+- 「この画面の表示値はすべて説明用ダミーです。」
+
+## 出力形式
+- 各テキストは `---DOC_SEPARATOR---` で区切ること
+- 1テキストあたり40〜180文字
+- 文体は仕様書、UI文言、FAQ、注意書き、ログ説明、入力例を混ぜること

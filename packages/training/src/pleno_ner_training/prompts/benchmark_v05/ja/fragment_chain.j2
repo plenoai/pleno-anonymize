@@ -1,0 +1,38 @@
+以下の条件に従い、PIIが短い断片として連鎖し、境界が壊れやすい日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+ラベルなし・短区切り・隣接配置で、複数エンティティを1つに飲み込まず正しく分割できるかを測定します。
+
+## PIIタグ形式
+- `<PERSON>山田太郎</PERSON>`
+- `<ADDRESS>東京都渋谷区神宮前1-2-3</ADDRESS>`
+- `<ORGANIZATION>株式会社サンプル</ORGANIZATION>`
+- `<DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH>`
+- `<BANK_ACCOUNT>みずほ銀行 渋谷支店 普通 1234567</BANK_ACCOUNT>`
+
+## 具体パターン
+
+### 1. 断片列挙
+- 「<PERSON>山田太郎</PERSON> / <PERSON>佐藤花子</PERSON> / <ADDRESS>東京都渋谷区神宮前1-2-3</ADDRESS> / <ORGANIZATION>株式会社青葉</ORGANIZATION>」
+- 「<PERSON>木村誠</PERSON> <DATE_OF_BIRTH>1988-06-15</DATE_OF_BIRTH> <ADDRESS>横浜市中区本町2-3-4</ADDRESS>」
+- 「<ORGANIZATION>合同会社北斗</ORGANIZATION> <PERSON>高橋由香</PERSON> <BANK_ACCOUNT>三井住友銀行 新橋支店 普通 7654321</BANK_ACCOUNT>」
+
+### 2. 区切りが弱いメモ
+- 「控え: <PERSON>中村直人</PERSON><PERSON>田辺美咲</PERSON> <ADDRESS>大阪市北区梅田1-1-1</ADDRESS>」
+- 「一覧 <PERSON>渡辺健</PERSON>・<PERSON>伊藤玲奈</PERSON>・<ORGANIZATION>株式会社雫</ORGANIZATION>」
+- 「申請断片 <PERSON>大野翔平</PERSON> <ORGANIZATION>白樺物流</ORGANIZATION> <ADDRESS>福岡市博多区博多駅前2-2-2</ADDRESS>」
+
+### 3. 記号混在
+- 「<PERSON>小林優</PERSON>|<DATE_OF_BIRTH>2001/07/21</DATE_OF_BIRTH>|<ADDRESS>札幌市中央区北1条西2-3</ADDRESS>」
+- 「<PERSON>松本理沙</PERSON>,<ORGANIZATION>東海ソリューションズ</ORGANIZATION>,<BANK_ACCOUNT>楽天銀行 第二営業支店 普通 2345678</BANK_ACCOUNT>」
+- 「<ADDRESS>京都市中京区烏丸通2-5-6</ADDRESS>/<PERSON>石田悠人</PERSON>/<PERSON>岡本結衣</PERSON>」
+
+### 4. 途中で役割語が入る
+- 「担当 <PERSON>清水健司</PERSON> 次便 <ADDRESS>名古屋市中村区名駅3-4-5</ADDRESS>」
+- 「精算 <BANK_ACCOUNT>りそな銀行 日本橋支店 普通 5566778</BANK_ACCOUNT> 確認者 <PERSON>林麻衣</PERSON>」
+- 「所属 <ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION> 記録 <DATE_OF_BIRTH>S58.04.12</DATE_OF_BIRTH>」
+
+## 出力形式
+- 各テキストは `---DOC_SEPARATOR---` で区切ること
+- 1テキストあたり60〜220文字
+- 各テキストに3〜6個のPIIを含め、少なくとも2種類のエンティティ型を混在させること

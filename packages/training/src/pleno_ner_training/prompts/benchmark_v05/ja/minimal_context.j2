@@ -1,0 +1,38 @@
+以下の条件に従い、文脈手がかりをほぼ持たない日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+ラベル語、敬称、説明句を外しても、表層そのものからPIIを回収できるかを測定します。
+
+## PIIタグ形式
+- `<PERSON>山田太郎</PERSON>`
+- `<ADDRESS>東京都渋谷区神宮前1-2-3</ADDRESS>`
+- `<ORGANIZATION>株式会社サンプル</ORGANIZATION>`
+- `<DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH>`
+- `<BANK_ACCOUNT>みずほ銀行 渋谷支店 普通 1234567</BANK_ACCOUNT>`
+
+## 具体パターン
+
+### 1. ラベルなし列挙
+- `<PERSON>山田太郎</PERSON> <DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH> <ADDRESS>東京都渋谷区神宮前1-2-3</ADDRESS>`
+- `<PERSON>鈴木一郎</PERSON> <ORGANIZATION>青葉物流株式会社</ORGANIZATION> <ADDRESS>大阪市北区梅田1-1-1</ADDRESS>`
+- `<PERSON>高橋美咲</PERSON> <BANK_ACCOUNT>三井住友銀行 新橋支店 普通 7654321</BANK_ACCOUNT>`
+
+### 2. 不完全な断片
+- `控え <PERSON>中村直人</PERSON> <ADDRESS>横浜市中区本町2-3-4</ADDRESS>`
+- `一覧 <PERSON>小林優</PERSON> <PERSON>岡本結衣</PERSON> <ORGANIZATION>白波開発株式会社</ORGANIZATION>`
+- `送付 <ADDRESS>福岡市博多区博多駅前2-2-2</ADDRESS> <DATE_OF_BIRTH>S58.04.12</DATE_OF_BIRTH>`
+
+### 3. 記号だけで接続
+- `<PERSON>木村誠</PERSON>/<ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION>/<ADDRESS>新宿区西新宿2-8-1</ADDRESS>`
+- `<PERSON>森田涼</PERSON>,<DATE_OF_BIRTH>1988/06/15</DATE_OF_BIRTH>,<ADDRESS>名古屋市中村区名駅3-4-5</ADDRESS>`
+- `<PERSON>大野翔平</PERSON>|<PERSON>田辺美咲</PERSON>|<BANK_ACCOUNT>りそな銀行 日本橋支店 普通 3344556</BANK_ACCOUNT>`
+
+### 4. 役割語のみ
+- `確認者 <PERSON>石田悠人</PERSON>`
+- `所属 <ORGANIZATION>蒼天商事株式会社</ORGANIZATION>`
+- `入金先 <BANK_ACCOUNT>楽天銀行 第二営業支店 普通 4567890</BANK_ACCOUNT>`
+
+## 出力形式
+- 各テキストは `---DOC_SEPARATOR---` で区切ること
+- 1テキストあたり40〜180文字
+- 文章として完結していなくてよいが、実在風の値だけは自然に見えること

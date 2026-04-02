@@ -1,0 +1,42 @@
+以下の条件に従い、表記体系が大きく揺れる日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+漢字・かな・カナ・ローマ字・旧字体・略記が混在しても、型と境界を保ったまま検出できるかを測定します。
+
+## PIIタグ形式
+- `<PERSON>山　田　太　郎</PERSON>`
+- `<ADDRESS>Shibuya-ku, Jingumae 1-2-3, Tokyo</ADDRESS>`
+- `<ORGANIZATION>株式會社三菱重工業</ORGANIZATION>`
+- `<DATE_OF_BIRTH>S40.5.10</DATE_OF_BIRTH>`
+- `<BANK_ACCOUNT>MUFGJPJT 普通 00-1234567</BANK_ACCOUNT>`
+
+## 具体パターン
+
+### 1. 人名の表記揺れ
+- `<PERSON>山　田　太　郎</PERSON>`
+- `<PERSON>やまだ たろう</PERSON>`
+- `<PERSON>Taro YAMADA</PERSON>`
+- `<PERSON>ヤマダ タロウ</PERSON>`
+
+### 2. 住所の表記揺れ
+- `<ADDRESS>東京都渋谷区神宮前一丁目二番三号</ADDRESS>`
+- `<ADDRESS>Shibuya-ku, Jingumae 1-2-3, Tokyo</ADDRESS>`
+- `<ADDRESS>渋谷区神宮前1-2-3-405</ADDRESS>`
+- `<ADDRESS>東京都渋谷区大字神宮前字北沢壱百弐拾参番地</ADDRESS>`
+
+### 3. 組織・日付・口座の略記
+- `<ORGANIZATION>（株）サンプルホールディングス</ORGANIZATION>`
+- `<ORGANIZATION>Sony Group Corporation</ORGANIZATION>`
+- `<ORGANIZATION>特定非営利活動法人子ども支援ネットワーク</ORGANIZATION>`
+- `<DATE_OF_BIRTH>R1.5.1</DATE_OF_BIRTH>` / `<DATE_OF_BIRTH>90.3.15</DATE_OF_BIRTH>` / `<DATE_OF_BIRTH>（昭和四十年五月十日）</DATE_OF_BIRTH>`
+- `<BANK_ACCOUNT>UFJ 新宿 普 1234567</BANK_ACCOUNT>` / `<BANK_ACCOUNT>ゆうちょ銀行 記号10100 番号12345671</BANK_ACCOUNT>`
+
+### 4. 混在文
+- `<PERSON>Taro YAMADA</PERSON> の送付先は <ADDRESS>Shibuya-ku, Jingumae 1-2-3, Tokyo</ADDRESS>、所属は <ORGANIZATION>Sony Group Corporation</ORGANIZATION>`
+- `<PERSON>やまだ たろう</PERSON> / <DATE_OF_BIRTH>S40.5.10</DATE_OF_BIRTH> / <BANK_ACCOUNT>MUFGJPJT 普通 00-1234567</BANK_ACCOUNT>`
+- `<PERSON>山　田　太　郎</PERSON>、<ADDRESS>東京都渋谷区神宮前一丁目二番三号</ADDRESS>、<ORGANIZATION>株式會社三菱重工業</ORGANIZATION>`
+
+## 出力形式
+- 各テキストは `---DOC_SEPARATOR---` で区切ること
+- 1テキストあたり70〜220文字
+- 1テキストにつき、少なくとも2種類の表記体系を混在させること

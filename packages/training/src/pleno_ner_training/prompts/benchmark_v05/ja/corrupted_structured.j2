@@ -1,0 +1,38 @@
+以下の条件に従い、破損した構造化データの中にPIIが残っている日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+CSV・JSON・メール引用・HTML断片の破損下でも、PIIを見落とさず拾えるかを測定します。
+
+## PIIタグ形式
+- `<PERSON>山田太郎</PERSON>`
+- `<ADDRESS>東京都渋谷区神宮前1-2-3</ADDRESS>`
+- `<ORGANIZATION>株式会社サンプル</ORGANIZATION>`
+- `<DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH>`
+- `<BANK_ACCOUNT>三菱UFJ銀行 新宿支店 普通 1234567</BANK_ACCOUNT>`
+
+## 具体パターン
+
+### 1. 改行崩れCSV
+- `"row01","<PERSON>山田太郎</PERSON>","<DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH>","<ADDRESS>東京都渋谷区神宮前1-2-3</ADDRESS>\n","<ORGANIZATION>株式会社青葉</ORGANIZATION>"`
+- `"row02","<PERSON>佐藤花子</PERSON>","<ADDRESS>大阪市北区梅田1-1-1</ADDRESS>\n","<BANK_ACCOUNT>りそな銀行 日本橋支店 普通 3344556</BANK_ACCOUNT>"`
+- `"row03","<PERSON>中村直人</PERSON>","<ORGANIZATION>白波物流</ORGANIZATION>","broken`
+
+### 2. JSON / key 欠落
+- `{"name":"<PERSON>高橋美咲</PERSON>","dob":"<DATE_OF_BIRTH>H2.3.15</DATE_OF_BIRTH>","address":"<ADDRESS>横浜市中区本町2-3-4</ADDRESS>","org":"<ORGANIZATION>海月商事株式会社</ORGANIZATION>"`
+- `{"person":"<PERSON>木村優</PERSON>","address":"<ADDRESS>福岡市博多区博多駅前2-2-2</ADDRESS>","bank":"<BANK_ACCOUNT>楽天銀行 第二営業支店 普通 4567890</BANK_ACCOUNT>"`
+- `{person:"<PERSON>岡田涼</PERSON>", dob:"<DATE_OF_BIRTH>1979-10-30</DATE_OF_BIRTH>", status:"open"`
+
+### 3. メール転送・HTML
+- `> 差出人: <PERSON>小川真由</PERSON>\n> 所属: <ORGANIZATION>蒼天開発株式会社</ORGANIZATION>\n> 住所: <ADDRESS>神戸市中央区磯辺通3-1-1</ADDRESS>`
+- `<div><span><PERSON>森田健人</PERSON></span><br/><ORGANIZATION>東海ソリューションズ</ORGANIZATION></div>`
+- `<li><BANK_ACCOUNT>みずほ銀行 渋谷支店 普通 7654321</BANK_ACCOUNT></li>`
+
+### 4. ログ行
+- `[INFO] customer_update name=<PERSON>伊藤健司</PERSON> addr=<ADDRESS>千葉市中央区富士見1-1-1</ADDRESS> org=<ORGANIZATION>湾岸システムズ</ORGANIZATION>`
+- `event=upsert dob=<DATE_OF_BIRTH>1988/06/15</DATE_OF_BIRTH> actor=<PERSON>石田悠人</PERSON>`
+- `payment=<BANK_ACCOUNT>ゆうちょ銀行 記号10100 番号12345671</BANK_ACCOUNT> status=queued`
+
+## 出力形式
+- 各テキストは `---DOC_SEPARATOR---` で区切ること
+- 1テキストあたり80〜240文字
+- 破損は1〜2種類に絞り、何がPII本体かは人間には分かる程度の可読性を保つこと

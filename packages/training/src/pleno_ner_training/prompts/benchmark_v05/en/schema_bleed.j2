@@ -1,0 +1,38 @@
+Generate {{ num_docs }} English texts where broken schema boundaries cause nearby punctuation, keys, or quotes to bleed into PII spans.
+
+## Purpose
+Measure whether the model can extract only the PII value when delimiters, keys, and broken wrappers are attached at the edges.
+
+## PII Tag Format
+- `<PERSON>John Carter</PERSON>`
+- `<ADDRESS>123 Market Street, San Francisco, CA</ADDRESS>`
+- `<ORGANIZATION>Northwind Analytics LLC</ORGANIZATION>`
+- `<DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH>`
+- `<BANK_ACCOUNT>Chase Bank Midtown Branch Checking 1234567</BANK_ACCOUNT>`
+
+## Concrete Patterns
+
+### 1. Broken CSV / TSV rows
+- `"id","<PERSON>John Carter</PERSON>","<DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH>","<ADDRESS>123 Market Street, San Francisco, CA</ADDRESS>","<ORGANIZATION>Northwind Analytics LLC</ORGANIZATION>"`
+- `<PERSON>Mia Lopez</PERSON>\t<DATE_OF_BIRTH>1988/06/15</DATE_OF_BIRTH>\t<ADDRESS>44 Pine Road, Seattle, WA</ADDRESS>\t<ORGANIZATION>Red Maple Logistics</ORGANIZATION>`
+- `"memo","<PERSON>Emma Hall</PERSON>","<BANK_ACCOUNT>Wells Fargo Bay Branch Checking 9988776</BANK_ACCOUNT>","status=open`
+
+### 2. JSON or key/value bleed
+- `{"name":"<PERSON>Daniel Park</PERSON>","dob":"<DATE_OF_BIRTH>H2.3.15</DATE_OF_BIRTH>","address":"<ADDRESS>88 River Ave, Austin, TX</ADDRESS>","org":"<ORGANIZATION>Silver Tide Ventures</ORGANIZATION>"`
+- `person=<PERSON>Grace Kim</PERSON> addr=<ADDRESS>205 Lake Street, Chicago, IL</ADDRESS> org=<ORGANIZATION>West Loop Data Lab</ORGANIZATION>`
+- `"bank":"<BANK_ACCOUNT>Bank of America South Branch Checking 4567890</BANK_ACCOUNT>","next":"pending`
+
+### 3. Log suffix collisions
+- `[INFO] sync user=<PERSON>Olivia Reed</PERSON> addr=<ADDRESS>77 Harbor Way, Boston, MA</ADDRESS> org=<ORGANIZATION>Blue Harbor Systems Inc.</ORGANIZATION> trace=keep`
+- `event=upsert dob=<DATE_OF_BIRTH>1979-10-30</DATE_OF_BIRTH> actor=<PERSON>Henry Scott</PERSON> code=retry`
+- `payment=<BANK_ACCOUNT>Citibank West Branch Checking 3344556</BANK_ACCOUNT> status=queued`
+
+### 4. Reply quote / HTML fragments
+- `> From: <PERSON>Sophia Reed</PERSON> / Org: <ORGANIZATION>North Pier Holdings</ORGANIZATION>`
+- `<span><PERSON>Ava Stone</PERSON></span><br/><ADDRESS>19 King Street, Denver, CO</ADDRESS>`
+- `<li><BANK_ACCOUNT>Capital One Elm Branch Checking 2233445</BANK_ACCOUNT></li>`
+
+## Output Format
+- Separate each text with `---DOC_SEPARATOR---`
+- Each text should be 80-260 characters
+- Keep punctuation, keys, and wrappers outside the XML tags

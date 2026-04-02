@@ -1,0 +1,38 @@
+以下の条件に従い、破損スキーマの境界からPIIがにじみ出す日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+区切り記号、キー名、閉じ忘れ記号、引用符がエンティティ境界に食い込んでも、PII本体だけを切り出せるかを測定します。
+
+## PIIタグ形式
+- `<PERSON>山田太郎</PERSON>`
+- `<ADDRESS>東京都渋谷区神宮前1-2-3</ADDRESS>`
+- `<ORGANIZATION>株式会社サンプル</ORGANIZATION>`
+- `<DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH>`
+- `<BANK_ACCOUNT>三菱UFJ銀行 新宿支店 普通 1234567</BANK_ACCOUNT>`
+
+## 具体パターン
+
+### 1. CSV/TSV 境界の欠落
+- `"id","<PERSON>山田太郎</PERSON>","<DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH>","<ADDRESS>東京都渋谷区神宮前1-2-3</ADDRESS>","<ORGANIZATION>株式会社青葉</ORGANIZATION>"`
+- `<PERSON>佐藤花子</PERSON>\t<DATE_OF_BIRTH>1988/06/15</DATE_OF_BIRTH>\t<ADDRESS>大阪市北区梅田1-1-1</ADDRESS>\t<ORGANIZATION>北浜総研株式会社</ORGANIZATION>`
+- `"memo","<PERSON>中村直人</PERSON>","<BANK_ACCOUNT>みずほ銀行 渋谷支店 普通 7654321</BANK_ACCOUNT>","status=open`
+
+### 2. JSON / key=value の閉じ忘れ
+- `{"name":"<PERSON>高橋美咲</PERSON>","dob":"<DATE_OF_BIRTH>H2.3.15</DATE_OF_BIRTH>","address":"<ADDRESS>横浜市中区本町2-3-4</ADDRESS>","org":"<ORGANIZATION>海月商事株式会社</ORGANIZATION>"`
+- `person=<PERSON>伊藤健司</PERSON> addr=<ADDRESS>福岡市博多区博多駅前2-2-2</ADDRESS> org=<ORGANIZATION>白波物流</ORGANIZATION>`
+- `"bank":"<BANK_ACCOUNT>りそな銀行 日本橋支店 普通 3344556</BANK_ACCOUNT>","next":"pending`
+
+### 3. ログ接尾辞が近接
+- `[INFO] sync user=<PERSON>木村優</PERSON> addr=<ADDRESS>千葉市中央区富士見1-1-1</ADDRESS> org=<ORGANIZATION>湾岸システムズ</ORGANIZATION> trace=keep`
+- `event=upsert dob=<DATE_OF_BIRTH>1979-10-30</DATE_OF_BIRTH> actor=<PERSON>岡田涼</PERSON> code=retry`
+- `payment=<BANK_ACCOUNT>楽天銀行 第一営業支店 普通 9988776</BANK_ACCOUNT> status=queued`
+
+### 4. 引用返信・HTML 断片
+- `> 差出人: <PERSON>小川真由</PERSON> / 所属: <ORGANIZATION>蒼天開発株式会社</ORGANIZATION>`
+- `<span><PERSON>森田健人</PERSON></span><br/><ADDRESS>神戸市中央区磯辺通3-1-1</ADDRESS>`
+- `<li><BANK_ACCOUNT>ゆうちょ銀行 記号10100 番号12345671</BANK_ACCOUNT></li>`
+
+## 出力形式
+- 各テキストは `---DOC_SEPARATOR---` で区切ること
+- 1テキストあたり80〜260文字
+- 区切り記号やキー名はタグ外に置き、PII値本体だけをタグで囲むこと

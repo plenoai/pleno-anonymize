@@ -1,0 +1,38 @@
+以下の条件に従い、住所と組織の表層が似ており、型を取り違えやすい日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+地名を含む組織名、施設名っぽい住所、支店名っぽい場所表現を混在させ、ADDRESS と ORGANIZATION の型混同を測定します。
+
+## PIIタグ形式
+- `<PERSON>山田太郎</PERSON>`
+- `<ADDRESS>東京都新宿区西新宿2-8-1</ADDRESS>`
+- `<ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION>`
+- `<DATE_OF_BIRTH>1988-06-15</DATE_OF_BIRTH>`
+- `<BANK_ACCOUNT>三井住友銀行 新橋支店 普通 7654321</BANK_ACCOUNT>`
+
+## 具体パターン
+
+### 1. 地名入り組織と本物の住所
+- `<ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION> の送付先は <ADDRESS>東京都新宿区西新宿2-8-1</ADDRESS>`
+- `<ORGANIZATION>渋谷区医師会</ORGANIZATION> と <ADDRESS>渋谷区神南1-2-3</ADDRESS>`
+- `<ORGANIZATION>札幌北一条法律事務所</ORGANIZATION> / <ADDRESS>札幌市中央区北1条西2-3</ADDRESS>`
+
+### 2. 支店・本店の切替
+- `<BANK_ACCOUNT>りそな銀行 日本橋支店 普通 3344556</BANK_ACCOUNT> を使う担当は <PERSON>小川真由</PERSON>`
+- `待ち合わせは日本橋支店前、勤務先は <ORGANIZATION>日本橋支店サポート株式会社</ORGANIZATION>`
+- `<ORGANIZATION>港南本店ソリューションズ株式会社</ORGANIZATION> の所在地は <ADDRESS>東京都港区港南2-3-4</ADDRESS>`
+
+### 3. 施設名っぽい非PII文脈を混ぜる
+- `西新宿本社前で集合` はタグなし、ただし <ORGANIZATION>西新宿本社管理株式会社</ORGANIZATION> はタグあり
+- `中央病院前交差点` はタグなし、ただし <ORGANIZATION>中央病院運営機構</ORGANIZATION> はタグあり
+- `渋谷オフィス街` はタグなし、ただし <ADDRESS>東京都渋谷区桜丘町5-6</ADDRESS> はタグあり
+
+### 4. 人物・日付を補助的に混ぜる
+- `<PERSON>岡田涼</PERSON>（<DATE_OF_BIRTH>1990/03/15</DATE_OF_BIRTH>）は <ORGANIZATION>青葉橋総合開発株式会社</ORGANIZATION> 所属`
+- `<PERSON>木村優</PERSON> の送付先は <ADDRESS>横浜市中区本町2-3-4</ADDRESS>`
+- `振込先は <BANK_ACCOUNT>楽天銀行 第二営業支店 普通 4567890</BANK_ACCOUNT>`
+
+## 出力形式
+- 各テキストは `---DOC_SEPARATOR---` で区切ること
+- 1テキストあたり80〜240文字
+- 各テキストで ADDRESS と ORGANIZATION を少なくとも1件ずつ含めること

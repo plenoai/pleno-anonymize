@@ -1,10 +1,11 @@
-"""ベンチマーク v0.2.0 評価スクリプト.
+"""ベンチマーク評価スクリプト.
 
 学習パイプラインのテストデータではなく、独立したベンチマークデータで
 モデルを評価する。外部モデルとの比較も同時に実施。
 """
 
 import json
+import sys
 import time
 from pathlib import Path
 
@@ -13,7 +14,10 @@ from spacy.scorer import Scorer
 from spacy.tokens import DocBin
 from spacy.training import Example
 
-BENCHMARK_VERSIONS = ["v0.2.0", "v0.3.0", "v0.4.0"]
+from pleno_ner_training.benchmark_config import (
+    BENCHMARK_VERSIONS,
+    LATEST_BENCHMARK_VERSION,
+)
 
 
 def load_benchmark_docs(nlp: spacy.Language, path: Path) -> list:
@@ -130,7 +134,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Benchmark evaluation")
     parser.add_argument("--model", required=True, help="Primary model path")
     parser.add_argument("--language", default="ja", choices=["ja", "en"])
-    parser.add_argument("--version", default="v0.3.0", choices=BENCHMARK_VERSIONS)
+    parser.add_argument("--version", default=LATEST_BENCHMARK_VERSION, choices=BENCHMARK_VERSIONS)
     parser.add_argument("--benchmark-data", type=Path, default=None)
     parser.add_argument("--output-json", type=Path, default=None)
     args = parser.parse_args()
@@ -178,6 +182,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    import sys
-
     main()

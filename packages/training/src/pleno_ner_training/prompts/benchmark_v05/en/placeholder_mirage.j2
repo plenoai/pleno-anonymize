@@ -1,0 +1,36 @@
+Generate {{ num_docs }} English texts that look PII-like but contain no real PII at all.
+
+## Purpose
+Measure false-positive resistance against placeholders, UI copy, specs, sample values, and template text.
+
+## Critical Rules
+- **Do not include any real person, address, organization, date of birth, or bank account**
+- **Do not use any XML tags**
+- Use only field names, placeholders, schema text, and dummy markers
+
+## Concrete Patterns
+
+### 1. Labels with dummy values
+- `Name: not provided / Address: pending / DOB: YYYY-MM-DD / Account: unavailable`
+- `Organization: unassigned / Transfer target: cash only / Branch: TBD`
+- `name=<blank> address=<pending> dob=<unknown> account=<masked>`
+
+### 2. Specs, CSV headers, and templates
+- `name,dob,address,organization,bank_account`
+- `{name: sample_name, address: sample-city-block, dob: YYYY/MM/DD}`
+- `Input example: name=sample_user, address=pref-city-block, account=bank-branch-kind-number`
+
+### 3. PII-shaped but non-real strings
+- `sample_name_01`, `pref-city-town-1-2-3`, `branch-main ordinary 0000000`
+- `state not selected / city not selected / block placeholder`
+- `DOB=N/A, ACCOUNT=TEMP-HOLD, ORG=UNASSIGNED`
+
+### 4. Warning or help text
+- `The following values are examples only. Do not enter real personal data.`
+- `No personal data has been collected yet.`
+- `All visible values on this screen are documentation-only placeholders.`
+
+## Output Format
+- Separate each text with `---DOC_SEPARATOR---`
+- Each text should be 40-180 characters
+- Mix styles such as specs, UI copy, FAQ, warning text, logs, and sample input

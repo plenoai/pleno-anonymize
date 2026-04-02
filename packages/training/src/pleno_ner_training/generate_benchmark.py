@@ -9,76 +9,26 @@
 """
 
 import json
-import re
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 from tqdm import tqdm
 
+from pleno_ner_training.benchmark_config import (
+    BENCHMARK_CONFIGS,
+    LATEST_BENCHMARK_VERSION,
+    resolve_benchmark_template_paths,
+)
 from pleno_ner_training.convert_to_docbin import convert_to_docs, save_docbin
-from pleno_ner_training.entity_types import LANG_CONFIGS, NER_LABELS
+from pleno_ner_training.entity_types import LANG_CONFIGS
 from pleno_ner_training.generate_data import (
     DOC_SEPARATOR,
     parse_annotated_text,
     validate_annotations,
 )
-
-PROMPTS_ROOT = Path(__file__).parent / "prompts"
-
-
-@dataclass(frozen=True)
-class BenchmarkConfig:
-    """バージョン別ベンチマーク設定."""
-
-    version: str
-    prompts_subdir: str
-    template_weights: dict[str, float] = field(default_factory=dict)
-
-
-BENCHMARK_CONFIGS: dict[str, BenchmarkConfig] = {
-    "v0.2.0": BenchmarkConfig(
-        version="v0.2.0",
-        prompts_subdir="benchmark_v02",
-        template_weights={
-            "negative_only.j2": 6.0,
-            "distractor_heavy.j2": 2.5,
-            "narrative_embedded.j2": 2.0,
-            "mixed_language.j2": 1.5,
-        },
-    ),
-    "v0.3.0": BenchmarkConfig(
-        version="v0.3.0",
-        prompts_subdir="benchmark_v03",
-        template_weights={
-            "adversarial_negative.j2": 4.0,
-            "type_confusion.j2": 2.0,
-            "boundary_ambiguity.j2": 2.0,
-            "corrupted_structured.j2": 1.5,
-            "cross_sentence.j2": 1.5,
-        },
-    ),
-    "v0.4.0": BenchmarkConfig(
-        version="v0.4.0",
-        prompts_subdir="benchmark_v04",
-        template_weights={
-            # v0.4.0 新軸
-            "adversarial_negative_v2.j2": 4.0,
-            "semantic_trap.j2": 2.5,
-            "minimal_context.j2": 2.0,
-            "redacted_partial.j2": 1.5,
-            # v0.3.0 から継承（難易度維持）
-            "boundary_ambiguity.j2": 2.0,
-            "type_confusion.j2": 2.0,
-            "extreme_format.j2": 1.0,
-            "dense_multi_entity.j2": 1.0,
-            "corrupted_structured.j2": 1.0,
-        },
-    ),
-}
 
 
 def generate_benchmark_batch(
@@ -140,7 +90,7 @@ def generate_benchmark_batch(
 
 
 def generate_benchmark(
-    version: str = "v0.3.0",
+    version: str = LATEST_BENCHMARK_VERSION,
     language: str = "ja",
     docs_per_template: int = 20,
     batches_per_template: int = 10,
@@ -161,8 +111,8 @@ def generate_benchmark(
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    prompts_dir = PROMPTS_ROOT / config.prompts_subdir / language
-    templates = sorted(prompts_dir.glob("*.j2"))
+    prompts_dir = Path(__file__).parent / "prompts" / config.prompts_subdir / language
+    templates = resolve_benchmark_template_paths(config, language)
     if not templates:
         print(f"[ERROR] No templates in {prompts_dir}", file=sys.stderr)
         raise SystemExit(1)
@@ -243,7 +193,7 @@ def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description="Benchmark data generation")
-    parser.add_argument("--version", default="v0.3.0", choices=list(BENCHMARK_CONFIGS))
+    parser.add_argument("--version", default=LATEST_BENCHMARK_VERSION, choices=list(BENCHMARK_CONFIGS))
     parser.add_argument("--language", default="ja", choices=["ja", "en"])
     parser.add_argument("--docs-per-template", type=int, default=20)
     parser.add_argument("--batches-per-template", type=int, default=10)
