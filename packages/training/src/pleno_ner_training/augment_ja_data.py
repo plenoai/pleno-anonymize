@@ -423,6 +423,30 @@ DISTRACTOR_TEXTS = [
     "平成の時代は1989年から2019年まで続きました。",
 ]
 
+# --- ORGハードネガティブ（ORGに似ているが非ORG） ---
+ORG_HARD_NEGATIVE_TEXTS = [
+    "東京マラソンのエントリーは11月1日に開始されます。国立競技場がゴール地点です。",
+    "渋谷ヒカリエの8階にあるイベントスペースで発表会が開催された。",
+    "PayPayの利用者数が5000万人を突破。キャッシュバックキャンペーンも実施中。",
+    "ISO9001の認証を更新するため、品質管理部が監査対応にあたっている。",
+    "個人情報保護法の改正により、クッキー同意の取得が義務化される見通し。",
+    "マイナンバー制度の利用範囲が拡大され、健康保険証との一体化が進んでいる。",
+    "成田空港第3ターミナルの改修工事は来年3月に完了予定です。",
+    "ふるさと納税の返礼品として、地元産の和牛が人気を集めている。",
+    "営業部の月次会議は毎月第2月曜日に開催。総務課からの連絡事項も確認する。",
+    "六本木ヒルズ森タワーの展望台からは東京タワーとスカイツリーが一望できる。",
+    "TOEIC800点以上が応募条件。簿記検定2級も歓迎スキルとして記載されている。",
+    "基幹システムの移行プロジェクトが第3四半期に開始。SAPシステムへの切り替えを予定。",
+    "グランフロント大阪で開催されたAI展示会に5万人が来場した。",
+    "労働基準法に基づき、残業時間の上限は月45時間と定められている。",
+    "東京駅丸の内口から徒歩5分。東京国際フォーラムの隣に位置する。",
+    "確定申告説明会は税務署の1階ホールで2月16日から3月15日まで開催。",
+    "クローズアップ現代で特集された働き方改革の現状について議論が続いている。",
+    "Suicaの残高が不足しています。チャージは駅の券売機またはコンビニで可能です。",
+    "開発チームのスプリントレビューは金曜日の15時から。QAチームも参加予定。",
+    "羽田空港国際線ターミナルのラウンジが改装オープン。新しい搭乗ゲートも完成した。",
+]
+
 
 def _build_doc(template: str, **kwargs) -> dict | None:
     """テンプレートから文書を構築する。"""
@@ -609,10 +633,16 @@ def generate_augmented_docs(count: int = 1000) -> list[dict]:
         text = NEGATIVE_TEXTS[i % len(NEGATIVE_TEXTS)]
         docs.append({"text": text, "entities": []})
 
-    # ディストラクタ: PII風の非PIIテキスト (10%)
-    dist_count = int(count * 0.10)
+    # ディストラクタ: PII風の非PIIテキスト (7%)
+    dist_count = int(count * 0.07)
     for i in range(dist_count):
         text = DISTRACTOR_TEXTS[i % len(DISTRACTOR_TEXTS)]
+        docs.append({"text": text, "entities": []})
+
+    # ORGハードネガティブ: ORG風だが非ORGのテキスト (8%)
+    org_neg_count = int(count * 0.08)
+    for i in range(org_neg_count):
+        text = ORG_HARD_NEGATIVE_TEXTS[i % len(ORG_HARD_NEGATIVE_TEXTS)]
         docs.append({"text": text, "entities": []})
 
     random.shuffle(docs)
