@@ -1,19 +1,19 @@
-一般配送ルールの説明の後に、実ラベル例として <PERSON>高橋直樹</PERSON> / <ADDRESS>横浜市中区本町2-3-4 グリーンハイツ502</ADDRESS> / <ORGANIZATION>渋谷支店業務サポート株式会社</ORGANIZATION> が残る。
+物流方針の説明ページは配送時間帯や温度帯の話ばかりだが、画像 OCR の端にだけ `<PERSON>高橋直樹</PERSON>` と `<ADDRESS>横浜市中区本町2-3-4 グリーンハイツ502</ADDRESS>`、送り元 `<ORGANIZATION>渋谷支店業務サポート株式会社</ORGANIZATION>` が残っていた。
 ---DOC_SEPARATOR---
-倉庫案内の図版に紛れて <PERSON>木村誠</PERSON> / <ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS> / <BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT> が写り込んでいる。
+倉庫案内の図版には棚番号や作業日ばかりが見えるものの、右下の票面だけ `<PERSON>木村誠</PERSON>`、返送先 `<ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS>`、還付口座 `<BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT>` が読める。
 ---DOC_SEPARATOR---
-配送 FAQ の脚注に <PERSON>林麻衣</PERSON> / <ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS> / <DATE_OF_BIRTH>昭和63年12月3日</DATE_OF_BIRTH> がある。
+配送 FAQ の本文は荷姿や到着予定の一般説明だが、脚注の小さな図版に `<PERSON>林麻衣</PERSON>`、`<ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS>`、`<DATE_OF_BIRTH>昭和63年12月3日</DATE_OF_BIRTH>` が埋まっている。
 ---DOC_SEPARATOR---
-会場案内の本文は一般地図だが、別添ラベルに <PERSON>岡田涼</PERSON> / <ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS> / <ORGANIZATION>青葉橋総合開発株式会社</ORGANIZATION> が印字されていた。
+会場案内の本文は地図と時刻表しか載せていないが、別添スキャンに `<PERSON>岡田涼</PERSON>`、`<ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS>`、`<ORGANIZATION>青葉橋総合開発株式会社</ORGANIZATION>` の配送票が紛れている。
 ---DOC_SEPARATOR---
-配送ポリシーのページに、誤って <PERSON>石田悠人</PERSON> / <ADDRESS>東京都新宿区西新宿2-8-1 第一青葉ビル9F</ADDRESS> / <DATE_OF_BIRTH>1991/03/28</DATE_OF_BIRTH> のラベル画像が残っている。
+配送ポリシーの解説ページでは荷受け条件しか触れていない一方、誤って残ったラベル画像に `<PERSON>石田悠人</PERSON>`、`<ADDRESS>東京都新宿区西新宿2-8-1 第一青葉ビル9F</ADDRESS>`、`<DATE_OF_BIRTH>1991/03/28</DATE_OF_BIRTH>` が印字されていた。
 ---DOC_SEPARATOR---
-物流レポートの補足欄に <PERSON>中村真由美</PERSON> / <ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS> / <ORGANIZATION>梅田業務支援センター株式会社</ORGANIZATION> が現れる。
+物流レポートの本文は一般的な KPI と日付のみだが、補足欄の OCR に `<PERSON>中村真由美</PERSON>`、`<ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS>`、`<ORGANIZATION>梅田業務支援センター株式会社</ORGANIZATION>` が一行だけ出る。
 ---DOC_SEPARATOR---
-配送センターのニュース記事に差込ラベルが混ざり、<PERSON>渡辺美咲</PERSON> / <ADDRESS>札幌市中央区北1条西2-3 北一条オフィス605</ADDRESS> / <ORGANIZATION>札幌北一条支店サポート株式会社</ORGANIZATION> が載る。
+配送センターのニュース記事に差し込まれたサムネイル画像から、`<PERSON>渡辺美咲</PERSON>`、`<ADDRESS>札幌市中央区北1条西2-3 北一条オフィス605</ADDRESS>`、`<ORGANIZATION>札幌北一条支店サポート株式会社</ORGANIZATION>` が判読できる。
 ---DOC_SEPARATOR---
-一般案内の一行にだけ <PERSON>佐藤花子</PERSON> / <ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS> / <BANK_ACCOUNT>三井住友銀行品川支店普通7722114</BANK_ACCOUNT> が残っていた。
+一般案内の一行にだけ、返送ラベルの残部として `<PERSON>佐藤花子</PERSON>`、`<ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS>`、`<BANK_ACCOUNT>三井住友銀行品川支店普通7722114</BANK_ACCOUNT>` が残っていた。
 ---DOC_SEPARATOR---
-配送トラブルの記事の本文は一般論だが、画像説明に <PERSON>高橋直樹</PERSON> / <BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT> が一度だけ出る。
+配送トラブルの記事本文は天候や遅延理由の一般論だが、画像説明の末尾に `<PERSON>高橋直樹</PERSON>` と `<BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT>` が一度だけ現れる。
 ---DOC_SEPARATOR---
-倉庫ブログの添付画像に <PERSON>林麻衣</PERSON> / <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION> / <ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS> が見える。
+倉庫ブログの添付画像 OCR は箱番号や棚番号が大半だが、下端に `<PERSON>林麻衣</PERSON>`、`<ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>`、`<ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS>` が見える。

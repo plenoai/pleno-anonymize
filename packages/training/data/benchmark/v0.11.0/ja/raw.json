@@ -1,289 +1,5 @@
 [
   {
-    "text": "サポート窓口には「請求書の送付先が古いまま届く」とだけ書かれていた。本文の末尾に、正しい宛先は 高橋直樹、送付先は 横浜市中区本町2-3-4 グリーンハイツ502、勤務先は 渋谷支店業務サポート株式会社 と追記されていた。",
-    "entities": [
-      {
-        "start": 48,
-        "end": 52,
-        "label": "PERSON",
-        "text": "高橋直樹"
-      },
-      {
-        "start": 58,
-        "end": 81,
-        "label": "ADDRESS",
-        "text": "横浜市中区本町2-3-4 グリーンハイツ502"
-      },
-      {
-        "start": 87,
-        "end": 101,
-        "label": "ORGANIZATION",
-        "text": "渋谷支店業務サポート株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "support_tickets_c.txt",
-      "doc_idx": 0,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "「画面では sample_user と表示されるが本人確認が通らない」という相談に続いて、別段落にだけ 林麻衣、昭和63年12月3日、烏丸地域連携クリニック が出てくる。",
-    "entities": [
-      {
-        "start": 52,
-        "end": 55,
-        "label": "PERSON",
-        "text": "林麻衣"
-      },
-      {
-        "start": 56,
-        "end": 66,
-        "label": "DATE_OF_BIRTH",
-        "text": "昭和63年12月3日"
-      },
-      {
-        "start": 67,
-        "end": 78,
-        "label": "ORGANIZATION",
-        "text": "烏丸地域連携クリニック"
-      }
-    ],
-    "_meta": {
-      "template": "support_tickets_c.txt",
-      "doc_idx": 1,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "配送遅延の問い合わせ本文は一般的な説明だが、確認欄に 木村誠、返送先 東京都中央区日本橋2-3-4 城東ビル7F、返金口座 りそな銀行日本橋支店普通5566778 が残っていた。",
-    "entities": [
-      {
-        "start": 27,
-        "end": 30,
-        "label": "PERSON",
-        "text": "木村誠"
-      },
-      {
-        "start": 35,
-        "end": 56,
-        "label": "ADDRESS",
-        "text": "東京都中央区日本橋2-3-4 城東ビル7F"
-      },
-      {
-        "start": 62,
-        "end": 81,
-        "label": "BANK_ACCOUNT",
-        "text": "りそな銀行日本橋支店普通5566778"
-      }
-    ],
-    "_meta": {
-      "template": "support_tickets_c.txt",
-      "doc_idx": 2,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "「ダミー住所 sample-pref-sample-city のまま保存された」と書かれた後、修正済み情報として 岡田涼、福岡市博多区博多駅前2-2-2 博多中央コーポ301、青葉橋総合開発株式会社 が挿入されている。",
-    "entities": [
-      {
-        "start": 57,
-        "end": 60,
-        "label": "PERSON",
-        "text": "岡田涼"
-      },
-      {
-        "start": 61,
-        "end": 87,
-        "label": "ADDRESS",
-        "text": "福岡市博多区博多駅前2-2-2 博多中央コーポ301"
-      },
-      {
-        "start": 88,
-        "end": 99,
-        "label": "ORGANIZATION",
-        "text": "青葉橋総合開発株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "support_tickets_c.txt",
-      "doc_idx": 3,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "ログイン解除依頼は一般的なサポート文面だが、本人確認欄にだけ 石田悠人、1991/03/28、送付先 東京都新宿区西新宿2-8-1 第一青葉ビル9F が載っている。",
-    "entities": [
-      {
-        "start": 31,
-        "end": 35,
-        "label": "PERSON",
-        "text": "石田悠人"
-      },
-      {
-        "start": 36,
-        "end": 46,
-        "label": "DATE_OF_BIRTH",
-        "text": "1991/03/28"
-      },
-      {
-        "start": 51,
-        "end": 74,
-        "label": "ADDRESS",
-        "text": "東京都新宿区西新宿2-8-1 第一青葉ビル9F"
-      }
-    ],
-    "_meta": {
-      "template": "support_tickets_c.txt",
-      "doc_idx": 4,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "返金相談の本文では「口座は後日連絡」と書いてある一方、引用部に 中村真由美、三井住友銀行梅田支店普通8844221、大阪府大阪市北区梅田1-1-1 梅田センタービル1203 が一度だけ現れる。",
-    "entities": [
-      {
-        "start": 32,
-        "end": 37,
-        "label": "PERSON",
-        "text": "中村真由美"
-      },
-      {
-        "start": 38,
-        "end": 57,
-        "label": "BANK_ACCOUNT",
-        "text": "三井住友銀行梅田支店普通8844221"
-      },
-      {
-        "start": 58,
-        "end": 86,
-        "label": "ADDRESS",
-        "text": "大阪府大阪市北区梅田1-1-1 梅田センタービル1203"
-      }
-    ],
-    "_meta": {
-      "template": "support_tickets_c.txt",
-      "doc_idx": 5,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "一般的な問い合わせテンプレートの下にケース番号が並ぶだけだが、補足メモの一行に 渡辺美咲、札幌北一条支店サポート株式会社、札幌市中央区北1条西2-3 北一条オフィス605 が混入していた。",
-    "entities": [
-      {
-        "start": 40,
-        "end": 44,
-        "label": "PERSON",
-        "text": "渡辺美咲"
-      },
-      {
-        "start": 45,
-        "end": 60,
-        "label": "ORGANIZATION",
-        "text": "札幌北一条支店サポート株式会社"
-      },
-      {
-        "start": 61,
-        "end": 85,
-        "label": "ADDRESS",
-        "text": "札幌市中央区北1条西2-3 北一条オフィス605"
-      }
-    ],
-    "_meta": {
-      "template": "support_tickets_c.txt",
-      "doc_idx": 6,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "「旧フォームの DOB が YYYY/MM/DD のまま」と相談した後、実値として 昭和四十年五月十日、申請者 佐藤花子、所属 港南本店ソリューションズ株式会社 が続いていた。",
-    "entities": [
-      {
-        "start": 42,
-        "end": 51,
-        "label": "DATE_OF_BIRTH",
-        "text": "昭和四十年五月十日"
-      },
-      {
-        "start": 56,
-        "end": 60,
-        "label": "PERSON",
-        "text": "佐藤花子"
-      },
-      {
-        "start": 64,
-        "end": 80,
-        "label": "ORGANIZATION",
-        "text": "港南本店ソリューションズ株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "support_tickets_c.txt",
-      "doc_idx": 7,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "請求調整のやり取りはテンプレート文が中心だが、差込欄にだけ 高橋直樹 と みずほ銀行渋谷支店普通1234567 が記録されている。",
-    "entities": [
-      {
-        "start": 30,
-        "end": 34,
-        "label": "PERSON",
-        "text": "高橋直樹"
-      },
-      {
-        "start": 37,
-        "end": 55,
-        "label": "BANK_ACCOUNT",
-        "text": "みずほ銀行渋谷支店普通1234567"
-      }
-    ],
-    "_meta": {
-      "template": "support_tickets_c.txt",
-      "doc_idx": 8,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "FAQ への返信文に見えるが、最後の追記部分だけ実案件で、林麻衣、京都市中京区烏丸通2-5-6 烏丸センタービル4F、昭和63年12月3日 が載る。",
-    "entities": [
-      {
-        "start": 29,
-        "end": 32,
-        "label": "PERSON",
-        "text": "林麻衣"
-      },
-      {
-        "start": 33,
-        "end": 58,
-        "label": "ADDRESS",
-        "text": "京都市中京区烏丸通2-5-6 烏丸センタービル4F"
-      },
-      {
-        "start": 59,
-        "end": 69,
-        "label": "DATE_OF_BIRTH",
-        "text": "昭和63年12月3日"
-      }
-    ],
-    "_meta": {
-      "template": "support_tickets_c.txt",
-      "doc_idx": 9,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
     "text": "住民票OCR 申請者佐藤花子生年月日昭和四十年五月十日住所東京都港区港南2-3-4 ひかりレジデンス201勤務先港南本店ソリューションズ株式会社",
     "entities": [
       {
@@ -1002,1162 +718,110 @@
     }
   },
   {
-    "text": "人事部の週報は採用状況の一般説明が中心だが、補足欄に退職手続の対象として 石田悠人、連絡先 東京都新宿区西新宿2-8-1 第一青葉ビル9F、所属 西新宿データラボ株式会社 が記載されていた。",
+    "text": "物流方針の説明ページは配送時間帯や温度帯の話ばかりだが、画像 OCR の端にだけ `高橋直樹` と `横浜市中区本町2-3-4 グリーンハイツ502`、送り元 `渋谷支店業務サポート株式会社` が残っていた。",
     "entities": [
-      {
-        "start": 37,
-        "end": 41,
-        "label": "PERSON",
-        "text": "石田悠人"
-      },
-      {
-        "start": 46,
-        "end": 69,
-        "label": "ADDRESS",
-        "text": "東京都新宿区西新宿2-8-1 第一青葉ビル9F"
-      },
-      {
-        "start": 73,
-        "end": 85,
-        "label": "ORGANIZATION",
-        "text": "西新宿データラボ株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "hr_records_b.txt",
-      "doc_idx": 0,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "人事メモの本文は制度変更についてだが、差込の確認欄に 林麻衣、昭和63年12月3日、烏丸地域連携クリニック が現れる。",
-    "entities": [
-      {
-        "start": 27,
-        "end": 30,
-        "label": "PERSON",
-        "text": "林麻衣"
-      },
-      {
-        "start": 31,
-        "end": 41,
-        "label": "DATE_OF_BIRTH",
-        "text": "昭和63年12月3日"
-      },
       {
         "start": 42,
-        "end": 53,
-        "label": "ORGANIZATION",
-        "text": "烏丸地域連携クリニック"
-      }
-    ],
-    "_meta": {
-      "template": "hr_records_b.txt",
-      "doc_idx": 1,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "異動案内は一般文書として書かれているが、脚注の個票に 岡田涼、福岡市博多区博多駅前2-2-2 博多中央コーポ301、青葉橋総合開発株式会社 が残っている。",
-    "entities": [
-      {
-        "start": 27,
-        "end": 30,
-        "label": "PERSON",
-        "text": "岡田涼"
-      },
-      {
-        "start": 31,
-        "end": 57,
-        "label": "ADDRESS",
-        "text": "福岡市博多区博多駅前2-2-2 博多中央コーポ301"
-      },
-      {
-        "start": 58,
-        "end": 69,
-        "label": "ORGANIZATION",
-        "text": "青葉橋総合開発株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "hr_records_b.txt",
-      "doc_idx": 2,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "評価面談のガイド文に続く参考例として 高橋直樹、生年月日 1988年6月15日、振込先 みずほ銀行渋谷支店普通1234567 が引用されている。",
-    "entities": [
-      {
-        "start": 19,
-        "end": 23,
+        "end": 46,
         "label": "PERSON",
         "text": "高橋直樹"
       },
       {
-        "start": 29,
-        "end": 39,
-        "label": "DATE_OF_BIRTH",
-        "text": "1988年6月15日"
+        "start": 51,
+        "end": 74,
+        "label": "ADDRESS",
+        "text": "横浜市中区本町2-3-4 グリーンハイツ502"
       },
       {
-        "start": 44,
-        "end": 62,
-        "label": "BANK_ACCOUNT",
-        "text": "みずほ銀行渋谷支店普通1234567"
+        "start": 81,
+        "end": 95,
+        "label": "ORGANIZATION",
+        "text": "渋谷支店業務サポート株式会社"
       }
     ],
     "_meta": {
-      "template": "hr_records_b.txt",
-      "doc_idx": 3,
+      "template": "logistics_labels_b.txt",
+      "doc_idx": 0,
       "version": "v0.11.0",
       "language": "ja"
     }
   },
   {
-    "text": "福利厚生の案内では一般論が続くが、添付欄に 木村誠、東京都中央区日本橋2-3-4 城東ビル7F、りそな銀行日本橋支店普通5566778 が載っていた。",
+    "text": "倉庫案内の図版には棚番号や作業日ばかりが見えるものの、右下の票面だけ `木村誠`、返送先 `東京都中央区日本橋2-3-4 城東ビル7F`、還付口座 `りそな銀行日本橋支店普通5566778` が読める。",
     "entities": [
       {
-        "start": 22,
-        "end": 25,
+        "start": 36,
+        "end": 39,
         "label": "PERSON",
         "text": "木村誠"
-      },
-      {
-        "start": 26,
-        "end": 47,
-        "label": "ADDRESS",
-        "text": "東京都中央区日本橋2-3-4 城東ビル7F"
-      },
-      {
-        "start": 48,
-        "end": 67,
-        "label": "BANK_ACCOUNT",
-        "text": "りそな銀行日本橋支店普通5566778"
-      }
-    ],
-    "_meta": {
-      "template": "hr_records_b.txt",
-      "doc_idx": 4,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "社内報の記事に見えるが、末尾の人事問い合わせ例に 中村真由美、梅田業務支援センター株式会社、大阪府大阪市北区梅田1-1-1 梅田センタービル1203 がある。",
-    "entities": [
-      {
-        "start": 25,
-        "end": 30,
-        "label": "PERSON",
-        "text": "中村真由美"
-      },
-      {
-        "start": 31,
-        "end": 45,
-        "label": "ORGANIZATION",
-        "text": "梅田業務支援センター株式会社"
       },
       {
         "start": 46,
-        "end": 74,
+        "end": 67,
         "label": "ADDRESS",
-        "text": "大阪府大阪市北区梅田1-1-1 梅田センタービル1203"
-      }
-    ],
-    "_meta": {
-      "template": "hr_records_b.txt",
-      "doc_idx": 5,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "採用広報の原稿に一般的な文面が続く一方、チェック用の引用部に 渡辺美咲、札幌北一条支店サポート株式会社 が残っている。",
-    "entities": [
-      {
-        "start": 31,
-        "end": 35,
-        "label": "PERSON",
-        "text": "渡辺美咲"
+        "text": "東京都中央区日本橋2-3-4 城東ビル7F"
       },
       {
-        "start": 36,
-        "end": 51,
-        "label": "ORGANIZATION",
-        "text": "札幌北一条支店サポート株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "hr_records_b.txt",
-      "doc_idx": 6,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "年末調整の説明書では placeholder が使われているが、例外事例として 佐藤花子、昭和四十年五月十日、東京都港区港南2-3-4 ひかりレジデンス201 が差し込まれていた。",
-    "entities": [
-      {
-        "start": 40,
-        "end": 44,
-        "label": "PERSON",
-        "text": "佐藤花子"
-      },
-      {
-        "start": 45,
-        "end": 54,
-        "label": "DATE_OF_BIRTH",
-        "text": "昭和四十年五月十日"
-      },
-      {
-        "start": 55,
-        "end": 79,
-        "label": "ADDRESS",
-        "text": "東京都港区港南2-3-4 ひかりレジデンス201"
-      }
-    ],
-    "_meta": {
-      "template": "hr_records_b.txt",
-      "doc_idx": 7,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "評価制度の社内通知に、個別相談先の一例として 高橋直樹 と勤務先 渋谷支店業務サポート株式会社 が載る。",
-    "entities": [
-      {
-        "start": 23,
-        "end": 27,
-        "label": "PERSON",
-        "text": "高橋直樹"
-      },
-      {
-        "start": 33,
-        "end": 47,
-        "label": "ORGANIZATION",
-        "text": "渋谷支店業務サポート株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "hr_records_b.txt",
-      "doc_idx": 8,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "給与振込の運用ルール説明の中に、検証に使った実例として 林麻衣 と 京都銀行四条支店普通6611223 が一度だけ現れる。",
-    "entities": [
-      {
-        "start": 28,
-        "end": 31,
-        "label": "PERSON",
-        "text": "林麻衣"
-      },
-      {
-        "start": 34,
-        "end": 51,
+        "start": 75,
+        "end": 94,
         "label": "BANK_ACCOUNT",
-        "text": "京都銀行四条支店普通6611223"
+        "text": "りそな銀行日本橋支店普通5566778"
       }
     ],
     "_meta": {
-      "template": "hr_records_b.txt",
-      "doc_idx": 9,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "医療制度の解説文に続くケース紹介で、患者 林麻衣、DOB 昭和63年12月3日、紹介元 烏丸地域連携クリニック が一度だけ記されている。",
-    "entities": [
-      {
-        "start": 21,
-        "end": 24,
-        "label": "PERSON",
-        "text": "林麻衣"
-      },
-      {
-        "start": 29,
-        "end": 39,
-        "label": "DATE_OF_BIRTH",
-        "text": "昭和63年12月3日"
-      },
-      {
-        "start": 44,
-        "end": 55,
-        "label": "ORGANIZATION",
-        "text": "烏丸地域連携クリニック"
-      }
-    ],
-    "_meta": {
-      "template": "medical_referrals_b.txt",
-      "doc_idx": 0,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "予約案内は一般的な説明だが、脚注に 佐藤花子、送付先 東京都港区港南2-3-4 ひかりレジデンス201、還付口座 三井住友銀行品川支店普通7722114 が残る。",
-    "entities": [
-      {
-        "start": 18,
-        "end": 22,
-        "label": "PERSON",
-        "text": "佐藤花子"
-      },
-      {
-        "start": 27,
-        "end": 51,
-        "label": "ADDRESS",
-        "text": "東京都港区港南2-3-4 ひかりレジデンス201"
-      },
-      {
-        "start": 57,
-        "end": 76,
-        "label": "BANK_ACCOUNT",
-        "text": "三井住友銀行品川支店普通7722114"
-      }
-    ],
-    "_meta": {
-      "template": "medical_referrals_b.txt",
+      "template": "logistics_labels_b.txt",
       "doc_idx": 1,
       "version": "v0.11.0",
       "language": "ja"
     }
   },
   {
-    "text": "病院広報の本文には会場や日付しか出てこないが、別紙 OCR から 高橋直樹、1988年6月15日、横浜市中区本町2-3-4 グリーンハイツ502 が読める。",
+    "text": "配送 FAQ の本文は荷姿や到着予定の一般説明だが、脚注の小さな図版に `林麻衣`、`京都市中京区烏丸通2-5-6 烏丸センタービル4F`、`昭和63年12月3日` が埋まっている。",
     "entities": [
-      {
-        "start": 33,
-        "end": 37,
-        "label": "PERSON",
-        "text": "高橋直樹"
-      },
-      {
-        "start": 38,
-        "end": 48,
-        "label": "DATE_OF_BIRTH",
-        "text": "1988年6月15日"
-      },
-      {
-        "start": 49,
-        "end": 72,
-        "label": "ADDRESS",
-        "text": "横浜市中区本町2-3-4 グリーンハイツ502"
-      }
-    ],
-    "_meta": {
-      "template": "medical_referrals_b.txt",
-      "doc_idx": 2,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "紹介制度の一般案内に、事例として 岡田涼、青葉橋総合開発株式会社、福岡市博多区博多駅前2-2-2 博多中央コーポ301 が差し込まれている。",
-    "entities": [
-      {
-        "start": 17,
-        "end": 20,
-        "label": "PERSON",
-        "text": "岡田涼"
-      },
-      {
-        "start": 21,
-        "end": 32,
-        "label": "ORGANIZATION",
-        "text": "青葉橋総合開発株式会社"
-      },
-      {
-        "start": 33,
-        "end": 59,
-        "label": "ADDRESS",
-        "text": "福岡市博多区博多駅前2-2-2 博多中央コーポ301"
-      }
-    ],
-    "_meta": {
-      "template": "medical_referrals_b.txt",
-      "doc_idx": 3,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "医療安全レポートの補足欄にだけ 石田悠人、1991/03/28、西新宿データラボ株式会社 が載っている。",
-    "entities": [
-      {
-        "start": 16,
-        "end": 20,
-        "label": "PERSON",
-        "text": "石田悠人"
-      },
-      {
-        "start": 21,
-        "end": 31,
-        "label": "DATE_OF_BIRTH",
-        "text": "1991/03/28"
-      },
-      {
-        "start": 32,
-        "end": 44,
-        "label": "ORGANIZATION",
-        "text": "西新宿データラボ株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "medical_referrals_b.txt",
-      "doc_idx": 4,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "地域医療の特集記事は一般論だが、問い合わせ例に 中村真由美、大阪府大阪市北区梅田1-1-1 梅田センタービル1203 が混ざっている。",
-    "entities": [
-      {
-        "start": 24,
-        "end": 29,
-        "label": "PERSON",
-        "text": "中村真由美"
-      },
-      {
-        "start": 30,
-        "end": 58,
-        "label": "ADDRESS",
-        "text": "大阪府大阪市北区梅田1-1-1 梅田センタービル1203"
-      }
-    ],
-    "_meta": {
-      "template": "medical_referrals_b.txt",
-      "doc_idx": 5,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "公開資料の大半は統計情報だが、注釈に 木村誠、振込先 りそな銀行日本橋支店普通5566778 の療養費事例が含まれる。",
-    "entities": [
-      {
-        "start": 19,
-        "end": 22,
-        "label": "PERSON",
-        "text": "木村誠"
-      },
-      {
-        "start": 27,
-        "end": 46,
-        "label": "BANK_ACCOUNT",
-        "text": "りそな銀行日本橋支店普通5566778"
-      }
-    ],
-    "_meta": {
-      "template": "medical_referrals_b.txt",
-      "doc_idx": 6,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "保健指導のパンフレットは一般向けだが、別紙の事例に 渡辺美咲、札幌北一条支店サポート株式会社 が現れる。",
-    "entities": [
-      {
-        "start": 26,
-        "end": 30,
-        "label": "PERSON",
-        "text": "渡辺美咲"
-      },
-      {
-        "start": 31,
-        "end": 46,
-        "label": "ORGANIZATION",
-        "text": "札幌北一条支店サポート株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "medical_referrals_b.txt",
-      "doc_idx": 7,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "院内 FAQ の説明欄に 林麻衣 のケースが引用され、DOB と紹介元がそのまま残っていた。",
-    "entities": [
-      {
-        "start": 13,
-        "end": 16,
-        "label": "PERSON",
-        "text": "林麻衣"
-      }
-    ],
-    "_meta": {
-      "template": "medical_referrals_b.txt",
-      "doc_idx": 8,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "医療費控除の解説記事に、患者例として 佐藤花子、昭和四十年五月十日、住所 東京都港区港南2-3-4 ひかりレジデンス201 が載っている。",
-    "entities": [
-      {
-        "start": 19,
-        "end": 23,
-        "label": "PERSON",
-        "text": "佐藤花子"
-      },
-      {
-        "start": 24,
-        "end": 33,
-        "label": "DATE_OF_BIRTH",
-        "text": "昭和四十年五月十日"
-      },
       {
         "start": 37,
-        "end": 61,
-        "label": "ADDRESS",
-        "text": "東京都港区港南2-3-4 ひかりレジデンス201"
-      }
-    ],
-    "_meta": {
-      "template": "medical_referrals_b.txt",
-      "doc_idx": 9,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "法改正の解説記事に、参考事例として 木村誠、送達先 東京都中央区日本橋2-3-4 城東ビル7F、返金口座 りそな銀行日本橋支店普通5566778 が載っている。",
-    "entities": [
-      {
-        "start": 18,
-        "end": 21,
-        "label": "PERSON",
-        "text": "木村誠"
-      },
-      {
-        "start": 26,
-        "end": 47,
-        "label": "ADDRESS",
-        "text": "東京都中央区日本橋2-3-4 城東ビル7F"
-      },
-      {
-        "start": 53,
-        "end": 72,
-        "label": "BANK_ACCOUNT",
-        "text": "りそな銀行日本橋支店普通5566778"
-      }
-    ],
-    "_meta": {
-      "template": "legal_notices_b.txt",
-      "doc_idx": 0,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "一般向け通知文の脚注にだけ 高橋直樹、1988年6月15日、勤務先 渋谷支店業務サポート株式会社 が残る。",
-    "entities": [
-      {
-        "start": 14,
-        "end": 18,
-        "label": "PERSON",
-        "text": "高橋直樹"
-      },
-      {
-        "start": 19,
-        "end": 29,
-        "label": "DATE_OF_BIRTH",
-        "text": "1988年6月15日"
-      },
-      {
-        "start": 34,
-        "end": 48,
-        "label": "ORGANIZATION",
-        "text": "渋谷支店業務サポート株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "legal_notices_b.txt",
-      "doc_idx": 1,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "公開裁判資料の大半は一般論だが、別紙に 林麻衣、烏丸地域連携クリニック、昭和63年12月3日 が含まれる。",
-    "entities": [
-      {
-        "start": 20,
-        "end": 23,
+        "end": 40,
         "label": "PERSON",
         "text": "林麻衣"
       },
       {
-        "start": 24,
-        "end": 35,
-        "label": "ORGANIZATION",
-        "text": "烏丸地域連携クリニック"
-      },
-      {
-        "start": 36,
-        "end": 46,
-        "label": "DATE_OF_BIRTH",
-        "text": "昭和63年12月3日"
-      }
-    ],
-    "_meta": {
-      "template": "legal_notices_b.txt",
-      "doc_idx": 2,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "法務ニュースのコラムに、個別案件の例として 岡田涼、福岡市博多区博多駅前2-2-2 博多中央コーポ301 が差し込まれている。",
-    "entities": [
-      {
-        "start": 22,
-        "end": 25,
-        "label": "PERSON",
-        "text": "岡田涼"
-      },
-      {
-        "start": 26,
-        "end": 52,
-        "label": "ADDRESS",
-        "text": "福岡市博多区博多駅前2-2-2 博多中央コーポ301"
-      }
-    ],
-    "_meta": {
-      "template": "legal_notices_b.txt",
-      "doc_idx": 3,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "通知文は匿名化済みと見えるが、注釈部に 石田悠人、西新宿データラボ株式会社 が一度だけ現れる。",
-    "entities": [
-      {
-        "start": 20,
-        "end": 24,
-        "label": "PERSON",
-        "text": "石田悠人"
-      },
-      {
-        "start": 25,
-        "end": 37,
-        "label": "ORGANIZATION",
-        "text": "西新宿データラボ株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "legal_notices_b.txt",
-      "doc_idx": 4,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "解説ページの末尾に和解金振込例が残り、中村真由美、三井住友銀行梅田支店普通8844221 が見える。",
-    "entities": [
-      {
-        "start": 19,
-        "end": 24,
-        "label": "PERSON",
-        "text": "中村真由美"
-      },
-      {
-        "start": 25,
-        "end": 44,
-        "label": "BANK_ACCOUNT",
-        "text": "三井住友銀行梅田支店普通8844221"
-      }
-    ],
-    "_meta": {
-      "template": "legal_notices_b.txt",
-      "doc_idx": 5,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "法律相談の記事に事例として 渡辺美咲、所在地 札幌市中央区北1条西2-3 北一条オフィス605、法人名 札幌北一条支店サポート株式会社 が出る。",
-    "entities": [
-      {
-        "start": 14,
-        "end": 18,
-        "label": "PERSON",
-        "text": "渡辺美咲"
-      },
-      {
-        "start": 23,
-        "end": 47,
-        "label": "ADDRESS",
-        "text": "札幌市中央区北1条西2-3 北一条オフィス605"
-      },
-      {
-        "start": 52,
-        "end": 67,
-        "label": "ORGANIZATION",
-        "text": "札幌北一条支店サポート株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "legal_notices_b.txt",
-      "doc_idx": 6,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "一般通知の本文に個人情報はないが、問い合わせ例に 佐藤花子、東京都港区港南2-3-4 ひかりレジデンス201 が混ざっている。",
-    "entities": [
-      {
-        "start": 25,
-        "end": 29,
-        "label": "PERSON",
-        "text": "佐藤花子"
-      },
-      {
-        "start": 30,
-        "end": 54,
-        "label": "ADDRESS",
-        "text": "東京都港区港南2-3-4 ひかりレジデンス201"
-      }
-    ],
-    "_meta": {
-      "template": "legal_notices_b.txt",
-      "doc_idx": 7,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "法務メモの別紙に 高橋直樹 の還付口座 みずほ銀行渋谷支店普通1234567 が一度だけ現れる。",
-    "entities": [
-      {
-        "start": 9,
-        "end": 13,
-        "label": "PERSON",
-        "text": "高橋直樹"
-      },
-      {
-        "start": 20,
-        "end": 38,
-        "label": "BANK_ACCOUNT",
-        "text": "みずほ銀行渋谷支店普通1234567"
-      }
-    ],
-    "_meta": {
-      "template": "legal_notices_b.txt",
-      "doc_idx": 8,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "一般向けパンフレットの補足欄に 林麻衣、送付先 京都市中京区烏丸通2-5-6 烏丸センタービル4F が残っていた。",
-    "entities": [
-      {
-        "start": 16,
-        "end": 19,
-        "label": "PERSON",
-        "text": "林麻衣"
-      },
-      {
-        "start": 24,
-        "end": 49,
+        "start": 43,
+        "end": 68,
         "label": "ADDRESS",
         "text": "京都市中京区烏丸通2-5-6 烏丸センタービル4F"
-      }
-    ],
-    "_meta": {
-      "template": "legal_notices_b.txt",
-      "doc_idx": 9,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "保険制度の解説記事に、申請例として 佐藤花子、昭和四十年五月十日、住所 東京都港区港南2-3-4 ひかりレジデンス201 が差し込まれている。",
-    "entities": [
-      {
-        "start": 18,
-        "end": 22,
-        "label": "PERSON",
-        "text": "佐藤花子"
       },
       {
-        "start": 23,
-        "end": 32,
-        "label": "DATE_OF_BIRTH",
-        "text": "昭和四十年五月十日"
-      },
-      {
-        "start": 36,
-        "end": 60,
-        "label": "ADDRESS",
-        "text": "東京都港区港南2-3-4 ひかりレジデンス201"
-      }
-    ],
-    "_meta": {
-      "template": "insurance_claims_b.txt",
-      "doc_idx": 0,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "一般 FAQ の別紙に 高橋直樹、還付口座 みずほ銀行渋谷支店普通1234567 が残っていた。",
-    "entities": [
-      {
-        "start": 12,
-        "end": 16,
-        "label": "PERSON",
-        "text": "高橋直樹"
-      },
-      {
-        "start": 22,
-        "end": 40,
-        "label": "BANK_ACCOUNT",
-        "text": "みずほ銀行渋谷支店普通1234567"
-      }
-    ],
-    "_meta": {
-      "template": "insurance_claims_b.txt",
-      "doc_idx": 1,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "契約案内の本文は一般論だが、注記に 林麻衣、烏丸地域連携クリニック、昭和63年12月3日 が載る。",
-    "entities": [
-      {
-        "start": 18,
-        "end": 21,
-        "label": "PERSON",
-        "text": "林麻衣"
-      },
-      {
-        "start": 22,
-        "end": 33,
-        "label": "ORGANIZATION",
-        "text": "烏丸地域連携クリニック"
-      },
-      {
-        "start": 34,
-        "end": 44,
+        "start": 71,
+        "end": 81,
         "label": "DATE_OF_BIRTH",
         "text": "昭和63年12月3日"
       }
     ],
     "_meta": {
-      "template": "insurance_claims_b.txt",
+      "template": "logistics_labels_b.txt",
       "doc_idx": 2,
       "version": "v0.11.0",
       "language": "ja"
     }
   },
   {
-    "text": "事故対応の公開レポートに見えるが、補足欄に 木村誠、東京都中央区日本橋2-3-4 城東ビル7F、りそな銀行日本橋支店普通5566778 が含まれる。",
+    "text": "会場案内の本文は地図と時刻表しか載せていないが、別添スキャンに `岡田涼`、`福岡市博多区博多駅前2-2-2 博多中央コーポ301`、`青葉橋総合開発株式会社` の配送票が紛れている。",
     "entities": [
       {
-        "start": 22,
-        "end": 25,
-        "label": "PERSON",
-        "text": "木村誠"
-      },
-      {
-        "start": 26,
-        "end": 47,
-        "label": "ADDRESS",
-        "text": "東京都中央区日本橋2-3-4 城東ビル7F"
-      },
-      {
-        "start": 48,
-        "end": 67,
-        "label": "BANK_ACCOUNT",
-        "text": "りそな銀行日本橋支店普通5566778"
-      }
-    ],
-    "_meta": {
-      "template": "insurance_claims_b.txt",
-      "doc_idx": 3,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "制度比較のページで、事例欄に 岡田涼、勤務先 青葉橋総合開発株式会社、送付先 福岡市博多区博多駅前2-2-2 博多中央コーポ301 が現れる。",
-    "entities": [
-      {
-        "start": 15,
-        "end": 18,
+        "start": 33,
+        "end": 36,
         "label": "PERSON",
         "text": "岡田涼"
-      },
-      {
-        "start": 23,
-        "end": 34,
-        "label": "ORGANIZATION",
-        "text": "青葉橋総合開発株式会社"
       },
       {
         "start": 39,
         "end": 65,
         "label": "ADDRESS",
         "text": "福岡市博多区博多駅前2-2-2 博多中央コーポ301"
-      }
-    ],
-    "_meta": {
-      "template": "insurance_claims_b.txt",
-      "doc_idx": 4,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "一般公開資料だが、保険請求例の残りとして 石田悠人、1991/03/28 が一行だけ記載されている。",
-    "entities": [
-      {
-        "start": 21,
-        "end": 25,
-        "label": "PERSON",
-        "text": "石田悠人"
       },
       {
-        "start": 26,
-        "end": 36,
-        "label": "DATE_OF_BIRTH",
-        "text": "1991/03/28"
-      }
-    ],
-    "_meta": {
-      "template": "insurance_claims_b.txt",
-      "doc_idx": 5,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "給付説明のページに紛れて 中村真由美、大阪府大阪市北区梅田1-1-1 梅田センタービル1203、梅田業務支援センター株式会社 が露出している。",
-    "entities": [
-      {
-        "start": 13,
-        "end": 18,
-        "label": "PERSON",
-        "text": "中村真由美"
-      },
-      {
-        "start": 19,
-        "end": 47,
-        "label": "ADDRESS",
-        "text": "大阪府大阪市北区梅田1-1-1 梅田センタービル1203"
-      },
-      {
-        "start": 48,
-        "end": 62,
-        "label": "ORGANIZATION",
-        "text": "梅田業務支援センター株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "insurance_claims_b.txt",
-      "doc_idx": 6,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "保険ニュースの脚注で 渡辺美咲、ゆうちょ銀行記号10100番号12345671、所在地 札幌市中央区北1条西2-3 北一条オフィス605 が見える。",
-    "entities": [
-      {
-        "start": 11,
-        "end": 15,
-        "label": "PERSON",
-        "text": "渡辺美咲"
-      },
-      {
-        "start": 16,
-        "end": 39,
-        "label": "BANK_ACCOUNT",
-        "text": "ゆうちょ銀行記号10100番号12345671"
-      },
-      {
-        "start": 44,
-        "end": 68,
-        "label": "ADDRESS",
-        "text": "札幌市中央区北1条西2-3 北一条オフィス605"
-      }
-    ],
-    "_meta": {
-      "template": "insurance_claims_b.txt",
-      "doc_idx": 7,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "案内記事の末尾に 高橋直樹 と生年月日 1988年6月15日 の例が残っていた。",
-    "entities": [
-      {
-        "start": 9,
-        "end": 13,
-        "label": "PERSON",
-        "text": "高橋直樹"
-      },
-      {
-        "start": 20,
-        "end": 30,
-        "label": "DATE_OF_BIRTH",
-        "text": "1988年6月15日"
-      }
-    ],
-    "_meta": {
-      "template": "insurance_claims_b.txt",
-      "doc_idx": 8,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "公開資料の問い合わせ例として 林麻衣、送付先 京都市中京区烏丸通2-5-6 烏丸センタービル4F が載っている。",
-    "entities": [
-      {
-        "start": 15,
-        "end": 18,
-        "label": "PERSON",
-        "text": "林麻衣"
-      },
-      {
-        "start": 23,
-        "end": 48,
-        "label": "ADDRESS",
-        "text": "京都市中京区烏丸通2-5-6 烏丸センタービル4F"
-      }
-    ],
-    "_meta": {
-      "template": "insurance_claims_b.txt",
-      "doc_idx": 9,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "一般配送ルールの説明の後に、実ラベル例として 高橋直樹 / 横浜市中区本町2-3-4 グリーンハイツ502 / 渋谷支店業務サポート株式会社 が残る。",
-    "entities": [
-      {
-        "start": 23,
-        "end": 27,
-        "label": "PERSON",
-        "text": "高橋直樹"
-      },
-      {
-        "start": 30,
-        "end": 53,
-        "label": "ADDRESS",
-        "text": "横浜市中区本町2-3-4 グリーンハイツ502"
-      },
-      {
-        "start": 56,
-        "end": 70,
-        "label": "ORGANIZATION",
-        "text": "渋谷支店業務サポート株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "logistics_labels_b.txt",
-      "doc_idx": 0,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "倉庫案内の図版に紛れて 木村誠 / 東京都中央区日本橋2-3-4 城東ビル7F / りそな銀行日本橋支店普通5566778 が写り込んでいる。",
-    "entities": [
-      {
-        "start": 12,
-        "end": 15,
-        "label": "PERSON",
-        "text": "木村誠"
-      },
-      {
-        "start": 18,
-        "end": 39,
-        "label": "ADDRESS",
-        "text": "東京都中央区日本橋2-3-4 城東ビル7F"
-      },
-      {
-        "start": 42,
-        "end": 61,
-        "label": "BANK_ACCOUNT",
-        "text": "りそな銀行日本橋支店普通5566778"
-      }
-    ],
-    "_meta": {
-      "template": "logistics_labels_b.txt",
-      "doc_idx": 1,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "配送 FAQ の脚注に 林麻衣 / 京都市中京区烏丸通2-5-6 烏丸センタービル4F / 昭和63年12月3日 がある。",
-    "entities": [
-      {
-        "start": 12,
-        "end": 15,
-        "label": "PERSON",
-        "text": "林麻衣"
-      },
-      {
-        "start": 18,
-        "end": 43,
-        "label": "ADDRESS",
-        "text": "京都市中京区烏丸通2-5-6 烏丸センタービル4F"
-      },
-      {
-        "start": 46,
-        "end": 56,
-        "label": "DATE_OF_BIRTH",
-        "text": "昭和63年12月3日"
-      }
-    ],
-    "_meta": {
-      "template": "logistics_labels_b.txt",
-      "doc_idx": 2,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "会場案内の本文は一般地図だが、別添ラベルに 岡田涼 / 福岡市博多区博多駅前2-2-2 博多中央コーポ301 / 青葉橋総合開発株式会社 が印字されていた。",
-    "entities": [
-      {
-        "start": 22,
-        "end": 25,
-        "label": "PERSON",
-        "text": "岡田涼"
-      },
-      {
-        "start": 28,
-        "end": 54,
-        "label": "ADDRESS",
-        "text": "福岡市博多区博多駅前2-2-2 博多中央コーポ301"
-      },
-      {
-        "start": 57,
-        "end": 68,
+        "start": 68,
+        "end": 79,
         "label": "ORGANIZATION",
         "text": "青葉橋総合開発株式会社"
       }
@@ -2170,23 +834,23 @@
     }
   },
   {
-    "text": "配送ポリシーのページに、誤って 石田悠人 / 東京都新宿区西新宿2-8-1 第一青葉ビル9F / 1991/03/28 のラベル画像が残っている。",
+    "text": "配送ポリシーの解説ページでは荷受け条件しか触れていない一方、誤って残ったラベル画像に `石田悠人`、`東京都新宿区西新宿2-8-1 第一青葉ビル9F`、`1991/03/28` が印字されていた。",
     "entities": [
       {
-        "start": 16,
-        "end": 20,
+        "start": 44,
+        "end": 48,
         "label": "PERSON",
         "text": "石田悠人"
       },
       {
-        "start": 23,
-        "end": 46,
+        "start": 51,
+        "end": 74,
         "label": "ADDRESS",
         "text": "東京都新宿区西新宿2-8-1 第一青葉ビル9F"
       },
       {
-        "start": 49,
-        "end": 59,
+        "start": 77,
+        "end": 87,
         "label": "DATE_OF_BIRTH",
         "text": "1991/03/28"
       }
@@ -2199,23 +863,23 @@
     }
   },
   {
-    "text": "物流レポートの補足欄に 中村真由美 / 大阪府大阪市北区梅田1-1-1 梅田センタービル1203 / 梅田業務支援センター株式会社 が現れる。",
+    "text": "物流レポートの本文は一般的な KPI と日付のみだが、補足欄の OCR に `中村真由美`、`大阪府大阪市北区梅田1-1-1 梅田センタービル1203`、`梅田業務支援センター株式会社` が一行だけ出る。",
     "entities": [
       {
-        "start": 12,
-        "end": 17,
+        "start": 39,
+        "end": 44,
         "label": "PERSON",
         "text": "中村真由美"
       },
       {
-        "start": 20,
-        "end": 48,
+        "start": 47,
+        "end": 75,
         "label": "ADDRESS",
         "text": "大阪府大阪市北区梅田1-1-1 梅田センタービル1203"
       },
       {
-        "start": 51,
-        "end": 65,
+        "start": 78,
+        "end": 92,
         "label": "ORGANIZATION",
         "text": "梅田業務支援センター株式会社"
       }
@@ -2228,52 +892,52 @@
     }
   },
   {
-    "text": "配送センターのニュース記事に差込ラベルが混ざり、渡辺美咲 / 札幌市中央区北1条西2-3 北一条オフィス605 / 札幌北一条支店サポート株式会社 が載る。",
+    "text": "配送センターのニュース記事に差し込まれたサムネイル画像から、`渡辺美咲`、`札幌市中央区北1条西2-3 北一条オフィス605`、`札幌北一条支店サポート株式会社` が判読できる。",
+    "entities": [
+      {
+        "start": 31,
+        "end": 35,
+        "label": "PERSON",
+        "text": "渡辺美咲"
+      },
+      {
+        "start": 38,
+        "end": 62,
+        "label": "ADDRESS",
+        "text": "札幌市中央区北1条西2-3 北一条オフィス605"
+      },
+      {
+        "start": 65,
+        "end": 80,
+        "label": "ORGANIZATION",
+        "text": "札幌北一条支店サポート株式会社"
+      }
+    ],
+    "_meta": {
+      "template": "logistics_labels_b.txt",
+      "doc_idx": 6,
+      "version": "v0.11.0",
+      "language": "ja"
+    }
+  },
+  {
+    "text": "一般案内の一行にだけ、返送ラベルの残部として `佐藤花子`、`東京都港区港南2-3-4 ひかりレジデンス201`、`三井住友銀行品川支店普通7722114` が残っていた。",
     "entities": [
       {
         "start": 24,
         "end": 28,
         "label": "PERSON",
-        "text": "渡辺美咲"
+        "text": "佐藤花子"
       },
       {
         "start": 31,
         "end": 55,
         "label": "ADDRESS",
-        "text": "札幌市中央区北1条西2-3 北一条オフィス605"
-      },
-      {
-        "start": 58,
-        "end": 73,
-        "label": "ORGANIZATION",
-        "text": "札幌北一条支店サポート株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "logistics_labels_b.txt",
-      "doc_idx": 6,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "一般案内の一行にだけ 佐藤花子 / 東京都港区港南2-3-4 ひかりレジデンス201 / 三井住友銀行品川支店普通7722114 が残っていた。",
-    "entities": [
-      {
-        "start": 11,
-        "end": 15,
-        "label": "PERSON",
-        "text": "佐藤花子"
-      },
-      {
-        "start": 18,
-        "end": 42,
-        "label": "ADDRESS",
         "text": "東京都港区港南2-3-4 ひかりレジデンス201"
       },
       {
-        "start": 45,
-        "end": 64,
+        "start": 58,
+        "end": 77,
         "label": "BANK_ACCOUNT",
         "text": "三井住友銀行品川支店普通7722114"
       }
@@ -2286,17 +950,17 @@
     }
   },
   {
-    "text": "配送トラブルの記事の本文は一般論だが、画像説明に 高橋直樹 / みずほ銀行渋谷支店普通1234567 が一度だけ出る。",
+    "text": "配送トラブルの記事本文は天候や遅延理由の一般論だが、画像説明の末尾に `高橋直樹` と `みずほ銀行渋谷支店普通1234567` が一度だけ現れる。",
     "entities": [
       {
-        "start": 25,
-        "end": 29,
+        "start": 36,
+        "end": 40,
         "label": "PERSON",
         "text": "高橋直樹"
       },
       {
-        "start": 32,
-        "end": 50,
+        "start": 45,
+        "end": 63,
         "label": "BANK_ACCOUNT",
         "text": "みずほ銀行渋谷支店普通1234567"
       }
@@ -2309,295 +973,29 @@
     }
   },
   {
-    "text": "倉庫ブログの添付画像に 林麻衣 / 烏丸地域連携クリニック / 京都市中京区烏丸通2-5-6 烏丸センタービル4F が見える。",
+    "text": "倉庫ブログの添付画像 OCR は箱番号や棚番号が大半だが、下端に `林麻衣`、`烏丸地域連携クリニック`、`京都市中京区烏丸通2-5-6 烏丸センタービル4F` が見える。",
     "entities": [
-      {
-        "start": 12,
-        "end": 15,
-        "label": "PERSON",
-        "text": "林麻衣"
-      },
-      {
-        "start": 18,
-        "end": 29,
-        "label": "ORGANIZATION",
-        "text": "烏丸地域連携クリニック"
-      },
-      {
-        "start": 32,
-        "end": 57,
-        "label": "ADDRESS",
-        "text": "京都市中京区烏丸通2-5-6 烏丸センタービル4F"
-      }
-    ],
-    "_meta": {
-      "template": "logistics_labels_b.txt",
-      "doc_idx": 9,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "CRM の一般メモに、個別顧客例として 高橋直樹、送付先 横浜市中区本町2-3-4 グリーンハイツ502、勤務先 渋谷支店業務サポート株式会社 が一度だけ現れる。",
-    "entities": [
-      {
-        "start": 20,
-        "end": 24,
-        "label": "PERSON",
-        "text": "高橋直樹"
-      },
-      {
-        "start": 29,
-        "end": 52,
-        "label": "ADDRESS",
-        "text": "横浜市中区本町2-3-4 グリーンハイツ502"
-      },
-      {
-        "start": 57,
-        "end": 71,
-        "label": "ORGANIZATION",
-        "text": "渋谷支店業務サポート株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "crm_notes_b.txt",
-      "doc_idx": 0,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "運用ノートの本文は一般論だが、本人確認の例に 林麻衣、昭和63年12月3日、烏丸地域連携クリニック が引用されている。",
-    "entities": [
-      {
-        "start": 23,
-        "end": 26,
-        "label": "PERSON",
-        "text": "林麻衣"
-      },
-      {
-        "start": 27,
-        "end": 37,
-        "label": "DATE_OF_BIRTH",
-        "text": "昭和63年12月3日"
-      },
-      {
-        "start": 38,
-        "end": 49,
-        "label": "ORGANIZATION",
-        "text": "烏丸地域連携クリニック"
-      }
-    ],
-    "_meta": {
-      "template": "crm_notes_b.txt",
-      "doc_idx": 1,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "CRM 解説記事の脚注に 木村誠、返送先 東京都中央区日本橋2-3-4 城東ビル7F、振込先 りそな銀行日本橋支店普通5566778 が載る。",
-    "entities": [
-      {
-        "start": 13,
-        "end": 16,
-        "label": "PERSON",
-        "text": "木村誠"
-      },
-      {
-        "start": 21,
-        "end": 42,
-        "label": "ADDRESS",
-        "text": "東京都中央区日本橋2-3-4 城東ビル7F"
-      },
-      {
-        "start": 47,
-        "end": 66,
-        "label": "BANK_ACCOUNT",
-        "text": "りそな銀行日本橋支店普通5566778"
-      }
-    ],
-    "_meta": {
-      "template": "crm_notes_b.txt",
-      "doc_idx": 2,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "一般向けの顧客管理記事に、事例欄として 岡田涼、勤務先 青葉橋総合開発株式会社、住所 福岡市博多区博多駅前2-2-2 博多中央コーポ301 が残る。",
-    "entities": [
-      {
-        "start": 20,
-        "end": 23,
-        "label": "PERSON",
-        "text": "岡田涼"
-      },
-      {
-        "start": 28,
-        "end": 39,
-        "label": "ORGANIZATION",
-        "text": "青葉橋総合開発株式会社"
-      },
-      {
-        "start": 43,
-        "end": 69,
-        "label": "ADDRESS",
-        "text": "福岡市博多区博多駅前2-2-2 博多中央コーポ301"
-      }
-    ],
-    "_meta": {
-      "template": "crm_notes_b.txt",
-      "doc_idx": 3,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "CRM レポートの添付メモに 石田悠人、1991/03/28、西新宿データラボ株式会社 が一度だけ現れる。",
-    "entities": [
-      {
-        "start": 15,
-        "end": 19,
-        "label": "PERSON",
-        "text": "石田悠人"
-      },
-      {
-        "start": 20,
-        "end": 30,
-        "label": "DATE_OF_BIRTH",
-        "text": "1991/03/28"
-      },
-      {
-        "start": 31,
-        "end": 43,
-        "label": "ORGANIZATION",
-        "text": "西新宿データラボ株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "crm_notes_b.txt",
-      "doc_idx": 4,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "社内報の CRM 記事は一般論だが、補足欄に 中村真由美、大阪府大阪市北区梅田1-1-1 梅田センタービル1203 が混ざっていた。",
-    "entities": [
-      {
-        "start": 23,
-        "end": 28,
-        "label": "PERSON",
-        "text": "中村真由美"
-      },
-      {
-        "start": 29,
-        "end": 57,
-        "label": "ADDRESS",
-        "text": "大阪府大阪市北区梅田1-1-1 梅田センタービル1203"
-      }
-    ],
-    "_meta": {
-      "template": "crm_notes_b.txt",
-      "doc_idx": 5,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "機能紹介ページの事例欄に 渡辺美咲、札幌北一条支店サポート株式会社、札幌市中央区北1条西2-3 北一条オフィス605 が出る。",
-    "entities": [
-      {
-        "start": 13,
-        "end": 17,
-        "label": "PERSON",
-        "text": "渡辺美咲"
-      },
-      {
-        "start": 18,
-        "end": 33,
-        "label": "ORGANIZATION",
-        "text": "札幌北一条支店サポート株式会社"
-      },
       {
         "start": 34,
-        "end": 58,
-        "label": "ADDRESS",
-        "text": "札幌市中央区北1条西2-3 北一条オフィス605"
-      }
-    ],
-    "_meta": {
-      "template": "crm_notes_b.txt",
-      "doc_idx": 6,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "一般 FAQ の最後に 佐藤花子、還付口座 三井住友銀行品川支店普通7722114 が一度だけ残っていた。",
-    "entities": [
-      {
-        "start": 12,
-        "end": 16,
-        "label": "PERSON",
-        "text": "佐藤花子"
-      },
-      {
-        "start": 22,
-        "end": 41,
-        "label": "BANK_ACCOUNT",
-        "text": "三井住友銀行品川支店普通7722114"
-      }
-    ],
-    "_meta": {
-      "template": "crm_notes_b.txt",
-      "doc_idx": 7,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "CRM ノートのサンプル画像から 高橋直樹 と みずほ銀行渋谷支店普通1234567 が OCR 抽出される。",
-    "entities": [
-      {
-        "start": 17,
-        "end": 21,
-        "label": "PERSON",
-        "text": "高橋直樹"
-      },
-      {
-        "start": 24,
-        "end": 42,
-        "label": "BANK_ACCOUNT",
-        "text": "みずほ銀行渋谷支店普通1234567"
-      }
-    ],
-    "_meta": {
-      "template": "crm_notes_b.txt",
-      "doc_idx": 8,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "一般向け CRM 運用記事に、問い合わせ例として 林麻衣、送付先 京都市中京区烏丸通2-5-6 烏丸センタービル4F が記載されていた。",
-    "entities": [
-      {
-        "start": 25,
-        "end": 28,
+        "end": 37,
         "label": "PERSON",
         "text": "林麻衣"
       },
       {
-        "start": 33,
-        "end": 58,
+        "start": 40,
+        "end": 51,
+        "label": "ORGANIZATION",
+        "text": "烏丸地域連携クリニック"
+      },
+      {
+        "start": 54,
+        "end": 79,
         "label": "ADDRESS",
         "text": "京都市中京区烏丸通2-5-6 烏丸センタービル4F"
       }
     ],
     "_meta": {
-      "template": "crm_notes_b.txt",
+      "template": "logistics_labels_b.txt",
       "doc_idx": 9,
       "version": "v0.11.0",
       "language": "ja"
@@ -4064,290 +2462,6 @@
     }
   },
   {
-    "text": "地域イベントの報告書は会場導線や日程の説明が大半だが、参加申請の控えが残っており 佐藤花子、港南本店ソリューションズ株式会社、東京都港区港南2-3-4 ひかりレジデンス201 が見える。",
-    "entities": [
-      {
-        "start": 41,
-        "end": 45,
-        "label": "PERSON",
-        "text": "佐藤花子"
-      },
-      {
-        "start": 46,
-        "end": 62,
-        "label": "ORGANIZATION",
-        "text": "港南本店ソリューションズ株式会社"
-      },
-      {
-        "start": 63,
-        "end": 87,
-        "label": "ADDRESS",
-        "text": "東京都港区港南2-3-4 ひかりレジデンス201"
-      }
-    ],
-    "_meta": {
-      "template": "mixed_context_reports_a.txt",
-      "doc_idx": 0,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "会議録の本文には地名や施設名ばかりが続く。一方で添付の返金票には 高橋直樹、みずほ銀行渋谷支店普通1234567、横浜市中区本町2-3-4 グリーンハイツ502 が含まれている。",
-    "entities": [
-      {
-        "start": 33,
-        "end": 37,
-        "label": "PERSON",
-        "text": "高橋直樹"
-      },
-      {
-        "start": 38,
-        "end": 56,
-        "label": "BANK_ACCOUNT",
-        "text": "みずほ銀行渋谷支店普通1234567"
-      },
-      {
-        "start": 57,
-        "end": 80,
-        "label": "ADDRESS",
-        "text": "横浜市中区本町2-3-4 グリーンハイツ502"
-      }
-    ],
-    "_meta": {
-      "template": "mixed_context_reports_a.txt",
-      "doc_idx": 1,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "制度解説パンフレットの大半は一般論だが、問い合わせ例の枠に 林麻衣、昭和63年12月3日、烏丸地域連携クリニック が差し込まれている。",
-    "entities": [
-      {
-        "start": 30,
-        "end": 33,
-        "label": "PERSON",
-        "text": "林麻衣"
-      },
-      {
-        "start": 34,
-        "end": 44,
-        "label": "DATE_OF_BIRTH",
-        "text": "昭和63年12月3日"
-      },
-      {
-        "start": 45,
-        "end": 56,
-        "label": "ORGANIZATION",
-        "text": "烏丸地域連携クリニック"
-      }
-    ],
-    "_meta": {
-      "template": "mixed_context_reports_a.txt",
-      "doc_idx": 2,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "ニュース解説と見せかけた報告書の末尾に個別申請情報が混ざる。対象者は 岡田涼、送付先は 福岡市博多区博多駅前2-2-2 博多中央コーポ301、勤務先は 青葉橋総合開発株式会社。",
-    "entities": [
-      {
-        "start": 35,
-        "end": 38,
-        "label": "PERSON",
-        "text": "岡田涼"
-      },
-      {
-        "start": 44,
-        "end": 70,
-        "label": "ADDRESS",
-        "text": "福岡市博多区博多駅前2-2-2 博多中央コーポ301"
-      },
-      {
-        "start": 76,
-        "end": 87,
-        "label": "ORGANIZATION",
-        "text": "青葉橋総合開発株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "mixed_context_reports_a.txt",
-      "doc_idx": 3,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "一般向け案内の脚注部分にだけ入館票が挟まっており、石田悠人、1991/03/28、東京都新宿区西新宿2-8-1 第一青葉ビル9F が露出している。",
-    "entities": [
-      {
-        "start": 25,
-        "end": 29,
-        "label": "PERSON",
-        "text": "石田悠人"
-      },
-      {
-        "start": 30,
-        "end": 40,
-        "label": "DATE_OF_BIRTH",
-        "text": "1991/03/28"
-      },
-      {
-        "start": 41,
-        "end": 64,
-        "label": "ADDRESS",
-        "text": "東京都新宿区西新宿2-8-1 第一青葉ビル9F"
-      }
-    ],
-    "_meta": {
-      "template": "mixed_context_reports_a.txt",
-      "doc_idx": 4,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "機能紹介記事の本文は一般文書だが、サンプル欄に実データが混入し 木村誠、りそな銀行日本橋支店普通5566778、東京都中央区日本橋2-3-4 城東ビル7F が掲載された。",
-    "entities": [
-      {
-        "start": 32,
-        "end": 35,
-        "label": "PERSON",
-        "text": "木村誠"
-      },
-      {
-        "start": 36,
-        "end": 55,
-        "label": "BANK_ACCOUNT",
-        "text": "りそな銀行日本橋支店普通5566778"
-      },
-      {
-        "start": 56,
-        "end": 77,
-        "label": "ADDRESS",
-        "text": "東京都中央区日本橋2-3-4 城東ビル7F"
-      }
-    ],
-    "_meta": {
-      "template": "mixed_context_reports_a.txt",
-      "doc_idx": 5,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "金融教育記事の末尾に事例紹介があり、渡辺美咲、ゆうちょ銀行記号10100番号12345671、札幌北一条支店サポート株式会社 が一度だけ現れる。",
-    "entities": [
-      {
-        "start": 18,
-        "end": 22,
-        "label": "PERSON",
-        "text": "渡辺美咲"
-      },
-      {
-        "start": 23,
-        "end": 46,
-        "label": "BANK_ACCOUNT",
-        "text": "ゆうちょ銀行記号10100番号12345671"
-      },
-      {
-        "start": 47,
-        "end": 62,
-        "label": "ORGANIZATION",
-        "text": "札幌北一条支店サポート株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "mixed_context_reports_a.txt",
-      "doc_idx": 6,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "観光案内文の一部として見えるが、下部に個票が混ざっている。氏名 中村真由美、住所 大阪府大阪市北区梅田1-1-1 梅田センタービル1203、勤務先 梅田業務支援センター株式会社。",
-    "entities": [
-      {
-        "start": 32,
-        "end": 37,
-        "label": "PERSON",
-        "text": "中村真由美"
-      },
-      {
-        "start": 41,
-        "end": 69,
-        "label": "ADDRESS",
-        "text": "大阪府大阪市北区梅田1-1-1 梅田センタービル1203"
-      },
-      {
-        "start": 74,
-        "end": 88,
-        "label": "ORGANIZATION",
-        "text": "梅田業務支援センター株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "mixed_context_reports_a.txt",
-      "doc_idx": 7,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "一般公開資料の別紙に還付処理情報が残り、高橋直樹 の DOB 1988年6月15日 と振込先 みずほ銀行渋谷支店普通1234567 が判読できる。",
-    "entities": [
-      {
-        "start": 20,
-        "end": 24,
-        "label": "PERSON",
-        "text": "高橋直樹"
-      },
-      {
-        "start": 31,
-        "end": 41,
-        "label": "DATE_OF_BIRTH",
-        "text": "1988年6月15日"
-      },
-      {
-        "start": 47,
-        "end": 65,
-        "label": "BANK_ACCOUNT",
-        "text": "みずほ銀行渋谷支店普通1234567"
-      }
-    ],
-    "_meta": {
-      "template": "mixed_context_reports_a.txt",
-      "doc_idx": 8,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "制度比較レポートでは一般的な会場案内が続くが、注釈欄にだけ 林麻衣 の送付先 京都市中京区烏丸通2-5-6 烏丸センタービル4F が載っている。",
-    "entities": [
-      {
-        "start": 30,
-        "end": 33,
-        "label": "PERSON",
-        "text": "林麻衣"
-      },
-      {
-        "start": 39,
-        "end": 64,
-        "label": "ADDRESS",
-        "text": "京都市中京区烏丸通2-5-6 烏丸センタービル4F"
-      }
-    ],
-    "_meta": {
-      "template": "mixed_context_reports_a.txt",
-      "doc_idx": 9,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
     "text": "自治会掲示板: 港南交流センターの利用再開、西新宿文化会館の改修、日本橋支店前広場のイベント予定を案内。個人の氏名・住所・口座情報は掲載しない。",
     "entities": [],
     "_meta": {
@@ -4742,502 +2856,6 @@
     "entities": [],
     "_meta": {
       "template": "technical_blogs_a.txt",
-      "doc_idx": 9,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "技術ブログの本文は一般論だが、スクリーンショット中にだけ 高橋直樹 と みずほ銀行渋谷支店普通1234567 が写り込んでいる。",
-    "entities": [
-      {
-        "start": 29,
-        "end": 33,
-        "label": "PERSON",
-        "text": "高橋直樹"
-      },
-      {
-        "start": 36,
-        "end": 54,
-        "label": "BANK_ACCOUNT",
-        "text": "みずほ銀行渋谷支店普通1234567"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_c.txt",
-      "doc_idx": 0,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "観光案内の脚注に配送控えが混ざり、宛名 木村誠、送付先 東京都中央区日本橋2-3-4 城東ビル7F が一度だけ現れる。",
-    "entities": [
-      {
-        "start": 20,
-        "end": 23,
-        "label": "PERSON",
-        "text": "木村誠"
-      },
-      {
-        "start": 28,
-        "end": 49,
-        "label": "ADDRESS",
-        "text": "東京都中央区日本橋2-3-4 城東ビル7F"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_c.txt",
-      "doc_idx": 1,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "学会記事の注記部分にだけ 林麻衣、所属 烏丸地域連携クリニック、DOB 昭和63年12月3日 が含まれる。",
-    "entities": [
-      {
-        "start": 13,
-        "end": 16,
-        "label": "PERSON",
-        "text": "林麻衣"
-      },
-      {
-        "start": 20,
-        "end": 31,
-        "label": "ORGANIZATION",
-        "text": "烏丸地域連携クリニック"
-      },
-      {
-        "start": 36,
-        "end": 46,
-        "label": "DATE_OF_BIRTH",
-        "text": "昭和63年12月3日"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_c.txt",
-      "doc_idx": 2,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "地域ニュースの本文は一般情報だが、別添画像の票面に 岡田涼、福岡市博多区博多駅前2-2-2 博多中央コーポ301 が判読できる。",
-    "entities": [
-      {
-        "start": 26,
-        "end": 29,
-        "label": "PERSON",
-        "text": "岡田涼"
-      },
-      {
-        "start": 30,
-        "end": 56,
-        "label": "ADDRESS",
-        "text": "福岡市博多区博多駅前2-2-2 博多中央コーポ301"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_c.txt",
-      "doc_idx": 3,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "公共案内の脚注にだけ 石田悠人、西新宿データラボ株式会社、1991/03/28 が載っていた。",
-    "entities": [
-      {
-        "start": 11,
-        "end": 15,
-        "label": "PERSON",
-        "text": "石田悠人"
-      },
-      {
-        "start": 16,
-        "end": 28,
-        "label": "ORGANIZATION",
-        "text": "西新宿データラボ株式会社"
-      },
-      {
-        "start": 29,
-        "end": 39,
-        "label": "DATE_OF_BIRTH",
-        "text": "1991/03/28"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_c.txt",
-      "doc_idx": 4,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "製品紹介ページの末尾に誤って返金案内が残り、渡辺美咲、ゆうちょ銀行記号10100番号12345671 が一度だけ出る。",
-    "entities": [
-      {
-        "start": 22,
-        "end": 26,
-        "label": "PERSON",
-        "text": "渡辺美咲"
-      },
-      {
-        "start": 27,
-        "end": 50,
-        "label": "BANK_ACCOUNT",
-        "text": "ゆうちょ銀行記号10100番号12345671"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_c.txt",
-      "doc_idx": 5,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "エッセイ風の記事の本文に個人情報はないが、注釈の事例欄に 中村真由美、大阪府大阪市北区梅田1-1-1 梅田センタービル1203 が混ざる。",
-    "entities": [
-      {
-        "start": 29,
-        "end": 34,
-        "label": "PERSON",
-        "text": "中村真由美"
-      },
-      {
-        "start": 35,
-        "end": 63,
-        "label": "ADDRESS",
-        "text": "大阪府大阪市北区梅田1-1-1 梅田センタービル1203"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_c.txt",
-      "doc_idx": 6,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "一般向けコラムの脚注で 佐藤花子、港南本店ソリューションズ株式会社、東京都港区港南2-3-4 ひかりレジデンス201 が露出している。",
-    "entities": [
-      {
-        "start": 12,
-        "end": 16,
-        "label": "PERSON",
-        "text": "佐藤花子"
-      },
-      {
-        "start": 17,
-        "end": 33,
-        "label": "ORGANIZATION",
-        "text": "港南本店ソリューションズ株式会社"
-      },
-      {
-        "start": 34,
-        "end": 58,
-        "label": "ADDRESS",
-        "text": "東京都港区港南2-3-4 ひかりレジデンス201"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_c.txt",
-      "doc_idx": 7,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "会場レポートの補足資料に 高橋直樹 の DOB 1988年6月15日 が一度だけ記されている。本文は一般案内である。",
-    "entities": [
-      {
-        "start": 13,
-        "end": 17,
-        "label": "PERSON",
-        "text": "高橋直樹"
-      },
-      {
-        "start": 24,
-        "end": 34,
-        "label": "DATE_OF_BIRTH",
-        "text": "1988年6月15日"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_c.txt",
-      "doc_idx": 8,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "運用記事の例外ケース欄に 林麻衣、京都市中京区烏丸通2-5-6 烏丸センタービル4F が差し込まれていた。",
-    "entities": [
-      {
-        "start": 13,
-        "end": 16,
-        "label": "PERSON",
-        "text": "林麻衣"
-      },
-      {
-        "start": 17,
-        "end": 42,
-        "label": "ADDRESS",
-        "text": "京都市中京区烏丸通2-5-6 烏丸センタービル4F"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_c.txt",
-      "doc_idx": 9,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "一般ニュースの最後の一文にだけ 佐藤花子 への返送指示が残り、送付先として 東京都港区港南2-3-4 ひかりレジデンス201 が現れる。",
-    "entities": [
-      {
-        "start": 16,
-        "end": 20,
-        "label": "PERSON",
-        "text": "佐藤花子"
-      },
-      {
-        "start": 38,
-        "end": 62,
-        "label": "ADDRESS",
-        "text": "東京都港区港南2-3-4 ひかりレジデンス201"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_d.txt",
-      "doc_idx": 0,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "学術記事の脚注でケース紹介として 岡田涼（平成2年7月7日）が引用されるが、本文は制度解説である。",
-    "entities": [
-      {
-        "start": 17,
-        "end": 20,
-        "label": "PERSON",
-        "text": "岡田涼"
-      },
-      {
-        "start": 21,
-        "end": 29,
-        "label": "DATE_OF_BIRTH",
-        "text": "平成2年7月7日"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_d.txt",
-      "doc_idx": 1,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "技術ブログのサンプル画像にだけ りそな銀行日本橋支店普通5566778 と 木村誠 が写り込んでいる。",
-    "entities": [
-      {
-        "start": 16,
-        "end": 35,
-        "label": "BANK_ACCOUNT",
-        "text": "りそな銀行日本橋支店普通5566778"
-      },
-      {
-        "start": 38,
-        "end": 41,
-        "label": "PERSON",
-        "text": "木村誠"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_d.txt",
-      "doc_idx": 2,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "旅行記事の別紙に 石田悠人、勤務先 西新宿データラボ株式会社 の入館カードが混在していた。",
-    "entities": [
-      {
-        "start": 9,
-        "end": 13,
-        "label": "PERSON",
-        "text": "石田悠人"
-      },
-      {
-        "start": 18,
-        "end": 30,
-        "label": "ORGANIZATION",
-        "text": "西新宿データラボ株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_d.txt",
-      "doc_idx": 3,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "会議記事の図版に 渡辺美咲、札幌北一条支店サポート株式会社、札幌市中央区北1条西2-3 北一条オフィス605 が残る。",
-    "entities": [
-      {
-        "start": 9,
-        "end": 13,
-        "label": "PERSON",
-        "text": "渡辺美咲"
-      },
-      {
-        "start": 14,
-        "end": 29,
-        "label": "ORGANIZATION",
-        "text": "札幌北一条支店サポート株式会社"
-      },
-      {
-        "start": 30,
-        "end": 54,
-        "label": "ADDRESS",
-        "text": "札幌市中央区北1条西2-3 北一条オフィス605"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_d.txt",
-      "doc_idx": 4,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "公開レポート本文は一般論だが、補遺に 中村真由美 と 三井住友銀行梅田支店普通8844221 が一度だけ現れる。",
-    "entities": [
-      {
-        "start": 19,
-        "end": 24,
-        "label": "PERSON",
-        "text": "中村真由美"
-      },
-      {
-        "start": 27,
-        "end": 46,
-        "label": "BANK_ACCOUNT",
-        "text": "三井住友銀行梅田支店普通8844221"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_d.txt",
-      "doc_idx": 5,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "FAQ ページの注記に 高橋直樹、渋谷支店業務サポート株式会社 が誤って貼り込まれていた。",
-    "entities": [
-      {
-        "start": 12,
-        "end": 16,
-        "label": "PERSON",
-        "text": "高橋直樹"
-      },
-      {
-        "start": 17,
-        "end": 31,
-        "label": "ORGANIZATION",
-        "text": "渋谷支店業務サポート株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_d.txt",
-      "doc_idx": 6,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "広報資料の脚注で 林麻衣 の DOB 昭和63年12月3日 と紹介元 烏丸地域連携クリニック が露出している。",
-    "entities": [
-      {
-        "start": 9,
-        "end": 12,
-        "label": "PERSON",
-        "text": "林麻衣"
-      },
-      {
-        "start": 19,
-        "end": 29,
-        "label": "DATE_OF_BIRTH",
-        "text": "昭和63年12月3日"
-      },
-      {
-        "start": 35,
-        "end": 46,
-        "label": "ORGANIZATION",
-        "text": "烏丸地域連携クリニック"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_d.txt",
-      "doc_idx": 7,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "一般記事のコメント欄に還付処理の例が残り、高橋直樹 と みずほ銀行渋谷支店普通1234567 が判読できる。",
-    "entities": [
-      {
-        "start": 21,
-        "end": 25,
-        "label": "PERSON",
-        "text": "高橋直樹"
-      },
-      {
-        "start": 28,
-        "end": 46,
-        "label": "BANK_ACCOUNT",
-        "text": "みずほ銀行渋谷支店普通1234567"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_d.txt",
-      "doc_idx": 8,
-      "version": "v0.11.0",
-      "language": "ja"
-    }
-  },
-  {
-    "text": "技術メモの下部にのみ 岡田涼、福岡市博多区博多駅前2-2-2 博多中央コーポ301、青葉橋総合開発株式会社 が載っていた。",
-    "entities": [
-      {
-        "start": 11,
-        "end": 14,
-        "label": "PERSON",
-        "text": "岡田涼"
-      },
-      {
-        "start": 15,
-        "end": 41,
-        "label": "ADDRESS",
-        "text": "福岡市博多区博多駅前2-2-2 博多中央コーポ301"
-      },
-      {
-        "start": 42,
-        "end": 53,
-        "label": "ORGANIZATION",
-        "text": "青葉橋総合開発株式会社"
-      }
-    ],
-    "_meta": {
-      "template": "subtle_mentions_d.txt",
       "doc_idx": 9,
       "version": "v0.11.0",
       "language": "ja"
