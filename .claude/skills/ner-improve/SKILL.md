@@ -92,10 +92,15 @@ Log the hypothesis to experiment log, then proceed immediately. Do NOT ask for u
 
 Execute the experiment immediately:
 
-1. **Backup**: Create a snapshot tag
+1. **Backup model-best**: Before overwriting, always save the current best model
    ```bash
    cd packages/training
    EXPERIMENT_ID=$(date +%Y%m%d_%H%M%S)_$(echo $HYPOTHESIS | head -c 20 | tr ' ' '_')
+   # Save current best model for rollback
+   if [ -d output/ja-v02/model-best ]; then
+     tar czf /tmp/model-best-backup-${EXPERIMENT_ID}.tar.gz output/ja-v02/model-best/
+     echo "Backed up model-best to /tmp/model-best-backup-${EXPERIMENT_ID}.tar.gz"
+   fi
    ```
 
 2. **Implement**: Make the specific change (new prompts, augmented data, config change)
@@ -105,11 +110,12 @@ Execute the experiment immediately:
    cd packages/training && make train-v02  # or appropriate target
    ```
    Training is the bottleneck. Use CNN config for rapid iteration (~5-10 min).
+   Use cloud (RunPod CPU5 or vast.ai) for faster training. See cloud notes below.
 
 4. **Evaluate**: Run BOTH test evaluation and benchmark evaluation
    ```bash
    cd packages/training && make evaluate-v02
-   cd packages/training && make benchmark-v03-evaluate  # and v0.4.0
+   cd packages/training && make benchmark-v03-evaluate  # and v0.4.0, v0.5.0
    ```
 
 ### Phase 3: Judgment
@@ -130,7 +136,12 @@ Compare results against the PREVIOUS best scores:
 4. Log the result (see Experiment Log Format below)
 
 If KEEP: commit the changes with message `exp: {hypothesis} → F1 {old}→{new}`
-If DISCARD: revert all changes, log the failure reason
+If DISCARD: restore model-best from backup and re-evaluate to confirm scores match
+   ```bash
+   rm -rf output/ja-v02/model-best
+   tar xzf /tmp/model-best-backup-${EXPERIMENT_ID}.tar.gz
+   # Re-evaluate to restore scores.json
+   ```
 
 ### Phase 4: Loop or Stop
 
