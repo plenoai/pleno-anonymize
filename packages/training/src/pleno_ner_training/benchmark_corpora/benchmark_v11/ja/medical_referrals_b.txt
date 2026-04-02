@@ -1,0 +1,19 @@
+医療制度の解説文に続くケース紹介で、患者 <PERSON>林麻衣</PERSON>、DOB <DATE_OF_BIRTH>昭和63年12月3日</DATE_OF_BIRTH>、紹介元 <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION> が一度だけ記されている。
+---DOC_SEPARATOR---
+予約案内は一般的な説明だが、脚注に <PERSON>佐藤花子</PERSON>、送付先 <ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS>、還付口座 <BANK_ACCOUNT>三井住友銀行品川支店普通7722114</BANK_ACCOUNT> が残る。
+---DOC_SEPARATOR---
+病院広報の本文には会場や日付しか出てこないが、別紙 OCR から <PERSON>高橋直樹</PERSON>、<DATE_OF_BIRTH>1988年6月15日</DATE_OF_BIRTH>、<ADDRESS>横浜市中区本町2-3-4 グリーンハイツ502</ADDRESS> が読める。
+---DOC_SEPARATOR---
+紹介制度の一般案内に、事例として <PERSON>岡田涼</PERSON>、<ORGANIZATION>青葉橋総合開発株式会社</ORGANIZATION>、<ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS> が差し込まれている。
+---DOC_SEPARATOR---
+医療安全レポートの補足欄にだけ <PERSON>石田悠人</PERSON>、<DATE_OF_BIRTH>1991/03/28</DATE_OF_BIRTH>、<ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION> が載っている。
+---DOC_SEPARATOR---
+地域医療の特集記事は一般論だが、問い合わせ例に <PERSON>中村真由美</PERSON>、<ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS> が混ざっている。
+---DOC_SEPARATOR---
+公開資料の大半は統計情報だが、注釈に <PERSON>木村誠</PERSON>、振込先 <BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT> の療養費事例が含まれる。
+---DOC_SEPARATOR---
+保健指導のパンフレットは一般向けだが、別紙の事例に <PERSON>渡辺美咲</PERSON>、<ORGANIZATION>札幌北一条支店サポート株式会社</ORGANIZATION> が現れる。
+---DOC_SEPARATOR---
+院内 FAQ の説明欄に <PERSON>林麻衣</PERSON> のケースが引用され、DOB と紹介元がそのまま残っていた。
+---DOC_SEPARATOR---
+医療費控除の解説記事に、患者例として <PERSON>佐藤花子</PERSON>、<DATE_OF_BIRTH>昭和四十年五月十日</DATE_OF_BIRTH>、住所 <ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS> が載っている。

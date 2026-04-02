@@ -1,0 +1,19 @@
+法改正の解説記事に、参考事例として <PERSON>木村誠</PERSON>、送達先 <ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS>、返金口座 <BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT> が載っている。
+---DOC_SEPARATOR---
+一般向け通知文の脚注にだけ <PERSON>高橋直樹</PERSON>、<DATE_OF_BIRTH>1988年6月15日</DATE_OF_BIRTH>、勤務先 <ORGANIZATION>渋谷支店業務サポート株式会社</ORGANIZATION> が残る。
+---DOC_SEPARATOR---
+公開裁判資料の大半は一般論だが、別紙に <PERSON>林麻衣</PERSON>、<ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>、<DATE_OF_BIRTH>昭和63年12月3日</DATE_OF_BIRTH> が含まれる。
+---DOC_SEPARATOR---
+法務ニュースのコラムに、個別案件の例として <PERSON>岡田涼</PERSON>、<ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS> が差し込まれている。
+---DOC_SEPARATOR---
+通知文は匿名化済みと見えるが、注釈部に <PERSON>石田悠人</PERSON>、<ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION> が一度だけ現れる。
+---DOC_SEPARATOR---
+解説ページの末尾に和解金振込例が残り、<PERSON>中村真由美</PERSON>、<BANK_ACCOUNT>三井住友銀行梅田支店普通8844221</BANK_ACCOUNT> が見える。
+---DOC_SEPARATOR---
+法律相談の記事に事例として <PERSON>渡辺美咲</PERSON>、所在地 <ADDRESS>札幌市中央区北1条西2-3 北一条オフィス605</ADDRESS>、法人名 <ORGANIZATION>札幌北一条支店サポート株式会社</ORGANIZATION> が出る。
+---DOC_SEPARATOR---
+一般通知の本文に個人情報はないが、問い合わせ例に <PERSON>佐藤花子</PERSON>、<ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS> が混ざっている。
+---DOC_SEPARATOR---
+法務メモの別紙に <PERSON>高橋直樹</PERSON> の還付口座 <BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT> が一度だけ現れる。
+---DOC_SEPARATOR---
+一般向けパンフレットの補足欄に <PERSON>林麻衣</PERSON>、送付先 <ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS> が残っていた。
