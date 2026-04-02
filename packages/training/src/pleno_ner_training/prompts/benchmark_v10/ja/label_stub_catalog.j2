@@ -1,0 +1,13 @@
+以下は curated benchmark v0.10.0 の設計メモです。
+
+## 目的
+CSVヘッダー、ログ項目、帳票ラベル、コード値に対する偽陽性を測る。
+
+## 代表例
+- `CSVヘッダー: name,dob,address,organization,bank_account`
+- `route=branch-main / ref=03-1234-5678 / label=org-unit-temp`
+- `prefecture-city-block / branch-main ordinary 0000000`
+
+## 生成方針
+- 人物・住所・組織っぽい表層を出す
+- ただし全件タグなしの負例にする

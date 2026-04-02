@@ -1,0 +1,15 @@
+以下は curated benchmark v0.10.0 の設計メモです。
+
+## 目的
+漢字・かな・カナ・ローマ字・旧字体・略記の混在を測る。
+
+## 代表例
+- `山　田　太　郎`
+- `Shibuya-ku, Jingumae 1-2-3, Tokyo`
+- `株式會社三菱重工業`
+- `S40.5.10`
+- `UFJ 新宿 普 1234567`
+
+## 生成方針
+- 1文書に2種類以上の表記体系を混在させる
+- PERSON/ADDRESS/ORGANIZATION/DATE_OF_BIRTH/BANK_ACCOUNT を横断する

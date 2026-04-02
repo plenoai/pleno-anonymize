@@ -1,0 +1,14 @@
+以下は curated benchmark v0.10.0 の設計メモです。
+
+## 目的
+プレースホルダー、未入力値、仕様ダミーに対する偽陽性を測る。
+
+## 代表例
+- `氏名=未入力 / 住所=登録待ち / 生年月日=YYYY-MM-DD / 口座=TEMP-HOLD`
+- `organization=UNASSIGNED / address=pref-city-town-1-2-3 / dob=YYYY/MM/DD`
+- `本入力例は検証用で、実データは入力しないでください。`
+
+## 生成方針
+- XMLタグは使わない
+- 実在値を入れない
+- UI文言、FAQ、仕様書、入力例を混ぜる

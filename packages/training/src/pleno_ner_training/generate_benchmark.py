@@ -89,42 +89,17 @@ def generate_benchmark_batch(
     return documents
 
 
-def generate_benchmark(
-    version: str = LATEST_BENCHMARK_VERSION,
-    language: str = "ja",
-    docs_per_template: int = 20,
-    batches_per_template: int = 10,
-    model: str = "gpt-5.4-nano",
-    max_workers: int = 5,
-    output_dir: Path | None = None,
-) -> Path:
-    """ベンチマークデータを生成してDocBin形式で保存する."""
+def _generate_benchmark_via_openai(
+    config,
+    language: str,
+    docs_per_template: int,
+    batches_per_template: int,
+    model: str,
+    max_workers: int,
+    template_names: list[str],
+    prompts_dir: Path,
+) -> tuple[list[dict], int]:
     from openai import OpenAI
-
-    import spacy
-
-    config = BENCHMARK_CONFIGS[version]
-    data_root = Path(__file__).parents[2] / "data"
-    output_dir = output_dir or (data_root / "benchmark" / version / language)
-    raw_path = output_dir / "raw.json"
-    docbin_path = output_dir / "test.spacy"
-
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    prompts_dir = Path(__file__).parent / "prompts" / config.prompts_subdir / language
-    templates = resolve_benchmark_template_paths(config, language)
-    if not templates:
-        print(f"[ERROR] No templates in {prompts_dir}", file=sys.stderr)
-        raise SystemExit(1)
-
-    print(f"=== Benchmark {version} ({language}) ===")
-    print(f"Templates: {[t.name for t in templates]}")
-    print(f"Config: {docs_per_template} docs/template x {batches_per_template} batches x {len(templates)} templates")
-
-    if raw_path.exists():
-        with open(raw_path, encoding="utf-8") as f:
-            existing = json.load(f)
-        print(f"Existing data found: {len(existing)} docs. Regenerating...")
 
     client = OpenAI()
     all_docs: list[dict] = []
@@ -132,21 +107,21 @@ def generate_benchmark(
 
     tasks = []
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        for template_path in templates:
-            weight = config.template_weights.get(template_path.name, 1.0)
+        for template_name in template_names:
+            weight = config.template_weights.get(template_name, 1.0)
             n_batches = int(batches_per_template * weight)
             for batch_idx in range(n_batches):
                 future = executor.submit(
                     generate_benchmark_batch,
                     client,
-                    template_path.name,
+                    template_name,
                     docs_per_template,
                     language,
                     prompts_dir,
                     model,
                     batch_idx=batch_idx,
                 )
-                tasks.append((future, template_path.name, batch_idx))
+                tasks.append((future, template_name, batch_idx))
 
         for future, template_name, batch_idx in tqdm(
             tasks,
@@ -159,6 +134,71 @@ def generate_benchmark(
             except Exception as e:
                 failed += 1
                 print(f"[WARN] {template_name} batch {batch_idx}: {e}", file=sys.stderr)
+
+    return all_docs, failed
+
+
+def generate_benchmark(
+    version: str = LATEST_BENCHMARK_VERSION,
+    language: str = "ja",
+    docs_per_template: int = 20,
+    batches_per_template: int = 10,
+    model: str = "gpt-5.4-nano",
+    max_workers: int = 5,
+    output_dir: Path | None = None,
+) -> Path:
+    """ベンチマークデータを生成してDocBin形式で保存する."""
+    import spacy
+
+    config = BENCHMARK_CONFIGS[version]
+    data_root = Path(__file__).parents[2] / "data"
+    output_dir = output_dir or (data_root / "benchmark" / version / language)
+    raw_path = output_dir / "raw.json"
+    docbin_path = output_dir / "test.spacy"
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    templates = resolve_benchmark_template_paths(config, language)
+    if not templates:
+        prompts_dir = Path(__file__).parent / "prompts" / config.prompts_subdir / language
+        print(f"[ERROR] No templates in {prompts_dir}", file=sys.stderr)
+        raise SystemExit(1)
+    template_names = [template_path.name for template_path in templates]
+
+    print(f"=== Benchmark {version} ({language}) ===")
+    print(f"Templates: {template_names}")
+    print(f"Config: {docs_per_template} docs/template x {batches_per_template} batches x {len(templates)} templates")
+    print(f"Backend: {config.generation_backend}")
+
+    if raw_path.exists():
+        with open(raw_path, encoding="utf-8") as f:
+            existing = json.load(f)
+        print(f"Existing data found: {len(existing)} docs. Regenerating...")
+
+    if config.generation_backend == "curated":
+        from pleno_ner_training.curated_benchmark import build_curated_benchmark
+
+        all_docs = build_curated_benchmark(
+            version=version,
+            language=language,
+            template_names=template_names,
+            template_weights=config.template_weights,
+            docs_per_template=docs_per_template,
+            batches_per_template=batches_per_template,
+        )
+        failed = 0
+    else:
+        prompts_dir = Path(__file__).parent / "prompts" / config.prompts_subdir / language
+        all_docs, failed = _generate_benchmark_via_openai(
+            config=config,
+            language=language,
+            docs_per_template=docs_per_template,
+            batches_per_template=batches_per_template,
+            model=model,
+            max_workers=max_workers,
+            template_names=template_names,
+            prompts_dir=prompts_dir,
+        )
 
     with open(raw_path, "w", encoding="utf-8") as f:
         json.dump(all_docs, f, ensure_ascii=False, indent=2)

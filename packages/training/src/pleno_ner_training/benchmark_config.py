@@ -14,6 +14,7 @@ class BenchmarkConfig:
     prompts_subdir: str
     template_weights: dict[str, float] = field(default_factory=dict)
     templates: tuple[str, ...] | None = None
+    generation_backend: str = "openai"
 
 
 BENCHMARK_CONFIGS: dict[str, BenchmarkConfig] = {
@@ -76,6 +77,33 @@ BENCHMARK_CONFIGS: dict[str, BenchmarkConfig] = {
             "semantic_trap.j2",
             "geo_org_switchback.j2",
         ),
+    ),
+    "v0.10.0": BenchmarkConfig(
+        version="v0.10.0",
+        prompts_subdir="benchmark_v10",
+        template_weights={
+            "placeholder_registry.j2": 4.0,
+            "label_stub_catalog.j2": 3.0,
+            "fragment_chain.j2": 3.0,
+            "schema_bleed.j2": 2.5,
+            "orthography_shift.j2": 2.5,
+            "geo_org_refraction.j2": 1.0,
+            "date_switchyard.j2": 1.0,
+            "account_alias_junction.j2": 1.0,
+            "counterfactual_notice.j2": 0.5,
+        },
+        templates=(
+            "placeholder_registry.j2",
+            "label_stub_catalog.j2",
+            "fragment_chain.j2",
+            "schema_bleed.j2",
+            "orthography_shift.j2",
+            "geo_org_refraction.j2",
+            "date_switchyard.j2",
+            "account_alias_junction.j2",
+            "counterfactual_notice.j2",
+        ),
+        generation_backend="curated",
     ),
 }
 
