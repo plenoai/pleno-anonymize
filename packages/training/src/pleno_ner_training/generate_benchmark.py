@@ -20,6 +20,7 @@ from tqdm import tqdm
 from pleno_ner_training.benchmark_config import (
     BENCHMARK_CONFIGS,
     LATEST_BENCHMARK_VERSION,
+    resolve_benchmark_corpus_paths,
     resolve_benchmark_template_paths,
 )
 from pleno_ner_training.convert_to_docbin import convert_to_docs, save_docbin
@@ -158,16 +159,22 @@ def generate_benchmark(
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    templates = resolve_benchmark_template_paths(config, language)
-    if not templates:
-        prompts_dir = Path(__file__).parent / "prompts" / config.prompts_subdir / language
-        print(f"[ERROR] No templates in {prompts_dir}", file=sys.stderr)
-        raise SystemExit(1)
-    template_names = [template_path.name for template_path in templates]
+    if config.generation_backend == "corpus":
+        source_paths = resolve_benchmark_corpus_paths(config, language)
+        if not source_paths:
+            print(f"[ERROR] No corpus files for {version}/{language}", file=sys.stderr)
+            raise SystemExit(1)
+    else:
+        source_paths = resolve_benchmark_template_paths(config, language)
+        if not source_paths:
+            prompts_dir = Path(__file__).parent / "prompts" / config.prompts_subdir / language
+            print(f"[ERROR] No templates in {prompts_dir}", file=sys.stderr)
+            raise SystemExit(1)
+    template_names = [source_path.name for source_path in source_paths]
 
     print(f"=== Benchmark {version} ({language}) ===")
     print(f"Templates: {template_names}")
-    print(f"Config: {docs_per_template} docs/template x {batches_per_template} batches x {len(templates)} templates")
+    print(f"Config: {docs_per_template} docs/template x {batches_per_template} batches x {len(source_paths)} sources")
     print(f"Backend: {config.generation_backend}")
 
     if raw_path.exists():
@@ -175,16 +182,13 @@ def generate_benchmark(
             existing = json.load(f)
         print(f"Existing data found: {len(existing)} docs. Regenerating...")
 
-    if config.generation_backend == "curated":
-        from pleno_ner_training.curated_benchmark import build_curated_benchmark
+    if config.generation_backend == "corpus":
+        from pleno_ner_training.curated_benchmark import load_curated_benchmark_corpus
 
-        all_docs = build_curated_benchmark(
+        all_docs = load_curated_benchmark_corpus(
             version=version,
             language=language,
-            template_names=template_names,
-            template_weights=config.template_weights,
-            docs_per_template=docs_per_template,
-            batches_per_template=batches_per_template,
+            source_paths=source_paths,
         )
         failed = 0
     else:

@@ -1,0 +1,15 @@
+運用見本 OCR: owner=sample_name_11ship_to=pref-city-town-1-2-3pay_to=branch-main ordinary 0000000dob=YYYY/MM/DDorg=UNASSIGNED。誌面確認用であり本人情報ではない。
+---DOC_SEPARATOR---
+設計レビュー用スクリーンショット文字起こし 氏名sample_user住所prefecture-city-block生年月日19XX-XX-XX振込先TEMP-HOLD所属org-unit-temp。説明用ダミーのみ。
+---DOC_SEPARATOR---
+帳票幅確認 sample_name_21 sample_name_22 sample_name_23 pref-city-town-1-2-3 branch-main ordinary 0000000 YYYY/MM/DD organization=UNASSIGNED。値はすべて仮置き。
+---DOC_SEPARATOR---
+フォーム初期値 owner sample_user_91 address pending-town-1-2-3 dob 19XX/XX/XX bank masked account org unassigned code layout-check-only。実データは不在。
+---DOC_SEPARATOR---
+画面読取テスト 氏名未入力住所登録待ち生年月日YYYY/MM/DD口座branch-main ordinary 0000000所属org-unit-temp発送先prefecture-city-block。すべて例示。
+---DOC_SEPARATOR---
+チュートリアル文: sample_user が sample-pref-sample-city に住み、branch-main ordinary 0000000 を使うという例で説明するが、固定ダミーの連結文字列である。
+---DOC_SEPARATOR---
+マスキング確認 owner=sample_name_31 owner_kana=sample_name_kana shipto=pref-city-town-1-2-3 bank=TEMP-HOLD dob=YYYY-MM-DD route=0000。帳票サンプル。
+---DOC_SEPARATOR---
+説明画像 OCR owner sample_user_07 address pref-city-town-1-2-3 dob YYYY/MM/DD organization UNASSIGNED bank_account branch-main ordinary 0000000 note no-real-data。

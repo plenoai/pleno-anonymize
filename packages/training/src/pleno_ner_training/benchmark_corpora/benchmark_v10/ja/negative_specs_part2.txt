@@ -1,0 +1,15 @@
+検証資料 OCR 受付日2026年4月1日更新日2026年5月31日締切日2026年6月15日owner=sample_name_01address=pref-city-town-1-2-3。これはルール説明であって本人データではない。
+---DOC_SEPARATOR---
+ヘッダ定義 row_id owner_name owner_kana shipping_to organization_name bank_account masked_bank sample_dob sample_address。各項目名の列挙だけで実値なし。
+---DOC_SEPARATOR---
+社内 wiki の誤検出例: 西新宿本社前 日本橋支店前 中央病院前交差点 渋谷オフィス街 03-1234-5678 INV-778812。どれも漏えい情報ではない。
+---DOC_SEPARATOR---
+sample config person_name=sample_user address_line=prefecture-city-block date_line=YYYY/MM/DD bank_line=branch-main ordinary 0000000 org_line=UNASSIGNED routing=0000。
+---DOC_SEPARATOR---
+HTML 雛形 OCR <label>氏名</label><input placeholder=\"sample_user\"><label>住所</label><input placeholder=\"pref-city-town-1-2-3\"><label>口座</label><input placeholder=\"branch-main ordinary 0000000\">。
+---DOC_SEPARATOR---
+教育資料では 三井住友銀行 みずほ銀行 楽天銀行 ゆうちょ銀行 を法人名の一般例として並べるが、口座名義や支店番号は記載しない。接続先候補一覧にすぎない。
+---DOC_SEPARATOR---
+シナリオ例 owner sample_name_41 dob YYYY/MM/DD address pref-city-town-1-2-3 bank branch-main ordinary 0000000 status dry-run-only。実体がないため DLP 対象外。
+---DOC_SEPARATOR---
+ログ説明 [INFO] sample_user moved to pref-city-town-1-2-3 on 2026/04/01 route branch-main ordinary 0000000 organization UNASSIGNED。監視ルールのサンプル文字列。

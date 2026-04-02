@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 PROMPTS_ROOT = Path(__file__).parent / "prompts"
+CORPORA_ROOT = Path(__file__).parent / "benchmark_corpora"
 
 
 @dataclass(frozen=True)
@@ -15,6 +16,7 @@ class BenchmarkConfig:
     template_weights: dict[str, float] = field(default_factory=dict)
     templates: tuple[str, ...] | None = None
     generation_backend: str = "openai"
+    corpus_subdir: str | None = None
 
 
 BENCHMARK_CONFIGS: dict[str, BenchmarkConfig] = {
@@ -81,29 +83,21 @@ BENCHMARK_CONFIGS: dict[str, BenchmarkConfig] = {
     "v0.10.0": BenchmarkConfig(
         version="v0.10.0",
         prompts_subdir="benchmark_v10",
-        template_weights={
-            "placeholder_registry.j2": 4.0,
-            "label_stub_catalog.j2": 3.0,
-            "fragment_chain.j2": 3.0,
-            "schema_bleed.j2": 2.5,
-            "orthography_shift.j2": 2.5,
-            "geo_org_refraction.j2": 1.0,
-            "date_switchyard.j2": 1.0,
-            "account_alias_junction.j2": 1.0,
-            "counterfactual_notice.j2": 0.5,
-        },
         templates=(
-            "placeholder_registry.j2",
-            "label_stub_catalog.j2",
-            "fragment_chain.j2",
-            "schema_bleed.j2",
-            "orthography_shift.j2",
-            "geo_org_refraction.j2",
-            "date_switchyard.j2",
-            "account_alias_junction.j2",
-            "counterfactual_notice.j2",
+            "negative_placeholders.txt",
+            "negative_specs.txt",
+            "negative_placeholders_part2.txt",
+            "negative_specs_part2.txt",
+            "collapsed_boundaries_part2.txt",
+            "orthography_aliases_part2.txt",
+            "dense_exports_part2.txt",
+            "geo_org_dense.txt",
+            "geo_org_dense_part2.txt",
+            "mixed_script_dense.txt",
+            "mixed_script_dense_part2.txt",
         ),
-        generation_backend="curated",
+        generation_backend="corpus",
+        corpus_subdir="benchmark_v10",
     ),
 }
 
@@ -130,3 +124,23 @@ def resolve_benchmark_template_paths(
         raise FileNotFoundError(f"Missing benchmark templates in {prompts_dir}: {missing_names}")
 
     return [prompts_dir / name for name in config.templates]
+
+
+def resolve_benchmark_corpus_paths(
+    config: BenchmarkConfig,
+    language: str,
+) -> list[Path]:
+    """固定 corpus のソースファイルを解決する."""
+    if config.corpus_subdir is None:
+        raise ValueError(f"Benchmark {config.version} does not define corpus_subdir")
+
+    corpus_dir = CORPORA_ROOT / config.corpus_subdir / language
+    if config.templates is None:
+        return sorted(corpus_dir.glob("*.txt"))
+
+    missing = [name for name in config.templates if not (corpus_dir / name).exists()]
+    if missing:
+        missing_names = ", ".join(missing)
+        raise FileNotFoundError(f"Missing benchmark corpus files in {corpus_dir}: {missing_names}")
+
+    return [corpus_dir / name for name in config.templates]

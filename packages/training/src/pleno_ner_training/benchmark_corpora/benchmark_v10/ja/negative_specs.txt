@@ -1,0 +1,31 @@
+CSV 仕様: name,dob,address,organization,bank_account,owner_name,route_code の順。値例 sample_name_01, YYYY-MM-DD, pref-city-town-1-2-3, org-unit-temp, branch-main ordinary 0000000。
+---DOC_SEPARATOR---
+社内 wiki: 「三井住友銀行」「みずほ銀行」「楽天銀行」は接続先候補の一覧で、ここには支店名も口座番号も載せない。接続試験ではダミー値だけ使う。
+---DOC_SEPARATOR---
+帳票マッピング表: person_label=氏名, address_label=住所, dob_label=生年月日, bank_label=振込先。右列の actual_value は空欄のまま運用する。
+---DOC_SEPARATOR---
+ログ形式サンプル [INFO] name=<blank> addr=<pending> dob=<unknown> org=<unassigned> bank=<masked>。これは監視パターンの説明であり、実データではない。
+---DOC_SEPARATOR---
+操作手順書: 受付日 2026/04/01、更新日 2026/05/31、締切日 2026/06/15 を入力しても、それらは業務日付であり生年月日ではない。申請者欄は空欄のまま確認する。
+---DOC_SEPARATOR---
+FAQ 抜粋: 「口座=branch-main ordinary 0000000 は何ですか」への回答は「説明用の固定文字列です」。owner=sample_name_01 も実在の名義人を指さない。
+---DOC_SEPARATOR---
+運用ドキュメントでは「西新宿本社前」「日本橋支店前」「中央病院前交差点」を集合地点の例として使う。所在地や所属先を表すわけではない。
+---DOC_SEPARATOR---
+プロダクト仕様: org_name には "unassigned"、person_name には "sample_user"、shipping_to には "pref-city-town-1-2-3" を流し、マスキングの見え方だけ検証する。
+---DOC_SEPARATOR---
+マスキング仕様 OCR: 氏名欄は sample_user、住所欄は prefecture-city-block、生年月日欄は YYYY/MM/DD、口座欄は branch-main ordinary 0000000 と読めればよい。漏えい判定対象ではない。
+---DOC_SEPARATOR---
+データ辞書抜粋 person=氏名 address=住所 dob=生年月日 org=所属 bank=振込先 note=備考。右辺はラベル名であって入力値ではない。
+---DOC_SEPARATOR---
+運用ログ例 [DEBUG] organization=UNASSIGNED address=pref-city-town-1-2-3 dob=19XX-XX-XX bank=TEMP-HOLD path=/redaction/rules。ルール確認用であり本人情報は未投入。
+---DOC_SEPARATOR---
+社内教育資料では 「渋谷区医師会」「西新宿本社前」「日本橋支店前」「中央病院前交差点」を誤検出しない例として列挙する。どれも送付先や所属先ではない。
+---DOC_SEPARATOR---
+サンプル CSV 行: sample_name_01,YYYY/MM/DD,pref-city-town-1-2-3,UNASSIGNED,branch-main ordinary 0000000,03-1234-5678,INV-778812。帳票幅確認だけに使う。
+---DOC_SEPARATOR---
+ガイドライン: 受付日 2026/04/01、更新日 2026/05/31、締切日 2026/06/15、参照番号 REQ-09-4412 はすべて運用日付か管理番号で、生年月日や口座情報ではない。
+---DOC_SEPARATOR---
+HTML 仕様断片 <input name=\"person\" placeholder=\"sample_user\"><input name=\"address\" placeholder=\"pref-city-town-1-2-3\"><input name=\"bank\" placeholder=\"branch-main ordinary 0000000\">。フォーム雛形のみ。
+---DOC_SEPARATOR---
+画面遷移メモ owner sample_name_01 account TEMP-HOLD address pref-city-town-1-2-3 organization UNASSIGNED schedule 2026-04-01。文言定義であり実データは保持しない。

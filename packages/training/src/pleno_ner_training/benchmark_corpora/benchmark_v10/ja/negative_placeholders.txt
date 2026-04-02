@@ -1,0 +1,31 @@
+申込画面の初期表示は 氏名=sample_user / 住所=pref-city-town-1-2-3 / 生年月日=YYYY/MM/DD / 口座=branch-main ordinary 0000000。QA 用ダミーのため実データは保存しない。
+---DOC_SEPARATOR---
+FAQ: organization=UNASSIGNED のときは account=TEMP-HOLD を返す。address=<pending> と dob=<unknown> は未入力記号であり、照合対象は存在しない。
+---DOC_SEPARATOR---
+検証メモ: sample_name_01 を owner_name 欄に、sample-pref-sample-city を shipping_address 欄に入れて画面崩れだけ確認する。個人情報は受領しない。
+---DOC_SEPARATOR---
+振込テスト環境では bank_account=bank-branch-kind-number、branch=main、route=0000 を固定値にする。実在の銀行名、支店名、番号は入力禁止。
+---DOC_SEPARATOR---
+OCR 学習用の見本には 氏名: 未入力 / 住所: 登録待ち / 生年月日: 19XX-XX-XX / 口座: 現金払い を印字する。これは帳票レイアウト確認用である。
+---DOC_SEPARATOR---
+画面定義書 v4: name,dob,address,organization,bank_account の各欄には placeholder を置く。prefecture-city-block や org-unit-temp は例示文字列であり本人情報ではない。
+---DOC_SEPARATOR---
+問い合わせテンプレート: 「氏名を入力してください」「住所を入力してください」「生年月日を入力してください」「振込先を入力してください」。ラベル文言のみで値は空欄。
+---DOC_SEPARATOR---
+障害切り分け: address=pref-city-town-1-2-3, organization=UNASSIGNED, bank_account=TEMP-HOLD を送った場合だけ例外が再現する。テストデータなので漏えいではない。
+---DOC_SEPARATOR---
+入力例 氏名=<blank>住所=<pending>生年月日=YYYY/MM/DD口座=TEMP-HOLD organization=UNASSIGNED address=pref-city-town-1-2-3 bank_account=branch-main ordinary 0000000。開発検証用の表示文字列のみ。
+---DOC_SEPARATOR---
+案内文: sample_name_01 / sample_name_02 / sample_name_03 は並び順確認用、shipping_to=prefecture-city-block、owner=masked-user、dob=19XX-XX-XX はすべてダミー値。
+---DOC_SEPARATOR---
+KYC 画面の説明には 氏名未入力住所登録待ち生年月日YYYY/MM/DD口座branch-main ordinary 0000000 とまとめて表示するが、本文は UI 試験用の固定文字列である。
+---DOC_SEPARATOR---
+検証スクリーンショット文字起こし: organization=UNASSIGNED address=pref-city-town-1-2-3 dob=<unknown> bank_account=<masked> person_name=sample_user_09。実データは一切含まれない。
+---DOC_SEPARATOR---
+フィールド一覧 OCR: 氏名sample_user住所pref-city-town-1-2-3生年月日YYYY-MM-DD振込先TEMP-HOLD所属org-unit-temp。帳票ひな型のため保存対象外。
+---DOC_SEPARATOR---
+チャット貼付け例 owner=sample_name_01 pay_to=branch-main ordinary 0000000 ship_to=pref-city-town-1-2-3 org=UNASSIGNED note=for-layout-check-only。テスト文字列のみ。
+---DOC_SEPARATOR---
+差込印字の見本には 山田式 placeholder、佐藤式 placeholder、東京ブロック、渋谷オフィス街、2026/04/01 などを並べるが、個人情報として扱わない。
+---DOC_SEPARATOR---
+帳票ヘッダ確認: name dob address organization bank_account の直下に sample_user YYYY/MM/DD pref-city-town-1-2-3 org-unit-temp branch-main ordinary 0000000 を印字、後で自動削除する。
