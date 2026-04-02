@@ -173,6 +173,9 @@ def generate_benchmark(
     template_names = [source_path.name for source_path in source_paths]
 
     print(f"=== Benchmark {version} ({language}) ===")
+    print(f"Suite kind: {config.suite_kind}")
+    if config.purpose:
+        print(f"Purpose: {config.purpose}")
     print(f"Templates: {template_names}")
     print(f"Config: {docs_per_template} docs/template x {batches_per_template} batches x {len(source_paths)} sources")
     print(f"Backend: {config.generation_backend}")

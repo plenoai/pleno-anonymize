@@ -15,6 +15,7 @@ from spacy.tokens import DocBin
 from spacy.training import Example
 
 from pleno_ner_training.benchmark_config import (
+    BENCHMARK_CONFIGS,
     BENCHMARK_VERSIONS,
     LATEST_BENCHMARK_VERSION,
 )
@@ -36,17 +37,31 @@ def evaluate_on_benchmark(
 
     examples = []
     total_time = 0.0
+    negative_docs = 0
+    clean_negative_docs = 0
+    negative_fp_total = 0
     for gold_doc in gold_docs:
         start = time.perf_counter()
         pred_doc = nlp(gold_doc.text)
         total_time += time.perf_counter() - start
         examples.append(Example(pred_doc, gold_doc))
+        if not gold_doc.ents:
+            negative_docs += 1
+            negative_fp_total += len(pred_doc.ents)
+            if not pred_doc.ents:
+                clean_negative_docs += 1
 
     scores = Scorer().score(examples)
     scores["latency_ms_per_doc"] = round(
         (total_time / len(gold_docs) * 1000) if gold_docs else 0, 1
     )
     scores["num_docs"] = len(gold_docs)
+    scores["negative_docs"] = negative_docs
+    scores["negative_clean_docs"] = clean_negative_docs
+    scores["negative_doc_clean_rate"] = (
+        clean_negative_docs / negative_docs if negative_docs else 0
+    )
+    scores["negative_fp_total"] = negative_fp_total
 
     # モデルサイズ
     model_dir = Path(nlp.path) if nlp.path else Path(model_path)
@@ -60,11 +75,12 @@ def evaluate_on_benchmark(
 def print_benchmark_report(
     results: dict[str, dict],
     language: str,
+    suite_kind: str,
 ) -> None:
     """全モデルのベンチマーク結果を比較表示する."""
     version = results.pop("_version", "")
     print(f"\n{'=' * 90}")
-    print(f"  Benchmark {version} Results ({language})")
+    print(f"  Benchmark {version} Results ({language}) [{suite_kind}]")
     print(f"{'=' * 90}\n")
 
     labels = ["PERSON", "ADDRESS", "ORGANIZATION", "DATE_OF_BIRTH", "BANK_ACCOUNT"]
@@ -127,6 +143,18 @@ def print_benchmark_report(
         row += f" {size:>{col_width}.1f}"
     print(row)
 
+    row = f"{'Neg Clean Rate':<20}"
+    for name in model_names:
+        rate = results[name].get("negative_doc_clean_rate", 0)
+        row += f" {rate * 100:>{col_width - 1}.1f}%"
+    print(row)
+
+    row = f"{'Neg FP Total':<20}"
+    for name in model_names:
+        total = results[name].get("negative_fp_total", 0)
+        row += f" {total:>{col_width}}"
+    print(row)
+
 
 def main() -> None:
     import argparse
@@ -138,6 +166,7 @@ def main() -> None:
     parser.add_argument("--benchmark-data", type=Path, default=None)
     parser.add_argument("--output-json", type=Path, default=None)
     args = parser.parse_args()
+    config = BENCHMARK_CONFIGS[args.version]
 
     data_root = Path(__file__).parents[2] / "data"
     benchmark_path = args.benchmark_data or (
@@ -155,7 +184,7 @@ def main() -> None:
     print(f"Evaluating {args.model}...")
     results["pleno_ner"] = evaluate_on_benchmark(args.model, benchmark_path)
 
-    print_benchmark_report(results, args.language)
+    print_benchmark_report(results, args.language, config.suite_kind)
 
     # 結果保存
     output_path = args.output_json or (
@@ -174,6 +203,12 @@ def main() -> None:
             "latency_ms_per_doc": scores.get("latency_ms_per_doc", 0),
             "model_size_mb": scores.get("model_size_mb", 0),
             "num_docs": scores.get("num_docs", 0),
+            "negative_docs": scores.get("negative_docs", 0),
+            "negative_clean_docs": scores.get("negative_clean_docs", 0),
+            "negative_doc_clean_rate": scores.get("negative_doc_clean_rate", 0),
+            "negative_fp_total": scores.get("negative_fp_total", 0),
+            "suite_kind": config.suite_kind,
+            "purpose": config.purpose,
         }
 
     with open(output_path, "w", encoding="utf-8") as f:

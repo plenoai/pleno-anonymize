@@ -1,0 +1,43 @@
+{
+  "pleno_ner": {
+    "ents_p": 0.6572164948453608,
+    "ents_r": 0.6572164948453608,
+    "ents_f": 0.6572164948453608,
+    "ents_per_type": {
+      "PERSON": {
+        "p": 0.8760330578512396,
+        "r": 0.8907563025210085,
+        "f": 0.8833333333333333
+      },
+      "ADDRESS": {
+        "p": 0.8166666666666667,
+        "r": 0.49,
+        "f": 0.6125
+      },
+      "BANK_ACCOUNT": {
+        "p": 0.7209302325581395,
+        "r": 0.775,
+        "f": 0.7469879518072289
+      },
+      "ORGANIZATION": {
+        "p": 0.2698412698412698,
+        "r": 0.40963855421686746,
+        "f": 0.3253588516746412
+      },
+      "DATE_OF_BIRTH": {
+        "p": 0.9210526315789473,
+        "r": 0.7608695652173914,
+        "f": 0.8333333333333333
+      }
+    },
+    "latency_ms_per_doc": 2.3,
+    "model_size_mb": 6.3,
+    "num_docs": 180,
+    "negative_docs": 60,
+    "negative_clean_docs": 20,
+    "negative_doc_clean_rate": 0.3333333333333333,
+    "negative_fp_total": 66,
+    "suite_kind": "benchmark",
+    "purpose": "広い slice を監視する curated DLP benchmark"
+  }
+}

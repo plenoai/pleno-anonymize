@@ -1,0 +1,19 @@
+> 氏名: 未入力\n> 住所: 登録待ち\nただし事故報告の連絡先は <PERSON>中村真由美</PERSON>、送付先は <ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS> です。所属は <ORGANIZATION>梅田業務支援センター株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+FW: sandbox account=TEMP-HOLD の件\n本番の払戻先は <BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT>、名義は <PERSON>高橋直樹</PERSON>。旧住所 sample-pref-sample-city ではなく <ADDRESS>横浜市中区本町2-3-4 グリーンハイツ502</ADDRESS> へ送付。
+---DOC_SEPARATOR---
+Re: 申請画面の確認\nダミー表示は氏名未入力のままで問題ありません。実際の提出者は <PERSON>林麻衣</PERSON>、紹介元は <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>、連絡先は <ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS>。
+---DOC_SEPARATOR---
+> owner=sample_name_01 / bank=branch-main ordinary 0000000\n正式な精算先だけ転記します。<PERSON>岡田涼</PERSON> さん、<BANK_ACCOUNT>楽天銀行第二営業支店普通4567890</BANK_ACCOUNT>、送付先 <ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS>。
+---DOC_SEPARATOR---
+差戻し連絡: organization=UNASSIGNED では受付できません。\n再提出された情報は <PERSON>石田悠人</PERSON>、<ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION>、<ADDRESS>東京都新宿区西新宿2-8-1 第一青葉ビル9F</ADDRESS>、<DATE_OF_BIRTH>1991/03/28</DATE_OF_BIRTH>。
+---DOC_SEPARATOR---
+CC 先メモでは「日本橋支店前集合」とだけ書いてありますが、送付票に残っていた実データは <PERSON>木村誠</PERSON>、<ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS>、<BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT> です。
+---DOC_SEPARATOR---
+返信引用:\n> 受付日 2026/04/01\n> 更新日 2026/05/31\n本人情報は本文側にのみあり、<PERSON>佐藤花子</PERSON>（<DATE_OF_BIRTH>昭和四十年五月十日</DATE_OF_BIRTH>生）、<ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS>、<ORGANIZATION>港南本店ソリューションズ株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+転送メモ: 「口座は後日」と書いた下にだけ実値が残っていた。\n受取人 <PERSON>渡辺美咲</PERSON> / 振込先 <BANK_ACCOUNT>ゆうちょ銀行記号10100番号12345671</BANK_ACCOUNT> / 法人 <ORGANIZATION>札幌北一条支店サポート株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+件名: 契約者情報の再送\n申請者は <PERSON>高橋直樹</PERSON>、本人確認用の生年月日は <DATE_OF_BIRTH>1988年6月15日</DATE_OF_BIRTH>。発送先として <ADDRESS>横浜市中区本町2-3-4 グリーンハイツ502</ADDRESS> を使ってください。
+---DOC_SEPARATOR---
+返信: ダミー値 owner=sample_user では処理できません。\n正しい申請者は <PERSON>佐藤花子</PERSON>、所属は <ORGANIZATION>港南本店ソリューションズ株式会社</ORGANIZATION>、返送先は <ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS> です。

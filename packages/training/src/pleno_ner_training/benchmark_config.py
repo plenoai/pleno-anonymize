@@ -17,6 +17,8 @@ class BenchmarkConfig:
     templates: tuple[str, ...] | None = None
     generation_backend: str = "openai"
     corpus_subdir: str | None = None
+    suite_kind: str = "benchmark"
+    purpose: str = ""
 
 
 BENCHMARK_CONFIGS: dict[str, BenchmarkConfig] = {
@@ -98,6 +100,36 @@ BENCHMARK_CONFIGS: dict[str, BenchmarkConfig] = {
         ),
         generation_backend="corpus",
         corpus_subdir="benchmark_v10",
+        suite_kind="quality_gate",
+        purpose="出荷阻止用の curated DLP quality gate",
+    ),
+    "v0.11.0": BenchmarkConfig(
+        version="v0.11.0",
+        prompts_subdir="benchmark_v11",
+        templates=(
+            "support_tickets_a.txt",
+            "support_tickets_b.txt",
+            "ocr_forms_a.txt",
+            "payment_exports_a.txt",
+            "mail_threads_a.txt",
+            "hr_records_a.txt",
+            "medical_referrals_a.txt",
+            "legal_notices_a.txt",
+            "insurance_claims_a.txt",
+            "logistics_labels_a.txt",
+            "crm_notes_a.txt",
+            "mixed_dummy_real_a.txt",
+            "negative_operational_a.txt",
+            "negative_operational_b.txt",
+            "public_information_a.txt",
+            "meeting_minutes_a.txt",
+            "product_manuals_a.txt",
+            "news_features_a.txt",
+        ),
+        generation_backend="corpus",
+        corpus_subdir="benchmark_v11",
+        suite_kind="benchmark",
+        purpose="広い slice を監視する curated DLP benchmark",
     ),
 }
 

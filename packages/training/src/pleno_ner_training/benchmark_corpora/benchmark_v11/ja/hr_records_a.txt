@@ -1,0 +1,19 @@
+入社手続票: 氏名 <PERSON>高橋直樹</PERSON>、生年月日 <DATE_OF_BIRTH>1988年6月15日</DATE_OF_BIRTH>、現住所 <ADDRESS>横浜市中区本町2-3-4 グリーンハイツ502</ADDRESS>、勤務先 <ORGANIZATION>渋谷支店業務サポート株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+緊急連絡先確認: 従業員 <PERSON>林麻衣</PERSON>、住所 <ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS>、所属部門 <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>。
+---DOC_SEPARATOR---
+給与振込申請: 社員 <PERSON>木村誠</PERSON>、振込先 <BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT>、住所 <ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS>。
+---DOC_SEPARATOR---
+人事面談記録: 対象者 <PERSON>岡田涼</PERSON>、生年月日 <DATE_OF_BIRTH>平成2年7月7日</DATE_OF_BIRTH>、所属 <ORGANIZATION>青葉橋総合開発株式会社</ORGANIZATION>、連絡先 <ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS>。
+---DOC_SEPARATOR---
+退職手続メモ: 氏名 <PERSON>石田悠人</PERSON>、住所 <ADDRESS>東京都新宿区西新宿2-8-1 第一青葉ビル9F</ADDRESS>、最終所属 <ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+福利厚生登録票: 本人 <PERSON>渡辺美咲</PERSON>、生年月日 <DATE_OF_BIRTH>1994-11-02</DATE_OF_BIRTH>、所在地 <ADDRESS>札幌市中央区北1条西2-3 北一条オフィス605</ADDRESS>、所属法人 <ORGANIZATION>札幌北一条支店サポート株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+扶養申請控え: 社員 <PERSON>佐藤花子</PERSON>、住所 <ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS>、勤務先 <ORGANIZATION>港南本店ソリューションズ株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+異動申請: 対象者 <PERSON>中村真由美</PERSON>、現住所 <ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS>、所属 <ORGANIZATION>梅田業務支援センター株式会社</ORGANIZATION>、生年月日 <DATE_OF_BIRTH>昭和61年9月12日</DATE_OF_BIRTH>。
+---DOC_SEPARATOR---
+雇用契約更新: 従業員 <PERSON>高橋直樹</PERSON>、生年月日 <DATE_OF_BIRTH>1988年6月15日</DATE_OF_BIRTH>、振込先 <BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT>。
+---DOC_SEPARATOR---
+社員証再発行: 本人 <PERSON>林麻衣</PERSON>、勤務先 <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>、送付先 <ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS>。

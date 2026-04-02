@@ -1,0 +1,19 @@
+申込画面の氏名欄は未入力のまま。緊急連絡先だけ <PERSON>林麻衣</PERSON>。住所は sample-pref-sample-city ではなく <ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS> を使用。
+---DOC_SEPARATOR---
+帳票には organization=UNASSIGNED と印字されているが、紹介元だけ実値が残っており <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>。申請者は <PERSON>林麻衣</PERSON>、生年月日は <DATE_OF_BIRTH>昭和63年12月3日</DATE_OF_BIRTH>。
+---DOC_SEPARATOR---
+「口座は後日登録」と書かれていたが、転送欄にだけ <BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT> が残っていた。受取人は <PERSON>高橋直樹</PERSON>。
+---DOC_SEPARATOR---
+氏名: sample_user。正式な提出者は <PERSON>岡田涼</PERSON>。住所欄のダミー表示を残したまま、送付先だけ <ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS> に差し替えている。
+---DOC_SEPARATOR---
+旧フォームには YYYY/MM/DD とだけあるが、添付画像の本文には <DATE_OF_BIRTH>平成2年7月7日</DATE_OF_BIRTH>。所属は org-unit-temp ではなく <ORGANIZATION>青葉橋総合開発株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+送付票の冒頭は name=<blank> / address=<pending> だったが、下段に <PERSON>石田悠人</PERSON><ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION><ADDRESS>東京都新宿区西新宿2-8-1 第一青葉ビル9F</ADDRESS> が続いていた。
+---DOC_SEPARATOR---
+「支払方法: 現金払い」と見せかけて、備考欄にだけ <BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT> と <PERSON>木村誠</PERSON> がある。sample_name_01 は旧試験値。
+---DOC_SEPARATOR---
+ダミーラベルのまま保存されていたが、本文に実データが混じる。<PERSON>渡辺美咲</PERSON>、<ADDRESS>札幌市中央区北1条西2-3 北一条オフィス605</ADDRESS>、<ORGANIZATION>札幌北一条支店サポート株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+owner=sample_name_09 と表示されるが、還付先だけ実値が残っている。受取人 <PERSON>佐藤花子</PERSON>、振込先 <BANK_ACCOUNT>三井住友銀行品川支店普通7722114</BANK_ACCOUNT>、住所 <ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS>。
+---DOC_SEPARATOR---
+画面定義には sample_user とあるが、申請本文は <PERSON>中村真由美</PERSON>、勤務先は <ORGANIZATION>梅田業務支援センター株式会社</ORGANIZATION>、送付先は <ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS>。
