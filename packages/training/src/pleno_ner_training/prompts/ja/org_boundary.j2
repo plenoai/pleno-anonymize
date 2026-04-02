@@ -1,0 +1,50 @@
+以下の条件に従い、組織名の境界認識が難しい日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+住所に隣接する組織名、ビル名の一部に組織名が含まれるケース、短い通称の組織名を正確に検出できる学習データを生成します。
+
+## 条件
+- 各テキストは独立した内容であること
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>人名</PERSON>
+  - <ADDRESS>住所</ADDRESS>
+  - <ORGANIZATION>組織名</ORGANIZATION>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>（該当する場合のみ）
+  - <BANK_ACCOUNT>銀行口座情報</BANK_ACCOUNT>（該当する場合のみ）
+- 各テキストの長さは80〜300文字
+
+## 出力形式
+各テキストを `---DOC_SEPARATOR---` で区切って出力してください。
+
+## 重要なルール
+
+### 1. 住所と組織名が隣接するケース
+住所の直後に組織名が来る場合、別々のエンティティとしてタグ付け:
+- `<ADDRESS>東京都千代田区丸の内1-1-1</ADDRESS><ORGANIZATION>三菱UFJフィナンシャル・グループ</ORGANIZATION>本社ビルにて面談`
+- `<ADDRESS>大阪市北区梅田3-1-1</ADDRESS> <ORGANIZATION>JR西日本</ORGANIZATION>ビル5階`
+- **「本社ビル」「ビル5階」などの付属語はタグの外に置く**
+
+### 2. 短い通称の組織名（1-2語）
+以下のような短い組織名も必ずORGANIZATIONタグを付ける:
+- `<ORGANIZATION>楽天</ORGANIZATION>のサービス`
+- `<ORGANIZATION>ソフトバンク</ORGANIZATION>に転職`
+- `<ORGANIZATION>トヨタ</ORGANIZATION>の工場`
+- `<ORGANIZATION>LINE</ORGANIZATION>で連絡`
+- `<ORGANIZATION>任天堂</ORGANIZATION>の株価`
+- `<ORGANIZATION>ソニー</ORGANIZATION>グループ` → `<ORGANIZATION>ソニーグループ</ORGANIZATION>`
+- `<ORGANIZATION>KDDI</ORGANIZATION>の回線`
+- `<ORGANIZATION>ニトリ</ORGANIZATION>の家具`
+- `<ORGANIZATION>ユニクロ</ORGANIZATION>の店舗`
+- `<ORGANIZATION>スターバックス</ORGANIZATION>で打ち合わせ` ← 場所表現でもORGタグ必要
+
+### 3. タグ付けしないもの
+- ビル名単体: 「○○タワー」「○○ビル」「本社ビル」
+- 地名・行政区画: 「東京都内」「長野県」「大和市」 ← これらは住所の一部かもしれないがORGではない
+- プレースホルダー: 「○○県○○市」「ダミー工業」
+
+### 4. 括弧内の組織名
+- `<ORGANIZATION>株式会社ABC</ORGANIZATION>（本社: <ADDRESS>大阪市中央区本町4-5-6</ADDRESS>）` ← 括弧はタグの外
+- `所属は<ORGANIZATION>NTTデータ</ORGANIZATION>（東京）` ← 「（東京）」はタグ外
+
+## テーマ例
+- 面談場所の案内（住所+組織名+ビル名）、求人票（企業通称+本社所在地）、取引先一覧（短い通称と正式名称の混在）、ニュース記事（企業名の略称使用）
