@@ -1,0 +1,34 @@
+以下の条件に従い、地名を含む組織名と実際の住所が混在する日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+地名入り組織名（例: 西新宿データラボ株式会社）と実際の住所（例: 東京都新宿区西新宿2-8-1）を正しく区別できる学習データを生成します。
+
+## 条件
+- 各テキストは独立した内容であること
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>人名</PERSON>
+  - <ADDRESS>住所</ADDRESS>
+  - <ORGANIZATION>組織名</ORGANIZATION>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>（該当する場合のみ）
+  - <BANK_ACCOUNT>銀行口座情報</BANK_ACCOUNT>（該当する場合のみ）
+- **重要**: 各テキストにORGANIZATIONとADDRESSを少なくとも1つずつ含めること
+- 組織名には地名を積極的に含めること（下記パターン参照）
+- 地名が組織名の一部か、住所の一部かで正しくタグ付けすること
+- 「○○支店前」「○○本社前」のような場所表現はタグ付けしないこと
+- 各テキストの長さは100〜300文字
+
+## 出力形式
+各テキストを `---DOC_SEPARATOR---` で区切って出力してください。
+
+## 地名入り組織名の例
+- <ORGANIZATION>渋谷区医師会</ORGANIZATION>
+- <ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION>
+- <ORGANIZATION>日本橋総合法律事務所</ORGANIZATION>
+- <ORGANIZATION>品川シーサイドテクノロジーズ</ORGANIZATION>
+- <ORGANIZATION>横浜みなとみらい開発株式会社</ORGANIZATION>
+- <ORGANIZATION>大阪梅田コンサルティング</ORGANIZATION>
+- <ORGANIZATION>京都烏丸法律事務所</ORGANIZATION>
+- <ORGANIZATION>札幌北一条クリニック</ORGANIZATION>
+
+## テーマ例
+- 不動産契約（物件所在地 vs 管理会社名）、取引先一覧（会社名 vs 本社所在地）、医療紹介状（病院名 vs 患者住所）、法律文書（事務所名 vs 管轄地裁）

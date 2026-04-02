@@ -1,0 +1,51 @@
+以下の条件に従い、同一文書内で表記体系が大きく揺れる日本語テキストを{{ num_docs }}件生成してください。
+
+## 条件
+- 各テキストは独立した内容であること
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>人名</PERSON>
+  - <ADDRESS>住所</ADDRESS>
+  - <ORGANIZATION>組織名</ORGANIZATION>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>
+  - <BANK_ACCOUNT>銀行口座情報</BANK_ACCOUNT>
+- 1つのテキスト内で最低2種類の表記体系を混在させること
+- 各テキストに2〜4種類のエンティティを含めること
+- 各テキストの長さは80〜250文字
+
+## 出力形式
+各テキストを `---DOC_SEPARATOR---` で区切って出力してください。
+
+## 表記揺れパターン（これらを積極的に混ぜること）
+
+### 人名の揺れ
+- 漢字: `<PERSON>山田太郎</PERSON>`
+- ひらがな: `<PERSON>やまだ たろう</PERSON>`
+- カタカナ: `<PERSON>ヤマダ タロウ</PERSON>`
+- ローマ字: `<PERSON>Taro YAMADA</PERSON>` / `<PERSON>YAMADA Taro</PERSON>`
+- 全角スペース: `<PERSON>山　田　太　郎</PERSON>`
+- フリガナ付き: `<PERSON>山田太郎</PERSON>（ヤマダ タロウ）`
+
+### 住所の揺れ
+- 標準: `<ADDRESS>東京都渋谷区神宮前1-2-3</ADDRESS>`
+- 漢数字: `<ADDRESS>東京都渋谷区神宮前一丁目二番三号</ADDRESS>`
+- ローマ字: `<ADDRESS>Shibuya-ku, Jingumae 1-2-3, Tokyo</ADDRESS>`
+- 省略: `<ADDRESS>渋谷区神宮前1-2-3</ADDRESS>`
+
+### 組織名の揺れ
+- 正式: `<ORGANIZATION>株式会社サンプル</ORGANIZATION>`
+- 略称: `<ORGANIZATION>（株）サンプル</ORGANIZATION>`
+- 英語: `<ORGANIZATION>Sample Corporation</ORGANIZATION>` / `<ORGANIZATION>Sample Corp.</ORGANIZATION>`
+- 後置: `<ORGANIZATION>サンプル株式会社</ORGANIZATION>`
+
+### 生年月日の揺れ
+- 西暦: `<DATE_OF_BIRTH>1990年3月15日</DATE_OF_BIRTH>`
+- 和暦: `<DATE_OF_BIRTH>平成2年3月15日</DATE_OF_BIRTH>`
+- 元号略記: `<DATE_OF_BIRTH>H2.3.15</DATE_OF_BIRTH>` / `<DATE_OF_BIRTH>S40/5/10</DATE_OF_BIRTH>`
+- ISO: `<DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH>`
+
+### 口座の揺れ
+- 正式: `<BANK_ACCOUNT>三菱UFJ銀行 新宿支店 普通 1234567</BANK_ACCOUNT>`
+- 略称: `<BANK_ACCOUNT>UFJ 新宿 普 1234567</BANK_ACCOUNT>`
+
+## テーマ例
+- 国際企業の人事記録、外国人従業員の登録書類、翻訳会社の顧客台帳、多言語対応フォームの入力データ

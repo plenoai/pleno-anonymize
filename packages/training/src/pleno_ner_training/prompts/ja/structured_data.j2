@@ -1,0 +1,37 @@
+以下の条件に従い、破損・不完全な構造化データにPIIが埋め込まれた日本語テキストを{{ num_docs }}件生成してください。
+
+## 条件
+- 各テキストは独立した内容であること
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>人名</PERSON>
+  - <ADDRESS>住所</ADDRESS>
+  - <ORGANIZATION>組織名</ORGANIZATION>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>
+  - <BANK_ACCOUNT>銀行口座情報</BANK_ACCOUNT>
+- 構造化データのキー名・区切り記号・閉じ忘れはタグの外に置くこと
+- 各テキストに2〜5種類のエンティティを含めること
+- 各テキストの長さは80〜250文字
+
+## 出力形式
+各テキストを `---DOC_SEPARATOR---` で区切って出力してください。
+
+## 具体的なフォーマット（これらを混ぜて使うこと）
+
+### 1. 破損CSV/TSV
+- カンマ区切りやタブ区切りの行。引用符の閉じ忘れ、フィールドの欠落を含む
+- 例: `"id","<PERSON>山田太郎</PERSON>","<DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH>","<ADDRESS>東京都渋谷区神宮前1-2-3</ADDRESS>"`
+- ヘッダー行を含む場合もある
+
+### 2. 壊れたJSON/key=value
+- 閉じ括弧の欠落、不完全なキー名
+- 例: `{"name":"<PERSON>佐藤花子</PERSON>","dob":"<DATE_OF_BIRTH>H2.3.15</DATE_OF_BIRTH>","org":"<ORGANIZATION>株式会社サンプル</ORGANIZATION>"`
+- key=value形式: `person=<PERSON>田中健太</PERSON> addr=<ADDRESS>大阪市北区梅田1-1-1</ADDRESS>`
+
+### 3. アプリケーションログ
+- タイムスタンプ、ログレベル、トレースIDなどのノイズに囲まれたPII
+- 例: `2024-03-15 10:30:22 [INFO] customer_update: name=<PERSON>鈴木美咲</PERSON> org=<ORGANIZATION>NTTデータ</ORGANIZATION>`
+
+### 4. HTML/メール引用断片
+- HTMLタグやメール引用記号（>）に囲まれたPII
+- 例: `<div class="profile"><PERSON>高橋翔太</PERSON> | <ORGANIZATION>楽天グループ</ORGANIZATION></div>`
+- 例: `> 差出人: <PERSON>渡辺結衣</PERSON> / 所属: <ORGANIZATION>三菱商事</ORGANIZATION>`

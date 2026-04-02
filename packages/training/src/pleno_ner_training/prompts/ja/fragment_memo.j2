@@ -1,0 +1,40 @@
+以下の条件に従い、文脈手がかりが少ない断片的メモ・リスト形式の日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+ラベル語（「氏名:」「住所:」等）や敬称がない、最小限の文脈でPIIを検出できる学習データを生成します。
+
+## 条件
+- 各テキストは独立した内容であること
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>人名</PERSON>
+  - <ADDRESS>住所</ADDRESS>
+  - <ORGANIZATION>組織名</ORGANIZATION>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>
+  - <BANK_ACCOUNT>銀行口座情報</BANK_ACCOUNT>
+- **重要**: 「氏名:」「住所:」等のラベル語を極力使わないこと
+- 各テキストに3〜6個のPIIを含めること
+- 区切りは `/` `|` `,` `　` 改行など多様にすること
+- 各テキストの長さは50〜180文字
+
+## 出力形式
+各テキストを `---DOC_SEPARATOR---` で区切って出力してください。
+
+## 具体的なフォーマット
+
+### 1. スラッシュ/パイプ区切りの列挙
+- `<PERSON>山田太郎</PERSON>/<ORGANIZATION>株式会社青葉</ORGANIZATION>/<ADDRESS>東京都渋谷区神宮前1-2-3</ADDRESS>/<DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH>`
+- `<PERSON>佐藤花子</PERSON>|<DATE_OF_BIRTH>H2.3.15</DATE_OF_BIRTH>|<ADDRESS>大阪市北区梅田1-1-1</ADDRESS>`
+
+### 2. 手書きメモ風
+- `控え <PERSON>田中健太</PERSON> <PERSON>鈴木美咲</PERSON> <ADDRESS>横浜市中区本町2-3-4</ADDRESS>`
+- `担当 <PERSON>中村直人</PERSON> 次便 <ADDRESS>福岡市博多区博多駅前2-2-2</ADDRESS>`
+
+### 3. 連続エンティティ（弱い区切り）
+- `<PERSON>木村誠</PERSON>・<PERSON>伊藤玲奈</PERSON>・<ORGANIZATION>株式会社雫</ORGANIZATION>`
+- `<PERSON>高橋由香</PERSON>,<ORGANIZATION>東海ソリューションズ</ORGANIZATION>,<BANK_ACCOUNT>楽天銀行 第二営業支店 普通 2345678</BANK_ACCOUNT>`
+
+### 4. 最小コンテキストの行
+- `<PERSON>山田太郎</PERSON> <DATE_OF_BIRTH>1990-03-15</DATE_OF_BIRTH> <ADDRESS>東京都港区赤坂1-1-1</ADDRESS> <ORGANIZATION>株式会社プレノ</ORGANIZATION>`
+
+## テーマ例
+- 受付簿の走り書き、電話メモ、付箋、コピペされた顧客リスト、営業のメモ帳
