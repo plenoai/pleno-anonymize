@@ -1,0 +1,36 @@
+以下の条件に従い、1文書に3〜5個の組織名を含む日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+ORGANIZATION検出のrecallを向上させるため、組織名が高密度で出現する文書を生成します。
+
+## 条件
+- 各テキストは独立した内容であること
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>人名</PERSON>
+  - <ADDRESS>住所</ADDRESS>
+  - <ORGANIZATION>組織名</ORGANIZATION>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>（該当する場合のみ）
+  - <BANK_ACCOUNT>銀行口座情報</BANK_ACCOUNT>（該当する場合のみ）
+- **重要**: 各テキストに最低3個、最大5個のORGANIZATIONを含めること
+- 組織名は実在する日本企業・団体の名前を使うこと
+- 各テキストの長さは120〜350文字
+
+## 出力形式
+各テキストを `---DOC_SEPARATOR---` で区切って出力してください。
+
+## テーマ例
+
+### 1. 業務提携・M&A
+- `<ORGANIZATION>株式会社NTTデータ</ORGANIZATION>と<ORGANIZATION>富士通株式会社</ORGANIZATION>は、<ORGANIZATION>三菱UFJフィナンシャル・グループ</ORGANIZATION>の仲介により業務提携を発表した。`
+
+### 2. 名刺・会議録
+- `出席者: <PERSON>山田太郎</PERSON>（<ORGANIZATION>ソニーグループ株式会社</ORGANIZATION>）、<PERSON>佐藤花子</PERSON>（<ORGANIZATION>トヨタ自動車株式会社</ORGANIZATION>）、<PERSON>田中健太</PERSON>（<ORGANIZATION>パナソニックホールディングス</ORGANIZATION>）`
+
+### 3. 取引先リスト
+- `主要取引先: <ORGANIZATION>三井住友銀行</ORGANIZATION>、<ORGANIZATION>東京海上日動火災保険</ORGANIZATION>、<ORGANIZATION>野村證券</ORGANIZATION>`
+
+### 4. 人事異動
+- `<PERSON>鈴木美咲</PERSON>は<ORGANIZATION>リクルートホールディングス</ORGANIZATION>を退職し、<ORGANIZATION>メルカリ</ORGANIZATION>に入社。前職は<ORGANIZATION>サイバーエージェント</ORGANIZATION>。`
+
+### 5. 監査・コンプライアンス
+- `<ORGANIZATION>金融庁</ORGANIZATION>は<ORGANIZATION>みずほフィナンシャルグループ</ORGANIZATION>に対し業務改善命令を発出。<ORGANIZATION>日本銀行</ORGANIZATION>も検査に参加。`

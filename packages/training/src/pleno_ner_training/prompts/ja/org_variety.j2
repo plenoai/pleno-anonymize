@@ -1,0 +1,59 @@
+以下の条件に従い、企業以外の多様な組織名を含む日本語テキストを{{ num_docs }}件生成してください。
+
+## 目的
+「株式会社」以外の組織形態（NPO・社団法人・財団・省庁・大学・病院・研究所・労働組合等）の検出精度を向上させるため、多様な組織名パターンを含む文書を生成します。
+
+## 条件
+- 各テキストは独立した内容であること
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>人名</PERSON>
+  - <ADDRESS>住所</ADDRESS>
+  - <ORGANIZATION>組織名</ORGANIZATION>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>（該当する場合のみ）
+  - <BANK_ACCOUNT>銀行口座情報</BANK_ACCOUNT>（該当する場合のみ）
+- **重要**: 各テキストに最低1個、できれば2個のORGANIZATIONを含め、企業以外の組織を優先すること
+- 各テキストの長さは80〜280文字
+
+## 出力形式
+各テキストを `---DOC_SEPARATOR---` で区切って出力してください。
+
+## 多様な組織形態の例
+
+### 非営利・公益法人
+- <ORGANIZATION>特定非営利活動法人子ども食堂ネットワーク</ORGANIZATION>
+- <ORGANIZATION>一般社団法人日本経済団体連合会</ORGANIZATION>
+- <ORGANIZATION>公益財団法人日本財団</ORGANIZATION>
+- <ORGANIZATION>社会福祉法人全国社会福祉協議会</ORGANIZATION>
+
+### 省庁・自治体・公的機関
+- <ORGANIZATION>厚生労働省</ORGANIZATION>、<ORGANIZATION>国土交通省</ORGANIZATION>
+- <ORGANIZATION>東京都教育委員会</ORGANIZATION>、<ORGANIZATION>大阪府警察本部</ORGANIZATION>
+- <ORGANIZATION>日本年金機構</ORGANIZATION>、<ORGANIZATION>国民生活センター</ORGANIZATION>
+
+### 大学・学校法人
+- <ORGANIZATION>学校法人慶應義塾</ORGANIZATION>
+- <ORGANIZATION>国立大学法人東京大学</ORGANIZATION>
+- <ORGANIZATION>東京都立大学大学院理学研究科</ORGANIZATION>
+
+### 医療機関
+- <ORGANIZATION>医療法人社団順天堂</ORGANIZATION>
+- <ORGANIZATION>独立行政法人国立病院機構</ORGANIZATION>
+- <ORGANIZATION>東京医科歯科大学病院</ORGANIZATION>
+
+### 研究機関
+- <ORGANIZATION>国立研究開発法人理化学研究所</ORGANIZATION>
+- <ORGANIZATION>独立行政法人情報処理推進機構</ORGANIZATION>
+- <ORGANIZATION>国立研究開発法人産業技術総合研究所</ORGANIZATION>
+
+### 労働組合・業界団体
+- <ORGANIZATION>日本労働組合総連合会</ORGANIZATION>
+- <ORGANIZATION>日本医師会</ORGANIZATION>
+- <ORGANIZATION>全日本トラック協会</ORGANIZATION>
+
+### 略称・通称
+- <ORGANIZATION>経団連</ORGANIZATION>、<ORGANIZATION>日経連</ORGANIZATION>
+- <ORGANIZATION>JAXA</ORGANIZATION>、<ORGANIZATION>NICT</ORGANIZATION>
+- <ORGANIZATION>東大</ORGANIZATION>、<ORGANIZATION>京大</ORGANIZATION>、<ORGANIZATION>阪大</ORGANIZATION>
+
+## テーマ例
+- 助成金申請書、医療紹介状、研究論文の所属表記、行政手続き文書、大学の入学手続き、福祉サービス利用申込
