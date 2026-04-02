@@ -5,7 +5,8 @@
        benchmark-v04-generate benchmark-v04-generate-en benchmark-v04-evaluate benchmark-v04-evaluate-en \
        benchmark-v05-generate benchmark-v05-generate-en benchmark-v05-evaluate benchmark-v05-evaluate-en \
        benchmark-v10-generate benchmark-v10-evaluate \
-       benchmark-v11-generate benchmark-v11-evaluate
+       benchmark-v11-generate benchmark-v11-evaluate \
+       benchmark-v12-generate benchmark-v12-evaluate
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
@@ -323,6 +324,19 @@ benchmark-v11-evaluate:
 	uv run python -m pleno_ner_training.evaluate_benchmark \
 		--model $(OUTPUT_DIR)/model-best \
 		--language ja --version v0.11.0
+
+benchmark-v12-generate:
+	uv run python -m pleno_ner_training.generate_benchmark \
+		--version v0.12.0 \
+		--language ja \
+		--docs-per-template $(DOCS_PER_TEMPLATE) \
+		--batches-per-template $(BENCHMARK_BATCHES) \
+		--max-workers $(MAX_WORKERS)
+
+benchmark-v12-evaluate:
+	uv run python -m pleno_ner_training.evaluate_benchmark \
+		--model $(OUTPUT_DIR)/model-best \
+		--language ja --version v0.12.0
 
 # === 共通 ===
 

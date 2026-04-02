@@ -1,0 +1,19 @@
+会議メモ: 受付日 2026/04/01、更新日 2026/05/31、締切日 2026/06/15、参照番号 REQ-09-4412。これらは業務日付と管理番号であり生年月日ではない。
+---DOC_SEPARATOR---
+配送ルール説明: 「渋谷オフィス街」「天神オフィス街」「西新宿本社前」はルート名として使う。個人の送付先や居所を示さない。
+---DOC_SEPARATOR---
+システム仕様: person_name=sample_user address_line=prefecture-city-block date_line=YYYY/MM/DD bank_line=branch-main ordinary 0000000。右辺は固定 placeholder。
+---DOC_SEPARATOR---
+運用ガイドには 三井住友銀行 みずほ銀行 楽天銀行 ゆうちょ銀行 を接続先候補として記すが、口座番号や名義人は含まれない。
+---DOC_SEPARATOR---
+管理画面の説明では owner=sample_name_31 owner_kana=sample_name_kana shipto=pref-city-town-1-2-3 を流し、マスキング表示だけ確認する。
+---DOC_SEPARATOR---
+帳票見本: sample_name_01, YYYY/MM/DD, pref-city-town-1-2-3, UNASSIGNED, branch-main ordinary 0000000, 03-1234-5678, INV-778812。実体のないサンプル行。
+---DOC_SEPARATOR---
+画面読取テストで表示されるのは 氏名sample_user 住所prefecture-city-block 生年月日19XX-XX-XX 振込先TEMP-HOLD 所属org-unit-temp のみ。漏えい情報なし。
+---DOC_SEPARATOR---
+社内教育用スライドには 「渋谷区役所前」「日本橋支店前」「中央病院前交差点」を non-PII の例として並べている。
+---DOC_SEPARATOR---
+エラーログの説明 [DEBUG] organization=UNASSIGNED address=pref-city-town-1-2-3 dob=19XX-XX-XX bank=TEMP-HOLD path=/redaction/rules。実データ未投入。
+---DOC_SEPARATOR---
+仕様確認メモ owner sample_user_91 address pending-town-1-2-3 dob 19XX/XX/XX bank masked account org unassigned。これは UI テストの文字列である。

@@ -1,0 +1,39 @@
+UI モックでは owner sample_user、shipping_to prefecture-city-block、dob YYYY/MM/DD、bank TEMP-HOLD をそのまま表示しているだけで actual data はない。
+---DOC_SEPARATOR---
+フォーム見本には 氏名未入力、住所登録待ち、口座branch-main ordinary 0000000 といった placeholder が並ぶ。
+---DOC_SEPARATOR---
+画面設計の注記に sample_name_01, sample_name_02, sample_name_03 があるが、表示幅確認用の固定値である。
+---DOC_SEPARATOR---
+入力欄ラベルとして person_name, address_line, organization_name, bank_account が並ぶだけで、値はサンプルのままである。
+---DOC_SEPARATOR---
+チュートリアルの図版に `<input placeholder=\"sample_user\">` や `<input placeholder=\"pref-city-town-1-2-3\">` が見えるだけだ。
+---DOC_SEPARATOR---
+設定画面のスクリーンショットに UNASSIGNED と TEMP-HOLD が表示されるが、未設定値の説明である。
+---DOC_SEPARATOR---
+モック画面の footer には 03-1234-5678 と REQ-09-4412 があるが、サポート窓口と受付番号の例である。
+---DOC_SEPARATOR---
+UI テスト用のデータ行 `sample_name_01,YYYY/MM/DD,pref-city-town-1-2-3,UNASSIGNED` は実利用者情報ではない。
+---DOC_SEPARATOR---
+開発者向けガイドに branch-main ordinary 0000000 と route=0000 が出るが、固定ダミー値である。
+---DOC_SEPARATOR---
+オンボーディング画面の例に sample_user_07 や pending-town-1-2-3 が載るだけで actual address はない。
+---DOC_SEPARATOR---
+説明資料には 三井住友銀行API やみずほ銀行連携のラベルがあるが、個人口座番号は記載しない。
+---DOC_SEPARATOR---
+フォームのサンプルは person_name=sample_user と address_line=prefecture-city-block のようなモック表示のみである。
+---DOC_SEPARATOR---
+設計図に 中央病院前交差点 や 日本橋支店前通り が出るが、画面上の地図ラベルにすぎない。
+---DOC_SEPARATOR---
+サンプル入力に YYYY/MM/DD や 19XX-XX-XX を用いるが、DOB として保存しない。
+---DOC_SEPARATOR---
+UI ドキュメントでは sample_user と sample_name_01 が混在するが、いずれも仮値だと明記されている。
+---DOC_SEPARATOR---
+モック画像の欄外に pref-city-town-1-2-3 と TEMP-HOLD が見えるだけで actual customer record はない。
+---DOC_SEPARATOR---
+入力欄の凡例に owner, address, bank, organization の文字が並ぶが、実データを出す文脈ではない。
+---DOC_SEPARATOR---
+レイアウト確認用の HTML は placeholder を並べるだけで、個人名や送付先の actual value は持たない。
+---DOC_SEPARATOR---
+設定マニュアルの UI 例に sample_user_91 が出るが、利用者アカウントではなくダミーである。
+---DOC_SEPARATOR---
+モック画面の図版は 一般的な入力例だけで構成され、PII として扱うべき値は存在しない。

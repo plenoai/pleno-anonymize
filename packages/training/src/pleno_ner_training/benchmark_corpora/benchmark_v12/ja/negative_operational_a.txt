@@ -1,0 +1,19 @@
+運用メモ: owner=sample_user address=pref-city-town-1-2-3 dob=YYYY/MM/DD bank=TEMP-HOLD organization=UNASSIGNED。レイアウト確認用のダミー値のみ。
+---DOC_SEPARATOR---
+社内資料には「日本橋支店前」「西新宿本社前」「中央病院前交差点」と書いてあるが、どれも集合地点の例であり送付先ではない。
+---DOC_SEPARATOR---
+接続試験の説明: branch-main ordinary 0000000、route=0000、account=masked を用いる。実在の口座名義や支店番号は入力禁止。
+---DOC_SEPARATOR---
+OCR 雛形: 氏名未入力 住所登録待ち 生年月日YYYY/MM/DD 口座TEMP-HOLD 所属org-unit-temp。これは帳票枠の見え方だけ確認するための文言。
+---DOC_SEPARATOR---
+教育資料: 「渋谷区医師会」「港南本店」「札幌北一条」は誤検出しやすい一般語として列挙するが、本資料には個別住所や個人名は含まれない。
+---DOC_SEPARATOR---
+運用ログ例 [INFO] sample_user moved to pref-city-town-1-2-3 on 2026/04/01 route branch-main ordinary 0000000 organization UNASSIGNED。ルール確認用の文字列。
+---DOC_SEPARATOR---
+画面定義書: name,dob,address,organization,bank_account の各欄に sample value を置く。CSV ヘッダや placeholder は実データではない。
+---DOC_SEPARATOR---
+FAQ: 「口座欄に branch-main ordinary 0000000 とあるのは何か」への回答は「サンプル値です」。申請処理とは無関係。
+---DOC_SEPARATOR---
+仕様断片 <input placeholder=\"sample_user\"><input placeholder=\"pref-city-town-1-2-3\"><input placeholder=\"branch-main ordinary 0000000\">。フォーム部品の説明のみ。
+---DOC_SEPARATOR---
+検証スクリーンショット文字起こし owner sample_name_11 shipto prefecture-city-block dob 19XX-XX-XX bank TEMP-HOLD org UNASSIGNED。照合対象なし。

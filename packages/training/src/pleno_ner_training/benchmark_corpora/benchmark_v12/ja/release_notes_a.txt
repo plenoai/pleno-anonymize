@@ -1,0 +1,19 @@
+リリースノート 2026/04/01: sample_user 表示不具合を修正し、pref-city-town-1-2-3 などの placeholder が崩れないようにした。実データの変更はない。
+---DOC_SEPARATOR---
+バージョン 2026.05 の更新では branch-main ordinary 0000000、TEMP-HOLD、UNASSIGNED などの固定サンプル値を UI 説明から参照するようにした。
+---DOC_SEPARATOR---
+既知の制限: 日本橋支店前ルート、西新宿本社前ルート、港南本店前ルートの名称は一般経路ラベルであり、住所欄として扱ってはならない。
+---DOC_SEPARATOR---
+変更履歴には 03-1234-5678 を問い合わせ窓口、REQ-09-4412 をチケット番号、INV-778812 を請求番号の例として記すだけで、口座情報は含まれない。
+---DOC_SEPARATOR---
+今回の更新で person_name, address_line, organization_name, bank_account の各 UI ラベルを整理したが、actual value を同梱しない方針に変わりはない。
+---DOC_SEPARATOR---
+ヘルプ画面の改善では sample_name_01, sample_name_02, sample_name_03 を文字幅確認用に残した。実在氏名や顧客台帳データではない。
+---DOC_SEPARATOR---
+リリースノート 2026/05/31: 渋谷オフィス街、天神オフィス街、札幌北一条会場の地図表記を調整。一般地名の扱いであり個人住所ではない。
+---DOC_SEPARATOR---
+フォームのサンプル表示に YYYY/MM/DD や 19XX-XX-XX を使うが、生年月日を意味しない。説明用のダミー日付である。
+---DOC_SEPARATOR---
+三井住友銀行API、みずほ銀行連携、楽天銀行SDK の名称は連携先ラベルとしてのみ登場する。名義人や口座番号は保持しない。
+---DOC_SEPARATOR---
+このリリースでは OCR 例として 氏名未入力、住所登録待ち、口座TEMP-HOLD を表示する。帳票雛形の説明であり実データではない。

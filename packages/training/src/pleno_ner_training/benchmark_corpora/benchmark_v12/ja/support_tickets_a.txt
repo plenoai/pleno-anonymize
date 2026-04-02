@@ -1,0 +1,19 @@
+請求先更新の依頼です。契約者は <PERSON>佐藤花子</PERSON>、新しい送付先は <ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS>。勤務先として <ORGANIZATION>港南本店ソリューションズ株式会社</ORGANIZATION> が登録されています。
+---DOC_SEPARATOR---
+配送事故の調査をお願いします。注文者 <PERSON>高橋直樹</PERSON> の発送先は <ADDRESS>横浜市中区本町2-3-4 グリーンハイツ502</ADDRESS> で、旧配送先 sample-pref-sample-city はダミーです。
+---DOC_SEPARATOR---
+本人確認が失敗しました。申請者 <PERSON>林麻衣</PERSON> の生年月日は <DATE_OF_BIRTH>昭和63年12月3日</DATE_OF_BIRTH>、所属先は <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION> です。
+---DOC_SEPARATOR---
+返金先の修正依頼です。受取人 <PERSON>木村誠</PERSON>、口座は <BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT>、連絡先住所は <ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS>。
+---DOC_SEPARATOR---
+不正ログインの解除申請。対象者 <PERSON>石田悠人</PERSON>、生年月日は <DATE_OF_BIRTH>1991/03/28</DATE_OF_BIRTH>、勤務先は <ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+引越し後の送付先変更です。申請者 <PERSON>岡田涼</PERSON>、新住所は <ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS>、勤務先は <ORGANIZATION>青葉橋総合開発株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+保険証再発行の相談です。本人 <PERSON>中村真由美</PERSON> の現住所は <ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS>、勤務先は <ORGANIZATION>梅田業務支援センター株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+登録情報の確認をお願いします。申請者 <PERSON>渡辺美咲</PERSON>、所在地は <ADDRESS>札幌市中央区北1条西2-3 北一条オフィス605</ADDRESS>、法人名は <ORGANIZATION>札幌北一条支店サポート株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+口座変更の問い合わせです。受取人 <PERSON>高橋直樹</PERSON>、新しい振込先は <BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT>、本人確認用の生年月日は <DATE_OF_BIRTH>1988年6月15日</DATE_OF_BIRTH>。
+---DOC_SEPARATOR---
+配送先誤登録の訂正です。申請者 <PERSON>佐藤花子</PERSON> の送付先は <ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS>、所属は <ORGANIZATION>港南本店ソリューションズ株式会社</ORGANIZATION> です。

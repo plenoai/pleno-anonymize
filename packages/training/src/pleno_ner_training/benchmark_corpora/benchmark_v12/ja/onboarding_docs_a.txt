@@ -1,0 +1,19 @@
+初期設定ガイドでは sample_user、pref-city-town-1-2-3、branch-main ordinary 0000000 をデモ値として使う。利用者本人の情報を入力する前段階の説明である。
+---DOC_SEPARATOR---
+オンボーディング資料には 2026/04/01, 2026/05/31, 2026/06/15 の研修日程が並ぶだけで、生年月日を記録したものではない。
+---DOC_SEPARATOR---
+入力例の person_name, address_line, bank_account, organization_name はラベル名であり、actual value を公開しない。
+---DOC_SEPARATOR---
+ガイド文に 西新宿本社前ルート、日本橋支店前ルート、港南本店前ルート という一般的な経路名が現れる。居住地や勤務先ではない。
+---DOC_SEPARATOR---
+問い合わせ番号 03-1234-5678、企画番号 REQ-09-4412、見積番号 INV-778812 を載せるが、個人口座や送付先を示すものではない。
+---DOC_SEPARATOR---
+チュートリアル画面の HTML に `<input placeholder=\"sample_user\">` などの部品が見える。実利用者の値は含まれない。
+---DOC_SEPARATOR---
+説明では 三井住友銀行API、みずほ銀行連携、楽天銀行SDK の名称を使うだけで、名義人や支店番号の説明は行わない。
+---DOC_SEPARATOR---
+テンプレート例に sample_name_01, sample_name_02, sample_name_03 を並べるが、表示幅確認用であり氏名データではない。
+---DOC_SEPARATOR---
+導入資料には 中央病院前交差点、渋谷区役所前広場、札幌北一条駅前会場 という会場名が出る。一般施設名である。
+---DOC_SEPARATOR---
+オンボーディングの最後に TEMP-HOLD や UNASSIGNED の意味を説明しているだけで、実在の契約情報や口座情報は無い。

@@ -1,0 +1,39 @@
+FAQ: 「sample_user が画面に見えるのはなぜですか」への回答は「デモ表示だから」です。個人情報を意味しません。
+---DOC_SEPARATOR---
+FAQ: 「pref-city-town-1-2-3 は実在住所ですか」への回答は「いいえ、説明用の placeholder です」。
+---DOC_SEPARATOR---
+FAQ: 「branch-main ordinary 0000000 は本物の口座ですか」への回答は「いいえ、UI モックです」。
+---DOC_SEPARATOR---
+FAQ: 「UNASSIGNED と TEMP-HOLD の違いは何ですか」への説明だけで、actual contract data は含まれない。
+---DOC_SEPARATOR---
+FAQ: 「03-1234-5678 は誰の番号ですか」への回答は「サポート窓口の例示番号です」。
+---DOC_SEPARATOR---
+FAQ: 「YYYY/MM/DD は DOB ですか」への回答は「日付フォーマットの見本です」。
+---DOC_SEPARATOR---
+FAQ: 「中央病院前交差点は住所欄に入れるのですか」への回答は「一般地点名なので入れません」。
+---DOC_SEPARATOR---
+FAQ: 「渋谷区役所前広場は配送先ですか」への回答は「会場案内に使うだけです」。
+---DOC_SEPARATOR---
+FAQ: 「三井住友銀行API とみずほ銀行連携は口座情報ですか」への回答は「接続先名称です」。
+---DOC_SEPARATOR---
+FAQ: 「sample_name_01 は誰ですか」への回答は「文字幅確認用の仮名義です」。
+---DOC_SEPARATOR---
+FAQ: 「日本橋支店前通りは勤務先欄ですか」への回答は「一般地名です」。
+---DOC_SEPARATOR---
+FAQ: 「REQ-09-4412 は個人識別子ですか」への回答は「受付番号です」。
+---DOC_SEPARATOR---
+FAQ: 「invoice code と bank account の見分け方は」への一般説明のみで実例は固定サンプルである。
+---DOC_SEPARATOR---
+FAQ: 「札幌北一条駅前会場という記述は住所ですか」への回答は「会場名です」。
+---DOC_SEPARATOR---
+FAQ: 「person_name や address_line の文字列が見える」への回答は「入力欄ラベルです」。
+---DOC_SEPARATOR---
+FAQ: 「prefecture-city-block は何ですか」への回答は「デモ用住所パターンです」。
+---DOC_SEPARATOR---
+FAQ: 「sample_user_91 は実利用者ですか」への回答は「ダミーです」。
+---DOC_SEPARATOR---
+FAQ: 「UNASSIGNED が表示される理由は」への説明だけで actual organization data は無い。
+---DOC_SEPARATOR---
+FAQ: 「TEMP-HOLD は送金停止を意味しますか」への解説はサンプル仕様の話だけである。
+---DOC_SEPARATOR---
+FAQ: 「渋谷オフィス街ルートとは」への回答は「地図ラベルです」。

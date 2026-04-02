@@ -1,0 +1,19 @@
+操作マニュアル: owner=sample_user、address=pref-city-town-1-2-3、dob=YYYY/MM/DD、bank=TEMP-HOLD は初期表示サンプル。個人の実データを入力してはならない。
+---DOC_SEPARATOR---
+管理画面リファレンス: person_name、address_line、organization_name、bank_account、date_value の各フィールドに placeholder を表示する。本文は仕様説明のみ。
+---DOC_SEPARATOR---
+OCR 設定ガイドには 氏名未入力、住所登録待ち、生年月日YYYY/MM/DD、口座branch-main ordinary 0000000 という例示があるが、すべて説明用ダミーである。
+---DOC_SEPARATOR---
+API ドキュメント: institution_name に「三井住友銀行」、display_name に「渋谷オフィス街」、route_code に「0000」を入れた例を示すが、個人識別情報は含めない。
+---DOC_SEPARATOR---
+チュートリアル画面の HTML 断片には `<input placeholder=\"sample_user\">` や `<input placeholder=\"pref-city-town-1-2-3\">` が見えるだけで、実利用者の値ではない。
+---DOC_SEPARATOR---
+製品仕様書では 西新宿本社前ルート、日本橋支店前ルート、中央病院前交差点ルートといった名前を使う。いずれも住所録ではなく導線名である。
+---DOC_SEPARATOR---
+導入ガイド: sample_name_01, sample_name_02, sample_name_03 を並べて文字幅を確認する。個人名の実例ではなく固定サンプルである。
+---DOC_SEPARATOR---
+FAQ: 「TEMP-HOLD は何ですか」「UNASSIGNED は何ですか」「prefecture-city-block は何ですか」に対し、すべてダミー値または未設定値だと説明している。
+---DOC_SEPARATOR---
+設定マニュアル: 2026/04/01, 2026/05/31, 2026/06/15 をスケジュール例として使う。生年月日や契約者識別子として保存しない。
+---DOC_SEPARATOR---
+接続設定書に 03-1234-5678、INV-778812、REQ-09-4412 などの番号が載るが、これらは例示や管理番号であり口座情報ではない。

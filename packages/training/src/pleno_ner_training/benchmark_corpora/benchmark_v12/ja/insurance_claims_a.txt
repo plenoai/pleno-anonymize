@@ -1,0 +1,19 @@
+保険金請求書: 契約者 <PERSON>佐藤花子</PERSON>、生年月日 <DATE_OF_BIRTH>昭和四十年五月十日</DATE_OF_BIRTH>、住所 <ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS>、勤務先 <ORGANIZATION>港南本店ソリューションズ株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+事故受付票: 被保険者 <PERSON>高橋直樹</PERSON>、連絡先 <ADDRESS>横浜市中区本町2-3-4 グリーンハイツ502</ADDRESS>、還付口座 <BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT>。
+---DOC_SEPARATOR---
+給付申請: 申請者 <PERSON>林麻衣</PERSON>、生年月日 <DATE_OF_BIRTH>昭和63年12月3日</DATE_OF_BIRTH>、紹介元 <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>。
+---DOC_SEPARATOR---
+契約変更届: 本人 <PERSON>木村誠</PERSON>、住所 <ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS>、振込先 <BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT>。
+---DOC_SEPARATOR---
+被保険者異動: 対象者 <PERSON>中村真由美</PERSON>、現住所 <ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS>、勤務先 <ORGANIZATION>梅田業務支援センター株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+受付控え: 契約者 <PERSON>岡田涼</PERSON>、生年月日 <DATE_OF_BIRTH>平成2年7月7日</DATE_OF_BIRTH>、送付先 <ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS>。
+---DOC_SEPARATOR---
+精算口座確認: 名義人 <PERSON>渡辺美咲</PERSON>、口座 <BANK_ACCOUNT>ゆうちょ銀行記号10100番号12345671</BANK_ACCOUNT>、所在地 <ADDRESS>札幌市中央区北1条西2-3 北一条オフィス605</ADDRESS>。
+---DOC_SEPARATOR---
+査定補足書: 申請者 <PERSON>石田悠人</PERSON>、勤務先 <ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION>、住所 <ADDRESS>東京都新宿区西新宿2-8-1 第一青葉ビル9F</ADDRESS>。
+---DOC_SEPARATOR---
+給付再申請: 氏名 <PERSON>高橋直樹</PERSON>、生年月日 <DATE_OF_BIRTH>1988年6月15日</DATE_OF_BIRTH>、勤務先 <ORGANIZATION>渋谷支店業務サポート株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+変更届控え: 本人 <PERSON>林麻衣</PERSON>、送付先 <ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS>、所属 <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>。

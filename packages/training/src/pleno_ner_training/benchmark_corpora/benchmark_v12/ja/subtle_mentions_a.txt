@@ -1,0 +1,19 @@
+イベント記事の末尾に「忘れ物は <PERSON>高橋直樹</PERSON> 宛に返送」とだけ追記されていた。本文の大半は会場案内で、送付先は <ADDRESS>横浜市中区本町2-3-4 グリーンハイツ502</ADDRESS> と一度だけ出る。
+---DOC_SEPARATOR---
+広報資料の本文は一般的な催事説明だが、補足欄にだけ「問い合わせ対応担当 <PERSON>林麻衣</PERSON>、紹介元 <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>」とある。
+---DOC_SEPARATOR---
+地域レポートの本文には地名や日程が続く一方、写真キャプションにだけ <PERSON>佐藤花子</PERSON>、居所 <ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS> が残っていた。
+---DOC_SEPARATOR---
+制度解説の脚注に、申請者例として <PERSON>岡田涼</PERSON>（<DATE_OF_BIRTH>平成2年7月7日</DATE_OF_BIRTH>）の補助資料が引用されている。本文自体は一般論である。
+---DOC_SEPARATOR---
+再開発記事の写真説明にだけ <ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION> の入館票が写り込み、氏名 <PERSON>石田悠人</PERSON> が判読できる。
+---DOC_SEPARATOR---
+ニュース記事は銀行連携機能の紹介だが、監修コメントの下にだけ還付口座 <BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT> の例ではなく実データが混じっていた。
+---DOC_SEPARATOR---
+案内パンフレットは一般文書だが、差込チケット部分に <PERSON>渡辺美咲</PERSON>、<ORGANIZATION>札幌北一条支店サポート株式会社</ORGANIZATION>、<ADDRESS>札幌市中央区北1条西2-3 北一条オフィス605</ADDRESS> が印字されていた。
+---DOC_SEPARATOR---
+会議資料の末尾の別紙にのみ <PERSON>木村誠</PERSON> と <BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT> が載っている。本文は設備更新の一般説明である。
+---DOC_SEPARATOR---
+医療制度の解説ページで、本文は一般論だが、問い合わせ例として <PERSON>中村真由美</PERSON>、送付先 <ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS> が掲載されている。
+---DOC_SEPARATOR---
+保険制度のニュース記事に、個別ケースの例として <PERSON>高橋直樹</PERSON> の DOB <DATE_OF_BIRTH>1988年6月15日</DATE_OF_BIRTH> が脚注に一度だけ現れる。

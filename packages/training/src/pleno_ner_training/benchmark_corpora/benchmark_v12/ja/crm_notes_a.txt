@@ -1,0 +1,19 @@
+CRM メモ: 担当案件の申請者は <PERSON>佐藤花子</PERSON>。送付先は <ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS>、所属は <ORGANIZATION>港南本店ソリューションズ株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+CRM 履歴: 本人確認に使った情報は <PERSON>高橋直樹</PERSON>、<DATE_OF_BIRTH>1988年6月15日</DATE_OF_BIRTH>、返金口座 <BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT>。
+---DOC_SEPARATOR---
+CRM コメント: 紹介元として <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>、患者氏名として <PERSON>林麻衣</PERSON>、住所として <ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS> が残る。
+---DOC_SEPARATOR---
+CRM 更新: 契約者 <PERSON>木村誠</PERSON> の所在地は <ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS>、精算口座は <BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT>。
+---DOC_SEPARATOR---
+CRM 対応記録: 申請者 <PERSON>岡田涼</PERSON>、生年月日 <DATE_OF_BIRTH>平成2年7月7日</DATE_OF_BIRTH>、勤務先 <ORGANIZATION>青葉橋総合開発株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+CRM 面談記録: 対象者 <PERSON>石田悠人</PERSON>、住所 <ADDRESS>東京都新宿区西新宿2-8-1 第一青葉ビル9F</ADDRESS>、所属 <ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+CRM ノート: 本人 <PERSON>中村真由美</PERSON>、送付先 <ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS>、生年月日 <DATE_OF_BIRTH>昭和61年9月12日</DATE_OF_BIRTH>。
+---DOC_SEPARATOR---
+CRM 補足: 法人担当 <PERSON>渡辺美咲</PERSON>、会社名 <ORGANIZATION>札幌北一条支店サポート株式会社</ORGANIZATION>、所在地 <ADDRESS>札幌市中央区北1条西2-3 北一条オフィス605</ADDRESS>。
+---DOC_SEPARATOR---
+CRM 返金メモ: 名義人 <PERSON>高橋直樹</PERSON>、振込先 <BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT>、住所 <ADDRESS>横浜市中区本町2-3-4 グリーンハイツ502</ADDRESS>。
+---DOC_SEPARATOR---
+CRM 相談履歴: 氏名 <PERSON>林麻衣</PERSON>、所属 <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>、生年月日 <DATE_OF_BIRTH>昭和63年12月3日</DATE_OF_BIRTH>。

@@ -1,0 +1,39 @@
+FAQ には branch-main ordinary 0000000 や route=0000 といった例示があるだけで、実在の銀行口座ではない。
+---DOC_SEPARATOR---
+運用資料は 03-1234-5678、REQ-09-4412、INV-778812 を問い合わせ番号や管理番号として列挙する。金融口座情報ではない。
+---DOC_SEPARATOR---
+技術記事では 三井住友銀行API、みずほ銀行連携、楽天銀行SDK の名称を比較しているだけで、名義人や支店番号は出てこない。
+---DOC_SEPARATOR---
+設定ガイドに account=TEMP-HOLD、bank=masked、institution=UNASSIGNED と書かれているが、未設定値の説明である。
+---DOC_SEPARATOR---
+デモ画面では branch-main ordinary 0000000 を placeholder として表示する。利用者の actual bank account ではない。
+---DOC_SEPARATOR---
+会議メモには 03-1234-5678 と 06-9876-5432 がサポート窓口番号として書かれているだけで、銀行情報ではない。
+---DOC_SEPARATOR---
+教育資料の脚注で REQ-09-4412、SN-20260402-00123、INV-778812 が並ぶ。いずれも ticket や serial の例である。
+---DOC_SEPARATOR---
+デバッグログは branch-main ordinary 0000000、TEMP-HOLD、UNASSIGNED の固定値しか使わない。返金先口座ではない。
+---DOC_SEPARATOR---
+操作マニュアルに 10100 や 12345671 が出るのは OCR 文字幅説明のためで、ゆうちょ口座の actual value ではない。
+---DOC_SEPARATOR---
+金融教育記事は 三井住友銀行、みずほ銀行、楽天銀行 のサービス名を説明しているだけで、個人口座番号は含まれない。
+---DOC_SEPARATOR---
+アプリ説明には `<input placeholder=\"branch-main ordinary 0000000\">` があるが、ダミー表示にすぎない。
+---DOC_SEPARATOR---
+運用レポートの脚注には account=TEMP-HOLD や route=0000 といった変数例しかなく、名義人情報はない。
+---DOC_SEPARATOR---
+テスト CSV は sample_user, YYYY/MM/DD, TEMP-HOLD, branch-main ordinary 0000000 のようなモック値のみで構成される。
+---DOC_SEPARATOR---
+サポートページでは 03-1234-5678 を窓口番号、REQ-09-4412 を受付番号として掲載するだけで、口座情報ではない。
+---DOC_SEPARATOR---
+銀行連携の比較表に Institution 003 や Transit 11234 といった語が現れるが、説明用の汎用コードで actual transfer 情報ではない。
+---DOC_SEPARATOR---
+導入ガイドでは TEMP-HOLD や UNASSIGNED といったサンプル値の意味を説明しているだけで、送金先の実値は無い。
+---DOC_SEPARATOR---
+運用ニュースでは invoice code と tracking code の例を並べており、どちらも account number ではない。
+---DOC_SEPARATOR---
+画面設計では digits の並びを表示幅確認に使っているだけで、還付先口座や routing の実データは一切保持しない。
+---DOC_SEPARATOR---
+社内資料は 三井住友銀行API やみずほ銀行連携の概念説明のみで、BANK_ACCOUNT として扱うべき文字列は無い。
+---DOC_SEPARATOR---
+障害報告にあるのは support number と request id のみで、口座情報や名義人は含まれない。

@@ -1,0 +1,39 @@
+用語集: person_name は氏名欄、address_line は住所欄、bank_account は口座欄を意味するラベル名であり、actual value ではない。
+---DOC_SEPARATOR---
+用語説明に sample_user や pref-city-town-1-2-3 の例が出るが、ダミー値の見本である。
+---DOC_SEPARATOR---
+ドキュメント集には TEMP-HOLD と UNASSIGNED の意味を説明しているだけで、個票情報は無い。
+---DOC_SEPARATOR---
+glossary には 03-1234-5678 や REQ-09-4412 が載るが、問い合わせ番号や管理番号の例にすぎない。
+---DOC_SEPARATOR---
+説明集は 三井住友銀行API、みずほ銀行連携、楽天銀行SDK などのサービス名を定義するだけで actual bank data はない。
+---DOC_SEPARATOR---
+用語一覧に 港南交流センター、西新宿文化会館、日本橋支店前広場 といった施設名が並ぶが、一般地名である。
+---DOC_SEPARATOR---
+定義集で YYYY/MM/DD は日付フォーマットの見本とされており、生年月日データではない。
+---DOC_SEPARATOR---
+サンプル項目 sample_name_01, sample_name_02 は UI デモ用の仮名義としてのみ使う。
+---DOC_SEPARATOR---
+glossary には branch-main ordinary 0000000 が placeholder 例として載るだけで actual account number ではない。
+---DOC_SEPARATOR---
+一覧表は route=0000 や invoice code の意味を解説するのみで、送金先や配送先を含まない。
+---DOC_SEPARATOR---
+用語集の HTML 例に `<input placeholder=\"sample_user\">` があるが、実利用者の値ではない。
+---DOC_SEPARATOR---
+施設用語の欄に 中央病院前交差点 や 渋谷区役所前広場 があるのは一般地点名の説明である。
+---DOC_SEPARATOR---
+データ辞書は person_name, organization_name, address_line のフィールド説明のみを含み、値は持たない。
+---DOC_SEPARATOR---
+用語集に 2026/04/01, 2026/05/31, 2026/06/15 があるのはスケジュール例である。
+---DOC_SEPARATOR---
+サンプル CSV 行の説明に sample_user や pref-city-town-1-2-3 が並ぶが、ダミー列の意味しかない。
+---DOC_SEPARATOR---
+glossary の欄外に UNASSIGNED と TEMP-HOLD があるが、未設定値の説明であって PII ではない。
+---DOC_SEPARATOR---
+金融用語の解説に Institution 003 や Transit 11234 が出るが、一般コードの説明である。
+---DOC_SEPARATOR---
+会場ラベルとして 西新宿本社前ルート や港南本店前ルート が現れるが、住所以外の案内用語である。
+---DOC_SEPARATOR---
+用語集の本文は固有名詞やサンプル文字列の説明のみで構成され、actual person record は存在しない。
+---DOC_SEPARATOR---
+field glossary は UI ラベルの定義文であり、BANK_ACCOUNT として抽出すべき actual string を含まない。

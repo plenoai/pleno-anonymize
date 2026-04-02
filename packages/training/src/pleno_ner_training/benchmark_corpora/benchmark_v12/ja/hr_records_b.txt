@@ -1,0 +1,19 @@
+人事部の週報は制度変更と採用数の話が中心だが、補足欄の小さな引用にだけ `<PERSON>石田悠人</PERSON>`、`<ADDRESS>東京都新宿区西新宿2-8-1 第一青葉ビル9F</ADDRESS>`、`<ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION>` が残っていた。
+---DOC_SEPARATOR---
+人事メモの本文は勤務制度の一般説明だが、差込欄に「対象者は <PERSON>林麻衣</PERSON>、DOB は <DATE_OF_BIRTH>昭和63年12月3日</DATE_OF_BIRTH>、所属は <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>」と一行だけある。
+---DOC_SEPARATOR---
+異動案内は一般文書として読めるが、脚注の個票に `<PERSON>岡田涼</PERSON>`、`<ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS>`、`<ORGANIZATION>青葉橋総合開発株式会社</ORGANIZATION>` が残存している。
+---DOC_SEPARATOR---
+評価面談ガイドの参考例として、本文の中程にだけ `<PERSON>高橋直樹</PERSON>`、`<DATE_OF_BIRTH>1988年6月15日</DATE_OF_BIRTH>`、`<BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT>` が挿入されていた。
+---DOC_SEPARATOR---
+福利厚生の案内は一般論が続くが、添付欄の画像 OCR から `<PERSON>木村誠</PERSON>`、`<ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS>`、`<BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT>` が読める。
+---DOC_SEPARATOR---
+社内報の記事に見える文面の末尾に、人事問い合わせ例として `<PERSON>中村真由美</PERSON>`、`<ORGANIZATION>梅田業務支援センター株式会社</ORGANIZATION>`、`<ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS>` が差し込まれている。
+---DOC_SEPARATOR---
+採用広報の原稿は一般的な案内だが、チェック用の引用部分にだけ `<PERSON>渡辺美咲</PERSON>` と `<ORGANIZATION>札幌北一条支店サポート株式会社</ORGANIZATION>` が残っていた。
+---DOC_SEPARATOR---
+年末調整の説明書には placeholder が並ぶ一方、例外事例の注記に `<PERSON>佐藤花子</PERSON>`、`<DATE_OF_BIRTH>昭和四十年五月十日</DATE_OF_BIRTH>`、`<ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS>` が載っている。
+---DOC_SEPARATOR---
+評価制度の社内通知の末尾、個別相談先の一例として `<PERSON>高橋直樹</PERSON>` と勤務先 `<ORGANIZATION>渋谷支店業務サポート株式会社</ORGANIZATION>` が一度だけ現れる。
+---DOC_SEPARATOR---
+給与振込の運用ルール説明の長文の途中に、検証に使った実例として `<PERSON>林麻衣</PERSON>` と `<BANK_ACCOUNT>京都銀行四条支店普通6611223</BANK_ACCOUNT>` が埋め込まれていた。

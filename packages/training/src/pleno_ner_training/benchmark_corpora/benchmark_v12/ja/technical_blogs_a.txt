@@ -1,0 +1,19 @@
+技術ブログでは `sample_user`, `pref-city-town-1-2-3`, `branch-main ordinary 0000000`, `UNASSIGNED` を使ってマスキングUIの挙動を説明している。実データではない。
+---DOC_SEPARATOR---
+運用記事は OCR の誤読対策として 氏名未入力、住所登録待ち、生年月日YYYY/MM/DD、口座TEMP-HOLD のような placeholder を並べるが、個人情報は無い。
+---DOC_SEPARATOR---
+API 解説では person_name, address_line, organization_name, bank_account の各フィールドを例示しているだけで、actual value を記述していない。
+---DOC_SEPARATOR---
+エンジニアブログに 03-1234-5678、REQ-09-4412、INV-778812 のような番号が載るが、いずれも ticket や見積の例であり金融情報ではない。
+---DOC_SEPARATOR---
+フロントエンド解説に 渋谷オフィス街ルート、日本橋支店前ルート、港南本店前ルート という表示名が現れるが、一般経路名として使っているだけである。
+---DOC_SEPARATOR---
+プロダクト記事では 三井住友銀行API、みずほ銀行連携、楽天銀行SDK を比較する。名義人や支店番号ではなく、サービス名称の紹介である。
+---DOC_SEPARATOR---
+運用Tips 記事は 2026/04/01, 2026/05/31, 2026/06/15 をリリース計画日として使用。DOB ではなくスケジュール例にすぎない。
+---DOC_SEPARATOR---
+ダミーデータ生成の解説記事に sample_name_01, sample_name_02, sample_name_03 が並ぶが、いずれも固定文字列であり人名ではない。
+---DOC_SEPARATOR---
+技術メモの地図キャプションに 西新宿文化会館前、中央病院前交差点、札幌北一条駅前 が現れるが、一般施設名である。
+---DOC_SEPARATOR---
+サンプル HTML では `<input placeholder=\"sample_user\">` や `<input placeholder=\"prefecture-city-block\">` が表示されるだけで、利用者データを含まない。

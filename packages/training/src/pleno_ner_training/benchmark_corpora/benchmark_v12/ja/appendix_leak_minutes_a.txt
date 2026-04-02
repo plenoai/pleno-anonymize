@@ -1,0 +1,39 @@
+議事録本文は会場案内と作業日程だけで構成されるが、添付の返送票 OCR に `<PERSON>高橋直樹</PERSON>`、`<ADDRESS>横浜市中区本町2-3-4 グリーンハイツ502</ADDRESS>`、`<BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT>` が残っていた。
+---DOC_SEPARATOR---
+会議メモは一般的な運営議論だけだが、補足 PDF の OCR に `<PERSON>林麻衣</PERSON>`、`<DATE_OF_BIRTH>昭和63年12月3日</DATE_OF_BIRTH>`、`<ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>` が見える。
+---DOC_SEPARATOR---
+設備更新の議事録は一般文書だが、末尾の添付画像に `<PERSON>木村誠</PERSON>`、`<ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS>` が残っている。
+---DOC_SEPARATOR---
+会場レポートに差し込まれた付録 OCR から `<PERSON>岡田涼</PERSON>`、`<ORGANIZATION>青葉橋総合開発株式会社</ORGANIZATION>`、`<ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS>` が抽出された。
+---DOC_SEPARATOR---
+月例会議の記録は一般的な KPI とスケジュールの話だが、別紙の入館票に `<PERSON>石田悠人</PERSON>` と `<DATE_OF_BIRTH>1991/03/28</DATE_OF_BIRTH>` が写っていた。
+---DOC_SEPARATOR---
+報告書本文はイベントのまとめだけだが、脚注の画像 OCR に `<PERSON>中村真由美</PERSON>`、`<ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS>`、`<ORGANIZATION>梅田業務支援センター株式会社</ORGANIZATION>` が現れる。
+---DOC_SEPARATOR---
+部門会議の議事録に見えるが、添付の口座変更票 OCR に `<PERSON>渡辺美咲</PERSON>`、`<BANK_ACCOUNT>ゆうちょ銀行記号10100番号12345671</BANK_ACCOUNT>` が残っている。
+---DOC_SEPARATOR---
+運営会議メモの図版に `<PERSON>佐藤花子</PERSON>`、`<DATE_OF_BIRTH>昭和四十年五月十日</DATE_OF_BIRTH>`、`<ORGANIZATION>港南本店ソリューションズ株式会社</ORGANIZATION>` が見える。
+---DOC_SEPARATOR---
+一般的な会議要約の末尾へ `<PERSON>高橋直樹</PERSON>` と `<BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT>` が差し込まれていた。
+---DOC_SEPARATOR---
+議事録本文に個人情報はないが、付録 OCR に `<PERSON>林麻衣</PERSON>`、送付先 `<ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS>` が見える。
+---DOC_SEPARATOR---
+運営会議の一般文に続いて、添付資料の角に `<PERSON>木村誠</PERSON>`、`<BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT>` が読み取れる。
+---DOC_SEPARATOR---
+会議資料の注記に `<PERSON>岡田涼</PERSON>` と `<ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS>` が一行だけ残っていた。
+---DOC_SEPARATOR---
+設備会議の議事録の付録から `<PERSON>石田悠人</PERSON>`、`<ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION>` が OCR 抽出された。
+---DOC_SEPARATOR---
+議事メモは一般的な進捗報告だが、別紙の返送票に `<PERSON>中村真由美</PERSON>` と `<BANK_ACCOUNT>三井住友銀行梅田支店普通8844221</BANK_ACCOUNT>` が残る。
+---DOC_SEPARATOR---
+会議要旨の脚注で `<PERSON>渡辺美咲</PERSON>`、所在地 `<ADDRESS>札幌市中央区北1条西2-3 北一条オフィス605</ADDRESS>` が一度だけ現れる。
+---DOC_SEPARATOR---
+付録 OCR の端に `<PERSON>佐藤花子</PERSON>`、`<ORGANIZATION>港南本店ソリューションズ株式会社</ORGANIZATION>`、`<ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS>` が見える。
+---DOC_SEPARATOR---
+会議録本文の後ろに貼られた画像から `<PERSON>高橋直樹</PERSON>` の DOB `<DATE_OF_BIRTH>1988年6月15日</DATE_OF_BIRTH>` が読める。
+---DOC_SEPARATOR---
+一般報告書の補足欄に `<PERSON>林麻衣</PERSON>`、`<ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>` がそのまま残っていた。
+---DOC_SEPARATOR---
+議事録の付録画像に `<PERSON>木村誠</PERSON>` と返送先 `<ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS>` が写っていた。
+---DOC_SEPARATOR---
+会議資料の OCR 残りから `<PERSON>岡田涼</PERSON>`、`<DATE_OF_BIRTH>平成2年7月7日</DATE_OF_BIRTH>` が判読できる。

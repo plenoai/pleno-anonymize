@@ -1,0 +1,39 @@
+規約ページでは person_name, address_line, bank_account を入力欄名として列挙しているだけで、実際の値は一切掲載しない。
+---DOC_SEPARATOR---
+利用規約の注釈に sample_user や pref-city-town-1-2-3 が出るが、UI モックの固定文字列である。
+---DOC_SEPARATOR---
+ポリシー文書は 2026/04/01, 2026/05/31, 2026/06/15 の運用日程を載せるのみで、生年月日ではない。
+---DOC_SEPARATOR---
+規程集に branch-main ordinary 0000000 や TEMP-HOLD の表現があるが、ダミー値の説明にとどまる。
+---DOC_SEPARATOR---
+規約改定のお知らせでは 港南交流センター、日本橋支店前通り、西新宿文化会館 の名称しか出てこない。
+---DOC_SEPARATOR---
+法務ポリシーの見本には 03-1234-5678 と REQ-09-4412 があるだけで、金融口座は含まれない。
+---DOC_SEPARATOR---
+利用条件のページは 三井住友銀行API やみずほ銀行連携の説明を含むが、actual bank account ではない。
+---DOC_SEPARATOR---
+ドキュメントの脚注に sample_name_01 があるが、サンプルアカウント名の説明だけである。
+---DOC_SEPARATOR---
+規約本文には 渋谷区役所前広場、中央病院前交差点、札幌北一条駅前会場 といった地名しかない。
+---DOC_SEPARATOR---
+ポリシーの HTML 例に `<input placeholder=\"sample_user\">` が出るだけで、利用者の実データはない。
+---DOC_SEPARATOR---
+更新履歴の欄に UNASSIGNED や TEMP-HOLD が現れるが、未設定値の説明にすぎない。
+---DOC_SEPARATOR---
+利用規約のサンプルフォームには YYYY/MM/DD があるが、DOB を意味しない。
+---DOC_SEPARATOR---
+方針ページは person_name や organization_name のラベル名を並べるだけで、実値は空欄である。
+---DOC_SEPARATOR---
+社内向けポリシーの抜粋に 東京大学や渋谷区医師会支援センター の名称が出るが、一般施設名としての言及のみである。
+---DOC_SEPARATOR---
+運用ポリシーには route=0000 や invoice code の例があるだけで、送金情報はない。
+---DOC_SEPARATOR---
+案内ページで使われる sample_name_02 や prefecture-city-block はモック表示であり、PII ではない。
+---DOC_SEPARATOR---
+規約の問い合わせ欄は 03-1234-5678 の窓口番号だけで構成される。個人住所や氏名は掲載しない。
+---DOC_SEPARATOR---
+ポリシー解説には 渋谷オフィス街ルート や港南本店前ルート の文字列があるが、経路ラベルである。
+---DOC_SEPARATOR---
+データ保持方針には TEMP-HOLD や UNASSIGNED の扱いが書かれるだけで、実在データは載らない。
+---DOC_SEPARATOR---
+利用約款の図版には sample_user_91 や pending-town-1-2-3 しか出てこない。

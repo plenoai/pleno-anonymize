@@ -1,0 +1,39 @@
+市民向けの催事案内は会場と日時だけが中心だが、脚注の一文にだけ `<PERSON>高橋直樹</PERSON>` 宛ての返送指示と `<ADDRESS>横浜市中区本町2-3-4 グリーンハイツ502</ADDRESS>` が残っていた。
+---DOC_SEPARATOR---
+一般の制度案内に見えるが、注記の事例欄へ `<PERSON>林麻衣</PERSON>`、`<DATE_OF_BIRTH>昭和63年12月3日</DATE_OF_BIRTH>`、`<ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>` が埋め込まれている。
+---DOC_SEPARATOR---
+会場案内の本文は一般情報だが、最後の補足に `<PERSON>木村誠</PERSON>`、返送先 `<ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS>` が一度だけ現れる。
+---DOC_SEPARATOR---
+公開レポートの大半は一般説明だが、別紙の注記に `<PERSON>岡田涼</PERSON>`、`<ORGANIZATION>青葉橋総合開発株式会社</ORGANIZATION>`、`<ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS>` が残る。
+---DOC_SEPARATOR---
+案内パンフレットは会場地図だけだが、欄外の OCR に `<PERSON>石田悠人</PERSON>` と `<DATE_OF_BIRTH>1991/03/28</DATE_OF_BIRTH>` が写っている。
+---DOC_SEPARATOR---
+地域ニュースの本文は一般論だが、補足欄に `<PERSON>中村真由美</PERSON>` と `<ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS>` が埋め込まれている。
+---DOC_SEPARATOR---
+公共広報の脚注にだけ `<PERSON>渡辺美咲</PERSON>`、`<ORGANIZATION>札幌北一条支店サポート株式会社</ORGANIZATION>` が一度だけ現れる。
+---DOC_SEPARATOR---
+一般向け FAQ の最下段に、例外ケースとして `<PERSON>佐藤花子</PERSON>`、`<DATE_OF_BIRTH>昭和四十年五月十日</DATE_OF_BIRTH>` が残っていた。
+---DOC_SEPARATOR---
+市報の本文は再開発の話題のみだが、図版の端に `<BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT>` と `<PERSON>高橋直樹</PERSON>` が写り込んでいる。
+---DOC_SEPARATOR---
+一般的な利用ガイドの補遺にだけ `<PERSON>林麻衣</PERSON>`、送付先 `<ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS>` が残っている。
+---DOC_SEPARATOR---
+広報資料の脚注では制度概要を説明しているが、参考例の 1 行に `<PERSON>木村誠</PERSON>`、`<BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT>` が見える。
+---DOC_SEPARATOR---
+イベント報告の欄外に差し込まれた画像 OCR から `<PERSON>岡田涼</PERSON>` と `<ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS>` が読み取れる。
+---DOC_SEPARATOR---
+案内チラシの余白に `<PERSON>石田悠人</PERSON>`、`<ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION>` が小さく残っていた。
+---DOC_SEPARATOR---
+一般通知に見える文章の末尾へ `<PERSON>中村真由美</PERSON>`、`<BANK_ACCOUNT>三井住友銀行梅田支店普通8844221</BANK_ACCOUNT>` が一度だけ埋め込まれている。
+---DOC_SEPARATOR---
+公開資料の注記欄に `<PERSON>渡辺美咲</PERSON>` と `<ADDRESS>札幌市中央区北1条西2-3 北一条オフィス605</ADDRESS>` が残る。
+---DOC_SEPARATOR---
+制度比較の一般論に続く脚注へ `<PERSON>佐藤花子</PERSON>`、`<ORGANIZATION>港南本店ソリューションズ株式会社</ORGANIZATION>` が差し込まれていた。
+---DOC_SEPARATOR---
+自治体のガイド文に、問い合わせ例の 1 行として `<PERSON>高橋直樹</PERSON>` と `<DATE_OF_BIRTH>1988年6月15日</DATE_OF_BIRTH>` が紛れている。
+---DOC_SEPARATOR---
+パンフレット本文は一般案内だが、図版の OCR から `<PERSON>林麻衣</PERSON>`、`<ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>` が読める。
+---DOC_SEPARATOR---
+地域だよりの末尾に `<PERSON>木村誠</PERSON>`、送付先 `<ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS>` が残っていた。
+---DOC_SEPARATOR---
+イベント広報の注釈に `<PERSON>岡田涼</PERSON>`、`<DATE_OF_BIRTH>平成2年7月7日</DATE_OF_BIRTH>` が一度だけ掲載されている。

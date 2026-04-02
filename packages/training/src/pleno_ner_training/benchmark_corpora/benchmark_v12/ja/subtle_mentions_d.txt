@@ -1,0 +1,19 @@
+一般ニュースの最後の一文にだけ `<PERSON>佐藤花子</PERSON>` への返送指示が残り、送付先として `<ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS>` が現れる。
+---DOC_SEPARATOR---
+学術記事の脚注でケース紹介として `<PERSON>岡田涼</PERSON>`（`<DATE_OF_BIRTH>平成2年7月7日</DATE_OF_BIRTH>`）が引用されるが、本文は制度解説である。
+---DOC_SEPARATOR---
+技術ブログのサンプル画像 OCR にだけ `<BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT>` と `<PERSON>木村誠</PERSON>` が写り込んでいる。
+---DOC_SEPARATOR---
+旅行記事の別紙に `<PERSON>石田悠人</PERSON>`、勤務先 `<ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION>` の入館カードが混在していた。
+---DOC_SEPARATOR---
+会議記事の図版に `<PERSON>渡辺美咲</PERSON>`、`<ORGANIZATION>札幌北一条支店サポート株式会社</ORGANIZATION>`、`<ADDRESS>札幌市中央区北1条西2-3 北一条オフィス605</ADDRESS>` が残る。
+---DOC_SEPARATOR---
+公開レポート本文は一般論だが、補遺に `<PERSON>中村真由美</PERSON>` と `<BANK_ACCOUNT>三井住友銀行梅田支店普通8844221</BANK_ACCOUNT>` が一度だけ現れる。
+---DOC_SEPARATOR---
+FAQ ページの注記に `<PERSON>高橋直樹</PERSON>`、`<ORGANIZATION>渋谷支店業務サポート株式会社</ORGANIZATION>` が誤って貼り込まれていた。
+---DOC_SEPARATOR---
+広報資料の脚注で `<PERSON>林麻衣</PERSON>` の DOB `<DATE_OF_BIRTH>昭和63年12月3日</DATE_OF_BIRTH>` と紹介元 `<ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>` が露出している。
+---DOC_SEPARATOR---
+一般記事のコメント欄に還付処理の例が残り、`<PERSON>高橋直樹</PERSON>` と `<BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT>` が判読できる。
+---DOC_SEPARATOR---
+技術メモの下部にのみ `<PERSON>岡田涼</PERSON>`、`<ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS>`、`<ORGANIZATION>青葉橋総合開発株式会社</ORGANIZATION>` が載っていた。

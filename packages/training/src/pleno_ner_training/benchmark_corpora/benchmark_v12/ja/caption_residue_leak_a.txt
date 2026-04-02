@@ -1,0 +1,39 @@
+広報写真のキャプション末尾にだけ `<PERSON>高橋直樹</PERSON>` と `<ADDRESS>横浜市中区本町2-3-4 グリーンハイツ502</ADDRESS>` が残っていた。
+---DOC_SEPARATOR---
+案内パンフレットの画像説明に `<PERSON>林麻衣</PERSON>`、`<DATE_OF_BIRTH>昭和63年12月3日</DATE_OF_BIRTH>` が一度だけ埋め込まれている。
+---DOC_SEPARATOR---
+地域レポートの写真クレジットに `<PERSON>木村誠</PERSON>` と `<BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT>` が混在していた。
+---DOC_SEPARATOR---
+イベント記事のサムネイル説明から `<PERSON>岡田涼</PERSON>`、`<ORGANIZATION>青葉橋総合開発株式会社</ORGANIZATION>` が OCR 抽出された。
+---DOC_SEPARATOR---
+案内 PDF のキャプションにだけ `<PERSON>石田悠人</PERSON>` と `<DATE_OF_BIRTH>1991/03/28</DATE_OF_BIRTH>` が載っている。
+---DOC_SEPARATOR---
+一般ニュースの図版説明の端に `<PERSON>中村真由美</PERSON>`、`<ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS>` が見える。
+---DOC_SEPARATOR---
+会場写真の字幕に `<PERSON>渡辺美咲</PERSON>`、`<ORGANIZATION>札幌北一条支店サポート株式会社</ORGANIZATION>` が残っていた。
+---DOC_SEPARATOR---
+製品紹介ページの画像説明に `<PERSON>佐藤花子</PERSON>` と `<BANK_ACCOUNT>三井住友銀行品川支店普通7722114</BANK_ACCOUNT>` が一度だけ出る。
+---DOC_SEPARATOR---
+技術記事のキャプション OCR から `<PERSON>高橋直樹</PERSON>` の DOB `<DATE_OF_BIRTH>1988年6月15日</DATE_OF_BIRTH>` が読める。
+---DOC_SEPARATOR---
+公開資料の画像クレジットに `<PERSON>林麻衣</PERSON>` と `<ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS>` が含まれる。
+---DOC_SEPARATOR---
+地方紙の写真説明に `<PERSON>木村誠</PERSON>`、返送先 `<ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS>` が残っていた。
+---DOC_SEPARATOR---
+広報画像の字幕の一部に `<PERSON>岡田涼</PERSON>` と `<DATE_OF_BIRTH>平成2年7月7日</DATE_OF_BIRTH>` が現れる。
+---DOC_SEPARATOR---
+一般案内図のキャプションに `<PERSON>石田悠人</PERSON>`、`<ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION>` が写っている。
+---DOC_SEPARATOR---
+記事の画像説明に `<PERSON>中村真由美</PERSON>` と `<BANK_ACCOUNT>三井住友銀行梅田支店普通8844221</BANK_ACCOUNT>` が混ざっていた。
+---DOC_SEPARATOR---
+サムネイルの OCR から `<PERSON>渡辺美咲</PERSON>`、所在地 `<ADDRESS>札幌市中央区北1条西2-3 北一条オフィス605</ADDRESS>` が抽出された。
+---DOC_SEPARATOR---
+写真の注釈に `<PERSON>佐藤花子</PERSON>`、`<ORGANIZATION>港南本店ソリューションズ株式会社</ORGANIZATION>` が残る。
+---DOC_SEPARATOR---
+画像の脚注に `<PERSON>高橋直樹</PERSON>` と `<BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT>` が一度だけ見える。
+---DOC_SEPARATOR---
+広報写真の末尾キャプションに `<PERSON>林麻衣</PERSON>`、`<ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>` が埋まっている。
+---DOC_SEPARATOR---
+旅行記事の図版説明に `<PERSON>木村誠</PERSON>`、`<BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT>` が含まれる。
+---DOC_SEPARATOR---
+イベント画像の OCR 断片に `<PERSON>岡田涼</PERSON>`、送付先 `<ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS>` が見える。

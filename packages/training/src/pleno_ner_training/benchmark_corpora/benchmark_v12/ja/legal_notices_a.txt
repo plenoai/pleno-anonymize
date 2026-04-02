@@ -1,0 +1,19 @@
+内容証明: 通知先 <PERSON>高橋直樹</PERSON>、送付先 <ADDRESS>横浜市中区本町2-3-4 グリーンハイツ502</ADDRESS>、勤務先として <ORGANIZATION>渋谷支店業務サポート株式会社</ORGANIZATION> が記載されている。
+---DOC_SEPARATOR---
+契約解除通知: 宛先 <PERSON>木村誠</PERSON>、住所 <ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS>、返金口座 <BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT>。
+---DOC_SEPARATOR---
+申立補正書: 申立人 <PERSON>林麻衣</PERSON>、生年月日 <DATE_OF_BIRTH>昭和63年12月3日</DATE_OF_BIRTH>、所属 <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>。
+---DOC_SEPARATOR---
+受任通知: 当事者 <PERSON>岡田涼</PERSON>、住所 <ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS>、勤務先 <ORGANIZATION>青葉橋総合開発株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+差押解除申請: 申請者 <PERSON>中村真由美</PERSON>、現住所 <ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS>、生年月日 <DATE_OF_BIRTH>昭和61年9月12日</DATE_OF_BIRTH>。
+---DOC_SEPARATOR---
+訴訟資料送付票: 宛名 <PERSON>石田悠人</PERSON>、送付先 <ADDRESS>東京都新宿区西新宿2-8-1 第一青葉ビル9F</ADDRESS>、所属法人 <ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+和解金振込通知: 受取人 <PERSON>渡辺美咲</PERSON>、振込先 <BANK_ACCOUNT>ゆうちょ銀行記号10100番号12345671</BANK_ACCOUNT>、所在地 <ADDRESS>札幌市中央区北1条西2-3 北一条オフィス605</ADDRESS>。
+---DOC_SEPARATOR---
+督促状: 宛先 <PERSON>佐藤花子</PERSON>、住所 <ADDRESS>東京都港区港南2-3-4 ひかりレジデンス201</ADDRESS>、勤務先 <ORGANIZATION>港南本店ソリューションズ株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+本人確認通知: 対象者 <PERSON>高橋直樹</PERSON>、生年月日 <DATE_OF_BIRTH>1988年6月15日</DATE_OF_BIRTH>、振込先 <BANK_ACCOUNT>みずほ銀行渋谷支店普通1234567</BANK_ACCOUNT>。
+---DOC_SEPARATOR---
+送達報告: 申請者 <PERSON>林麻衣</PERSON>、送付先 <ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS>、紹介元 <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>。

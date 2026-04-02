@@ -1,0 +1,39 @@
+オンボーディング資料では sample_user、sample_name_01、pref-city-town-1-2-3、YYYY/MM/DD を例示しているだけで、実在データではない。
+---DOC_SEPARATOR---
+画面一覧の説明には 氏名未入力、住所登録待ち、生年月日YYYY/MM/DD、口座TEMP-HOLD といった placeholder が並ぶ。PII ではない。
+---DOC_SEPARATOR---
+HTML サンプルの `<input placeholder=\"sample_user\">` や `<input placeholder=\"prefecture-city-block\">` は UI モックである。
+---DOC_SEPARATOR---
+設計書に person_name, address_line, organization_name, bank_account といったラベル名が出るだけで、値はサンプルのままである。
+---DOC_SEPARATOR---
+ユーザーフォーラムでは sample_name_01 を UI テスト名として使う話をしており、人名の actual value は共有していない。
+---DOC_SEPARATOR---
+導入ガイドのスクリーンショットに sample_user や pref-city-town-1-2-3 が表示されているが、いずれも固定ダミー値だ。
+---DOC_SEPARATOR---
+説明文の “owner sample_user” “shipping_to prefecture-city-block” “dob YYYY/MM/DD” は全て入力例である。
+---DOC_SEPARATOR---
+ヘルプには branch-main ordinary 0000000 や UNASSIGNED が出るが、どれもサンプル設定の説明にすぎない。
+---DOC_SEPARATOR---
+FAQ の回答は sample_name_01 などの例を使っているだけで、顧客本人の氏名や送付先は扱わない。
+---DOC_SEPARATOR---
+公共資料の UI 図版には sample_user_91 や pending-town-1-2-3 のような仮値しかない。
+---DOC_SEPARATOR---
+製品ページの説明欄に TEMP-HOLD, UNASSIGNED, branch-main ordinary 0000000 が並ぶが、未設定値の例である。
+---DOC_SEPARATOR---
+アプリのリリースノートに sample_name_02、sample_name_03 を使った表示幅確認の話があるだけで actual person data ではない。
+---DOC_SEPARATOR---
+レイアウト試験の CSV 行 `sample_name_01,YYYY/MM/DD,pref-city-town-1-2-3,UNASSIGNED,branch-main ordinary 0000000` は固定サンプルだ。
+---DOC_SEPARATOR---
+開発ブログでは sample-pref-sample-city や sample_user をデモに使う。実利用者情報の流出ではない。
+---DOC_SEPARATOR---
+チュートリアルは 氏名欄の placeholder、住所欄の placeholder、DOB 欄の placeholder を説明しているだけで actual data は無い。
+---DOC_SEPARATOR---
+ヘルプドキュメントの図版には owner sample_name_11 shipto prefecture-city-block dob unknown などのモック表示しかない。
+---DOC_SEPARATOR---
+社内ガイドにある sample_user と TEMP-HOLD は固定文字列で、契約者や返金口座の actual value とは無関係だ。
+---DOC_SEPARATOR---
+サンプルフォームには sample_name_01、pref-city-town-1-2-3、branch-main ordinary 0000000 がそのまま書かれているが、説明用である。
+---DOC_SEPARATOR---
+FAQ の例示にある sample_user と YYYY/MM/DD は入力例であり、DOB や person name の実体ではない。
+---DOC_SEPARATOR---
+UI 設計書には placeholder 群と field label 群だけがあり、個票情報は存在しない。

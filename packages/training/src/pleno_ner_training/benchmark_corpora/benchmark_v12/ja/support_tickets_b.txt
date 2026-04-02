@@ -1,0 +1,19 @@
+請求書の宛先を法人から個人へ戻したいとの相談。担当者は <PERSON>林麻衣</PERSON>、現送付先は <ADDRESS>京都市中京区烏丸通2-5-6 烏丸センタービル4F</ADDRESS>、所属は <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>。
+---DOC_SEPARATOR---
+返品先ラベルの住所確認依頼です。注文者 <PERSON>木村誠</PERSON>、返送先は <ADDRESS>東京都中央区日本橋2-3-4 城東ビル7F</ADDRESS>、返金口座は <BANK_ACCOUNT>りそな銀行日本橋支店普通5566778</BANK_ACCOUNT>。
+---DOC_SEPARATOR---
+アカウント回復のための本人照合。対象者 <PERSON>岡田涼</PERSON>、生年月日は <DATE_OF_BIRTH>平成2年7月7日</DATE_OF_BIRTH>、勤務先は <ORGANIZATION>青葉橋総合開発株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+転居後も旧住所に発送されるとの連絡。申請者 <PERSON>石田悠人</PERSON> の正しい住所は <ADDRESS>東京都新宿区西新宿2-8-1 第一青葉ビル9F</ADDRESS>、勤務先は <ORGANIZATION>西新宿データラボ株式会社</ORGANIZATION>。
+---DOC_SEPARATOR---
+返金処理の確認です。受取人 <PERSON>中村真由美</PERSON>、振込先は <BANK_ACCOUNT>三井住友銀行梅田支店普通8844221</BANK_ACCOUNT>、送付先は <ADDRESS>大阪府大阪市北区梅田1-1-1 梅田センタービル1203</ADDRESS>。
+---DOC_SEPARATOR---
+提出書類の本人欄が空欄になっていました。実際の申請者は <PERSON>渡辺美咲</PERSON>、法人名は <ORGANIZATION>札幌北一条支店サポート株式会社</ORGANIZATION>、所在地は <ADDRESS>札幌市中央区北1条西2-3 北一条オフィス605</ADDRESS>。
+---DOC_SEPARATOR---
+銀行振込への切り替え依頼。名義人 <PERSON>佐藤花子</PERSON>、口座は <BANK_ACCOUNT>三井住友銀行品川支店普通7722114</BANK_ACCOUNT>、確認用の生年月日は <DATE_OF_BIRTH>昭和四十年五月十日</DATE_OF_BIRTH>。
+---DOC_SEPARATOR---
+採用面談の案内再送依頼。応募者 <PERSON>高橋直樹</PERSON>、送付先は <ADDRESS>横浜市中区本町2-3-4 グリーンハイツ502</ADDRESS>、勤務先欄には <ORGANIZATION>渋谷支店業務サポート株式会社</ORGANIZATION> が記録されています。
+---DOC_SEPARATOR---
+受診証明の再発行依頼です。患者 <PERSON>林麻衣</PERSON>、生年月日は <DATE_OF_BIRTH>昭和63年12月3日</DATE_OF_BIRTH>、紹介元は <ORGANIZATION>烏丸地域連携クリニック</ORGANIZATION>。
+---DOC_SEPARATOR---
+返送先住所の確認です。申請者 <PERSON>岡田涼</PERSON>、正しい住所は <ADDRESS>福岡市博多区博多駅前2-2-2 博多中央コーポ301</ADDRESS>、登録法人は <ORGANIZATION>青葉橋総合開発株式会社</ORGANIZATION>。
