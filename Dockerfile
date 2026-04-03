@@ -11,10 +11,10 @@ RUN uv sync --no-dev --frozen --no-install-project
 # spaCyモデル（英語ベース）を事前ダウンロード
 RUN uv pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
 
-# NERモデルをGitHub Releasesからインストール（LFS不要）
+# NERモデルをHugging Faceからインストール
 RUN uv pip install \
-    https://github.com/plenoai/pleno-anonymize/releases/download/v0.1.0/ja_ner_ja-0.2.0-py3-none-any.whl \
-    https://github.com/plenoai/pleno-anonymize/releases/download/v0.1.0/en_ner_en-0.1.0.tar.gz
+    https://huggingface.co/0xhikae/ja-ner-ja/resolve/main/ja_ner_ja-0.2.0-py3-none-any.whl \
+    https://huggingface.co/0xhikae/en-ner-en/resolve/main/en_ner_en-0.1.0.tar.gz
 
 # アプリケーションコードをコピー
 COPY server/src/ src/
