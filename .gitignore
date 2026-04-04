@@ -1,12 +1,12 @@
 # Project-specific
 CLAUDE.md
-.claude/*
-!.claude/skills/
+**/.claude/*
+!**/.claude/skills/
 .mcp.json
 
-# Training outputs — models are reproducible, only keep scores
-packages/training/output/**/model-best/
-packages/training/output/**/model-last/
+# Training outputs — reproducible, only keep scores and configs
+packages/training/output/
+output/
 
 # Experiment logs (autotrain session logs, keep log.jsonl)
 packages/training/experiments/autotrain_*.log
@@ -14,9 +14,9 @@ packages/training/experiments/autotrain_*.log
 # HuggingFace datasets (Arrow format) — reproducible via `make convert-hf-v02`
 packages/training/data/hf/
 
-# HuggingFace/ONNX model outputs — reproducible via `make train-hf-v02` / `make export-onnx-v02`
-packages/training/output/hf-*/
-packages/training/output/*-onnx/
+# Rust/WASM build artifacts
+**/target/
+Cargo.lock
 
 # Benchmark data — reproducible via `make benchmark-v02-generate`, only keep scores
 packages/training/data/benchmark/**/raw.json
