@@ -64,6 +64,9 @@ ENV/
 .DS_Store
 Thumbs.db
 
+# npm (project uses pnpm)
+package-lock.json
+
 # Environment variables
 .env
 .env.local
