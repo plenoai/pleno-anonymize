@@ -7,7 +7,8 @@
        benchmark-v10-generate benchmark-v10-evaluate \
        benchmark-v11-generate benchmark-v11-evaluate \
        benchmark-v12-generate benchmark-v12-evaluate \
-       convert-hf-v02 train-hf-v02 export-onnx-v02 push-hf-v02 all-hf-ja-v02
+       convert-hf-v02 train-hf-v02 export-onnx-v02 push-hf-v02 all-hf-ja-v02 \
+       convert-hf-v02-tiny train-hf-v02-tiny export-onnx-v02-tiny push-hf-v02-tiny all-hf-ja-v02-tiny
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
@@ -366,6 +367,35 @@ push-hf-v02:
 		--push-to 0xhikae/ja-ner-onnx
 
 all-hf-ja-v02: convert-hf-v02 train-hf-v02 export-onnx-v02 push-hf-v02
+
+# === HuggingFace Pipeline (tiny, browser-optimized) ===
+
+convert-hf-v02-tiny:
+	uv run python -m pleno_ner_training.convert_to_hf_dataset \
+		--input data/raw/ja-v02/generated.json \
+		--output data/hf/ja-v02-tiny \
+		--tokenizer ku-nlp/deberta-v2-tiny-japanese
+
+train-hf-v02-tiny:
+	uv run python -m pleno_ner_training.train_hf \
+		--dataset data/hf/ja-v02-tiny \
+		--model ku-nlp/deberta-v2-tiny-japanese \
+		--output output/hf-ja-v02-tiny \
+		--fp16 --num-epochs 20 --batch-size 16 \
+		--learning-rate 3e-5 --warmup-ratio 0.15
+
+export-onnx-v02-tiny:
+	uv run python -m pleno_ner_training.export_onnx \
+		--model output/hf-ja-v02-tiny \
+		--output output/hf-ja-v02-tiny-onnx
+
+push-hf-v02-tiny:
+	uv run python -m pleno_ner_training.export_onnx \
+		--model output/hf-ja-v02-tiny \
+		--output output/hf-ja-v02-tiny-onnx \
+		--push-to 0xhikae/ja-ner-onnx
+
+all-hf-ja-v02-tiny: convert-hf-v02-tiny train-hf-v02-tiny export-onnx-v02-tiny push-hf-v02-tiny
 
 # === 共通 ===
 
