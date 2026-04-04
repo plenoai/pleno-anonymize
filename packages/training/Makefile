@@ -7,7 +7,7 @@
        benchmark-v10-generate benchmark-v10-evaluate \
        benchmark-v11-generate benchmark-v11-evaluate \
        benchmark-v12-generate benchmark-v12-evaluate \
-       convert-hf-v02 train-hf-v02 export-onnx-v02 all-hf-ja-v02
+       convert-hf-v02 train-hf-v02 export-onnx-v02 push-hf-v02 all-hf-ja-v02
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
@@ -345,20 +345,27 @@ convert-hf-v02:
 	uv run python -m pleno_ner_training.convert_to_hf_dataset \
 		--input data/raw/ja-v02/generated.json \
 		--output data/hf/ja-v02 \
-		--tokenizer tohoku-nlp/bert-base-japanese-v3
+		--tokenizer ku-nlp/deberta-v2-base-japanese
 
 train-hf-v02:
 	uv run python -m pleno_ner_training.train_hf \
 		--dataset data/hf/ja-v02 \
-		--model tohoku-nlp/bert-base-japanese-v3 \
-		--output output/hf-ja-v02
+		--model ku-nlp/deberta-v2-base-japanese \
+		--output output/hf-ja-v02 \
+		--fp16
 
 export-onnx-v02:
 	uv run python -m pleno_ner_training.export_onnx \
 		--model output/hf-ja-v02 \
 		--output output/hf-ja-v02-onnx
 
-all-hf-ja-v02: convert-hf-v02 train-hf-v02 export-onnx-v02
+push-hf-v02:
+	uv run python -m pleno_ner_training.export_onnx \
+		--model output/hf-ja-v02 \
+		--output output/hf-ja-v02-onnx \
+		--push-to 0xhikae/ja-ner-onnx
+
+all-hf-ja-v02: convert-hf-v02 train-hf-v02 export-onnx-v02 push-hf-v02
 
 # === 共通 ===
 

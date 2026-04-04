@@ -1,6 +1,6 @@
 """HuggingFace Transformers TokenClassification で NER モデルを fine-tune する.
 
-- base_model: tohoku-nlp/bert-base-japanese-v3
+- base_model: ku-nlp/deberta-v2-base-japanese (SentencePiece, ブラウザ互換)
 - BIOタグ 11クラス (5 entity types x 2 + O)
 - seqeval によるエンティティレベル F1 評価
 """
@@ -70,7 +70,7 @@ def main() -> None:
     parser.add_argument(
         "--model",
         type=str,
-        default="tohoku-nlp/bert-base-japanese-v3",
+        default="ku-nlp/deberta-v2-base-japanese",
         help="ベースモデル名",
     )
     parser.add_argument(

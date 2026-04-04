@@ -1,6 +1,6 @@
 """JSON アノテーションデータを HuggingFace Dataset 形式（BIOタグ付き）に変換する.
 
-- tohoku-nlp/bert-base-japanese-v3 のtokenizerでトークン化
+- ku-nlp/deberta-v2-base-japanese のtokenizerでトークン化 (SentencePiece, ブラウザ互換)
 - 文字オフセットのエンティティをトークンレベルのBIOタグに変換
 - train/dev/test 分割 (80/10/10, seed=42)
 - Arrow形式で保存
@@ -61,7 +61,7 @@ def align_labels_with_tokens(
     prev_label: str | None = None
 
     for idx, (tok_start, tok_end) in enumerate(offsets):
-        # 特殊トークン ([CLS], [SEP], [PAD]) → ignore
+        # 特殊トークン → ignore
         if tok_start == 0 and tok_end == 0:
             labels.append(IGNORE_INDEX)
             prev_label = None
@@ -196,7 +196,7 @@ def main() -> None:
     parser.add_argument(
         "--tokenizer",
         type=str,
-        default="tohoku-nlp/bert-base-japanese-v3",
+        default="ku-nlp/deberta-v2-base-japanese",
         help="HuggingFace tokenizer名",
     )
     parser.add_argument("--max-length", type=int, default=512)

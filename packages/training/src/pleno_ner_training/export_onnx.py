@@ -2,7 +2,7 @@
 
 - optimum による ONNX エクスポート
 - INT8 ダイナミック量子化
-- HuggingFace Hub 互換のファイル構成で保存
+- HuggingFace Hub への push (--push-to オプション)
 """
 
 from __future__ import annotations
@@ -32,6 +32,12 @@ def main() -> None:
         type=Path,
         required=True,
         help="ONNX出力ディレクトリ",
+    )
+    parser.add_argument(
+        "--push-to",
+        type=str,
+        default=None,
+        help="HuggingFace Hub リポジトリ名 (例: 0xhikae/ja-ner-onnx)",
     )
     args = parser.parse_args()
 
@@ -75,6 +81,20 @@ def main() -> None:
         if f.is_file():
             size_mb = f.stat().st_size / (1024 * 1024)
             print(f"  {f.name}: {size_mb:.1f} MB")
+
+    # Step 3: HuggingFace Hub push
+    if args.push_to:
+        print(f"\nPushing to HuggingFace Hub: {args.push_to}...")
+        from huggingface_hub import HfApi
+
+        api = HfApi()
+        api.create_repo(args.push_to, exist_ok=True)
+        api.upload_folder(
+            folder_path=str(args.output),
+            repo_id=args.push_to,
+            commit_message="Upload ONNX quantized NER model (DeBERTa v2 base Japanese)",
+        )
+        print(f"Pushed to https://huggingface.co/{args.push_to}")
 
 
 if __name__ == "__main__":

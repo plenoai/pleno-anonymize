@@ -17,6 +17,7 @@ hf = [
     "seqeval>=1.2",
     "accelerate>=0.30",
     "optimum[onnxruntime]>=1.19",
+    "huggingface-hub>=0.23",
 ]
 
 [build-system]
