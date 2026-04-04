@@ -627,14 +627,14 @@ def generate_augmented_docs(count: int = 1000) -> list[dict]:
         if doc:
             docs.append(doc)
 
-    # 負例: PIIなしテキスト (12%)
-    neg_count = int(count * 0.12)
+    # 負例: PIIなしテキスト (10%)
+    neg_count = int(count * 0.10)
     for i in range(neg_count):
         text = NEGATIVE_TEXTS[i % len(NEGATIVE_TEXTS)]
         docs.append({"text": text, "entities": []})
 
-    # ディストラクタ: PII風の非PIIテキスト (7%)
-    dist_count = int(count * 0.07)
+    # ディストラクタ: PII風の非PIIテキスト (6%)
+    dist_count = int(count * 0.06)
     for i in range(dist_count):
         text = DISTRACTOR_TEXTS[i % len(DISTRACTOR_TEXTS)]
         docs.append({"text": text, "entities": []})
@@ -643,6 +643,34 @@ def generate_augmented_docs(count: int = 1000) -> list[dict]:
     org_neg_count = int(count * 0.08)
     for i in range(org_neg_count):
         text = ORG_HARD_NEGATIVE_TEXTS[i % len(ORG_HARD_NEGATIVE_TEXTS)]
+        docs.append({"text": text, "entities": []})
+
+    # v0.12.0対応: OCR雛形・プレースホルダー・施設名・教育資料ネガティブ (10%)
+    v12_negatives = [
+        "運用メモ: owner=sample_user address=pref-city-town-1-2-3 dob=YYYY/MM/DD bank=TEMP-HOLD organization=UNASSIGNED。レイアウト確認用のダミー値のみ。",
+        "社内資料には「日本橋支店前」「西新宿本社前」「中央病院前交差点」と書いてあるが、どれも集合地点の例であり送付先ではない。",
+        "接続試験の説明: branch-main ordinary 0000000、route=0000、account=masked を用いる。実在の口座名義や支店番号は入力禁止。",
+        "OCR 雛形: 氏名未入力 住所登録待ち 生年月日YYYY/MM/DD 口座TEMP-HOLD 所属org-unit-temp。これは帳票枠の見え方だけ確認するための文言。",
+        "教育資料: 「渋谷区医師会」「港南本店」「札幌北一条」は誤検出しやすい一般語として列挙するが、本資料には個別住所や個人名は含まれない。",
+        "テスト用CSV: name,dob,address,org,bank_account\\n未入力,YYYY-MM-DD,都道府県-市区町村,法人名称,銀行-支店-種目-番号",
+        "施設案内: 国立競技場、東京スカイツリー、渋谷ヒカリエ、六本木ヒルズ、成田国際空港。いずれも施設であり法人名ではありません。",
+        "製品一覧: iPhone 16 Pro、Galaxy S25、Xperia 1 VI、Pixel 9 Pro。これらは製品名であり組織名ではありません。",
+        "法令参照: 個人情報保護法第2条、労働基準法第36条、会社法第295条に基づく手続きについて。法律名は組織名ではない。",
+        "イベント案内: 東京マラソン2025、大阪万博、G7広島サミットの警備体制について。イベント名は組織名ではない。",
+        "部署名メモ: 営業部、総務課、開発チーム、人事グループ。これらは部署名であり組織全体を指すものではない。",
+        "地名案内: 渋谷区、港区、千代田区、新宿区。行政区画名は住所の一部であって組織名ではない。",
+        "お知らせ: 本システムのテスト環境では、ダミーデータ（氏名: テスト太郎、住所: テスト県テスト市）を使用しています。",
+        "会議室予約: 第1会議室（3F）、セミナールームA（5F）、応接室（2F）。会議室名は組織名ではない。",
+        "銀行用語説明: 「支店」「本店」「営業部」は金融機関の拠点名であり、単独ではPIIに該当しない。",
+        "マニュアル: 入力欄にsample_name、sample_address、sample_orgと表示されますが、これらは入力例です。",
+        "アクセス案内: JR渋谷駅ハチ公口から徒歩5分。「渋谷駅」は駅名であり組織名ではない。",
+        "FAQ: Q.「三菱重工業は航空宇宙分野でも実績がある」という記述は個人情報ですか？ A. いいえ、公知の企業情報は個人情報には該当しません。",
+        "研修テキスト: 以下のフィールドラベルはPIIではありません: 「氏名」「住所」「生年月日」「勤務先」「口座番号」。",
+        "監査チェックリスト: □ 個人情報の取扱い手順を確認 □ アクセスログを点検 □ 暗号化設定を検証。チェック項目自体にPIIは含まれない。",
+    ]
+    v12_neg_count = int(count * 0.10)
+    for i in range(v12_neg_count):
+        text = v12_negatives[i % len(v12_negatives)]
         docs.append({"text": text, "entities": []})
 
     random.shuffle(docs)
