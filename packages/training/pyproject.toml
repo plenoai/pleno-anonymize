@@ -10,6 +10,15 @@ dependencies = [
     "tqdm>=4.66",
 ]
 
+[project.optional-dependencies]
+hf = [
+    "transformers>=4.40",
+    "datasets>=2.19",
+    "seqeval>=1.2",
+    "accelerate>=0.30",
+    "optimum[onnxruntime]>=1.19",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

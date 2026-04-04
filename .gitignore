@@ -11,6 +11,13 @@ packages/training/output/**/model-last/
 # Experiment logs (autotrain session logs, keep log.jsonl)
 packages/training/experiments/autotrain_*.log
 
+# HuggingFace datasets (Arrow format) — reproducible via `make convert-hf-v02`
+packages/training/data/hf/
+
+# HuggingFace/ONNX model outputs — reproducible via `make train-hf-v02` / `make export-onnx-v02`
+packages/training/output/hf-*/
+packages/training/output/*-onnx/
+
 # Benchmark data — reproducible via `make benchmark-v02-generate`, only keep scores
 packages/training/data/benchmark/**/raw.json
 packages/training/data/benchmark/**/*.spacy

@@ -1,0 +1,22 @@
+[package]
+name = "pleno-tokenizer-wasm"
+version = "0.1.0"
+edition = "2021"
+description = "Japanese morphological tokenizer for browser NER inference (WASM)"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+lindera = { version = "2.3", default-features = false, features = ["lindera-ipadic", "embed-ipadic", "compress"] }
+wasm-bindgen = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde-wasm-bindgen = "0.6"
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true
