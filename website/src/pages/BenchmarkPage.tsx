@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, CheckCircle2, ArrowLeft, Zap, HardDrive, BookOpen } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, ArrowLeft, Zap, HardDrive, BookOpen, FileText, AlertCircle } from 'lucide-react';
 import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
 import scoresJa from '@scores';
@@ -190,6 +190,124 @@ const ScoreRing = ({ value, size = 160, strokeWidth = 10, color = '#3b82f6', del
   );
 };
 
+
+type HybridRow = {
+  variant: string;
+  label: string;
+  precision: number | null;
+  recall: number | null;
+  highlight: boolean;
+  note?: string;
+};
+
+const HYBRID_HELDOUT_ORG: HybridRow[] = [
+  { variant: 'ja_core_news_trf', label: 'ja_core_news_trf + Presidio', precision: null, recall: null, highlight: false, note: 'matched-precision floor (p ≥ 0.7) not met' },
+  { variant: 'ja_ginza',         label: 'ja_ginza + Presidio',         precision: null, recall: null, highlight: false, note: 'matched-precision floor (p ≥ 0.7) not met' },
+  { variant: 'ja_core_news_md',  label: 'ja_core_news_md + Presidio',  precision: null, recall: null, highlight: false, note: 'matched-precision floor (p ≥ 0.7) not met' },
+  { variant: 'custom_cnn',       label: 'custom_cnn (ours)',           precision: 1.0,  recall: 0.875, highlight: true,  note: '14 TP / 0 FP / 2 FN' },
+];
+
+const HYBRID_HELDOUT_DOB: HybridRow[] = [
+  { variant: 'ja_core_news_trf', label: 'ja_core_news_trf + Presidio', precision: null,  recall: null, highlight: false, note: 'matched-precision floor not met' },
+  { variant: 'ja_ginza',         label: 'ja_ginza + Presidio',         precision: 0.909, recall: 1.0,  highlight: false, note: 'only OSS variant clearing the floor' },
+  { variant: 'ja_core_news_md',  label: 'ja_core_news_md + Presidio',  precision: null,  recall: null, highlight: false, note: 'matched-precision floor not met' },
+  { variant: 'custom_cnn',       label: 'custom_cnn (ours)',           precision: 1.0,   recall: 1.0,  highlight: true,  note: 'perfect score (10/10)' },
+];
+
+function HybridBaselineSection() {
+  const sections: { title: string; subtitle: string; rows: HybridRow[] }[] = [
+    { title: 'ORGANIZATION', subtitle: '16 gold spans · 5 eligible templates', rows: HYBRID_HELDOUT_ORG },
+    { title: 'DATE_OF_BIRTH', subtitle: '10 gold spans · 1 eligible template', rows: HYBRID_HELDOUT_DOB },
+  ];
+  return (
+    <motion.div className="mb-16"
+      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+      <div className="mb-2 flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-[#171717] dark:text-[#ededed]">Honest Hybrid Baseline</h2>
+        <span className="rounded bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 px-2 py-0.5 text-[10px] font-mono text-emerald-700 dark:text-emerald-300">
+          held-out · 2026-05-02
+        </span>
+      </div>
+      <p className="mb-6 max-w-3xl text-sm text-[#666] dark:text-[#8f8f8f]">
+        v0.13.0-held-out (80 docs, 3 unseen templates excluded from training): GiNZA + Presidio (OSS hybrid) vs custom NER head-to-head, scoped to ORG / DOB per ADR-0004. Pre-Registration locked rule (matched-precision floor p ≥ 0.7, bootstrap CI, Bonferroni α/35) gives <span className="font-mono text-[#171717] dark:text-[#ededed]">NO_DECISION × 2</span> rule-strict; operational signal supports custom-side COMMIT.
+      </p>
+
+      <div className="mb-6 rounded-lg border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/30 p-4">
+        <div className="mb-2 flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 text-amber-700 dark:text-amber-400" />
+          <span className="text-sm font-semibold text-amber-900 dark:text-amber-300">Why NO_DECISION despite custom winning</span>
+        </div>
+        <p className="text-xs text-amber-800 dark:text-amber-300">
+          The matched-precision floor (p ≥ 0.7) blocks OSS variants below the budget from entering the comparison — preventing &ldquo;OSS lost on a budget it never reached&rdquo; from auto-killing the custom path. ORG: all three OSS variants fall below the floor; only custom_cnn produces a usable score. DOB: ja_ginza ties on overlap recall (CI = 0,0); custom wins +9.1pt strict precision. S1 follow-on redesigns the primary metric to <span className="font-mono">recall@FP-budget</span>.
+        </p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {sections.map(({ title, subtitle, rows }) => (
+          <div key={title} className="rounded-xl border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] p-6">
+            <div className="mb-1 flex items-center justify-between">
+              <h3 className="font-mono text-sm font-semibold text-[#171717] dark:text-[#ededed]">{title}</h3>
+              <span className="rounded bg-[#f5f5f5] dark:bg-[#222] px-2 py-0.5 text-[10px] font-mono text-[#666] dark:text-[#8f8f8f]">NO_DECISION</span>
+            </div>
+            <p className="mb-4 text-xs text-[#999] dark:text-[#666]">{subtitle}</p>
+            <div className="space-y-3">
+              {rows.map((r) => (
+                <div key={r.variant} className={`rounded-lg border p-3 ${
+                  r.highlight
+                    ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-950/20'
+                    : 'border-[#eaeaea] dark:border-[#333] bg-[#fafafa] dark:bg-[#0a0a0a]'
+                }`}>
+                  <div className="mb-1.5 flex items-center justify-between gap-2">
+                    <span className={`text-xs font-mono ${r.highlight ? 'font-semibold text-[#171717] dark:text-[#ededed]' : 'text-[#666] dark:text-[#8f8f8f]'}`}>
+                      {r.label}
+                    </span>
+                    {r.highlight && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-[#999] dark:text-[#666]">precision</span>
+                      <span className={`font-mono ${r.highlight ? 'font-bold text-[#171717] dark:text-[#ededed]' : 'text-[#666] dark:text-[#8f8f8f]'}`}>
+                        {r.precision === null ? '—' : (r.precision * 100).toFixed(1) + '%'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[#999] dark:text-[#666]">recall</span>
+                      <span className={`font-mono ${r.highlight ? 'font-bold text-[#171717] dark:text-[#ededed]' : 'text-[#666] dark:text-[#8f8f8f]'}`}>
+                        {r.recall === null ? '—' : (r.recall * 100).toFixed(1) + '%'}
+                      </span>
+                    </div>
+                  </div>
+                  {r.note && (
+                    <p className="mt-2 text-[10px] italic text-[#999] dark:text-[#666]">{r.note}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-6 flex flex-wrap items-center gap-4 text-xs text-[#666] dark:text-[#8f8f8f]">
+        <a href="https://github.com/plenoai/pleno-anonymize/blob/main/packages/training/docs/benchmark-2026-05-02.md"
+           target="_blank" rel="noopener noreferrer"
+           className="inline-flex items-center gap-1.5 rounded border border-[#eaeaea] dark:border-[#333] bg-[#fafafa] dark:bg-[#0a0a0a] px-3 py-1.5 hover:border-[#171717] dark:hover:border-[#ededed] transition-colors">
+          <FileText className="h-3 w-3" />
+          Full report (markdown)
+        </a>
+        <a href="https://github.com/plenoai/pleno-anonymize/blob/main/docs/plans/2026-05-02-001-feat-ginza-presidio-baseline-measurement-plan.md"
+           target="_blank" rel="noopener noreferrer"
+           className="inline-flex items-center gap-1.5 hover:text-[#171717] dark:hover:text-[#ededed] transition-colors">
+          plan ↗
+        </a>
+        <a href="https://github.com/plenoai/pleno-anonymize/tree/main/packages/training/experiments/artifacts/measure-heldout-2026-05-02"
+           target="_blank" rel="noopener noreferrer"
+           className="inline-flex items-center gap-1.5 hover:text-[#171717] dark:hover:text-[#ededed] transition-colors">
+          raw artifacts ↗
+        </a>
+      </div>
+    </motion.div>
+  );
+}
 
 function MethodologySection() {
   return (
@@ -517,6 +635,9 @@ export default function BenchmarkPage() {
             })}
           </div>
         </motion.div>
+
+        {/* Honest Hybrid Baseline (S6, 2026-05-02) — only render on JA tab */}
+        {lang === 'ja' && <HybridBaselineSection />}
 
         {/* Methodology */}
         <MethodologySection />
