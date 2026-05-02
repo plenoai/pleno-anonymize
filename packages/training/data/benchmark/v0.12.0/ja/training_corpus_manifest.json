@@ -1,0 +1,62 @@
+{
+  "algorithm": "SHA256-NFC",
+  "generated_at": "2026-05-02T09:28:53.079329+00:00",
+  "language": "ja",
+  "manifest_hash": "3f3baf60c13f846a25461c63cb0a582ae3560231143e595e0e20e2272e87fc23",
+  "note": "doc_hashes recomputed at runtime from source files (paths under git tracking).",
+  "schema_version": "1.1",
+  "sources": [
+    {
+      "doc_count": 10965,
+      "doc_hashes_first5": [
+        "03722315929145fd8dc5e6bfb8f29a9a21f2e8d05e3a5e404b39c1a8f0911563",
+        "2160b001ae1b51a2f9bc66e255327bae221697c41fd5a8ae62d78adea9fb9cc8",
+        "a49aaa5f15a8c096025a3d74fa48312af9404959dccf5acdfdf9eef4d49d0414",
+        "a3f8d7cdd637443cd80193266cd02258a7b55f3e26a252f99873f8d8bf0740d3",
+        "accf615252cc1c822eba128cdcfb8881125d229ce73e398af13d867b9c6e7dc8"
+      ],
+      "file_sha256": "966bcc8d0e69ac6d7c6ad8032ef8e6b9b6308370f93452c1fe37bbf750ae1d8c",
+      "name": "raw_ja_v02_generated",
+      "path": "packages/training/data/raw/ja-v02/generated.json"
+    },
+    {
+      "doc_count": 35050,
+      "doc_hashes_first5": [
+        "03722315929145fd8dc5e6bfb8f29a9a21f2e8d05e3a5e404b39c1a8f0911563",
+        "2160b001ae1b51a2f9bc66e255327bae221697c41fd5a8ae62d78adea9fb9cc8",
+        "a49aaa5f15a8c096025a3d74fa48312af9404959dccf5acdfdf9eef4d49d0414",
+        "a3f8d7cdd637443cd80193266cd02258a7b55f3e26a252f99873f8d8bf0740d3",
+        "accf615252cc1c822eba128cdcfb8881125d229ce73e398af13d867b9c6e7dc8"
+      ],
+      "file_sha256": "9c31bae0aa4422dcb956b0df105db271d92cd75c76445b5fdaf31a4ec11ce9c1",
+      "name": "raw_ja_v02_augmented",
+      "path": "packages/training/data/raw/ja-v02/augmented.json"
+    },
+    {
+      "doc_count": 809,
+      "doc_hashes_first5": [
+        "77e894c6b88acf8667e01943e74ed72f3a7cc5f378ed62dc33e438c649be2124",
+        "de4c0326022fa3d2f5f59206e87729723f9a031eb2340b92e5f8a7ff00aa065d",
+        "9b2d1f71f5b49e5e4c965f3e6678c751013648293839f15eae6dd5f153fee198",
+        "99ce95ae41696f1cf86d14c36592f3d4dc04fd4caa0b1ddd95e345215d48d300",
+        "fd2788969c5817487376cec9d66574e7c4a55d5733d5891ece5c766fbdce211c"
+      ],
+      "file_sha256": "9f4798704781613700c227145281c071465387767a431fb97abf0a5042d20059",
+      "name": "raw_ja_v02_address_extra",
+      "path": "packages/training/data/raw/ja-v02/address_precision_extra.json"
+    },
+    {
+      "doc_count": 17676,
+      "doc_hashes_first5": [
+        "c44f4c259fbf7a01e5a78d1b93b6f7734295b8112f4c0655ae6209e0c3c47f6b",
+        "b8117b22d65da7c2ba7d2e3619d1cc6d89a475ed9d0ad91c661d8d9090472b12",
+        "d916eb58859a28687f7f928ef421885da3e82ddbbf6c25820381751571a19f06",
+        "5a6f5acb0eff57c71577e354967cba811be64feb482ca437064644c16184f788",
+        "834628722264d7a4f0c8c5113d0f92b5d4b1c126e5b45854883719edc13f76f4"
+      ],
+      "file_sha256": "8bee0a0759f3a58ec4129371584de3db667c64659e24db687f4f2573216bf53d",
+      "name": "raw_ja_v02_extra",
+      "path": "packages/training/data/raw/ja-v02-extra/generated.json"
+    }
+  ]
+}
