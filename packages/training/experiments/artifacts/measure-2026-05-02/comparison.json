@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0",
+  "run_id": "measure-2026-05-02-cpu",
+  "metadata": {
+    "corpus": "v0.12.1-leak-fixed",
+    "n_docs": 495,
+    "active_baselines": [
+      "ja_core_news_trf",
+      "ja_ginza",
+      "ja_core_news_md",
+      "custom_cnn"
+    ],
+    "deferred_baselines": [
+      "custom_bert"
+    ],
+    "deferred_reason": "custom_bert artifact (output/ja-v02-trf/model-best) not present locally; train via RunPod for full comparison",
+    "k_values": [
+      10,
+      20,
+      30,
+      50,
+      70,
+      90,
+      100
+    ],
+    "p_budget": 0.7,
+    "m_bonferroni": 28,
+    "min_spans": {
+      "ORGANIZATION": 5,
+      "DATE_OF_BIRTH": 3
+    }
+  },
+  "verdict_per_entity": {
+    "ORGANIZATION": {
+      "verdict": "NO_DECISION",
+      "reason": "oss_best=None, custom_best={'variant': 'custom_cnn', 'k': 100, 'recall': 0.918918918918919, 'p': 0.918918918918919, 'p_strict': 0.918918918918919, 'r_strict': 0.918918918918919, 'template_recalls_overlap': {'ocr_forms_a.txt': 0.875, 'payment_exports_a.txt': 0.9, 'logistics_labels_b.txt': 0.8, 'mixed_dummy_real_a.txt': 1.0, 'negative_operational_a.txt': None, 'negative_operational_b.txt': None, 'negative_operational_c.txt': None, 'negative_operational_d.txt': None, 'public_information_a.txt': None, 'public_information_b.txt': None, 'meeting_minutes_a.txt': None, 'meeting_minutes_b.txt': None, 'product_manuals_a.txt': None, 'product_manuals_b.txt': None, 'news_features_a.txt': None, 'news_features_b.txt': None, 'community_bulletins_a.txt': None, 'academic_articles_a.txt': None, 'travel_guides_a.txt': None, 'technical_blogs_a.txt': None, 'leaked_attachments_a.txt': 1.0, 'partially_redacted_public_a.txt': None, 'general_operations_a.txt': None, 'general_operations_b.txt': None, 'release_notes_a.txt': None, 'product_pages_a.txt': None, 'forum_threads_a.txt': None, 'municipal_guides_a.txt': None, 'academic_notices_b.txt': None, 'travel_blogs_b.txt': None, 'press_releases_a.txt': None, 'onboarding_docs_a.txt': None, 'facility_org_false_positive_a.txt': None, 'bankish_code_negative_a.txt': None, 'catalog_placeholder_negative_a.txt': None, 'policy_pages_negative_a.txt': None, 'faq_negative_b.txt': None, 'event_brochures_negative_a.txt': None, 'route_guides_negative_a.txt': None, 'ui_mock_negative_a.txt': None, 'docs_glossary_negative_a.txt': None}, 'template_recalls_strict': {'ocr_forms_a.txt': 0.875, 'payment_exports_a.txt': 0.9, 'logistics_labels_b.txt': 0.8, 'mixed_dummy_real_a.txt': 1.0, 'negative_operational_a.txt': None, 'negative_operational_b.txt': None, 'negative_operational_c.txt': None, 'negative_operational_d.txt': None, 'public_information_a.txt': None, 'public_information_b.txt': None, 'meeting_minutes_a.txt': None, 'meeting_minutes_b.txt': None, 'product_manuals_a.txt': None, 'product_manuals_b.txt': None, 'news_features_a.txt': None, 'news_features_b.txt': None, 'community_bulletins_a.txt': None, 'academic_articles_a.txt': None, 'travel_guides_a.txt': None, 'technical_blogs_a.txt': None, 'leaked_attachments_a.txt': 1.0, 'partially_redacted_public_a.txt': None, 'general_operations_a.txt': None, 'general_operations_b.txt': None, 'release_notes_a.txt': None, 'product_pages_a.txt': None, 'forum_threads_a.txt': None, 'municipal_guides_a.txt': None, 'academic_notices_b.txt': None, 'travel_blogs_b.txt': None, 'press_releases_a.txt': None, 'onboarding_docs_a.txt': None, 'facility_org_false_positive_a.txt': None, 'bankish_code_negative_a.txt': None, 'catalog_placeholder_negative_a.txt': None, 'policy_pages_negative_a.txt': None, 'faq_negative_b.txt': None, 'event_brochures_negative_a.txt': None, 'route_guides_negative_a.txt': None, 'ui_mock_negative_a.txt': None, 'docs_glossary_negative_a.txt': None}} — at least one side fails p>=0.7"
+    },
+    "DATE_OF_BIRTH": {
+      "verdict": "NO_DECISION",
+      "r7_primary_gate": false,
+      "r8a_min_span_filter": true,
+      "r8b_p10_robust": true,
+      "r8c_dual_metric_agree": true,
+      "r7_diff_sign": "tied",
+      "r7_diff_ci_lo": 0.0,
+      "r7_diff_ci_hi": 0.0,
+      "n_eligible_templates": 3
+    }
+  },
+  "aggregates": {
+    "DATE_OF_BIRTH": {
+      "oss_best": {
+        "variant": "ja_ginza",
+        "k": 100,
+        "p_overlap": 0.9583333333333334,
+        "r_overlap": 1.0
+      },
+      "custom_best": {
+        "variant": "custom_cnn",
+        "k": 100,
+        "p_overlap": 0.9583333333333334,
+        "r_overlap": 1.0
+      },
+      "mean_diff": 0.0,
+      "p10_oss": 1.0
+    }
+  },
+  "partial_run": false,
+  "completed_at": "2026-05-02T09:39:49.469497+00:00"
+}
