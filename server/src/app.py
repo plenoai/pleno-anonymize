@@ -8,7 +8,6 @@ import time
 import uuid
 from contextlib import asynccontextmanager
 from functools import lru_cache, partial
-from pathlib import Path
 from typing import List, Optional, Dict, Any, Tuple
 import httpx
 from fastapi import FastAPI, Request, Response
@@ -61,17 +60,12 @@ def _init_presidio():
             super().__init__()
             self.nlp = models
 
-    app_dir = Path(__file__).parent
-    models_dir = app_dir.parent / "packages" / "models"
+    # Models are installed as Python packages from HF wheels (see Dockerfile);
+    # resolve via spaCy entry_point lookup, not filesystem path.
+    _nlp_ja = spacy.load("ja_ner_ja")
 
-    # Load Japanese NER model
-    ja_model_path = models_dir / "ja_ner_ja-0.2.0" / "ja_ner_ja" / "ja_ner_ja-0.2.0"
-    _nlp_ja = spacy.load(str(ja_model_path))
-
-    # Load English NER model (CNN/tok2vec version for low-resource deployment)
-    en_model_path = models_dir / "en_ner_en-0.1.0" / "en_ner_en" / "en_ner_en-0.1.0"
     try:
-        _nlp_en = spacy.load(str(en_model_path))
+        _nlp_en = spacy.load("en_ner_en")
     except OSError:
         _nlp_en = None
 
