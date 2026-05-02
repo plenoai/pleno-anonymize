@@ -1,0 +1,32 @@
+[
+  {
+    "id": "baseline_comparison_<TBD>_kill_sample",
+    "timestamp": "<TBD: JST ISO8601>",
+    "language": "ja",
+    "intervention_type": "baseline_comparison",
+    "hypothesis": "OSS NER (ja_core_news_trf + Presidio) outperforms custom CNN/BERT on ORG/DOB at v0.12.0 benchmark",
+    "verdict": "KILL",
+    "reason": "Both ORG and DOB show OSS-better with diff_ci.lo > 0 under Bonferroni alpha/35; all 4 gates pass; n_eligible_templates >= 4.",
+    "duration_minutes": 0,
+    "artifact_path": "packages/training/experiments/artifacts/<run_id>/comparison.json",
+    "metrics_after": {
+      "ORGANIZATION": {"verdict": "KILL", "r7_diff_sign": "oss_better"},
+      "DATE_OF_BIRTH": {"verdict": "KILL", "r7_diff_sign": "oss_better"}
+    }
+  },
+  {
+    "id": "baseline_comparison_<TBD>_commit_sample",
+    "timestamp": "<TBD: JST ISO8601>",
+    "language": "ja",
+    "intervention_type": "baseline_comparison",
+    "hypothesis": "Custom NER (CNN/BERT) holds within margin or beats OSS NER on ORG/DOB at v0.12.0 benchmark",
+    "verdict": "COMMIT",
+    "reason": "OSS does not exceed custom by >= 3pt under Bonferroni alpha/35; either custom_better or tied with diff_ci straddling zero.",
+    "duration_minutes": 0,
+    "artifact_path": "packages/training/experiments/artifacts/<run_id>/comparison.json",
+    "metrics_after": {
+      "ORGANIZATION": {"verdict": "COMMIT", "r7_diff_sign": "tied"},
+      "DATE_OF_BIRTH": {"verdict": "COMMIT", "r7_diff_sign": "custom_better"}
+    }
+  }
+]
