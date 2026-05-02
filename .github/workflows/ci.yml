@@ -45,3 +45,26 @@ jobs:
       - run: flyctl deploy --local-only --image pleno-anonymize:${{ github.sha }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      # Catches deploys where the image starts but cannot load NER models.
+      # Background: PR #40 fixed a 4-week-latent regression where `/health`
+      # returned 200 (process running) but `/api/analyze` 500'd because models
+      # could not be resolved. `/ready` exercises the model-load path.
+      - name: Verify /ready after deploy
+        run: |
+          set -u
+          ok=0
+          for i in $(seq 1 18); do
+            body=$(curl -sS -m 10 -H "Accept: application/json" https://pleno-anonymize.fly.dev/ready || echo "")
+            echo "attempt $i: $body"
+            if echo "$body" | grep -q '"status": *"ready"'; then
+              ok=1
+              break
+            fi
+            sleep 10
+          done
+          if [ "$ok" != "1" ]; then
+            echo "::error::/ready did not return status=ready within 180s after deploy"
+            exit 1
+          fi
+          echo "::notice::/ready is healthy"
