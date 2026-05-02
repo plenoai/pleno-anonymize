@@ -50,11 +50,16 @@ jobs:
       # Background: PR #40 fixed a 4-week-latent regression where `/health`
       # returned 200 (process running) but `/api/analyze` 500'd because models
       # could not be resolved. `/ready` exercises the model-load path.
+      #
+      # Retry budget covers fly.io rolling-deploy + auto-stop wake-up + first
+      # request synchronous model init. 30 × 10s = 300s is paired with the
+      # fly.toml grace_period=180s so a slow but eventually-healthy machine
+      # is not flagged as a deploy failure.
       - name: Verify /ready after deploy
         run: |
           set -u
           ok=0
-          for i in $(seq 1 18); do
+          for i in $(seq 1 30); do
             body=$(curl -sS -m 10 -H "Accept: application/json" https://pleno-anonymize.fly.dev/ready || echo "")
             echo "attempt $i: $body"
             if echo "$body" | grep -q '"status": *"ready"'; then
@@ -64,7 +69,7 @@ jobs:
             sleep 10
           done
           if [ "$ok" != "1" ]; then
-            echo "::error::/ready did not return status=ready within 180s after deploy"
+            echo "::error::/ready did not return status=ready within 300s after deploy"
             exit 1
           fi
           echo "::notice::/ready is healthy"
