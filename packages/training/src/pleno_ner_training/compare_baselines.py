@@ -35,6 +35,12 @@ from pathlib import Path
 from typing import Any, Callable, Literal
 
 from pleno_ner_training import metrics
+from pleno_ner_training.artifact import (
+    ArtifactMetadata,
+    ComparisonArtifact,
+    LeakageCheck,
+    write_artifact,
+)
 from pleno_ner_training.baselines_ja import BASELINE_REGISTRY, BaselineSpec, Predictor
 
 # --- plan-locked constants ---------------------------------------------------
@@ -767,21 +773,49 @@ def main(argv: list[str] | None = None) -> int:
         partial_run=partial,
         leakage_passed=leakage["passed"],
     )
-    artifact["metadata"] = {
-        "run_id": datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%SZ"),
-        "version": args.version,
-        "pod_mode": args.pod_mode,
-        "leakage_check": leakage,
-        "noise_floor": noise_floor,
-        "recognizers": rec_meta,
-        "k_values": K_VALUES,
-        "bonferroni_m": M_BONFERRONI,
-        "elapsed_seconds": measurement["elapsed_seconds"],
-        "failed_variants": measurement["failed_variants"],
-    }
-    (args.output_dir / "comparison.json").write_text(
-        json.dumps(artifact, indent=2, ensure_ascii=False, default=str), "utf-8"
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%SZ")
+
+    # U5 wiring: build typed ComparisonArtifact and write via artifact.write_artifact.
+    # Some metadata fields (corpus_hash, anchor_pr_sha, variant_versions wheel_sha256
+    # etc.) will be populated by upstream units (F0a/F0c/U6) once available; for
+    # the transitional state they default to empty per ArtifactMetadata defaults.
+    leakage_check_model = LeakageCheck(
+        algorithm="SHA256-NFC",
+        manifest_hash=leakage["manifest_hash"],
+        doc_overlap_count=leakage["doc_overlap_count"],
+        template_overlap_count=leakage["template_overlap_count"],
+        passed=leakage["passed"],
     )
+    metadata = ArtifactMetadata(
+        corpus_hash=leakage.get("corpus_hash", ""),
+        noise_floor_hash=noise_floor.get("noise_floor_hash", ""),
+        recognizers_pack_git_sha=rec_meta.get("git_sha", ""),
+        recognizers_pack_content_sha256=rec_meta.get("content_sha256", ""),
+        variant_versions={},  # TODO(U6): populate from pip metadata + wheel sha
+        bootstrap_seed=42,
+        tie_break_rule=(
+            "(score, doc_id, span_start) for score-bearing; "
+            "k=100 single-point for score-less"
+        ),
+        k_values=K_VALUES,
+        leakage_check=leakage_check_model,
+        anchor_pr_sha="",  # TODO(U7): populate from anchor_sha.txt post-merge
+    )
+
+    measurements: list[dict[str, Any]] = []  # TODO(U4 follow-up): per-row rows
+    aggregates = artifact.get("aggregates")
+    verdict_per_entity = artifact.get("verdict_per_entity")
+    comparison = ComparisonArtifact(
+        schema_version="1.0",
+        run_id=run_id,
+        metadata=metadata,
+        measurements=measurements,
+        partial_run=partial,
+        failed_variants=measurement["failed_variants"],
+        aggregates=aggregates,
+        verdict_per_entity=verdict_per_entity,
+    )
+    write_artifact(comparison, args.output_dir / "comparison.json")
     return 0
 
 
