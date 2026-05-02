@@ -18,11 +18,18 @@ primary_region = 'nrt'
   [[http_service.checks]]
     interval = "30s"
     timeout = "5s"
-    grace_period = "60s"
+    # Cold-start budget: model load (spaCy ja_ner_ja + en_core_web_sm + Presidio
+    # AnalyzerEngine + recognizers) can take ~30-60s on a 2gb shared-cpu VM.
+    # 60s grace was tight; 180s leaves headroom for first-request synchronous
+    # init when auto_stop_machines woke a stopped machine.
+    grace_period = "180s"
     method = "GET"
     path = "/health"
 
 [[vm]]
-  memory = '1gb'
+  # 2gb (was 1gb) — model footprint (ja_ner_ja + en_core_web_sm + Presidio
+  # recognizers + AnonymizerEngine + Pillow + httpx) leaves <100MB headroom on
+  # 1gb, risking OOM-kill during proxy request handling. 2gb gives margin.
+  memory = '2gb'
   cpu_kind = 'shared'
   cpus = 1

@@ -29,6 +29,13 @@ COPY packages/training/ packages/training/
 COPY server/ server/
 RUN uv sync --frozen --no-dev
 
+# Build-time smoke test: catches model-load failures at image build (not runtime).
+# Background: PR #40 fixed a 4-week-latent regression where the runtime warmup
+# thread died silently because of a wrong spacy.load() argument, leaving the
+# server up but unable to serve. This RUN line forces the failure mode visible
+# at build time so a bad image is never pushed.
+RUN uv run python -c "import spacy; spacy.load('ja_ner_ja'); spacy.load('en_ner_en'); print('models loadable')"
+
 FROM python:3.12-slim
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
