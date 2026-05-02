@@ -46,3 +46,7 @@ packages = ["src/pleno_ner_training"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "slow: marks tests requiring heavy model loads (deselected by default; run with `-m slow`)",
+]
+addopts = "-m 'not slow'"
