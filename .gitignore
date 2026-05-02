@@ -3,7 +3,7 @@ CLAUDE.md
 **/.claude/*
 !**/.claude/skills/
 .mcp.json
-.compound-engineering/*.local.yaml
+.compound-engineering/
 
 # Training outputs — reproducible, only keep scores and configs
 packages/training/output/
