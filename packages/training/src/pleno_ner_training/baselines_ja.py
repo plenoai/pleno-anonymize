@@ -117,13 +117,54 @@ def _build_presidio_predictor(spacy_model_name: str) -> Predictor:
             super().__init__()
             self.nlp = models
 
+    # ja_ginza ships with a `compound_splitter` whose `split_mode` defaults to
+    # None under spaCy 3.8 + ginza 5.2; the loader's config validator rejects
+    # None and aborts. Pass split_mode='C' (mode C = most fine-grained) to
+    # restore the documented default.
+    load_config: dict = {}
+    if spacy_model_name == "ja_ginza":
+        load_config = {"components": {"compound_splitter": {"split_mode": "C"}}}
+
     try:
-        nlp = spacy.load(spacy_model_name)
+        nlp = spacy.load(spacy_model_name, config=load_config) if load_config else spacy.load(spacy_model_name)
     except OSError as e:
         raise RuntimeError(
             f"spaCy model {spacy_model_name!r} not found. "
             f"Install via `[bench]` extras or `python -m spacy download {spacy_model_name}`."
         ) from e
+
+    # ja_ginza emits Title-case labels (Person/Company/Date) which Presidio's
+    # default SpacyRecognizer (expects PERSON/ORGANIZATION/DATE_TIME) drops.
+    # Project at the spaCy Doc.ents level via a relabel-pipe so Presidio sees
+    # the upper-case label space.
+    if spacy_model_name == "ja_ginza":
+        from spacy.language import Language as _Language
+        from spacy.tokens import Span as _Span
+
+        _GINZA_TO_SPACY_NER = {
+            "Person": "PERSON",
+            "Company": "ORGANIZATION",
+            "Corporation_Other": "ORGANIZATION",
+            "Government": "ORGANIZATION",
+            "Political_Organization_Other": "ORGANIZATION",
+            "Date": "DATE_TIME",
+            "Time": "DATE_TIME",
+            "Era": "DATE_TIME",
+        }
+
+        @_Language.component("ginza_label_relabel")
+        def _relabel(doc):
+            new_ents = []
+            for ent in doc.ents:
+                target = _GINZA_TO_SPACY_NER.get(ent.label_)
+                if target is None:
+                    continue
+                new_ents.append(_Span(doc, ent.start, ent.end, label=target))
+            doc.set_ents(new_ents, default="outside")
+            return doc
+
+        if "ginza_label_relabel" not in nlp.pipe_names:
+            nlp.add_pipe("ginza_label_relabel", last=True)
 
     engine = MultiLangSpacyNlpEngine({"ja": nlp})
     analyzer = AnalyzerEngine(nlp_engine=engine, supported_languages=["ja"])
@@ -206,20 +247,38 @@ def _build_custom_spacy_predictor(model_path: Path) -> Predictor:
 
 
 def _build_custom_cnn() -> Predictor:
-    # Search for a CNN build under output/. Convention: `ja-vNN-cnn` or
-    # any subdir whose `model-best/meta.json` declares a tok2vec architecture.
-    # We default to the first match; if none, raise.
-    candidates = sorted(_TRAINING_OUTPUT.glob("*-cnn/model-best")) + sorted(
-        _TRAINING_OUTPUT.glob("ja-v*-cnn/model-best")
+    # Search for a CNN build under output/. Try multiple conventions:
+    # explicit `*-cnn/model-best`, `ja-v*/model-best` (default convention
+    # before -trf split), and the top-level `output/ja-v*/model-best`.
+    # First match wins; absence raises with concrete remediation.
+    candidates = (
+        sorted(_TRAINING_OUTPUT.glob("*-cnn/model-best"))
+        + sorted(_TRAINING_OUTPUT.glob("ja-v*-cnn/model-best"))
+        + sorted(_TRAINING_OUTPUT.glob("ja-v*/model-best"))
+        + sorted((_TRAINING_OUTPUT.parent.parent / "output").glob("ja-v*/model-best"))
     )
-    if not candidates:
-        # Fall back to a conventional name to keep error message specific.
+    # Filter out transformer builds (custom_bert lives at ja-v*-trf or has
+    # transformer pipe) by inspecting meta.json's pipeline names if present.
+    cnn_only = []
+    for c in candidates:
+        meta = c / "meta.json"
+        if not meta.exists():
+            continue
+        try:
+            import json as _json
+            pipes = _json.loads(meta.read_text()).get("pipeline", [])
+        except Exception:
+            pipes = []
+        if "transformer" not in pipes and "tok2vec" in pipes:
+            cnn_only.append(c)
+    if not cnn_only:
         raise FileNotFoundError(
             "custom_cnn requires a trained CNN model under "
-            "packages/training/output/<latest-cnn-build>/model-best; "
+            "packages/training/output/<latest-cnn-build>/model-best "
+            "(must have a tok2vec pipe and no transformer); "
             "run `make train-cnn` first."
         )
-    return _build_custom_spacy_predictor(candidates[0])
+    return _build_custom_spacy_predictor(cnn_only[0])
 
 
 def _build_custom_bert() -> Predictor:
