@@ -5,5 +5,15 @@ docs
 flake.nix
 flake.lock
 .gitmodules
-packages/training
+# packages/training is needed (recognizers_ja.py + workspace pyproject), but
+# heavy data / outputs / artifacts are excluded to keep image small.
+packages/training/data
+packages/training/output
+packages/training/experiments
+packages/training/notebooks
+packages/training/configs
+packages/training/docs
+packages/training/CHANGELOG.md
+packages/training/__pycache__
+packages/training/**/__pycache__
 packages/models/ja_ner_ja-0.2.0/ja_ner_ja/__pycache__
