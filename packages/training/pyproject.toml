@@ -19,10 +19,34 @@ hf = [
     "optimum[onnxruntime]>=1.19",
     "huggingface-hub>=0.23",
 ]
+# OSS baseline + Presidio benchmarking deps. Excluded from server image build
+# via `uv sync --no-group bench` (see Dockerfile). ja_core_news_trf wheel URL
+# pinned to 3.8.0 (latest as of 2026-05-02). sha256 inline pin to be added in
+# follow-up if uv-add does not derive automatically (R16).
+bench = [
+    "presidio-analyzer>=2.2",
+    "presidio-anonymizer>=2.2",
+    "ginza>=5.2",
+    "ja-ginza>=5.2",
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "ja-core-news-trf @ https://github.com/explosion/spacy-models/releases/download/ja_core_news_trf-3.8.0/ja_core_news_trf-3.8.0-py3-none-any.whl",
+]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.metadata]
+# `bench` extras に ja_core_news_trf wheel URL (direct reference) を含むため必要
+allow-direct-references = true
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/pleno_ner_training"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests requiring heavy model loads (deselected by default; run with `-m slow`)",
+]
+addopts = "-m 'not slow'"

@@ -5,7 +5,7 @@ import spacy
 from presidio_analyzer import AnalyzerEngine, RecognizerRegistry
 from presidio_analyzer.nlp_engine import SpacyNlpEngine
 
-from src.recognizers_ja import ALL_JA_RECOGNIZERS
+from pleno_ner_training.recognizers_ja import ALL_JA_RECOGNIZERS
 
 
 class _TestNlpEngine(SpacyNlpEngine):

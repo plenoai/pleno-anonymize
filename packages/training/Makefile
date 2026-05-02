@@ -7,6 +7,7 @@
        benchmark-v10-generate benchmark-v10-evaluate \
        benchmark-v11-generate benchmark-v11-evaluate \
        benchmark-v12-generate benchmark-v12-evaluate \
+       verify-leakage-v12 pin-noise-floor-v12 compare-baselines-v12 runpod-gpu-compare-v12 \
        convert-hf-v02 train-hf-v02 export-onnx-v02 push-hf-v02 all-hf-ja-v02 \
        convert-hf-v02-tiny train-hf-v02-tiny export-onnx-v02-tiny push-hf-v02-tiny all-hf-ja-v02-tiny
 
@@ -396,6 +397,33 @@ push-hf-v02-tiny:
 		--push-to 0xhikae/ja-ner-onnx
 
 all-hf-ja-v02-tiny: convert-hf-v02-tiny train-hf-v02-tiny export-onnx-v02-tiny push-hf-v02-tiny
+
+# === Baseline Comparison (S6 / U6) ===
+
+verify-leakage-v12:
+	uv run --extra bench python -m pleno_ner_training.compare_baselines \
+		--version v0.12.0 \
+		--training-manifest data/benchmark/v0.12.0/ja/training_corpus_manifest.json \
+		--skip-after F0a \
+		--output-dir experiments/artifacts/leakage-check-$(shell date +%Y%m%d_%H%M%S)
+
+pin-noise-floor-v12:
+	uv run --extra bench python -m pleno_ner_training.compare_baselines \
+		--version v0.12.0 \
+		--training-manifest data/benchmark/v0.12.0/ja/training_corpus_manifest.json \
+		--skip-after F0b \
+		--output-dir experiments/artifacts/noise-floor-$(shell date +%Y%m%d_%H%M%S)
+
+compare-baselines-v12:
+	uv run --extra bench python -m pleno_ner_training.compare_baselines \
+		--version v0.12.0 \
+		--training-manifest data/benchmark/v0.12.0/ja/training_corpus_manifest.json \
+		--pod-mode cpu \
+		--output-dir experiments/artifacts/$(shell date +%Y%m%d_%H%M%S)
+
+runpod-gpu-compare-v12:
+	@echo "GPU run: see packages/training/docs/runpod-gpu-inference.md"
+	@echo "Use chrome MCP per CLAUDE.md to orchestrate the pod kick."
 
 # === 共通 ===
 
