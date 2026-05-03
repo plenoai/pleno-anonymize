@@ -377,11 +377,28 @@ convert-hf-v02-tiny:
 		--output data/hf/ja-v02-tiny \
 		--tokenizer ku-nlp/deberta-v2-tiny-japanese
 
+# v02-tiny + hard negatives (entities=[] docs as all-O training).
+# Same target schema as convert-hf-v02-tiny, different output dir.
+convert-hf-v02-tiny-hardneg:
+	uv run python -m pleno_ner_training.convert_to_hf_dataset \
+		--input data/raw/ja-v02/generated.json \
+		--output data/hf/ja-v02-tiny-hardneg \
+		--tokenizer ku-nlp/deberta-v2-tiny-japanese \
+		--include-negatives
+
 train-hf-v02-tiny:
 	uv run python -m pleno_ner_training.train_hf \
 		--dataset data/hf/ja-v02-tiny \
 		--model ku-nlp/deberta-v2-tiny-japanese \
 		--output output/hf-ja-v02-tiny \
+		--fp16 --num-epochs 20 --batch-size 16 \
+		--learning-rate 3e-5 --warmup-ratio 0.15
+
+train-hf-v02-tiny-hardneg:
+	uv run python -m pleno_ner_training.train_hf \
+		--dataset data/hf/ja-v02-tiny-hardneg \
+		--model ku-nlp/deberta-v2-tiny-japanese \
+		--output output/hf-ja-v02-tiny-hardneg \
 		--fp16 --num-epochs 20 --batch-size 16 \
 		--learning-rate 3e-5 --warmup-ratio 0.15
 

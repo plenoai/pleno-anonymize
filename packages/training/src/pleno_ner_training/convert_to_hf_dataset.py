@@ -10,10 +10,27 @@ from __future__ import annotations
 
 import json
 import random
+import re
 from pathlib import Path
 
 from datasets import Dataset, DatasetDict, ClassLabel, Features, Sequence, Value
 from transformers import AutoTokenizer, PreTrainedTokenizerFast
+
+# Heuristic patterns to drop zero-entity docs that actually contain PII text
+# (label-miss noise). Keeping these as O-only examples would teach the model
+# to NOT tag real PII -- the opposite of what we want.
+PII_HINT_RE = re.compile(
+    "|".join(
+        [
+            r"\d{1,2}-\d{1,4}-\d{1,4}",
+            r"\d{4,}\s*-?\s*\d{4,}",
+            r"[一-龥]{2,4}\s*[一-龥]{1,3}\s*(さん|様|氏)",
+            r"(株式会社|有限会社|合同会社)",
+            r"(東京都|大阪府|京都府|北海道|沖縄県|千代田区|港区|渋谷区)",
+            r"(平成|令和|昭和)\s*[一-龥0-9]+\s*年",
+        ]
+    )
+)
 
 # BIOラベル定義: O + 5エンティティ × 2 (B/I)
 ENTITY_LABELS = ["ADDRESS", "BANK_ACCOUNT", "DATE_OF_BIRTH", "ORGANIZATION", "PERSON"]
@@ -103,22 +120,34 @@ def load_and_convert(
     input_path: Path,
     tokenizer: PreTrainedTokenizerFast,
     max_length: int = 512,
+    include_negatives: bool = False,
 ) -> list[dict]:
-    """JSONファイルを読み込み、トークン化してBIOタグ付きデータに変換する."""
+    """JSONファイルを読み込み、トークン化してBIOタグ付きデータに変換する.
+
+    include_negatives=True で、entities=[] の文書も全 O ラベルで取り込む
+    (over-prediction を抑える hard-negative 訓練). PII らしき文字列を含む
+    label-miss 候補はヒューリスティックで除外する.
+    """
     with open(input_path, encoding="utf-8") as f:
         raw_data = json.load(f)
 
     converted = []
     skipped = 0
+    negatives_kept = 0
+    negatives_dropped = 0
 
     for item in raw_data:
         text = item.get("text", "")
         entities = item.get("entities", [])
 
-        # エンティティがないドキュメントはスキップ
         if not entities:
-            skipped += 1
-            continue
+            if not include_negatives:
+                skipped += 1
+                continue
+            if not text or PII_HINT_RE.search(text):
+                negatives_dropped += 1
+                continue
+            negatives_kept += 1
 
         result = align_labels_with_tokens(text, entities, tokenizer, max_length)
         if result is not None:
@@ -126,7 +155,13 @@ def load_and_convert(
         else:
             skipped += 1
 
-    print(f"Converted: {len(converted)}, Skipped: {skipped}")
+    if include_negatives:
+        print(
+            f"Converted: {len(converted)}, Skipped: {skipped}, "
+            f"Negatives kept: {negatives_kept}, dropped (PII-suspicious): {negatives_dropped}"
+        )
+    else:
+        print(f"Converted: {len(converted)}, Skipped: {skipped}")
     return converted
 
 
@@ -201,13 +236,23 @@ def main() -> None:
     )
     parser.add_argument("--max-length", type=int, default=512)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--include-negatives",
+        action="store_true",
+        help="entities=[] doc を all-O 例として取り込み、過剰予測を抑える",
+    )
     args = parser.parse_args()
 
     print(f"Loading tokenizer: {args.tokenizer}")
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
 
     print(f"Loading and converting data from {args.input}...")
-    data = load_and_convert(args.input, tokenizer, args.max_length)
+    data = load_and_convert(
+        args.input,
+        tokenizer,
+        args.max_length,
+        include_negatives=args.include_negatives,
+    )
 
     if not data:
         print("ERROR: No data was converted. Check input file.")
