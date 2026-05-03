@@ -16,7 +16,8 @@ from pleno_scan.git_history import scan_history as _scan_history
 from pleno_scan.github import list_org_repos, shallow_clone
 from pleno_scan.ignore import IgnoreSet, filter_findings, load_baseline, write_baseline
 from pleno_scan.models import Finding, ScanStats
-from pleno_scan.regex_pass import compile_patterns, scan_files
+from pleno_scan.ner_pass import scan_files as scan_files_ner
+from pleno_scan.regex_pass import compile_patterns
 from pleno_scan.report import render_human, render_json, render_sarif
 from pleno_scan.verify import verify
 from pleno_scan.walker import walk
@@ -27,8 +28,8 @@ def _common_options(f):
     f = click.option("--language", default="ja", show_default=True, help="Analysis language (ja|en). Cloud mode only.")(f)
     f = click.option("--base-url", "base_url", default=None,
                      envvar="PLENO_BASE_URL",
-                     help="Use cloud analysis at this URL (e.g. https://pleno-anonymize.fly.dev). "
-                          "When omitted, scans run locally with the regex pass only.")(f)
+                     help="Offload analysis to a remote pleno-anonymize at this URL. "
+                          "When omitted, NER + regex run locally (the default).")(f)
     f = click.option("--api-key", default=None, envvar="PLENO_API_KEY",
                      help="Bearer token for the cloud API. Cloud mode only.")(f)
     f = click.option("--concurrency", type=int, default=8, show_default=True,
@@ -40,34 +41,51 @@ def _common_options(f):
     f = click.option("--max-file-size", type=int, default=1024 * 1024, show_default=True)(f)
     f = click.option("--include", multiple=True, help="Glob to include (gitignore syntax).")(f)
     f = click.option("--exclude", multiple=True, help="Glob to exclude (gitignore syntax).")(f)
-    f = click.option("--workers", type=int, default=None, help="Parallel local-mode workers (default: CPU count).")(f)
+    f = click.option("--workers", type=int, default=None, help="Reserved for the regex-only history pass (default: CPU count).")(f)
     f = click.option("--only-verified", is_flag=True, help="Suppress unverified/failed findings.")(f)
     f = click.option("--no-color", is_flag=True, help="Disable ANSI colors.")(f)
     f = click.option("--exit-zero", is_flag=True, help="Always exit 0 even when findings exist.")(f)
     return f
 
 
+# Noisy patterns excluded from the default profile. Use --entities ALL to include them.
+_NOISY_ENTITIES = frozenset({"URL", "HEALTH_INSURANCE", "DRIVER_LICENSE"})
+
+# NER entities (ML-only) added to the default profile alongside non-noisy regex entities.
+_NER_ENTITIES = ("PERSON", "ADDRESS", "ORGANIZATION", "DATE_OF_BIRTH", "BANK_ACCOUNT")
+
+
+def _resolve_entities(entities_csv: str | None) -> tuple[str, ...] | None:
+    """Return the entity filter to send to NER/cloud, or None for no filter (--entities ALL)."""
+    if not entities_csv:
+        regex_default = tuple(
+            r.entity for r in ALL_JA_RECOGNIZERS if r.entity not in _NOISY_ENTITIES
+        )
+        return regex_default + _NER_ENTITIES
+    if entities_csv.strip().upper() == "ALL":
+        return None
+    wanted = tuple(e.strip() for e in entities_csv.split(",") if e.strip())
+    if not wanted:
+        raise click.UsageError("--entities was empty")
+    return wanted
+
+
 def _cloud_config(base_url: str | None, api_key: str | None, language: str,
-                  concurrency: int, entities_csv: str | None) -> CloudConfig | None:
+                  concurrency: int, entities: tuple[str, ...] | None) -> CloudConfig | None:
     if not base_url:
         return None
-    ents: tuple[str, ...] | None = None
-    if entities_csv and entities_csv.strip().upper() != "ALL":
-        ents = tuple(e.strip() for e in entities_csv.split(",") if e.strip())
     return CloudConfig(
         base_url=base_url,
         language=language,
         api_key=api_key,
         concurrency=concurrency,
-        entities=ents,
+        entities=entities,
     )
 
 
-# Default profile: excludes high-noise patterns. Use --entities ALL to enable everything.
-_NOISY_ENTITIES = frozenset({"URL", "HEALTH_INSURANCE", "DRIVER_LICENSE"})
-
-
 def _select_recognizers(entities_csv: str | None):
+    """Recognizers used for verification (checksum + context) — separate from the
+    entity filter that drives NER/cloud."""
     if not entities_csv:
         return tuple(r for r in ALL_JA_RECOGNIZERS if r.entity not in _NOISY_ENTITIES)
     if entities_csv.strip().upper() == "ALL":
@@ -75,10 +93,10 @@ def _select_recognizers(entities_csv: str | None):
     wanted = {e.strip() for e in entities_csv.split(",") if e.strip()}
     selected = tuple(r for r in ALL_JA_RECOGNIZERS if r.entity in wanted)
     if not selected:
-        raise click.UsageError(
-            f"No recognizers match {sorted(wanted)}. "
-            f"Known entities: {sorted({r.entity for r in ALL_JA_RECOGNIZERS})}"
-        )
+        # Wanted set may be NER-only (PERSON, ADDRESS, ...). Fall back to the
+        # full recognizer list for verification — verify() is no-op when no
+        # validator matches the entity.
+        return ALL_JA_RECOGNIZERS
     return selected
 
 
@@ -142,13 +160,15 @@ def _scan_directory(
         file_lines[rel_str] = text.splitlines()
         bytes_total += len(text.encode("utf-8", errors="ignore"))
 
+    entity_filter = _resolve_entities(entities)
     if cloud is not None:
-        # Cloud mode: server-side analysis (NER + regex + Presidio context).
+        # Cloud offload: same Presidio + NER + regex pipeline, just remote.
         findings = scan_files_cloud(file_pairs, file_text, cloud)
     else:
-        # Local mode: regex-only multiprocess pass.
-        patterns = compile_patterns(recognizers)
-        findings = scan_files(file_pairs, patterns, workers=workers)
+        # Default: local Presidio + spaCy NER (ja_ner_ja) + regex recognizers.
+        findings = scan_files_ner(
+            file_pairs, file_text, language="ja", entities=entity_filter
+        )
 
     # Verification (checksum + context) runs in both modes — the local
     # checksum can still flag obviously-fake values the server accepted.
@@ -195,7 +215,7 @@ def cmd_dir(path: Path, entities, language, base_url, api_key, concurrency,
     """Scan a directory tree."""
     ignore_set = _resolve_ignore(ignore_file, path)
     baseline = load_baseline(baseline_path) if baseline_path else set()
-    cloud = _cloud_config(base_url, api_key, language, concurrency, entities)
+    cloud = _cloud_config(base_url, api_key, language, concurrency, _resolve_entities(entities))
     stats = _scan_directory(
         path.resolve(),
         entities=entities,
@@ -229,7 +249,7 @@ def cmd_git(path: Path, no_history, max_commits, entities, language, base_url, a
     """
     ignore_set = _resolve_ignore(ignore_file, path)
     baseline = load_baseline(baseline_path) if baseline_path else set()
-    cloud = _cloud_config(base_url, api_key, language, concurrency, entities)
+    cloud = _cloud_config(base_url, api_key, language, concurrency, _resolve_entities(entities))
     recognizers = _select_recognizers(entities)
     patterns = compile_patterns(recognizers)
 
@@ -278,7 +298,7 @@ def cmd_github(target, org, full, include_history, entities, language, base_url,
     targets = list_org_repos(target) if org else [target]
 
     aggregate = ScanStats()
-    cloud = _cloud_config(base_url, api_key, language, concurrency, entities)
+    cloud = _cloud_config(base_url, api_key, language, concurrency, _resolve_entities(entities))
     recognizers = _select_recognizers(entities)
     patterns = compile_patterns(recognizers)
 

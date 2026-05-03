@@ -1170,6 +1170,20 @@ wheels = [
 ]
 
 [[package]]
+name = "ja-ner-ja"
+version = "0.2.0"
+source = { url = "https://huggingface.co/0xhikae/ja-ner-ja/resolve/main/ja_ner_ja-0.2.0-py3-none-any.whl" }
+dependencies = [
+    { name = "spacy" },
+]
+wheels = [
+    { url = "https://huggingface.co/0xhikae/ja-ner-ja/resolve/main/ja_ner_ja-0.2.0-py3-none-any.whl", hash = "sha256:3ca9ad0e619a0133cb05d9d92787428998f4e4a94234589d05edde50b5ba0b9a" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "spacy", specifier = ">=3.8.13,<3.9.0" }]
+
+[[package]]
 name = "jinja2"
 version = "3.1.6"
 source = { registry = "https://pypi.flatt.tech/simple/" }
@@ -2516,7 +2530,7 @@ wheels = [
 [[package]]
 name = "pleno-anonymize-server"
 version = "0.1.0"
-source = { editable = "server" }
+source = { virtual = "server" }
 dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
@@ -2654,13 +2668,11 @@ source = { editable = "packages/scanner" }
 dependencies = [
     { name = "click" },
     { name = "httpx" },
+    { name = "ja-ner-ja" },
     { name = "pathspec" },
     { name = "pleno-recognizers" },
-]
-
-[package.optional-dependencies]
-deep = [
-    { name = "pleno-anonymize-server" },
+    { name = "presidio-analyzer" },
+    { name = "spacy", extra = ["ja"] },
 ]
 
 [package.dev-dependencies]
@@ -2672,11 +2684,12 @@ dev = [
 requires-dist = [
     { name = "click", specifier = ">=8.1" },
     { name = "httpx", specifier = ">=0.27.0" },
+    { name = "ja-ner-ja", url = "https://huggingface.co/0xhikae/ja-ner-ja/resolve/main/ja_ner_ja-0.2.0-py3-none-any.whl" },
     { name = "pathspec", specifier = ">=0.12" },
-    { name = "pleno-anonymize-server", marker = "extra == 'deep'", editable = "server" },
     { name = "pleno-recognizers", editable = "packages/recognizers" },
+    { name = "presidio-analyzer", specifier = ">=2.2" },
+    { name = "spacy", extras = ["ja"], specifier = ">=3.8" },
 ]
-provides-extras = ["deep"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=8.0" }]

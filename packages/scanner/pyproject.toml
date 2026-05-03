@@ -8,10 +8,12 @@ dependencies = [
     "click>=8.1",
     "pathspec>=0.12",
     "httpx>=0.27.0",
+    # Default scan path uses Presidio + spaCy NER (ja_ner_ja). Cloud mode
+    # (--base-url) is an offload, not a substitute.
+    "spacy[ja]>=3.8",
+    "presidio-analyzer>=2.2",
+    "ja-ner-ja",
 ]
-
-[project.optional-dependencies]
-deep = ["pleno-anonymize-server"]
 
 [project.scripts]
 pleno-scan = "pleno_scan.cli:main"
@@ -21,7 +23,7 @@ dev = ["pytest>=8.0"]
 
 [tool.uv.sources]
 pleno-recognizers = { workspace = true }
-pleno-anonymize-server = { workspace = true }
+ja-ner-ja = { url = "https://huggingface.co/0xhikae/ja-ner-ja/resolve/main/ja_ner_ja-0.2.0-py3-none-any.whl" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
