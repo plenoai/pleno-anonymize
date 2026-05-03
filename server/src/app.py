@@ -53,7 +53,7 @@ def _init_presidio():
     from presidio_analyzer import AnalyzerEngine
     from presidio_analyzer.nlp_engine import SpacyNlpEngine
     from presidio_anonymizer import AnonymizerEngine
-    from .recognizers_ja import ALL_JA_RECOGNIZERS
+    from pleno_recognizers.presidio_adapter import all_ja_presidio
 
     class MultiLangSpacyNlpEngine(SpacyNlpEngine):
         def __init__(self, models: dict):
@@ -80,7 +80,7 @@ def _init_presidio():
         supported_languages=supported_languages,
     )
 
-    for recognizer in ALL_JA_RECOGNIZERS:
+    for recognizer in all_ja_presidio():
         _analyzer.registry.add_recognizer(recognizer)
 
     if "en" in supported_languages:
