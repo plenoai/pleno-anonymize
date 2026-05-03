@@ -1,127 +1,98 @@
 # pleno-scan
 
-PII scanner for source repositories. Japanese-first. gitleaks/trufflehog UX.
+リポジトリ・コミット履歴・staged hunk から日本語 PII を検出する CLI。
 
-## Why
-
-`pleno-anonymize` redacts PII at request time via a proxy. `pleno-scan`
-catches PII **before** it reaches a remote repo or LLM — running locally,
-in CI, or as a pre-commit hook.
-
-## Install (within this monorepo)
+## セットアップ
 
 ```sh
 uv sync
 ```
 
-## Usage
+`ja_ner_ja` モデルも依存に含まれているので追加手順は不要。
+
+## サブコマンド
 
 ```sh
-# Scan a directory
-uv run pleno-scan dir ./my-repo
-
-# Scan local git repo, including history
-uv run pleno-scan git ./my-repo
-
-# Clone-and-scan a public GitHub repo (shallow)
-uv run pleno-scan github octocat/Hello-World
-
-# Scan every repo in an org (requires gh CLI)
-uv run pleno-scan github --org my-company
-
-# Pre-commit guard (in .git/hooks/pre-commit or lefthook config)
-uv run pleno-scan protect
-
-# Capture current findings as a baseline so they stop appearing
-uv run pleno-scan baseline ./my-repo --out .plenoignore-baseline.json
+pleno-scan dir <path>           # ディレクトリを走査
+pleno-scan git <path>           # working tree + commit 履歴
+pleno-scan github <owner>/<repo>  # shallow clone して走査
+pleno-scan github --org <org>     # gh CLI で org の全 repo を列挙して走査
+pleno-scan baseline <path>      # 現状の検出を suppression list として保存
+pleno-scan protect              # staged hunks だけ走査 (pre-commit hook 用)
 ```
 
-### Local (default) vs cloud offload
+## ローカル / オフロード
 
-By default, `pleno-scan` runs **locally** with the same Presidio + spaCy NER (`ja_ner_ja`) + regex pipeline that powers the pleno-anonymize server. The ML model is required: it ships as a workspace dependency and `uv sync` installs it automatically. Local scans detect free-text PII (`PERSON`, `ADDRESS`, `ORGANIZATION`) in addition to all the regex-backed entities.
-
-Pass `--base-url` (or set `PLENO_BASE_URL`) to **offload** the same pipeline to a remote pleno-anonymize endpoint — useful when you don't want to load the model locally (e.g. lightweight CI runners) or when scanning a huge repo from a workstation.
+デフォルトはローカルで Presidio + spaCy NER (`ja_ner_ja`) + 正規表現を実行。
 
 ```sh
-# Local (default): NER + regex, single-process, model loaded once
-uv run pleno-scan dir ./my-repo
-
-# Offload to a hosted endpoint
-uv run pleno-scan dir ./my-repo --base-url https://pleno-anonymize.fly.dev
-
-# CI-friendly env var
-PLENO_BASE_URL=https://pleno-anonymize.fly.dev pleno-scan dir ./my-repo
-
-# Auth (if your endpoint requires it)
-uv run pleno-scan dir ./my-repo \
-    --base-url https://internal.example.com \
-    --api-key "$PLENO_API_KEY"
-
-# Throttle parallel HTTP requests in offload mode
-uv run pleno-scan dir ./my-repo --base-url ... --concurrency 4
+pleno-scan dir ./my-repo --base-url https://pleno-anonymize.fly.dev
+PLENO_BASE_URL=... pleno-scan dir ./my-repo
+pleno-scan dir ./my-repo --base-url ... --api-key "$PLENO_API_KEY"
 ```
 
-| Mode | Where compute runs | Network | Memory | Use when |
-|---|---|---|---|---|
-| Local (default) | This machine | none | model loaded once (~200MB) | normal use |
-| Cloud (`--base-url`) | Remote pleno-anonymize | required | none | thin CI runners, very large scans |
+両モードとも返ってくるエンティティ集合は同じ。git 履歴のスキャンは行単位の NER オーバーヘッドが見合わないため常に正規表現のみ。
 
-Both modes return the same entity set; the only difference is *where* the model runs. Git history scanning always uses regex-only matching (per-line NER is wasteful for short diff lines).
+## 検出エンティティ
 
-### Output formats
+NER (`ja_ner_ja` + Presidio): `PERSON` `ADDRESS` `ORGANIZATION` `DATE_OF_BIRTH` `BANK_ACCOUNT`
 
-- `--report-format human` (default) — colorized table
-- `--report-format json` — machine-readable
-- `--report-format sarif` — upload to GitHub Code Scanning
+正規表現 + checksum: `PHONE_NUMBER` `MY_NUMBER` `MY_NUMBER_CORPORATE` `CREDIT_CARD` `PASSPORT` `DRIVER_LICENSE` `HEALTH_INSURANCE` `RESIDENCE_CARD` `POSTAL_CODE` `EMAIL_ADDRESS` `IP_ADDRESS` `URL`
 
-### Verification
+`URL` `HEALTH_INSURANCE` `DRIVER_LICENSE` はソースコード上で誤検出が多いためデフォルトプロファイルから除外。`--entities ALL` で全部、`--entities PHONE_NUMBER,EMAIL_ADDRESS` で個別指定。
 
-Each finding is annotated with one of:
+## Verification
 
-- `passed` — checksum-validated (Luhn / My Number / corp number) **or**
-  contextual keyword nearby
-- `failed` — checksum failed (likely false positive)
-- `unverified` — no validator and no context boost
+各 finding には `passed` / `failed` / `unverified` のラベルが付く。
 
-Use `--only-verified` to suppress unverified/failed findings (trufflehog-style).
+- `passed` — checksum (Luhn / マイナンバー / 法人番号) を通過、または同行近傍に文脈キーワード
+- `failed` — checksum 失敗 (誤検出の可能性が高い)
+- `unverified` — 該当する validator が無く文脈ヒットも無い
 
-### Suppressing findings
+`--only-verified` で `passed` のみに絞れる。
 
-`.plenoignore` (gitleaks-style):
+## 出力
+
+| `--report-format` | 用途 |
+|---|---|
+| `human` (既定) | カラー付きテーブル |
+| `json` | 機械可読 |
+| `sarif` | GitHub Code Scanning 投入可能な SARIF 2.1.0 |
+
+`--report-path FILE` でファイル出力。終了コードは `0`(検出なし) / `1`(検出あり) / `2`(usage error)。
+
+## 抑制
+
+リポルートに `.plenoignore` を置くと自動で読まれる:
 
 ```
-docs/samples/**         # path glob
-PHONE_NUMBER            # entity-wide
-finding:7a3b8c9d        # specific finding fingerprint
+docs/samples/**          # path glob (gitignore syntax)
+PHONE_NUMBER             # entity 全体
+finding:7a3b8c9d         # 特定 finding の fingerprint
 ```
 
-Inline:
+行内ディレクティブ:
 
 ```py
 SUPPORT_PHONE = "0120-123-456"  # pleno:ignore PHONE_NUMBER
-EXAMPLE_EMAIL = "noreply@example.com"  # pleno:ignore
+EXAMPLE_EMAIL = "user@example.com"  # pleno:ignore
 ```
 
-### Exit codes
+`pleno-scan baseline` で現状の検出を fingerprint 一覧として吐き出し、`--baseline FILE` で適用すれば既知の finding をまとめて無視できる。
 
-- `0` — no findings (or `--exit-zero`)
-- `1` — findings present
-- `2` — usage error
+## 主なフラグ
 
-## Detected entities
+| フラグ | 既定 | 役割 |
+|---|---|---|
+| `--entities` | デフォルトプロファイル | 検出対象を絞る (`PHONE,EMAIL` / `ALL`) |
+| `--language` | `ja` | 解析言語 (`ja` / `en`) |
+| `--base-url` | (なし) | リモート pleno-anonymize へオフロード |
+| `--api-key` | (なし) | オフロード時の Bearer token |
+| `--concurrency` | 8 | オフロード時の並列リクエスト数 |
+| `--include` / `--exclude` | (なし) | gitignore 風 glob でファイル絞り込み |
+| `--max-file-size` | 1 MB | これを超えるファイルは skip |
+| `--only-verified` | off | `passed` 以外を抑制 |
+| `--report-format` | `human` | `human` / `json` / `sarif` |
+| `--baseline` | (なし) | 既知 finding を抑制する fingerprint JSON |
 
-Japanese: `PHONE_NUMBER`, `MY_NUMBER`, `CREDIT_CARD`, `PASSPORT`,
-`DRIVER_LICENSE`, `IP_ADDRESS`, `EMAIL_ADDRESS`, `MY_NUMBER_CORPORATE`,
-`HEALTH_INSURANCE`, `RESIDENCE_CARD`, `POSTAL_CODE`, `URL`, `BANK_ACCOUNT`.
-
-NER-based entities (`PERSON`, `ADDRESS`, `ORGANIZATION`) require the deep
-mode (planned).
-
-## How it stays fast
-
-- Multiprocess regex pass (one worker per CPU core).
-- Built-in skip list for noisy directories (`node_modules`, `.git`, etc.).
-- `.gitignore`-aware.
-- Binary file detection (NUL byte probe).
-- 1 MB per-file size cap by default.
-- Git history pass uses `--unified=0` and only scans **added** lines.
+`--gitignore` と built-in skip リスト (`.git`, `node_modules`, `.venv`, `dist`, `build`, `vendor`, …) と NUL byte によるバイナリ判定はデフォルトで効いている。
