@@ -55,13 +55,17 @@ jobs:
       # the worst-case cold-start; outer loop adds margin in case fly.io
       # routing settles slowly. Total budget ~6 minutes.
       - name: Verify /ready after deploy
+        id: ready_check
         run: |
           set -u
           ok=0
           for i in $(seq 1 12); do
-            body=$(curl -sS --max-time 60 --retry 3 --retry-all-errors --retry-delay 5 \
-              -H "Accept: application/json" https://pleno-anonymize.fly.dev/ready || echo "")
-            echo "attempt $i: $body"
+            response=$(curl -sS --max-time 60 --retry 3 --retry-all-errors --retry-delay 5 \
+              -w "\n__STATUS=%{http_code} CONNECT=%{time_connect}s TOTAL=%{time_total}s" \
+              -H "Accept: application/json" https://pleno-anonymize.fly.dev/ready 2>&1 || true)
+            echo "attempt $i:"
+            echo "$response" | sed 's/^/  /'
+            body=$(echo "$response" | head -n -1)
             if echo "$body" | grep -q '"status": *"ready"'; then
               ok=1
               break
@@ -73,3 +77,21 @@ jobs:
             exit 1
           fi
           echo "::notice::/ready is healthy"
+
+      # Diagnostic: dump fly machine status + recent logs when /ready fails.
+      # Without this we are blind to whether uvicorn started, the warmup
+      # thread crashed, or the proxy is routing to a dead machine.
+      - name: Diagnose deploy on healthcheck failure
+        if: failure() && steps.ready_check.outcome == 'failure'
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          echo "=== flyctl status ==="
+          flyctl status --app pleno-anonymize || true
+          echo ""
+          echo "=== flyctl machine list ==="
+          flyctl machine list --app pleno-anonymize || true
+          echo ""
+          echo "=== flyctl logs (last 300 lines) ==="
+          # --no-tail returns recent buffer then exits; cap to 300 lines.
+          timeout 30 flyctl logs --app pleno-anonymize --no-tail 2>&1 | tail -300 || true
