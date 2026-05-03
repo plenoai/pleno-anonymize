@@ -16,6 +16,37 @@ from pathlib import Path
 
 random.seed(42)
 
+
+# --- ORG diverse seeds (issue #65) ---
+# 公益法人 / 学校法人 / 医療法人 / 略称 / カタカナ商号 / 支店付き法人を JSON seed から読み込み、
+# adversarial v0.12.0 で観測された ORG 表現の語彙ギャップを埋める。
+ORG_DIVERSE_SEED_PATH = Path(__file__).parent / "data_seeds" / "org_diverse.json"
+
+
+def load_org_diverse_seeds(path: Path = ORG_DIVERSE_SEED_PATH) -> dict[str, list[str]]:
+    """ORG 多様化 seed JSON をロードする。
+
+    Schema:
+        {"categories": {<category>: [<name>, ...]}}
+
+    各カテゴリは最低 10 件ずつ揃え、テストでスキーマを検証する。
+    """
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    cats = data.get("categories")
+    if not isinstance(cats, dict) or not cats:
+        raise ValueError(f"org_diverse seed missing 'categories': {path}")
+    return {k: list(v) for k, v in cats.items()}
+
+
+_ORG_DIVERSE = load_org_diverse_seeds()
+ORG_KOUEKI = _ORG_DIVERSE.get("koueki", [])
+ORG_GAKKOU = _ORG_DIVERSE.get("gakkou", [])
+ORG_IRYOU = _ORG_DIVERSE.get("iryou", [])
+ORG_ABBREV = _ORG_DIVERSE.get("abbrev", [])
+ORG_KATAKANA_CORP = _ORG_DIVERSE.get("katakana_corp", [])
+ORG_BRANCH_SUFFIX = _ORG_DIVERSE.get("branch_suffix", [])
+
 # --- PERSON ---
 LAST_NAMES = [
     "佐藤", "鈴木", "高橋", "田中", "伊藤", "渡辺", "山本", "中村",
@@ -153,7 +184,24 @@ def _random_address() -> str:
     return "".join(parts) if random.random() < 0.5 else " ".join(parts)
 
 
+def _random_org_diverse() -> str:
+    """issue #65 の多様化カテゴリ (公益/学校/医療/略称/カタカナ/支店) から1件選ぶ。"""
+    pools = [
+        ORG_KOUEKI,
+        ORG_GAKKOU,
+        ORG_IRYOU,
+        ORG_ABBREV,
+        ORG_KATAKANA_CORP,
+        ORG_BRANCH_SUFFIX,
+    ]
+    pool = random.choice([p for p in pools if p])
+    return random.choice(pool)
+
+
 def _random_org() -> str:
+    # issue #65: 15% は多様化カテゴリから直接サンプルし語彙を広げる
+    if _ORG_DIVERSE and random.random() < 0.15:
+        return _random_org_diverse()
     kind = random.choice(["company", "company", "university", "government", "hospital", "research"])
     if kind == "company":
         name = random.choice(COMPANY_NAMES)
@@ -292,6 +340,21 @@ PERSON_TEMPLATES = [
     "保証人: {person}\n住所: {address}",
     "代表者: {person}\n{org}",
     "被保険者名: {person}\n被保険者番号: 1234567890",
+]
+
+ORG_DIVERSE_TEMPLATES = [
+    "{org}の理事長に{person}氏が就任した。",
+    "{org}は本日、{person}部長を新事業統括に任命した。",
+    "{org}と{org2}が共同研究契約を締結した。",
+    "{org}は{address}に新拠点を開設する。",
+    "{org}（理事長: {person}）は本年度の活動報告を公表した。",
+    "{person}様 {org}よりご案内申し上げます。",
+    "所属: {org}\n氏名: {person}\n連絡先: {address}",
+    "問い合わせ窓口: {org}\n担当者: {person}",
+    "{org}は{person}氏を新会長として迎え入れた。",
+    "{org}の発行する会報誌が{address}の住民に配布された。",
+    "{person}は{org}の理事を退任し、{org2}の顧問に就任した。",
+    "受託先: {org}\n委託先: {org2}\n担当: {person}",
 ]
 
 ORG_TEMPLATES = [
@@ -503,14 +566,36 @@ def _build_doc(template: str, **kwargs) -> dict | None:
     return {"text": result, "entities": entities}
 
 
-def generate_augmented_docs(count: int = 1000) -> list[dict]:
+def generate_augmented_docs(count: int = 1000, org_diverse_count: int = 1000) -> list[dict]:
     """日本語拡張データを生成する。
 
     v0.4.0ベンチマーク弱点を重点強化:
     - ORGANIZATION: 隣接パターン、略称、構造化ノイズ
     - DATE_OF_BIRTH: 元号略記、複数日付、最小コンテキスト
+
+    issue #65: ORG positive 多様化のため `org_diverse_count` 個 (default 1000) を
+    別系統で必ず追加する。`count` の比率系とは独立に動き、AC「≥ 1000 doc」を保証する。
     """
     docs = []
+
+    # issue #65: ORG 多様化 positive を独立に生成（公益/学校/医療/略称/カタカナ/支店）
+    for _ in range(org_diverse_count):
+        org = _random_org_diverse()
+        org2 = _random_org_diverse()
+        person = _random_person()
+        address = _random_address()
+        bank = _random_bank()
+        template = random.choice(ORG_DIVERSE_TEMPLATES)
+        doc = _build_doc(
+            template,
+            org=org,
+            org2=org2,
+            person=person,
+            address=address,
+            bank=bank,
+        )
+        if doc:
+            docs.append(doc)
 
     # PERSON多様化 (8%)
     for _ in range(int(count * 0.08)):
@@ -692,6 +777,12 @@ def main() -> None:
         default=None,
     )
     parser.add_argument("--augment-count", type=int, default=1000)
+    parser.add_argument(
+        "--org-diverse-count",
+        type=int,
+        default=1000,
+        help="issue #65: ORG 多様化 positive 文書数 (公益/学校/略称/カタカナ等)",
+    )
     args = parser.parse_args()
 
     output = args.output or args.input.parent / "augmented.json"
@@ -701,7 +792,9 @@ def main() -> None:
         data = json.load(f)
     print(f"Original: {len(data)} documents")
 
-    augmented = generate_augmented_docs(args.augment_count)
+    augmented = generate_augmented_docs(
+        args.augment_count, org_diverse_count=args.org_diverse_count
+    )
     print(f"Generated {len(augmented)} augmented documents")
 
     data.extend(augmented)
