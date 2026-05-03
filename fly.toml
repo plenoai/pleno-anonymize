@@ -6,8 +6,14 @@ primary_region = 'nrt'
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = 'stop'
-  auto_start_machines = true
+  # PR #45: keep the single VM always running.
+  # auto_stop_machines='stop' + min_machines_running=1 was deceptive — fly was
+  # stopping the sole machine after deploy and relying on auto-start on first
+  # request. Cold-start (model load) exceeded the post-deploy CI curl timeout,
+  # making the deploy look broken. Setting auto_stop=off is the right config
+  # for a low-traffic always-on app like ours.
+  auto_stop_machines = 'off'
+  auto_start_machines = false
   min_machines_running = 1
 
   [http_service.concurrency]
@@ -18,11 +24,9 @@ primary_region = 'nrt'
   [[http_service.checks]]
     interval = "30s"
     timeout = "5s"
-    # Cold-start budget: model load (spaCy ja_ner_ja + en_core_web_sm + Presidio
-    # AnalyzerEngine + recognizers) can take ~30-60s on a 2gb shared-cpu VM.
-    # 60s grace was tight; 180s leaves headroom for first-request synchronous
-    # init when auto_stop_machines woke a stopped machine.
-    grace_period = "180s"
+    # fly silently caps grace_period to 60s (warns at deploy time); keep it at
+    # the documented max. Cold-start budget moves to the CI curl-side retry.
+    grace_period = "60s"
     method = "GET"
     path = "/health"
 
