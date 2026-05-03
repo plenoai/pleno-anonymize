@@ -1,0 +1,128 @@
+name: Release model to HF Hub
+
+# Trusted-publishing-style release for ONNX model artifacts. Mirrors the
+# package/library convention in CLAUDE.md: tag push fires the release. The
+# tag namespace `model/v*` keeps model releases isolated from any future
+# library tags (`v*`) on the same repo.
+#
+# AC reference: issue #71. Real artifact push is gated on #48 producing the
+# trained model under `output/hf-ja-v0X-...`. Until then this workflow can
+# still be exercised via `workflow_dispatch` with `dry-run: true`.
+
+on:
+  push:
+    tags:
+      - 'model/v*'
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: 'HF Hub revision to push (e.g. v0.13.0). Required for manual dispatch.'
+        required: true
+        type: string
+      model_path:
+        description: 'Trained model directory under packages/training/. Default: output/hf-ja-v02-tiny'
+        required: false
+        type: string
+        default: 'output/hf-ja-v02-tiny'
+      dry_run:
+        description: 'Skip HF Hub push (export + log only).'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    concurrency:
+      # Serialize per-revision so a re-run cannot race itself onto the same
+      # HF branch. Tag-triggered runs have github.ref_name like
+      # `model/v0.13.0`; manual dispatch falls back to the input revision.
+      group: release-model-${{ github.event.inputs.revision || github.ref_name }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Resolve revision and model path
+        id: resolve
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_REVISION: ${{ github.event.inputs.revision }}
+          INPUT_MODEL_PATH: ${{ github.event.inputs.model_path }}
+          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "push" ]; then
+            # tag form: model/vX.Y.Z -> revision vX.Y.Z
+            case "$REF_NAME" in
+              model/v*)
+                revision="${REF_NAME#model/}"
+                ;;
+              *)
+                echo "::error::tag $REF_NAME does not match model/v* pattern"
+                exit 1
+                ;;
+            esac
+            model_path="output/hf-ja-v02-tiny"
+            dry_run="false"
+          else
+            revision="$INPUT_REVISION"
+            model_path="${INPUT_MODEL_PATH:-output/hf-ja-v02-tiny}"
+            dry_run="${INPUT_DRY_RUN:-true}"
+          fi
+          {
+            echo "revision=$revision"
+            echo "model_path=$model_path"
+            echo "dry_run=$dry_run"
+          } >> "$GITHUB_OUTPUT"
+          echo "Resolved: revision=$revision model_path=$model_path dry_run=$dry_run"
+
+      - name: Verify trained model artifact exists (skipped on dry-run)
+        env:
+          MODEL_PATH: ${{ steps.resolve.outputs.model_path }}
+          DRY_RUN: ${{ steps.resolve.outputs.dry_run }}
+        run: |
+          set -eu
+          full="packages/training/${MODEL_PATH}"
+          if [ ! -d "$full" ]; then
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "::warning::$full not present; dry-run will still scaffold but export will fail without an artifact"
+            else
+              echo "::error::trained model not found at $full — see #48 for the training pipeline"
+              exit 1
+            fi
+          fi
+
+      - name: Install training extras
+        working-directory: packages/training
+        run: uv sync --extra hf
+
+      - name: Export and push ONNX (dry-run guarded)
+        working-directory: packages/training
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          MODEL_PATH: ${{ steps.resolve.outputs.model_path }}
+          REVISION: ${{ steps.resolve.outputs.revision }}
+          DRY_RUN: ${{ steps.resolve.outputs.dry_run }}
+        run: |
+          set -eu
+          extra_args=""
+          if [ "$DRY_RUN" = "true" ]; then
+            extra_args="--dry-run"
+          else
+            if [ -z "${HF_TOKEN:-}" ]; then
+              echo "::error::HF_TOKEN secret is not set; configure it in repo settings before a non-dry-run release"
+              exit 1
+            fi
+          fi
+          uv run --extra hf python -m pleno_ner_training.export_onnx \
+            --model "${MODEL_PATH}" \
+            --output "${MODEL_PATH}-onnx" \
+            --push-to 0xhikae/ja-ner-onnx \
+            --revision "${REVISION}" \
+            ${extra_args}

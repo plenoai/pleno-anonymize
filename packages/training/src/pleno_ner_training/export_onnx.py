@@ -39,6 +39,20 @@ def main() -> None:
         default=None,
         help="HuggingFace Hub リポジトリ名 (例: 0xhikae/ja-ner-onnx)",
     )
+    parser.add_argument(
+        "--revision",
+        type=str,
+        default=None,
+        help=(
+            "HF Hub branch / revision にタグ push する (例: v0.13.0). "
+            "指定すると同名 revision が既存の場合は再 push をスキップする (重複 push 防止)."
+        ),
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="HF Hub への push をスキップして export のみ実行する (CI dry-run mode).",
+    )
     args = parser.parse_args()
 
     args.output.mkdir(parents=True, exist_ok=True)
@@ -84,17 +98,53 @@ def main() -> None:
 
     # Step 3: HuggingFace Hub push
     if args.push_to:
+        if args.dry_run:
+            print(
+                f"\n[dry-run] Would push to HuggingFace Hub: {args.push_to}"
+                + (f" (revision={args.revision})" if args.revision else "")
+            )
+            print("[dry-run] Skipping create_repo / upload_folder.")
+            return
+
         print(f"\nPushing to HuggingFace Hub: {args.push_to}...")
         from huggingface_hub import HfApi
+        from huggingface_hub.utils import RepositoryNotFoundError, RevisionNotFoundError
 
         api = HfApi()
         api.create_repo(args.push_to, exist_ok=True)
-        api.upload_folder(
-            folder_path=str(args.output),
-            repo_id=args.push_to,
-            commit_message="Upload ONNX quantized NER model (DeBERTa v2 base Japanese)",
-        )
-        print(f"Pushed to https://huggingface.co/{args.push_to}")
+
+        commit_message = "Upload ONNX quantized NER model (DeBERTa v2 base Japanese)"
+        if args.revision:
+            # Duplicate-push guard: if the branch/tag already exists with content,
+            # bail out instead of force-pushing over a released revision.
+            try:
+                existing = api.list_repo_files(args.push_to, revision=args.revision)
+            except (RevisionNotFoundError, RepositoryNotFoundError):
+                existing = []
+            if existing:
+                print(
+                    f"Revision {args.revision} already exists with "
+                    f"{len(existing)} files; skipping push to avoid clobbering "
+                    "a published model. Bump the tag to release a new version."
+                )
+                return
+            api.create_branch(args.push_to, branch=args.revision, exist_ok=True)
+            api.upload_folder(
+                folder_path=str(args.output),
+                repo_id=args.push_to,
+                revision=args.revision,
+                commit_message=f"{commit_message} ({args.revision})",
+            )
+            print(
+                f"Pushed to https://huggingface.co/{args.push_to}/tree/{args.revision}"
+            )
+        else:
+            api.upload_folder(
+                folder_path=str(args.output),
+                repo_id=args.push_to,
+                commit_message=commit_message,
+            )
+            print(f"Pushed to https://huggingface.co/{args.push_to}")
 
 
 if __name__ == "__main__":
