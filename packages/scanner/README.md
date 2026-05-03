@@ -36,18 +36,20 @@ uv run pleno-scan protect
 uv run pleno-scan baseline ./my-repo --out .plenoignore-baseline.json
 ```
 
-### Local vs cloud mode
+### Local (default) vs cloud offload
 
-By default, `pleno-scan` runs **locally** with the regex pass only. Pass `--base-url` (or set `PLENO_BASE_URL`) to delegate analysis to a pleno-anonymize HTTP API — this enables NER-based entities (`PERSON`, `ADDRESS`, `ORGANIZATION`) that the local regex pass cannot detect.
+By default, `pleno-scan` runs **locally** with the same Presidio + spaCy NER (`ja_ner_ja`) + regex pipeline that powers the pleno-anonymize server. The ML model is required: it ships as a workspace dependency and `uv sync` installs it automatically. Local scans detect free-text PII (`PERSON`, `ADDRESS`, `ORGANIZATION`) in addition to all the regex-backed entities.
+
+Pass `--base-url` (or set `PLENO_BASE_URL`) to **offload** the same pipeline to a remote pleno-anonymize endpoint — useful when you don't want to load the model locally (e.g. lightweight CI runners) or when scanning a huge repo from a workstation.
 
 ```sh
-# Local (default): regex only, multiprocess, no network
+# Local (default): NER + regex, single-process, model loaded once
 uv run pleno-scan dir ./my-repo
 
-# Cloud: server-side analysis (Presidio + spaCy NER + regex)
+# Offload to a hosted endpoint
 uv run pleno-scan dir ./my-repo --base-url https://pleno-anonymize.fly.dev
 
-# Or via env var (CI-friendly)
+# CI-friendly env var
 PLENO_BASE_URL=https://pleno-anonymize.fly.dev pleno-scan dir ./my-repo
 
 # Auth (if your endpoint requires it)
@@ -55,14 +57,16 @@ uv run pleno-scan dir ./my-repo \
     --base-url https://internal.example.com \
     --api-key "$PLENO_API_KEY"
 
-# Throttle parallel HTTP requests
+# Throttle parallel HTTP requests in offload mode
 uv run pleno-scan dir ./my-repo --base-url ... --concurrency 4
 ```
 
-| Mode | Entities | Latency | Network | Use when |
+| Mode | Where compute runs | Network | Memory | Use when |
 |---|---|---|---|---|
-| Local | 13 regex-based JA patterns | ~ms / file | none | CI, pre-commit, offline |
-| Cloud | regex + NER (PERSON / ADDRESS / ORGANIZATION / etc.) | ~100s ms / file | required | one-off audits, higher recall |
+| Local (default) | This machine | none | model loaded once (~200MB) | normal use |
+| Cloud (`--base-url`) | Remote pleno-anonymize | required | none | thin CI runners, very large scans |
+
+Both modes return the same entity set; the only difference is *where* the model runs. Git history scanning always uses regex-only matching (per-line NER is wasteful for short diff lines).
 
 ### Output formats
 
