@@ -42,7 +42,11 @@ jobs:
           tags: pleno-anonymize:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - run: flyctl deploy --local-only --image pleno-anonymize:${{ github.sha }}
+      # --strategy immediate destroys the existing machine and creates a fresh
+      # one. Default `rolling` does an in-place update which previously inherited
+      # corrupt state ([PM07] machine still active, refusing to start) on
+      # machine 185173db175798 and re-broke /ready across consecutive deploys.
+      - run: flyctl deploy --local-only --strategy immediate --image pleno-anonymize:${{ github.sha }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
