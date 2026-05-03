@@ -2509,7 +2509,6 @@ source = { virtual = "server" }
 dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
-    { name = "pleno-ner-training" },
     { name = "presidio-analyzer" },
     { name = "presidio-anonymizer" },
     { name = "scalar-fastapi" },
@@ -2542,7 +2541,6 @@ requires-dist = [
     { name = "langchain-community", marker = "extra == 'proxy'", specifier = ">=0.3.27" },
     { name = "openai", marker = "extra == 'proxy'", specifier = ">=1.0.0" },
     { name = "pillow", marker = "extra == 'image'", specifier = ">=10.0.0" },
-    { name = "pleno-ner-training", editable = "packages/training" },
     { name = "presidio-analyzer", specifier = ">=2.2" },
     { name = "presidio-anonymizer", specifier = ">=2.2" },
     { name = "presidio-image-redactor", marker = "extra == 'image'", specifier = ">=0.0.53" },

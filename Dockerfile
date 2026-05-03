@@ -5,8 +5,10 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 WORKDIR /workspace
 
 # 依存関係のみ先にインストール（キャッシュ最適化）
-# Workspace-aware build: 全 member の pyproject.toml + lock を先にコピー
-# `recognizers_ja.py` 物理移動 (U1) に伴い packages/training も image に必要
+# Workspace-aware build: 全 member の pyproject.toml を先にコピー。
+# server は #74 で `pleno-ner-training` 依存を切ったため training package を
+# install する必要は無いが、uv はワークスペース全体を resolve するので
+# member の pyproject.toml は必要 (実体コードは sync 後にも不要)。
 COPY pyproject.toml uv.lock ./
 COPY packages/training/pyproject.toml packages/training/pyproject.toml
 COPY server/pyproject.toml server/pyproject.toml
@@ -16,8 +18,9 @@ COPY server/pyproject.toml server/pyproject.toml
 # `--extra bench` を渡さない限り install されない (default exclude)。
 RUN uv sync --frozen --no-dev --no-install-project
 
-# アプリケーションコードをコピー（workspace member 単位）
-COPY packages/training/ packages/training/
+# アプリケーションコードをコピー（server のみ）。
+# #74 で `recognizers_ja.py` を server/src 配下へ移動したため training の
+# ソースは server image には不要。
 COPY server/ server/
 RUN uv sync --frozen --no-dev
 

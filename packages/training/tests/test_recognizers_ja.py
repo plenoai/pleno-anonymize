@@ -1,4 +1,4 @@
-"""Tests for pleno_ner_training.recognizers_ja.
+"""Tests for `recognizers_ja` (now canonical at `server/src/recognizers_ja.py`).
 
 Focus: regex correctness of pattern recognizers, with emphasis on the newly
 added BANK_ACCOUNT recognizer (issue #49) which must achieve f1 >= 0.85 on
@@ -7,6 +7,11 @@ the v0.12.0 benchmark.
 Tests use raw `re.compile` against `Pattern.regex` rather than spinning up a
 full Presidio AnalyzerEngine — this keeps the suite fast and isolates the
 regex from analyzer-level overlap resolution.
+
+Module relocated to `server/src/` (#74) to break the server→training
+workspace-dep loop. `conftest.py` injects that path onto `sys.path` so the
+bare `import recognizers_ja` below resolves without re-introducing a
+package-level dependency.
 """
 
 from __future__ import annotations
@@ -17,7 +22,7 @@ from pathlib import Path
 
 import pytest
 
-from pleno_ner_training.recognizers_ja import (
+from recognizers_ja import (
     ALL_JA_RECOGNIZERS,
     JA_BANK_ACCOUNT_PATTERNS,
     JapaneseBankAccountRecognizer,
