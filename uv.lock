@@ -2653,14 +2653,12 @@ version = "0.1.0"
 source = { editable = "packages/scanner" }
 dependencies = [
     { name = "click" },
+    { name = "httpx" },
     { name = "pathspec" },
     { name = "pleno-recognizers" },
 ]
 
 [package.optional-dependencies]
-ai = [
-    { name = "httpx" },
-]
 deep = [
     { name = "pleno-anonymize-server" },
 ]
@@ -2673,12 +2671,12 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "click", specifier = ">=8.1" },
-    { name = "httpx", marker = "extra == 'ai'", specifier = ">=0.27.0" },
+    { name = "httpx", specifier = ">=0.27.0" },
     { name = "pathspec", specifier = ">=0.12" },
     { name = "pleno-anonymize-server", marker = "extra == 'deep'", editable = "server" },
     { name = "pleno-recognizers", editable = "packages/recognizers" },
 ]
-provides-extras = ["deep", "ai"]
+provides-extras = ["deep"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=8.0" }]

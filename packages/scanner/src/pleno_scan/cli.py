@@ -11,6 +11,7 @@ import click
 from pleno_recognizers.ja import ALL_JA_RECOGNIZERS
 
 from pleno_scan import __version__
+from pleno_scan.cloud_pass import CloudConfig, scan_files_cloud
 from pleno_scan.git_history import scan_history as _scan_history
 from pleno_scan.github import list_org_repos, shallow_clone
 from pleno_scan.ignore import IgnoreSet, filter_findings, load_baseline, write_baseline
@@ -23,6 +24,15 @@ from pleno_scan.walker import walk
 
 def _common_options(f):
     f = click.option("--entities", default=None, help="Comma-separated entity types to scan for.")(f)
+    f = click.option("--language", default="ja", show_default=True, help="Analysis language (ja|en). Cloud mode only.")(f)
+    f = click.option("--base-url", "base_url", default=None,
+                     envvar="PLENO_BASE_URL",
+                     help="Use cloud analysis at this URL (e.g. https://pleno-anonymize.fly.dev). "
+                          "When omitted, scans run locally with the regex pass only.")(f)
+    f = click.option("--api-key", default=None, envvar="PLENO_API_KEY",
+                     help="Bearer token for the cloud API. Cloud mode only.")(f)
+    f = click.option("--concurrency", type=int, default=8, show_default=True,
+                     help="Parallel HTTP requests in cloud mode.")(f)
     f = click.option("--report-format", type=click.Choice(["human", "json", "sarif"]), default="human")(f)
     f = click.option("--report-path", type=click.Path(dir_okay=False, path_type=Path), default=None)(f)
     f = click.option("--baseline", "baseline_path", type=click.Path(dir_okay=False, path_type=Path), default=None)(f)
@@ -30,11 +40,27 @@ def _common_options(f):
     f = click.option("--max-file-size", type=int, default=1024 * 1024, show_default=True)(f)
     f = click.option("--include", multiple=True, help="Glob to include (gitignore syntax).")(f)
     f = click.option("--exclude", multiple=True, help="Glob to exclude (gitignore syntax).")(f)
-    f = click.option("--workers", type=int, default=None, help="Parallel workers (default: CPU count).")(f)
+    f = click.option("--workers", type=int, default=None, help="Parallel local-mode workers (default: CPU count).")(f)
     f = click.option("--only-verified", is_flag=True, help="Suppress unverified/failed findings.")(f)
     f = click.option("--no-color", is_flag=True, help="Disable ANSI colors.")(f)
     f = click.option("--exit-zero", is_flag=True, help="Always exit 0 even when findings exist.")(f)
     return f
+
+
+def _cloud_config(base_url: str | None, api_key: str | None, language: str,
+                  concurrency: int, entities_csv: str | None) -> CloudConfig | None:
+    if not base_url:
+        return None
+    ents: tuple[str, ...] | None = None
+    if entities_csv and entities_csv.strip().upper() != "ALL":
+        ents = tuple(e.strip() for e in entities_csv.split(",") if e.strip())
+    return CloudConfig(
+        base_url=base_url,
+        language=language,
+        api_key=api_key,
+        concurrency=concurrency,
+        entities=ents,
+    )
 
 
 # Default profile: excludes high-noise patterns. Use --entities ALL to enable everything.
@@ -85,9 +111,9 @@ def _scan_directory(
     workers: int | None,
     ignore_set: IgnoreSet,
     baseline: set[str],
+    cloud: CloudConfig | None = None,
 ) -> ScanStats:
     recognizers = _select_recognizers(entities)
-    patterns = compile_patterns(recognizers)
 
     t0 = time.monotonic()
     files = list(walk(
@@ -116,7 +142,16 @@ def _scan_directory(
         file_lines[rel_str] = text.splitlines()
         bytes_total += len(text.encode("utf-8", errors="ignore"))
 
-    findings = scan_files(file_pairs, patterns, workers=workers)
+    if cloud is not None:
+        # Cloud mode: server-side analysis (NER + regex + Presidio context).
+        findings = scan_files_cloud(file_pairs, file_text, cloud)
+    else:
+        # Local mode: regex-only multiprocess pass.
+        patterns = compile_patterns(recognizers)
+        findings = scan_files(file_pairs, patterns, workers=workers)
+
+    # Verification (checksum + context) runs in both modes — the local
+    # checksum can still flag obviously-fake values the server accepted.
     findings = verify(findings, recognizers, file_text_for=file_text)
     kept, _ = filter_findings(
         findings, ignore_set=ignore_set, baseline=baseline, file_lines=file_lines
@@ -153,12 +188,14 @@ def main() -> None:
 @main.command(name="dir")
 @click.argument("path", type=click.Path(exists=True, file_okay=False, path_type=Path))
 @_common_options
-def cmd_dir(path: Path, entities, report_format, report_path, baseline_path,
+def cmd_dir(path: Path, entities, language, base_url, api_key, concurrency,
+            report_format, report_path, baseline_path,
             ignore_file, max_file_size, include, exclude, workers, only_verified,
             no_color, exit_zero) -> None:
     """Scan a directory tree."""
     ignore_set = _resolve_ignore(ignore_file, path)
     baseline = load_baseline(baseline_path) if baseline_path else set()
+    cloud = _cloud_config(base_url, api_key, language, concurrency, entities)
     stats = _scan_directory(
         path.resolve(),
         entities=entities,
@@ -168,6 +205,7 @@ def cmd_dir(path: Path, entities, report_format, report_path, baseline_path,
         workers=workers,
         ignore_set=ignore_set,
         baseline=baseline,
+        cloud=cloud,
     )
     stats = _maybe_filter_verified(stats, only_verified)
     color = sys.stdout.isatty() and not no_color and report_format == "human"
@@ -180,12 +218,18 @@ def cmd_dir(path: Path, entities, report_format, report_path, baseline_path,
 @click.option("--no-history", is_flag=True, help="Skip git history pass.")
 @click.option("--max-commits", type=int, default=None, help="Cap commits scanned.")
 @_common_options
-def cmd_git(path: Path, no_history, max_commits, entities, report_format, report_path,
+def cmd_git(path: Path, no_history, max_commits, entities, language, base_url, api_key,
+            concurrency, report_format, report_path,
             baseline_path, ignore_file, max_file_size, include, exclude, workers,
             only_verified, no_color, exit_zero) -> None:
-    """Scan a local git repository (working tree + history)."""
+    """Scan a local git repository (working tree + history).
+
+    History pass always runs locally (regex only) since per-line cloud calls
+    would be chatty and gain little for short diff lines.
+    """
     ignore_set = _resolve_ignore(ignore_file, path)
     baseline = load_baseline(baseline_path) if baseline_path else set()
+    cloud = _cloud_config(base_url, api_key, language, concurrency, entities)
     recognizers = _select_recognizers(entities)
     patterns = compile_patterns(recognizers)
 
@@ -198,6 +242,7 @@ def cmd_git(path: Path, no_history, max_commits, entities, report_format, report
         workers=workers,
         ignore_set=ignore_set,
         baseline=baseline,
+        cloud=cloud,
     )
 
     if not no_history:
@@ -222,7 +267,8 @@ def cmd_git(path: Path, no_history, max_commits, entities, report_format, report
 @click.option("--full", is_flag=True, help="Full clone (default: shallow depth=1).")
 @click.option("--scan-history/--no-scan-history", "include_history", default=False, help="Scan git history (requires --full).")
 @_common_options
-def cmd_github(target, org, full, include_history, entities, report_format, report_path,
+def cmd_github(target, org, full, include_history, entities, language, base_url, api_key,
+               concurrency, report_format, report_path,
                baseline_path, ignore_file, max_file_size, include, exclude, workers,
                only_verified, no_color, exit_zero) -> None:
     """Clone a GitHub repo (or all repos in an org) and scan."""
@@ -232,6 +278,7 @@ def cmd_github(target, org, full, include_history, entities, report_format, repo
     targets = list_org_repos(target) if org else [target]
 
     aggregate = ScanStats()
+    cloud = _cloud_config(base_url, api_key, language, concurrency, entities)
     recognizers = _select_recognizers(entities)
     patterns = compile_patterns(recognizers)
 
@@ -249,6 +296,7 @@ def cmd_github(target, org, full, include_history, entities, report_format, repo
                 workers=workers,
                 ignore_set=ignore_set,
                 baseline=baseline,
+                cloud=cloud,
             )
             # Re-prefix file paths so output is unambiguous across many repos.
             sub.findings = [
