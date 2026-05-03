@@ -39,6 +39,28 @@ python -c "import spacy; spacy.require_gpu(); print('OK')"
 
 ## 3. Pod 起動 + SSH 設定 (security-hardened)
 
+### 3.0 RunPod proxy SSH の落とし穴 (#48 で発見)
+
+RunPod の proxy SSH (`ssh.runpod.io`) を使う場合、以下 3 点を全て満たさないと `Permission denied (publickey)` で reject される:
+
+1. **SSH 公開鍵を RunPod console の "User Settings → SSH Public Keys" に登録**
+   - team account を使っている場合は team 側にも別途登録 (user-level と team-level は独立)
+   - 登録後、即時反映 (propagation 待ちは不要)
+
+2. **SSH ユーザー名は `<pod-id>-<account-hash>`** (pod-id 単独ではない!)
+   - RunPod console の pod 詳細 → "Connect" タブの SSH コマンドで実際の username が表示される
+   - 例: `ssh ixemd21o4pqszq-64410f66@ssh.runpod.io -i ~/.ssh/id_ed25519`
+   - pod-id 単独 (`ixemd21o4pqszq@ssh.runpod.io`) で接続すると認証 fail
+   - account-hash は API key 紐付きアカウントの fingerprint。MCP の create-pod 戻り値には**含まれない**ので、初回は console UI から取得
+
+3. **使用する Docker image が Docker Hub に存在する**
+   - 存在しない tag (例: `runpod/pytorch:2.4.0-py3.11-cuda12.1-devel-ubuntu22.04` は manifest 不在) を指定すると pod が "RUNNING" 表示でも実体は起動失敗
+   - 失敗していると proxy SSH 認証時点で reject される (sshd が起動しないため)
+   - 確認手段: console pod 詳細 "Connect" タブに `error creating container: ... manifest unknown` と表示
+   - 動作確認済 image: `runpod/pytorch:1.0.3-cu1290-torch290-ubuntu2204` (2026-05 時点最新フォーマット `<x.y.z>-cu<NNNN>-torch<NNN>-ubuntu<YYMM>`)
+
+これらに気付かないまま `Permission denied (publickey)` だけを見ると鍵未登録と誤診し、無限に確認 loop に入る。**まず console UI で Connect タブの SSH コマンド全文を読み取って、それと自分のコマンドを diff する**ところから始める。
+
 ### Critical: SSH host key 検証の bypass フラグを絶対に使わない
 
 CPU runbook (`runpod-training.md`) には SSH host key 検証 bypass フラグ (`-o StrictHostKeyChecking` を `no` に設定する形) の記載があるが、本 GPU runbook では **MITM 対策のため使用禁止** (peer-review item P1-8)。理由は RunPod pod の IP/PORT が deploy ごとに変わり、TOFU すら成立しないため。
