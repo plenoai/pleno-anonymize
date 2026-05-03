@@ -26,7 +26,7 @@ MODELS_DIR = ../models
 # === 日本語 (既存) ===
 
 generate:
-	$(DOTENVX) uv run python -m pleno_ner_training.generate_data \
+	$(DOTENVX) uv run --extra training python -m pleno_ner_training.generate_data \
 		--language ja \
 		--output-dir $(DATA_RAW)/ja \
 		--docs-per-template $(DOCS_PER_TEMPLATE) \
@@ -41,7 +41,7 @@ convert:
 		--output-dir $(DATA_PROCESSED)/ja
 
 train:
-	uv run python -m spacy train configs/train_transformer.cfg \
+	uv run --extra training python -m spacy train configs/train_transformer.cfg \
 		--output $(OUTPUT_DIR) \
 		--paths.train $(DATA_PROCESSED)/ja/train.spacy \
 		--paths.dev $(DATA_PROCESSED)/ja/dev.spacy \
@@ -82,7 +82,7 @@ package:
 # === 日本語 v0.2.0 ===
 
 generate-v02:
-	$(DOTENVX) uv run python -m pleno_ner_training.generate_data \
+	$(DOTENVX) uv run --extra training python -m pleno_ner_training.generate_data \
 		--language ja \
 		--output-dir $(DATA_RAW)/ja-v02 \
 		--docs-per-template $(DOCS_PER_TEMPLATE) \
@@ -132,7 +132,7 @@ all-ja-v02: generate-v02 augment-ja convert-v02 train-v02 evaluate-v02 benchmark
 # === 英語 ===
 
 generate-en:
-	$(DOTENVX) uv run python -m pleno_ner_training.generate_data \
+	$(DOTENVX) uv run --extra training python -m pleno_ner_training.generate_data \
 		--language en \
 		--output-dir $(DATA_RAW)/en \
 		--docs-per-template $(DOCS_PER_TEMPLATE) \
@@ -154,7 +154,7 @@ convert-en:
 		--output-dir $(DATA_PROCESSED)/en
 
 train-en:
-	uv run python -m spacy train configs/train_transformer_en.cfg \
+	uv run --extra training python -m spacy train configs/train_transformer_en.cfg \
 		--output $(OUTPUT_DIR)/en \
 		--paths.train $(DATA_PROCESSED)/en/train.spacy \
 		--paths.dev $(DATA_PROCESSED)/en/dev.spacy \
@@ -193,7 +193,7 @@ all-en: generate-en augment-en convert-en train-en evaluate-en package-en
 BENCHMARK_BATCHES ?= 10
 
 benchmark-v02-generate:
-	$(DOTENVX) uv run python -m pleno_ner_training.generate_benchmark \
+	$(DOTENVX) uv run --extra training python -m pleno_ner_training.generate_benchmark \
 		--language ja \
 		--docs-per-template $(DOCS_PER_TEMPLATE) \
 		--batches-per-template $(BENCHMARK_BATCHES) \
@@ -201,7 +201,7 @@ benchmark-v02-generate:
 		--max-workers $(MAX_WORKERS)
 
 benchmark-v02-generate-en:
-	$(DOTENVX) uv run python -m pleno_ner_training.generate_benchmark \
+	$(DOTENVX) uv run --extra training python -m pleno_ner_training.generate_benchmark \
 		--language en \
 		--docs-per-template $(DOCS_PER_TEMPLATE) \
 		--batches-per-template $(BENCHMARK_BATCHES) \
@@ -219,7 +219,7 @@ benchmark-v02-evaluate-en:
 		--language en --version v0.2.0
 
 benchmark-v03-generate:
-	$(DOTENVX) uv run python -m pleno_ner_training.generate_benchmark \
+	$(DOTENVX) uv run --extra training python -m pleno_ner_training.generate_benchmark \
 		--version v0.3.0 \
 		--language ja \
 		--docs-per-template $(DOCS_PER_TEMPLATE) \
@@ -228,7 +228,7 @@ benchmark-v03-generate:
 		--max-workers $(MAX_WORKERS)
 
 benchmark-v03-generate-en:
-	$(DOTENVX) uv run python -m pleno_ner_training.generate_benchmark \
+	$(DOTENVX) uv run --extra training python -m pleno_ner_training.generate_benchmark \
 		--version v0.3.0 \
 		--language en \
 		--docs-per-template $(DOCS_PER_TEMPLATE) \
@@ -247,7 +247,7 @@ benchmark-v03-evaluate-en:
 		--language en --version v0.3.0
 
 benchmark-v04-generate:
-	$(DOTENVX) uv run python -m pleno_ner_training.generate_benchmark \
+	$(DOTENVX) uv run --extra training python -m pleno_ner_training.generate_benchmark \
 		--version v0.4.0 \
 		--language ja \
 		--docs-per-template $(DOCS_PER_TEMPLATE) \
@@ -256,7 +256,7 @@ benchmark-v04-generate:
 		--max-workers $(MAX_WORKERS)
 
 benchmark-v04-generate-en:
-	$(DOTENVX) uv run python -m pleno_ner_training.generate_benchmark \
+	$(DOTENVX) uv run --extra training python -m pleno_ner_training.generate_benchmark \
 		--version v0.4.0 \
 		--language en \
 		--docs-per-template $(DOCS_PER_TEMPLATE) \
@@ -275,7 +275,7 @@ benchmark-v04-evaluate-en:
 		--language en --version v0.4.0
 
 benchmark-v05-generate:
-	$(DOTENVX) uv run python -m pleno_ner_training.generate_benchmark \
+	$(DOTENVX) uv run --extra training python -m pleno_ner_training.generate_benchmark \
 		--version v0.5.0 \
 		--language ja \
 		--docs-per-template $(DOCS_PER_TEMPLATE) \
@@ -284,7 +284,7 @@ benchmark-v05-generate:
 		--max-workers $(MAX_WORKERS)
 
 benchmark-v05-generate-en:
-	$(DOTENVX) uv run python -m pleno_ner_training.generate_benchmark \
+	$(DOTENVX) uv run --extra training python -m pleno_ner_training.generate_benchmark \
 		--version v0.5.0 \
 		--language en \
 		--docs-per-template $(DOCS_PER_TEMPLATE) \
