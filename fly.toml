@@ -6,15 +6,16 @@ primary_region = 'nrt'
 [http_service]
   internal_port = 8080
   force_https = true
-  # PR #45: keep the single VM always running.
-  # auto_stop_machines='stop' + min_machines_running=1 was deceptive — fly was
-  # stopping the sole machine after deploy and relying on auto-start on first
-  # request. Cold-start (model load) exceeded the post-deploy CI curl timeout,
-  # making the deploy look broken. Setting auto_stop=off is the right config
-  # for a low-traffic always-on app like ours.
+  # auto_stop=off keeps fly from stopping the machine; auto_start=true lets
+  # the proxy cold-start it back if the machine ever lands in 'stopped' state
+  # (deploy update transient, platform action). PR #45 set auto_start=false
+  # together with auto_stop=off, which created a no-recovery trap: once the
+  # machine fell into 'stopped' the proxy refused to restart it and every
+  # request 503'd while the machine API still saw the machine as 'active'.
+  # min_machines_running is a no-op when auto_stop_machines='off' (fly only
+  # honors it for 'stop'/'suspend'), so it's removed.
   auto_stop_machines = 'off'
-  auto_start_machines = false
-  min_machines_running = 1
+  auto_start_machines = true
 
   [http_service.concurrency]
     type = "requests"
