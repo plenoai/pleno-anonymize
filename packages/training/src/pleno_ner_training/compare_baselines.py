@@ -58,7 +58,7 @@ TIME_BOX_SECONDS: int = 6 * 60 * 60
 # R7 primary-gate minimum diff: max(3pt, 2× noise_floor).
 R7_MIN_DIFF: float = 0.03
 
-RECOGNIZERS_PATH_REL = "packages/training/src/pleno_ner_training/recognizers_ja.py"
+RECOGNIZERS_PATH_REL = "server/src/recognizers_ja.py"
 
 PodMode = Literal["cpu", "gpu"]
 

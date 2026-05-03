@@ -110,7 +110,16 @@ def _build_presidio_predictor(spacy_model_name: str) -> Predictor:
     from presidio_analyzer import AnalyzerEngine
     from presidio_analyzer.nlp_engine import SpacyNlpEngine
 
-    from pleno_ner_training.recognizers_ja import ALL_JA_RECOGNIZERS
+    # `recognizers_ja` is canonical at `server/src/recognizers_ja.py` (#74).
+    # Resolve via repo path rather than re-introducing the workspace dep that
+    # was severed to keep the server image slim.
+    import sys as _sys
+    from pathlib import Path as _Path
+
+    _server_src = _Path(__file__).resolve().parents[4] / "server" / "src"
+    if str(_server_src) not in _sys.path:
+        _sys.path.insert(0, str(_server_src))
+    from recognizers_ja import ALL_JA_RECOGNIZERS  # type: ignore[import-not-found]
 
     class MultiLangSpacyNlpEngine(SpacyNlpEngine):
         def __init__(self, models: dict):
