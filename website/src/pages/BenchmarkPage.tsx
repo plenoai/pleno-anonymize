@@ -232,6 +232,19 @@ function HybridBaselineSection() {
         v0.13.0-held-out (80 docs, 3 unseen templates excluded from training): GiNZA + Presidio (OSS hybrid) vs custom NER head-to-head, scoped to ORG / DOB per ADR-0004. Pre-Registration locked rule (matched-precision floor p ≥ 0.7, bootstrap CI, Bonferroni α/35) gives <span className="font-mono text-[#171717] dark:text-[#ededed]">NO_DECISION × 2</span> rule-strict; operational signal supports custom-side COMMIT.
       </p>
 
+      <div className="mb-6 rounded-lg border border-sky-200 dark:border-sky-800/50 bg-sky-50 dark:bg-sky-950/30 p-4">
+        <div className="mb-2 flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 text-sky-700 dark:text-sky-400" />
+          <span className="text-sm font-semibold text-sky-900 dark:text-sky-300">S6 metric is not v0.12.0 adversarial F1</span>
+        </div>
+        <p className="text-xs text-sky-800 dark:text-sky-300">
+          Numbers below come from the S6 protocol: <span className="font-mono">matched-precision-floor recall + token-overlap F1</span> on an in-distribution held-out split — designed to fairly compare an OSS hybrid baseline against the custom head. They are <strong>not</strong> the same metric as the v0.12.0 adversarial benchmark (Overall F1 49%, P 33%), which uses <span className="font-mono">strict-span F1</span> on out-of-distribution generalization templates. Dev F1 (in-dist) and Adversarial F1 (OOD) measure different things; both are reported on purpose. See <a href="https://github.com/plenoai/pleno-anonymize/blob/main/README.md" target="_blank" rel="noopener noreferrer" className="underline">README</a> headline section.
+        </p>
+        <p className="mt-2 text-xs text-sky-800 dark:text-sky-300">
+          The S6 numbers below are retained as the reproducible baseline-comparison snapshot. Phase 2 (#48) post-retrain numbers will be added as a separate <span className="font-mono">v0.13.0</span> row in a follow-up commit; do not read these rows as the current production-quality estimate.
+        </p>
+      </div>
+
       <div className="mb-6 rounded-lg border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/30 p-4">
         <div className="mb-2 flex items-center gap-2">
           <AlertCircle className="h-4 w-4 text-amber-700 dark:text-amber-400" />
