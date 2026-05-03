@@ -19,15 +19,68 @@ from transformers import AutoTokenizer, PreTrainedTokenizerFast
 # Heuristic patterns to drop zero-entity docs that actually contain PII text
 # (label-miss noise). Keeping these as O-only examples would teach the model
 # to NOT tag real PII -- the opposite of what we want.
+#
+# History: the original (v0) set caught only ~16% of zero-entity docs, leaking
+# ADDRESS / BANK_ACCOUNT / DATE_OF_BIRTH look-alikes into the hard-negative
+# pool and causing the regression observed in #66 (hardneg run vs. baseline:
+# ADDRESS F1 0.692 → 0.667, BANK_ACCOUNT F1 0.615 → 0.558). The expanded set
+# below (#67) lifts the catch rate to ~25% on `ja-v02/generated.json` by
+# adding postal codes (〒), Japanese phone numbers, email, 16-digit card-like
+# blocks, IBAN, 口座番号 / 普通 / 当座, bank+digits, the remaining 41
+# prefectures, [市区町村]+丁目, ISO-style YYYY年M月D日, 名義+name and the
+# residual XML/《》-tagged PII spans that leaked from prompt templates.
 PII_HINT_RE = re.compile(
     "|".join(
         [
+            # Generic digit clusters (legacy, kept for back-compat).
             r"\d{1,2}-\d{1,4}-\d{1,4}",
             r"\d{4,}\s*-?\s*\d{4,}",
+            # Honorific-suffixed personal names.
             r"[一-龥]{2,4}\s*[一-龥]{1,3}\s*(さん|様|氏)",
+            # Corporate entities.
             r"(株式会社|有限会社|合同会社)",
-            r"(東京都|大阪府|京都府|北海道|沖縄県|千代田区|港区|渋谷区)",
+            # Era-formatted dates (legacy, narrow set).
             r"(平成|令和|昭和)\s*[一-龥0-9]+\s*年",
+            # --- #67: address-bearing phrases ---------------------------------
+            # Postal code 〒XXX-XXXX (with optional space / no hyphen).
+            r"〒\s*\d{3}-?\d{4}",
+            # All 47 prefectures (the original list only had 6).
+            r"(東京都|大阪府|京都府|北海道|沖縄県"
+            r"|神奈川県|埼玉県|千葉県|愛知県|兵庫県|福岡県|静岡県|広島県"
+            r"|宮城県|新潟県|岡山県|長野県|岐阜県|茨城県|栃木県|群馬県"
+            r"|三重県|奈良県|滋賀県|和歌山県|福井県|石川県|富山県|山梨県"
+            r"|岩手県|青森県|秋田県|山形県|福島県|鳥取県|島根県|山口県"
+            r"|徳島県|香川県|愛媛県|高知県|佐賀県|長崎県|熊本県|大分県"
+            r"|宮崎県|鹿児島県"
+            r"|千代田区|港区|渋谷区)",
+            # 市/区/町/村 + 丁目 (chome) — strong address signal.
+            r"[一-龥]{1,4}(市|区|町|村)[一-龥]{1,8}\d+丁目",
+            # 1-2-3 / 1-2-3-4 banchi-go style.
+            r"\d+\s*[-－]\s*\d+\s*[-－]\s*\d+",
+            # --- #67: contact identifiers -------------------------------------
+            # Japanese landline / mobile phone (0X-XXXX-XXXX, 0XXX-XX-XXXX, …).
+            r"0\d{1,4}-\d{1,4}-\d{4}",
+            # Email address.
+            r"[\w.+-]+@[\w-]+\.[\w.-]+",
+            # --- #67: financial identifiers -----------------------------------
+            # 16-digit credit-card / IBAN-ish 4-block group.
+            r"\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}",
+            # IBAN (ISO 13616).
+            r"[A-Z]{2}\d{2}[A-Z0-9]{10,30}",
+            # 口座番号 / 普通 / 当座 + digits.
+            r"(口座番号|普通|当座)\s*[:：]?\s*\d{3,8}",
+            # Bank/branch keyword followed by a 4+ digit run within 30 chars.
+            r"(銀行|信金|信用金庫|信用組合|労金|農協|ゆうちょ)[^\n]{0,30}\d{4,}",
+            # --- #67: birthdate / personal -----------------------------------
+            # ISO-style YYYY年M月D日.
+            r"\d{4}\s*年\s*\d{1,2}\s*月\s*\d{1,2}\s*日",
+            # 漢字氏名 + (カナ読み) — the name+furigana pattern in dialogues.
+            r"[一-龥]{1,4}\s*[一-龥]{1,4}[（(][ァ-ヶー\s]{2,15}[)）]",
+            # 名義 + 漢字/カナ name.
+            r"名義[はがでも:：\s]+[一-龥ァ-ヶー]{2,8}",
+            # --- #67: residual PII XML/《》 prompt-template artefacts ---------
+            r"<(PERSON|ADDRESS|ORGANIZATION|DATE_OF_BIRTH|BANK_ACCOUNT)\b",
+            r"《(PERSON|ADDRESS|ORGANIZATION|DATE_OF_BIRTH|BANK_ACCOUNT)>",
         ]
     )
 )
