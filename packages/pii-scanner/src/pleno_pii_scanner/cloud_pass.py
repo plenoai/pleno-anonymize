@@ -24,7 +24,7 @@ from typing import Iterable
 
 import httpx
 
-from pleno_scan.models import Finding
+from pleno_pii_scanner.models import Finding
 
 
 # Server caps text at 100_000 chars (server.AnalyzeRequest). Leave headroom.

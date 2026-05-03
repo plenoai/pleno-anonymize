@@ -7,8 +7,8 @@ import sys
 from dataclasses import asdict
 from typing import TextIO
 
-from pleno_scan import __version__
-from pleno_scan.models import Finding, ScanStats
+from pleno_pii_scanner import __version__
+from pleno_pii_scanner.models import Finding, ScanStats
 
 
 _VERIFICATION_BADGE = {
@@ -28,14 +28,14 @@ def render_human(stats: ScanStats, out: TextIO = sys.stdout, *, color: bool = Tr
     findings = stats.findings
     if not findings:
         out.write(
-            f"pleno-scan v{__version__}: scanned {stats.files_scanned} files "
+            f"pleno-pii-scanner v{__version__}: scanned {stats.files_scanned} files "
             f"({stats.bytes_scanned:,} bytes) in {stats.duration_ms} ms — "
             f"\033[32mno findings\033[0m\n" if color
-            else f"pleno-scan v{__version__}: scanned {stats.files_scanned} files in {stats.duration_ms} ms — no findings\n"
+            else f"pleno-pii-scanner v{__version__}: scanned {stats.files_scanned} files in {stats.duration_ms} ms — no findings\n"
         )
         return
 
-    out.write(f"pleno-scan v{__version__}\n")
+    out.write(f"pleno-pii-scanner v{__version__}\n")
     out.write(
         f"Scanned {stats.files_scanned} files ({stats.bytes_scanned:,} bytes)"
     )
@@ -131,7 +131,7 @@ def render_sarif(stats: ScanStats, out: TextIO = sys.stdout) -> None:
             {
                 "tool": {
                     "driver": {
-                        "name": "pleno-scan",
+                        "name": "pleno-pii-scanner",
                         "informationUri": "https://github.com/plenoai/pleno-anonymize",
                         "version": __version__,
                         "rules": list(rules.values()),

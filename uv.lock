@@ -34,8 +34,8 @@ exclude-newer-span = "P7D"
 members = [
     "pleno-anonymize-server",
     "pleno-ner-training",
+    "pleno-pii-scanner",
     "pleno-recognizers",
-    "pleno-scan",
 ]
 
 [[package]]
@@ -2640,31 +2640,9 @@ requires-dist = [
 provides-extras = ["training", "hf", "bench"]
 
 [[package]]
-name = "pleno-recognizers"
+name = "pleno-pii-scanner"
 version = "0.1.0"
-source = { editable = "packages/recognizers" }
-
-[package.optional-dependencies]
-presidio = [
-    { name = "presidio-analyzer" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "presidio-analyzer", marker = "extra == 'presidio'", specifier = ">=2.2" }]
-provides-extras = ["presidio"]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8.0" }]
-
-[[package]]
-name = "pleno-scan"
-version = "0.1.0"
-source = { editable = "packages/scanner" }
+source = { editable = "packages/pii-scanner" }
 dependencies = [
     { name = "click" },
     { name = "httpx" },
@@ -2690,6 +2668,28 @@ requires-dist = [
     { name = "presidio-analyzer", specifier = ">=2.2" },
     { name = "spacy", extras = ["ja"], specifier = ">=3.8" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.0" }]
+
+[[package]]
+name = "pleno-recognizers"
+version = "0.1.0"
+source = { editable = "packages/recognizers" }
+
+[package.optional-dependencies]
+presidio = [
+    { name = "presidio-analyzer" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "presidio-analyzer", marker = "extra == 'presidio'", specifier = ">=2.2" }]
+provides-extras = ["presidio"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=8.0" }]

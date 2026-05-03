@@ -1,6 +1,6 @@
 from pleno_recognizers.ja import ALL_JA_RECOGNIZERS, JA_PHONE, JA_EMAIL
 
-from pleno_scan.regex_pass import compile_patterns, scan_text
+from pleno_pii_scanner.regex_pass import compile_patterns, scan_text
 
 
 def test_scan_text_finds_phone_and_email():

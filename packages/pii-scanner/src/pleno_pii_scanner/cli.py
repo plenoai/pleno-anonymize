@@ -1,4 +1,4 @@
-"""pleno-scan CLI."""
+"""pleno-pii-scanner CLI."""
 
 from __future__ import annotations
 
@@ -10,17 +10,17 @@ import click
 
 from pleno_recognizers.ja import ALL_JA_RECOGNIZERS
 
-from pleno_scan import __version__
-from pleno_scan.cloud_pass import CloudConfig, scan_files_cloud
-from pleno_scan.git_history import scan_history as _scan_history
-from pleno_scan.github import list_org_repos, shallow_clone
-from pleno_scan.ignore import IgnoreSet, filter_findings, load_baseline, write_baseline
-from pleno_scan.models import Finding, ScanStats
-from pleno_scan.ner_pass import scan_files as scan_files_ner
-from pleno_scan.regex_pass import compile_patterns
-from pleno_scan.report import render_human, render_json, render_sarif
-from pleno_scan.verify import verify
-from pleno_scan.walker import walk
+from pleno_pii_scanner import __version__
+from pleno_pii_scanner.cloud_pass import CloudConfig, scan_files_cloud
+from pleno_pii_scanner.git_history import scan_history as _scan_history
+from pleno_pii_scanner.github import list_org_repos, shallow_clone
+from pleno_pii_scanner.ignore import IgnoreSet, filter_findings, load_baseline, write_baseline
+from pleno_pii_scanner.models import Finding, ScanStats
+from pleno_pii_scanner.ner_pass import scan_files as scan_files_ner
+from pleno_pii_scanner.regex_pass import compile_patterns
+from pleno_pii_scanner.report import render_human, render_json, render_sarif
+from pleno_pii_scanner.verify import verify
+from pleno_pii_scanner.walker import walk
 
 
 def _common_options(f):
@@ -200,7 +200,7 @@ def _exit_code(stats: ScanStats, exit_zero: bool) -> int:
 
 
 @click.group()
-@click.version_option(__version__, prog_name="pleno-scan")
+@click.version_option(__version__, prog_name="pleno-pii-scanner")
 def main() -> None:
     """Scan source repositories for PII (Japanese-first)."""
 
@@ -402,7 +402,7 @@ def cmd_protect(entities, only_verified, no_color) -> None:
             continue
         if current_file and line.startswith("+") and not line.startswith("+++"):
             text = line[1:]
-            from pleno_scan.regex_pass import scan_text as _scan_text
+            from pleno_pii_scanner.regex_pass import scan_text as _scan_text
             for f in _scan_text(text, current_file, patterns):
                 findings.append(
                     Finding(**{**f.__dict__, "line": new_line})
@@ -415,13 +415,13 @@ def cmd_protect(entities, only_verified, no_color) -> None:
 
     color = sys.stdout.isatty() and not no_color
     if not findings:
-        click.echo("pleno-scan: no PII in staged hunks ✓", err=True)
+        click.echo("pleno-pii-scanner: no PII in staged hunks ✓", err=True)
         sys.exit(0)
 
     stats = ScanStats(findings=findings)
     render_human(stats, sys.stderr, color=color)
     click.echo(
-        "pleno-scan: refusing commit. Use `# pleno:ignore <ENTITY>` if intentional.",
+        "pleno-pii-scanner: refusing commit. Use `# pleno:ignore <ENTITY>` if intentional.",
         err=True,
     )
     sys.exit(1)

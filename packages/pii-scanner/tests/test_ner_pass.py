@@ -28,7 +28,7 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_ner_detects_person_in_japanese_text():
-    from pleno_scan.ner_pass import scan_text
+    from pleno_pii_scanner.ner_pass import scan_text
 
     findings = scan_text(
         "山田太郎さんに連絡してください。電話: 090-1234-5678",
@@ -41,7 +41,7 @@ def test_ner_detects_person_in_japanese_text():
 
 
 def test_ner_returns_line_col():
-    from pleno_scan.ner_pass import scan_text
+    from pleno_pii_scanner.ner_pass import scan_text
 
     text = "header\n名前: 山田太郎\n"
     findings = scan_text(text, "x.txt", language="ja")
@@ -51,7 +51,7 @@ def test_ner_returns_line_col():
 
 
 def test_ner_pass_scan_files_reuses_model(tmp_path: Path):
-    from pleno_scan.ner_pass import scan_files
+    from pleno_pii_scanner.ner_pass import scan_files
 
     f1 = tmp_path / "a.txt"
     f1.write_text("山田太郎")

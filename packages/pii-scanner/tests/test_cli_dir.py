@@ -6,7 +6,7 @@ from pathlib import Path
 
 from click.testing import CliRunner
 
-from pleno_scan.cli import main
+from pleno_pii_scanner.cli import main
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -55,5 +55,5 @@ def test_sarif_output_shape():
     assert result.exit_code == 0
     data = json.loads(result.output)
     assert data["version"] == "2.1.0"
-    assert data["runs"][0]["tool"]["driver"]["name"] == "pleno-scan"
+    assert data["runs"][0]["tool"]["driver"]["name"] == "pleno-pii-scanner"
     assert len(data["runs"][0]["results"]) > 0

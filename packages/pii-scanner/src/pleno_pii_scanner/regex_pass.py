@@ -16,7 +16,7 @@ from typing import Iterable
 
 from pleno_recognizers.types import PiiRecognizer
 
-from pleno_scan.models import Finding
+from pleno_pii_scanner.models import Finding
 
 
 @dataclass(frozen=True, slots=True)

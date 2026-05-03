@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from pleno_scan.ignore import IgnoreSet, _inline_ignored_entities, filter_findings, write_baseline, load_baseline
-from pleno_scan.models import Finding
+from pleno_pii_scanner.ignore import IgnoreSet, _inline_ignored_entities, filter_findings, write_baseline, load_baseline
+from pleno_pii_scanner.models import Finding
 
 
 def _f(entity="EMAIL_ADDRESS", file="a.py", line=1, matched="x@y.com"):

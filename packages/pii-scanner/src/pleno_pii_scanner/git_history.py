@@ -13,8 +13,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator
 
-from pleno_scan.models import Finding
-from pleno_scan.regex_pass import CompiledPattern, scan_text
+from pleno_pii_scanner.models import Finding
+from pleno_pii_scanner.regex_pass import CompiledPattern, scan_text
 
 _COMMIT_RE = re.compile(
     r"^PLENOCOMMIT\x1f([0-9a-f]+)\x1f([^\x1f]*)\x1f([^\x1f]*)\x1f([^\x1f]*)$"
