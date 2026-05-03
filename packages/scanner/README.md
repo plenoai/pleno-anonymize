@@ -36,6 +36,34 @@ uv run pleno-scan protect
 uv run pleno-scan baseline ./my-repo --out .plenoignore-baseline.json
 ```
 
+### Local vs cloud mode
+
+By default, `pleno-scan` runs **locally** with the regex pass only. Pass `--base-url` (or set `PLENO_BASE_URL`) to delegate analysis to a pleno-anonymize HTTP API — this enables NER-based entities (`PERSON`, `ADDRESS`, `ORGANIZATION`) that the local regex pass cannot detect.
+
+```sh
+# Local (default): regex only, multiprocess, no network
+uv run pleno-scan dir ./my-repo
+
+# Cloud: server-side analysis (Presidio + spaCy NER + regex)
+uv run pleno-scan dir ./my-repo --base-url https://pleno-anonymize.fly.dev
+
+# Or via env var (CI-friendly)
+PLENO_BASE_URL=https://pleno-anonymize.fly.dev pleno-scan dir ./my-repo
+
+# Auth (if your endpoint requires it)
+uv run pleno-scan dir ./my-repo \
+    --base-url https://internal.example.com \
+    --api-key "$PLENO_API_KEY"
+
+# Throttle parallel HTTP requests
+uv run pleno-scan dir ./my-repo --base-url ... --concurrency 4
+```
+
+| Mode | Entities | Latency | Network | Use when |
+|---|---|---|---|---|
+| Local | 13 regex-based JA patterns | ~ms / file | none | CI, pre-commit, offline |
+| Cloud | regex + NER (PERSON / ADDRESS / ORGANIZATION / etc.) | ~100s ms / file | required | one-off audits, higher recall |
+
 ### Output formats
 
 - `--report-format human` (default) — colorized table
