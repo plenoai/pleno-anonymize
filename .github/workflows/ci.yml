@@ -42,6 +42,41 @@ jobs:
           tags: pleno-anonymize:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # Image size gate (#73). fly's rootfs hard limit is 8GB compressed; once
+      # exceeded the platform silently rejects the unpack and the deploy step
+      # still reports success while the running machine keeps the previous
+      # image. Gate at 7GB to leave headroom and surface size regressions in
+      # the same PR that introduces them, not weeks later in production.
+      - name: Verify image size under fly 8GB rootfs limit
+        run: |
+          set -eu
+          SIZE=$(docker image inspect pleno-anonymize:${{ github.sha }} --format '{{.Size}}')
+          THRESHOLD=$((7 * 1024 * 1024 * 1024))
+          SIZE_GB=$(awk -v s="$SIZE" 'BEGIN{printf "%.2f", s/1024/1024/1024}')
+          echo "image size: ${SIZE} bytes (${SIZE_GB} GB)"
+          echo "threshold:  ${THRESHOLD} bytes (7.00 GB)"
+          if [ "$SIZE" -gt "$THRESHOLD" ]; then
+            echo "::error::image size ${SIZE_GB}GB exceeds 7GB threshold (fly 8GB rootfs limit; over-limit images are silently rejected on deploy)"
+            exit 1
+          fi
+
+      # Pre-deploy snapshot of running image ref. Combined with the post-deploy
+      # check below, this catches silent fly rejects (image > 8GB rootfs, etc.)
+      # where `flyctl deploy` exits 0 but the running machine keeps the old
+      # image. flyctl renames the local tag to `registry.fly.io/<app>:deployment-<ts>`
+      # so we cannot compare the git sha directly — we assert the ref *changes*.
+      - name: Snapshot pre-deploy image ref
+        id: pre_deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          set -eu
+          BEFORE=$(flyctl machine list --app pleno-anonymize --json 2>/dev/null \
+            | jq -r '[.[] | .config.image] | sort | unique | join(",")' || echo "")
+          echo "before=${BEFORE}"
+          echo "before=${BEFORE}" >> "$GITHUB_OUTPUT"
+
       # --strategy immediate destroys the existing machine and creates a fresh
       # one. Default `rolling` does an in-place update which previously inherited
       # corrupt state ([PM07] machine still active, refusing to start) on
@@ -49,3 +84,82 @@ jobs:
       - run: flyctl deploy --local-only --strategy immediate --image pleno-anonymize:${{ github.sha }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      # Silent-deploy guard (#72). Even with `flyctl deploy` exit 0, fly may
+      # have rejected the image during unpack (rootfs > 8GB, registry race) and
+      # left the previous image running. Assert the running image ref differs
+      # from the pre-deploy snapshot — this is the signal that the new image
+      # actually became live, since flyctl tags with `deployment-<ts>` per push.
+      - name: Verify deployed image ref changed
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          set -eu
+          EXPECTED_SHA="${{ github.sha }}"
+          BEFORE='${{ steps.pre_deploy.outputs.before }}'
+          flyctl machine list --app pleno-anonymize --json > machines.json
+          cat machines.json
+          AFTER=$(jq -r '[.[] | .config.image] | sort | unique | join(",")' machines.json)
+          STARTED=$(jq '[.[] | select(.state=="started")] | length' machines.json)
+          echo "before=${BEFORE}"
+          echo "after=${AFTER}"
+          echo "started_count=${STARTED}"
+          if [ "$STARTED" -lt 1 ]; then
+            echo "::error::no started machine after deploy (sha=${EXPECTED_SHA})"
+            exit 1
+          fi
+          # Empty BEFORE = first deploy / pre-snapshot failed; skip drift check
+          # but still require AFTER to be non-empty.
+          if [ -z "$AFTER" ]; then
+            echo "::error::no image ref on any machine after deploy (sha=${EXPECTED_SHA})"
+            exit 1
+          fi
+          if [ -n "$BEFORE" ] && [ "$BEFORE" = "$AFTER" ]; then
+            echo "::error::image ref unchanged after deploy (silent fly reject suspected; sha=${EXPECTED_SHA}, image=${AFTER})"
+            exit 1
+          fi
+
+      # /ready verification (#72). PR #61 dropped this step, hiding the silent
+      # deploy failure that #47 chased for weeks. Restore: poll /ready for up
+      # to ~6 min (12 * 30s). Records HTTP status + connect/total time per
+      # attempt so failures distinguish 'no TCP' / 'TCP no HTTP' / '5xx body'.
+      - name: Verify /ready after deploy
+        id: ready_check
+        run: |
+          set -u
+          ok=0
+          for i in $(seq 1 12); do
+            response=$(curl -sS --max-time 60 --retry 3 --retry-all-errors --retry-delay 5 \
+              -w "\n__STATUS=%{http_code} CONNECT=%{time_connect}s TOTAL=%{time_total}s" \
+              -H "Accept: application/json" https://pleno-anonymize.fly.dev/ready 2>&1 || true)
+            echo "attempt $i:"
+            # shellcheck disable=SC2001 # multi-line indent prefix; printf-style alt is unreadable
+            echo "$response" | sed 's/^/  /'
+            body=$(echo "$response" | sed '$d')
+            if echo "$body" | grep -q '"status": *"ready"'; then
+              ok=1
+              break
+            fi
+            sleep 30
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo "::error::/ready did not return ready within 6 minutes"
+            exit 1
+          fi
+
+      # Diagnostic: dump fly machine status + recent logs when /ready fails.
+      # Mirrors PR #46 — without this we are blind to whether uvicorn started,
+      # the warmup thread crashed, or the proxy is routing to a dead machine.
+      - name: Diagnose deploy on healthcheck failure
+        if: failure() && steps.ready_check.outcome == 'failure'
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          echo "=== flyctl status ==="
+          flyctl status --app pleno-anonymize || true
+          echo ""
+          echo "=== flyctl machine list ==="
+          flyctl machine list --app pleno-anonymize || true
+          echo ""
+          echo "=== flyctl logs (last 300 lines) ==="
+          timeout 30 flyctl logs --app pleno-anonymize --no-tail 2>&1 | tail -300 || true
