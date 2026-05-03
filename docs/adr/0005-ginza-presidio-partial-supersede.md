@@ -90,3 +90,11 @@ in-domain v0.12.1-leak-fixed (495 docs) における対応指標:
 - Public benchmark report: [packages/training/docs/benchmark-2026-05-02.md](../../packages/training/docs/benchmark-2026-05-02.md)
 - ADR not superseded (this measurement): [docs/adr/0004-custom-ja-ner-model.md](./0004-custom-ja-ner-model.md)
 - Related: [docs/adr/0003-spacy-llm-presidio.md](./0003-spacy-llm-presidio.md)
+
+## Status update (2026-05-04): superseded by ADR-0006
+
+Issue #51 で指摘された通り、本 ADR は **rule-strict NO_DECISION × 4** で decisional value が低い。Phase 2 (#48) の NER 再訓練と #69 (measurement triad scores.json) の導入を機に、新計測前提で再 verdict を行う [ADR-0006](./0006-supersede-0005-with-phase2-numbers.md) を起案した。
+
+- 本 ADR は **historical evidence** として保持する (Pre-Registration commitment 毀損回避のため本文は変更しない)
+- Phase 1 measurement (held-out v0.13.0 / in-domain v0.12.1-leak-fixed) の数値は本 ADR を一次出典として参照可
+- Primary metric は ADR-0006 で strict-span F1 に切替予定。本 ADR の S6 metric (matched-precision-floor recall + token-overlap F1) は補助 metric に降格
