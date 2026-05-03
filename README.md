@@ -1,6 +1,6 @@
 # pleno-anonymize
 
-Japanese-first PII anonymization service — **F1 95.8% (ja) / 97.9% (en)**
+Japanese-first PII anonymization service — **Dev F1 95.8% (ja, in-domain held-out) · Adversarial F1 49.0% (ja, v0.12.0 FP-pressure)**[^adv]
 
 Purpose-built for Japanese PII that generic NER models miss: My Number, full-width phone numbers, Japanese-style addresses. Also provides transparent LLM API proxies with automatic PII redaction.
 
@@ -16,23 +16,46 @@ Purpose-built for Japanese PII that generic NER models miss: My Number, full-wid
 
 ## Model Performance
 
-| Language | Dev F1 | Precision | Recall | Benchmark (v0.4.0) |
+Two complementary metrics are tracked. See [Methodology — Dev F1 vs Adversarial F1](#methodology--dev-f1-vs-adversarial-f1) for why they diverge.
+
+| Language | Dev F1 | Dev Precision | Dev Recall | Adversarial F1 (latest) |
 |---|---|---|---|---|
-| ja (CNN) | 95.8% | 96.0% | 95.6% | 86.9% |
-| en (Transformer) | 97.9% | 97.3% | 98.6% | 72.5% |
+| ja (CNN) | 95.8% | 96.0% | 95.6% | **49.0%** (v0.12.0)[^adv] |
+| en (Transformer) | 97.9% | 97.3% | 98.6% | 72.5% (v0.4.0) |
 
-### Benchmark Progress (ja)
+### Benchmark Progress (ja, adversarial strict-span F1)
 
-| Benchmark | v0.4.0 | v0.5.0 | v0.12.0 |
+| Benchmark | v0.4.0 | v0.5.0 | v0.12.0 | v0.13.0 |
+|---|---|---|---|---|
+| Overall F1 | **86.9%** | **86.7%** | 49.0% | _pending #48_ |
+| Overall Precision | — | — | 33.0% | _pending #48_ |
+| Overall Recall | — | — | 95.2% | _pending #48_ |
+| PERSON F1 | 88.5% | 89.6% | 83.7% | _pending #48_ |
+| ADDRESS F1 | 84.0% | 89.2% | 88.4% | _pending #48_ |
+| ORGANIZATION F1 | 84.5% | 89.5% | 21.6% | _pending #48_ |
+| DATE_OF_BIRTH F1 | 91.2% | 71.5% | 46.2% | _pending #48_ |
+| BANK_ACCOUNT F1 | 86.9% | 86.1% | 49.0% | _pending #48_ |
+
+### Per-entity Adversarial Precision / Recall (ja, v0.12.0)[^adv]
+
+| Entity | Precision | Recall | F1 |
 |---|---|---|---|
-| Overall F1 | **86.9%** | **86.7%** | 49.0% |
-| PERSON | 88.5% | 89.6% | 83.7% |
-| ADDRESS | 84.0% | 89.2% | 88.4% |
-| ORGANIZATION | 84.5% | 89.5% | 21.6% |
-| DATE_OF_BIRTH | 91.2% | 71.5% | 46.2% |
-| BANK_ACCOUNT | 86.9% | 86.1% | 49.0% |
+| PERSON | 72.0% | 100.0% | 83.7% |
+| ADDRESS | 84.0% | 93.3% | 88.4% |
+| ORGANIZATION | 12.3% | 89.2% | 21.6% |
+| DATE_OF_BIRTH | 30.9% | 91.3% | 46.2% |
+| BANK_ACCOUNT | 32.4% | 100.0% | 49.0% |
 
-> Dev F1 measures performance on held-out training data. Benchmark F1 measures on adversarial, real-world-style test sets that progressively increase in difficulty (v0.12.0 is FP-heavy with 88% negative docs). spaCy's built-in model (`ja_core_news_lg`) achieves ~60-70% F1 on Japanese PII detection.
+> spaCy's built-in model (`ja_core_news_lg`) achieves ~60-70% F1 on Japanese PII detection on similar adversarial corpora.
+
+## Methodology — Dev F1 vs Adversarial F1
+
+- **Dev F1** measures performance on a held-out portion of `generated.json` — the same synthetic distribution the model is trained on. It captures upper-bound capacity on in-domain templates.
+- **Adversarial F1** (v0.12.0 FP-pressure suite) measures strict-span micro F1 on a curated DLP corpus that mimics real-world docs: OCR/key-value collapse, dense negative documents (88% negative-only), and lexically diverse organization names. It is the production-honest number.
+- The two diverge because the FP-pressure suite stresses **precision** under heavy negatives — recall stays high (95%+) while precision collapses on `ORGANIZATION` and `BANK_ACCOUNT` (12% / 32%). Dev F1 cannot surface this because its negative density and entity diversity are far lower.
+- Adversarial scores are emitted by `pleno_ner_training.evaluate_benchmark` and persisted at [`packages/training/data/benchmark/v0.12.0/ja/scores.json`](packages/training/data/benchmark/v0.12.0/ja/scores.json) (`pleno_ner` entry). Treat this file as the canonical source of truth; Dev F1 lives in the spaCy training meta and is reported for capacity tracking only.
+
+[^adv]: Source: [`packages/training/data/benchmark/v0.12.0/ja/scores.json`](packages/training/data/benchmark/v0.12.0/ja/scores.json) — `pleno_ner` entry, strict-span micro F1, 500 docs (440 negative). v0.13.0 row is reserved for the post-#48 retrain.
 
 ## Quick Start
 
