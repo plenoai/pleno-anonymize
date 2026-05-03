@@ -9,7 +9,9 @@
        benchmark-v12-generate benchmark-v12-evaluate \
        verify-leakage-v12 pin-noise-floor-v12 compare-baselines-v12 runpod-gpu-compare-v12 \
        convert-hf-v02 train-hf-v02 export-onnx-v02 push-hf-v02 all-hf-ja-v02 \
-       convert-hf-v02-tiny train-hf-v02-tiny export-onnx-v02-tiny push-hf-v02-tiny all-hf-ja-v02-tiny
+       convert-hf-v02-tiny train-hf-v02-tiny export-onnx-v02-tiny push-hf-v02-tiny all-hf-ja-v02-tiny \
+       mine-external-hardneg-ja mine-external-hardneg-ja-dry-run \
+       convert-hf-v02-tiny-hardneg-ext train-hf-v02-tiny-hardneg-ext
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
@@ -385,6 +387,46 @@ convert-hf-v02-tiny-hardneg:
 		--output data/hf/ja-v02-tiny-hardneg \
 		--tokenizer ku-nlp/deberta-v2-tiny-japanese \
 		--include-negatives
+
+# Mine external corpus (Wikipedia ja, CC-BY-SA 4.0) for ORG-FP-likely
+# hardneg docs (#64). Output JSON schema is identical to generated.json so
+# it can be merged before the convert step.
+mine-external-hardneg-ja:
+	uv run python -m pleno_ner_training.mine_external_hardneg \
+		--output data/raw/ja-v02/external_hardneg.json \
+		--max-docs 4000
+
+# Same as `mine-external-hardneg-ja` but skips the network and emits a
+# tiny hand-crafted sample. Used by CI / local smoke tests.
+mine-external-hardneg-ja-dry-run:
+	uv run python -m pleno_ner_training.mine_external_hardneg \
+		--output data/raw/ja-v02/external_hardneg.json \
+		--max-docs 5 --dry-run
+
+# v02-tiny + hard negatives + external Wikipedia mine (#64). Pre-merges
+# generated.json with external_hardneg.json into a single tmp file so the
+# downstream converter sees one input. Inline python avoids adding a
+# stand-alone merge module for a 6-line operation.
+convert-hf-v02-tiny-hardneg-ext: mine-external-hardneg-ja
+	uv run python -c "import json,sys; \
+a=json.load(open('data/raw/ja-v02/generated.json',encoding='utf-8')); \
+b=json.load(open('data/raw/ja-v02/external_hardneg.json',encoding='utf-8')); \
+json.dump(a+b,open('data/raw/ja-v02/generated_with_external.json','w',encoding='utf-8'),ensure_ascii=False)"
+	uv run python -m pleno_ner_training.convert_to_hf_dataset \
+		--input data/raw/ja-v02/generated_with_external.json \
+		--output data/hf/ja-v02-tiny-hardneg-ext \
+		--tokenizer ku-nlp/deberta-v2-tiny-japanese \
+		--include-negatives
+
+# Train counterpart (RunPod). Mirrors `train-hf-v02-tiny-hardneg` shape so
+# evaluate_benchmark auto-derives the entry key `hf_v02_tiny_hardneg_ext`.
+train-hf-v02-tiny-hardneg-ext:
+	uv run python -m pleno_ner_training.train_hf \
+		--dataset data/hf/ja-v02-tiny-hardneg-ext \
+		--model ku-nlp/deberta-v2-tiny-japanese \
+		--output output/hf-ja-v02-tiny-hardneg-ext \
+		--fp16 --num-epochs 20 --batch-size 16 \
+		--learning-rate 3e-5 --warmup-ratio 0.15
 
 train-hf-v02-tiny:
 	uv run python -m pleno_ner_training.train_hf \
