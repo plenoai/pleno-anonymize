@@ -418,6 +418,22 @@ json.dump(a+b,open('data/raw/ja-v02/generated_with_external.json','w',encoding='
 		--tokenizer ku-nlp/deberta-v2-tiny-japanese \
 		--include-negatives
 
+# v02-tiny + augmented (ORG diverse #80) + external Wikipedia hardneg (#64).
+# Uses augmented.json (which folds in org_diverse seeds via augment-ja) instead
+# of raw generated.json, so the trained model sees the full ORG vocabulary mix
+# (公益/学校/略称/カタカナ) plus FP-pressure hardneg from Wikipedia. Required
+# for #48 Phase 2 to drive adversarial precision past the 70% AC.
+convert-hf-v02-tiny-aug-ext: augment-ja mine-external-hardneg-ja
+	uv run python -c "import json,sys; \
+a=json.load(open('data/raw/ja-v02/augmented.json',encoding='utf-8')); \
+b=json.load(open('data/raw/ja-v02/external_hardneg.json',encoding='utf-8')); \
+json.dump(a+b,open('data/raw/ja-v02/augmented_with_external.json','w',encoding='utf-8'),ensure_ascii=False)"
+	uv run python -m pleno_ner_training.convert_to_hf_dataset \
+		--input data/raw/ja-v02/augmented_with_external.json \
+		--output data/hf/ja-v02-tiny-aug-ext \
+		--tokenizer ku-nlp/deberta-v2-tiny-japanese \
+		--include-negatives
+
 # Train counterpart (RunPod). Mirrors `train-hf-v02-tiny-hardneg` shape so
 # evaluate_benchmark auto-derives the entry key `hf_v02_tiny_hardneg_ext`.
 train-hf-v02-tiny-hardneg-ext:
@@ -425,6 +441,16 @@ train-hf-v02-tiny-hardneg-ext:
 		--dataset data/hf/ja-v02-tiny-hardneg-ext \
 		--model ku-nlp/deberta-v2-tiny-japanese \
 		--output output/hf-ja-v02-tiny-hardneg-ext \
+		--fp16 --num-epochs 20 --batch-size 16 \
+		--learning-rate 3e-5 --warmup-ratio 0.15
+
+# Train counterpart for the augmented + hardneg-ext dataset (#48 Phase 2).
+# Same hyperparameters as hardneg-ext so deltas isolate the dataset variable.
+train-hf-v02-tiny-aug-ext:
+	uv run python -m pleno_ner_training.train_hf \
+		--dataset data/hf/ja-v02-tiny-aug-ext \
+		--model ku-nlp/deberta-v2-tiny-japanese \
+		--output output/hf-ja-v02-tiny-aug-ext \
 		--fp16 --num-epochs 20 --batch-size 16 \
 		--learning-rate 3e-5 --warmup-ratio 0.15
 
