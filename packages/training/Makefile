@@ -442,6 +442,25 @@ runpod-gpu-compare-v12:
 	@echo "GPU run: see packages/training/docs/runpod-gpu-inference.md"
 	@echo "Use chrome MCP per CLAUDE.md to orchestrate the pod kick."
 
+# === Confidence threshold sweep (#68) ===
+# Two-step pipeline: predict once (heavy, requires HF model) → sweep many
+# thresholds offline (cheap, pure Python). Splitting lets you re-sweep with a
+# different grid without re-running the model.
+
+predict-scores-v12:
+	uv run --extra hf python -m pleno_ner_training.predict_hf_with_scores \
+		--model output/hf-ja-v02-tiny-hardneg \
+		--input data/benchmark/v0.12.0/ja/raw.json \
+		--output data/benchmark/v0.12.0/ja/raw_with_scores.json
+
+sweep-threshold-v12: predict-scores-v12
+	uv run python -m pleno_ner_training.sweep_threshold \
+		--predictions data/benchmark/v0.12.0/ja/raw_with_scores.json \
+		--output-md data/benchmark/v0.12.0/ja/threshold_sweep.md \
+		--output-csv data/benchmark/v0.12.0/ja/threshold_sweep.csv \
+		--thresholds 0.3 0.5 0.7 0.85 0.95 \
+		--recall-floor 0.90
+
 # === 共通 ===
 
 clean:
