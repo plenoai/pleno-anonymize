@@ -47,29 +47,29 @@ jobs:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       # Catches deploys where the image starts but cannot load NER models.
-      # Background: PR #40 fixed a 4-week-latent regression where `/health`
-      # returned 200 (process running) but `/api/analyze` 500'd because models
-      # could not be resolved. `/ready` exercises the model-load path.
+      # Background: PR #40 fixed a regression where `/health` returned 200
+      # (process running) but `/api/analyze` 500'd because models could not
+      # be resolved. `/ready` exercises the model-load path.
       #
-      # Retry budget covers fly.io rolling-deploy + auto-stop wake-up + first
-      # request synchronous model init. 30 × 10s = 300s is paired with the
-      # fly.toml grace_period=180s so a slow but eventually-healthy machine
-      # is not flagged as a deploy failure.
+      # Per-attempt --max-time is generous (60s) so a single curl can ride out
+      # the worst-case cold-start; outer loop adds margin in case fly.io
+      # routing settles slowly. Total budget ~6 minutes.
       - name: Verify /ready after deploy
         run: |
           set -u
           ok=0
-          for i in $(seq 1 30); do
-            body=$(curl -sS -m 10 -H "Accept: application/json" https://pleno-anonymize.fly.dev/ready || echo "")
+          for i in $(seq 1 12); do
+            body=$(curl -sS --max-time 60 --retry 3 --retry-all-errors --retry-delay 5 \
+              -H "Accept: application/json" https://pleno-anonymize.fly.dev/ready || echo "")
             echo "attempt $i: $body"
             if echo "$body" | grep -q '"status": *"ready"'; then
               ok=1
               break
             fi
-            sleep 10
+            sleep 15
           done
           if [ "$ok" != "1" ]; then
-            echo "::error::/ready did not return status=ready within 300s after deploy"
+            echo "::error::/ready did not return status=ready within ~6m after deploy"
             exit 1
           fi
           echo "::notice::/ready is healthy"
