@@ -9,6 +9,9 @@ CLAUDE.md
 packages/training/output/
 output/
 
+# Trained model archives — large, regenerate via `make train-hf-v02-tiny`
+packages/training/models/*.tar.gz
+
 # Experiment logs (autotrain session logs, keep log.jsonl)
 packages/training/experiments/autotrain_*.log
 
