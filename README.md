@@ -26,18 +26,21 @@ Routing through an LLM proxy masks PII before the request reaches the provider, 
 
 ## Scan repositories with the CLI
 
+No clone required — run straight from PyPI with `uvx`:
+
 ```bash
-uv sync                                   # installs scanner and ja_ner_ja model
-uv run pleno-pii-scanner dir ./my-repo           # directory walk
-uv run pleno-pii-scanner git ./my-repo           # working tree plus commit history
-uv run pleno-pii-scanner github owner/repo       # shallow clone, then scan
-uv run pleno-pii-scanner protect                 # pre-commit guard on staged hunks
+uvx pleno-pii-scanner dir ./my-repo           # directory walk
+uvx pleno-pii-scanner git ./my-repo           # working tree plus commit history
+uvx pleno-pii-scanner github owner/repo       # shallow clone, then scan
+uvx pleno-pii-scanner protect                 # pre-commit guard on staged hunks
 ```
+
+The `ja_ner_ja` spaCy model is downloaded on first NER run, so the initial invocation is slower. Subsequent runs reuse the cached install.
 
 To offload analysis to a remote pleno-anonymize, pass `--base-url`:
 
 ```bash
-uv run pleno-pii-scanner dir ./my-repo --base-url https://pleno-anonymize.fly.dev
+uvx pleno-pii-scanner dir ./my-repo --base-url https://pleno-anonymize.fly.dev
 ```
 
 Full reference at [`packages/pii-scanner/README.md`](packages/pii-scanner/README.md).

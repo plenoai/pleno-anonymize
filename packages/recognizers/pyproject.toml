@@ -2,8 +2,26 @@
 name = "pleno-recognizers"
 version = "0.1.0"
 description = "Pure-Python PII recognizer definitions (regex + checksum validators) shared across pleno-anonymize server and scanner"
+readme = "README.md"
+license = { text = "AGPL-3.0-or-later" }
 requires-python = ">=3.12"
+authors = [{ name = "pleno", email = "ai@egahika.dev" }]
+keywords = ["pii", "presidio", "japanese", "recognizers", "anonymize"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Text Processing :: Linguistic",
+]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/plenoai/pleno-anonymize"
+Source = "https://github.com/plenoai/pleno-anonymize"
+Issues = "https://github.com/plenoai/pleno-anonymize/issues"
 
 [project.optional-dependencies]
 presidio = ["presidio-analyzer>=2.2"]

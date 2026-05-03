@@ -4,21 +4,23 @@ CLI that detects Japanese PII in repository contents, commit history, and staged
 
 ## Setup
 
+Run straight from PyPI — no clone, no `uv sync`:
+
 ```sh
-uv sync
+uvx pleno-pii-scanner --help
 ```
 
-The `ja_ner_ja` model is a workspace dependency, so no extra install step is needed.
+The `ja_ner_ja` spaCy model is downloaded into the uvx-managed environment on first NER invocation. To pin a persistent install, use `uv tool install pleno-pii-scanner` instead. Workspace contributors get the model wheel preinstalled via `uv sync` (it lives in the `dev` dependency group).
 
 ## Subcommands
 
 ```sh
-pleno-pii-scanner dir <path>                # walk a directory
-pleno-pii-scanner git <path>                # working tree plus commit history
-pleno-pii-scanner github <owner>/<repo>     # shallow clone, then scan
-pleno-pii-scanner github --org <org>        # enumerate org repos via gh CLI, then scan all
-pleno-pii-scanner baseline <path>           # write current findings as a suppression list
-pleno-pii-scanner protect                   # scan only staged hunks for pre-commit hooks
+uvx pleno-pii-scanner dir <path>                # walk a directory
+uvx pleno-pii-scanner git <path>                # working tree plus commit history
+uvx pleno-pii-scanner github <owner>/<repo>     # shallow clone, then scan
+uvx pleno-pii-scanner github --org <org>        # enumerate org repos via gh CLI, then scan all
+uvx pleno-pii-scanner baseline <path>           # write current findings as a suppression list
+uvx pleno-pii-scanner protect                   # scan only staged hunks for pre-commit hooks
 ```
 
 ## Local vs. offload
@@ -26,9 +28,9 @@ pleno-pii-scanner protect                   # scan only staged hunks for pre-com
 Default mode runs Presidio, spaCy NER, and regex on this machine. Pass `--base-url` to offload the same pipeline to a remote pleno-anonymize endpoint.
 
 ```sh
-pleno-pii-scanner dir ./my-repo --base-url https://pleno-anonymize.fly.dev
-PLENO_BASE_URL=... pleno-pii-scanner dir ./my-repo
-pleno-pii-scanner dir ./my-repo --base-url ... --api-key "$PLENO_API_KEY"
+uvx pleno-pii-scanner dir ./my-repo --base-url https://pleno-anonymize.fly.dev
+PLENO_BASE_URL=... uvx pleno-pii-scanner dir ./my-repo
+uvx pleno-pii-scanner dir ./my-repo --base-url ... --api-key "$PLENO_API_KEY"
 ```
 
 Both modes return the same entity set. Git history scans always use regex only, since per-line NER is not worth the cost on short diff lines.

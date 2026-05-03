@@ -1,0 +1,102 @@
+name: Release packages to PyPI
+
+# Trusted publishing for the two CLI/library wheels that ship from this repo.
+# Tag namespaces keep model releases (model/v*) isolated from package releases.
+#
+# Tag conventions:
+#   recognizers/vX.Y.Z  -> publishes packages/recognizers
+#   scanner/vX.Y.Z      -> publishes packages/pii-scanner
+#
+# PyPI side: the projects must have the GitHub Actions trusted publisher
+# configured (or a Pending Publisher for the very first release). See
+# https://docs.pypi.org/trusted-publishers/
+
+on:
+  push:
+    tags:
+      - 'recognizers/v*'
+      - 'scanner/v*'
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Which package to build (recognizers | scanner)'
+        required: true
+        type: choice
+        options: [recognizers, scanner]
+      dry_run:
+        description: 'Build wheel but skip PyPI upload'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      # Required for PyPI trusted publishing (OIDC).
+      id-token: write
+      contents: read
+    concurrency:
+      group: release-pypi-${{ github.ref_name }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Resolve package and dry-run flag
+        id: resolve
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_PACKAGE: ${{ github.event.inputs.package }}
+          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "push" ]; then
+            case "$REF_NAME" in
+              recognizers/v*) package="recognizers" ;;
+              scanner/v*)     package="scanner" ;;
+              *)
+                echo "::error::tag $REF_NAME does not match recognizers/v* or scanner/v*"
+                exit 1
+                ;;
+            esac
+            dry_run="false"
+          else
+            package="$INPUT_PACKAGE"
+            dry_run="${INPUT_DRY_RUN:-true}"
+          fi
+
+          case "$package" in
+            recognizers) workdir="packages/recognizers" ;;
+            scanner)     workdir="packages/pii-scanner" ;;
+            *)
+              echo "::error::unknown package $package"
+              exit 1
+              ;;
+          esac
+
+          {
+            echo "package=$package"
+            echo "workdir=$workdir"
+            echo "dry_run=$dry_run"
+          } >> "$GITHUB_OUTPUT"
+          echo "Resolved: package=$package workdir=$workdir dry_run=$dry_run"
+
+      - name: Build wheel and sdist
+        working-directory: ${{ steps.resolve.outputs.workdir }}
+        run: uv build --out-dir dist
+
+      - name: List build artifacts
+        working-directory: ${{ steps.resolve.outputs.workdir }}
+        run: ls -la dist
+
+      - name: Publish to PyPI
+        if: steps.resolve.outputs.dry_run != 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ steps.resolve.outputs.workdir }}/dist

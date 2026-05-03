@@ -21,6 +21,34 @@ from pleno_pii_scanner.models import Finding
 
 _analyzer = None
 
+# PyPI は wheel メタデータ内の直接 URL 依存を許可しないため、ja_ner_ja は
+# 実行時に取得する。`uvx pleno-pii-scanner` で動かすユースケースを成立させるための
+# 苦肉の策で、初回 NER 実行時のみネットワークアクセスが発生する。
+_JA_NER_JA_WHEEL = (
+    "https://huggingface.co/0xhikae/ja-ner-ja/resolve/main/"
+    "ja_ner_ja-0.2.0-py3-none-any.whl"
+)
+
+
+def _load_ja_ner_ja(spacy_module):
+    try:
+        return spacy_module.load("ja_ner_ja")
+    except OSError:
+        pass
+
+    import subprocess
+    import sys
+
+    print(
+        "[pleno-pii-scanner] ja_ner_ja model not found; installing from "
+        f"{_JA_NER_JA_WHEEL}",
+        flush=True,
+    )
+    subprocess.check_call(
+        [sys.executable, "-m", "pip", "install", "--quiet", _JA_NER_JA_WHEEL]
+    )
+    return spacy_module.load("ja_ner_ja")
+
 
 def _init_analyzer():
     global _analyzer
@@ -38,7 +66,7 @@ def _init_analyzer():
             super().__init__()
             self.nlp = models
 
-    nlp_ja = spacy.load("ja_ner_ja")
+    nlp_ja = _load_ja_ner_ja(spacy)
     models = {"ja": nlp_ja}
 
     # Optional: en model if installed in the venv (used when --language en).

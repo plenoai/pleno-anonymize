@@ -1,25 +1,51 @@
 [project]
 name = "pleno-pii-scanner"
 version = "0.1.0"
-description = "PII scanner for source repositories with gitleaks/trufflehog-like UX"
+description = "Japanese-first PII scanner for source repositories with gitleaks/trufflehog-like UX"
+readme = "README.md"
+license = { text = "AGPL-3.0-or-later" }
 requires-python = ">=3.12"
+authors = [{ name = "pleno", email = "ai@egahika.dev" }]
+keywords = ["pii", "presidio", "japanese", "scanner", "gitleaks", "trufflehog"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Software Development :: Quality Assurance",
+]
 dependencies = [
-    "pleno-recognizers",
+    "pleno-recognizers>=0.1.0",
     "click>=8.1",
     "pathspec>=0.12",
     "httpx>=0.27.0",
     # Default scan path runs Presidio with spaCy NER on ja_ner_ja. Cloud mode
-    # via --base-url is an offload, not a substitute.
+    # via --base-url is an offload, not a substitute. The ja_ner_ja wheel is
+    # fetched lazily at first NER call (see ner_pass.py) because PyPI
+    # wheel metadata cannot embed direct URL dependencies.
     "spacy[ja]>=3.8",
     "presidio-analyzer>=2.2",
-    "ja-ner-ja",
 ]
+
+[project.urls]
+Homepage = "https://github.com/plenoai/pleno-anonymize"
+Source = "https://github.com/plenoai/pleno-anonymize"
+Issues = "https://github.com/plenoai/pleno-anonymize/issues"
 
 [project.scripts]
 pleno-pii-scanner = "pleno_pii_scanner.cli:main"
 
 [dependency-groups]
-dev = ["pytest>=8.0"]
+dev = [
+    "pytest>=8.0",
+    # Workspace contributors get the model wheel preinstalled so they avoid
+    # the runtime download path. End users running `uvx pleno-pii-scanner`
+    # hit the lazy install in ner_pass.py instead.
+    "ja-ner-ja",
+]
 
 [tool.uv.sources]
 pleno-recognizers = { workspace = true }

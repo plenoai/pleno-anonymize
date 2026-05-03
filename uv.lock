@@ -2646,7 +2646,6 @@ source = { editable = "packages/pii-scanner" }
 dependencies = [
     { name = "click" },
     { name = "httpx" },
-    { name = "ja-ner-ja" },
     { name = "pathspec" },
     { name = "pleno-recognizers" },
     { name = "presidio-analyzer" },
@@ -2655,6 +2654,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "ja-ner-ja" },
     { name = "pytest" },
 ]
 
@@ -2662,7 +2662,6 @@ dev = [
 requires-dist = [
     { name = "click", specifier = ">=8.1" },
     { name = "httpx", specifier = ">=0.27.0" },
-    { name = "ja-ner-ja", url = "https://huggingface.co/0xhikae/ja-ner-ja/resolve/main/ja_ner_ja-0.2.0-py3-none-any.whl" },
     { name = "pathspec", specifier = ">=0.12" },
     { name = "pleno-recognizers", editable = "packages/recognizers" },
     { name = "presidio-analyzer", specifier = ">=2.2" },
@@ -2670,7 +2669,10 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8.0" }]
+dev = [
+    { name = "ja-ner-ja", url = "https://huggingface.co/0xhikae/ja-ner-ja/resolve/main/ja_ner_ja-0.2.0-py3-none-any.whl" },
+    { name = "pytest", specifier = ">=8.0" },
+]
 
 [[package]]
 name = "pleno-recognizers"
