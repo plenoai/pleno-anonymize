@@ -262,6 +262,94 @@ URLRecognizer = PatternRecognizer(
     context=["URL", "リンク", "サイト", "ホームページ"],
 )
 
+# --- 銀行口座 (BANK_ACCOUNT) ---
+# 形式依存 entity。NER 単独で precision=32% (v0.12.0) のため regex で形式を縛る。
+#
+# 設計:
+# - <主要日本の銀行名>銀行<支店名>(支店|本店|本店営業部|XX営業部)(普通|当座)\d{7,8}
+#   - 銀行名 alternation で precision を確保 (任意の漢字列にしない)
+#   - 支店パートは「コーポ」「センター」等を含む branch を吸収するため広めに
+# - ゆうちょ銀行記号\d{5}番号\d{7,8}
+#   - 専用形式 (記号5桁 + 番号7〜8桁)
+# - 「銀行員」「ABC 銀行」のような曖昧文脈は alternation により自然に弾かれる
+#
+# 主要 30+ 行 + メガバンク + ネット銀行 + 信託 + 主要地銀をカバー。
+# 中堅地銀でカバレッジ落ちる場合は alternation に追記する。
+_JA_BANK_NAMES = [
+    # メガバンク / 都銀
+    "三菱UFJ",
+    "三井住友",
+    "みずほ",
+    "りそな",
+    "埼玉りそな",
+    # 信託銀行
+    "三井住友信託",
+    "三菱UFJ信託",
+    # ネット銀行
+    "楽天",
+    "PayPay",
+    "ソニー",
+    "住信SBIネット",
+    "auじぶん",
+    "セブン",
+    "イオン",
+    "GMOあおぞらネット",
+    "あおぞら",
+    "ローソン",
+    # 主要地銀・第二地銀・新生
+    "横浜",
+    "千葉",
+    "静岡",
+    "常陽",
+    "京都",
+    "広島",
+    "西日本シティ",
+    "福岡",
+    "北海道",
+    "北陸",
+    "群馬",
+    "東邦",
+    "山陰合同",
+    "新生",
+    "シティバンク",
+    "信金中央",
+]
+# 長い alternative を先に置き、短い prefix 銀行 (例 "三井住友") が長い銀行名
+# (例 "三井住友信託") の前に部分マッチしないようにする。
+_JA_BANK_NAMES_SORTED = sorted(_JA_BANK_NAMES, key=len, reverse=True)
+_JA_BANK_ALT = "|".join(_JA_BANK_NAMES_SORTED)
+
+# 支店パート: 「<漢字/かな/カタカナ/数字>{0,12}支店」「本店」「本店営業部」「<漢字/かな>{1,8}営業部」
+# - 「第二営業支店」「四条支店」「梅田支店」「日本橋支店」を全て吸収
+# - 「本店」「本店営業部」も 受け入れ (entity_types 例参照)
+_JA_BANK_BRANCH_PART = (
+    r"(?:[一-龥ぁ-んァ-ヶー々〆\d]{0,12}支店|本店営業部|本店|[一-龥ぁ-んァ-ヶー]{1,8}営業部)"
+)
+
+JA_BANK_ACCOUNT_PATTERNS = [
+    Pattern(
+        name="bank_account_branch",
+        regex=(
+            r"(?:" + _JA_BANK_ALT + r")銀行"
+            + _JA_BANK_BRANCH_PART
+            + r"(?:普通|当座)\d{7,8}"
+        ),
+        score=0.85,
+    ),
+    Pattern(
+        name="bank_account_yucho",
+        regex=r"ゆうちょ銀行記号\d{5}番号\d{7,8}",
+        score=0.9,
+    ),
+]
+
+JapaneseBankAccountRecognizer = PatternRecognizer(
+    supported_entity="BANK_ACCOUNT",
+    supported_language="ja",
+    patterns=JA_BANK_ACCOUNT_PATTERNS,
+    context=["銀行", "口座", "振込", "振込先", "支店", "普通", "当座", "ゆうちょ"],
+)
+
 # 全Recognizerのリスト
 ALL_JA_RECOGNIZERS = [
     JapanesePhoneRecognizer,
@@ -276,4 +364,5 @@ ALL_JA_RECOGNIZERS = [
     ResidenceCardRecognizer,
     PostalCodeRecognizer,
     URLRecognizer,
+    JapaneseBankAccountRecognizer,
 ]
