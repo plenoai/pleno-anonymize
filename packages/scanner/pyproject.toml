@@ -1,0 +1,34 @@
+[project]
+name = "pleno-scan"
+version = "0.1.0"
+description = "PII scanner for source repositories with gitleaks/trufflehog-like UX"
+requires-python = ">=3.12"
+dependencies = [
+    "pleno-recognizers",
+    "click>=8.1",
+    "pathspec>=0.12",
+]
+
+[project.optional-dependencies]
+deep = ["pleno-anonymize-server"]
+ai = ["httpx>=0.27.0"]
+
+[project.scripts]
+pleno-scan = "pleno_scan.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[tool.uv.sources]
+pleno-recognizers = { workspace = true }
+pleno-anonymize-server = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pleno_scan"]

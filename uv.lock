@@ -34,6 +34,8 @@ exclude-newer-span = "P7D"
 members = [
     "pleno-anonymize-server",
     "pleno-ner-training",
+    "pleno-recognizers",
+    "pleno-scan",
 ]
 
 [[package]]
@@ -2416,6 +2418,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pathspec"
+version = "1.1.0"
+source = { registry = "https://pypi.flatt.tech/simple/" }
+sdist = { url = "https://pypi.flatt.tech/files/packages/2e/17/9c3094b822982b9f1ea666d8580ce59000f61f87c1663556fb72031ad9ec/pathspec-1.1.0.tar.gz", hash = "sha256:f5d7c555da02fd8dde3e4a2354b6aba817a89112fa8f333f7917a2a4834dd080", size = 133918, upload-time = "2026-04-23T01:46:22.298Z" }
+wheels = [
+    { url = "https://pypi.flatt.tech/files/packages/fa/c9/8eed0486f074e9f1ca7f8ce5ad663e65f12fdab344028d658fa1b03d35e0/pathspec-1.1.0-py3-none-any.whl", hash = "sha256:574b128f7456bd899045ccd142dd446af7e6cfd0072d63ad73fbc55fbb4aaa42", size = 56264, upload-time = "2026-04-23T01:46:20.606Z" },
+]
+
+[[package]]
 name = "phonenumbers"
 version = "9.0.27"
 source = { registry = "https://pypi.flatt.tech/simple/" }
@@ -2505,10 +2516,11 @@ wheels = [
 [[package]]
 name = "pleno-anonymize-server"
 version = "0.1.0"
-source = { virtual = "server" }
+source = { editable = "server" }
 dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
+    { name = "pleno-recognizers" },
     { name = "presidio-analyzer" },
     { name = "presidio-anonymizer" },
     { name = "scalar-fastapi" },
@@ -2541,6 +2553,7 @@ requires-dist = [
     { name = "langchain-community", marker = "extra == 'proxy'", specifier = ">=0.3.27" },
     { name = "openai", marker = "extra == 'proxy'", specifier = ">=1.0.0" },
     { name = "pillow", marker = "extra == 'image'", specifier = ">=10.0.0" },
+    { name = "pleno-recognizers", editable = "packages/recognizers" },
     { name = "presidio-analyzer", specifier = ">=2.2" },
     { name = "presidio-anonymizer", specifier = ">=2.2" },
     { name = "presidio-image-redactor", marker = "extra == 'image'", specifier = ">=0.0.53" },
@@ -2611,6 +2624,64 @@ requires-dist = [
     { name = "transformers", marker = "extra == 'hf'", specifier = ">=4.40" },
 ]
 provides-extras = ["training", "hf", "bench"]
+
+[[package]]
+name = "pleno-recognizers"
+version = "0.1.0"
+source = { editable = "packages/recognizers" }
+
+[package.optional-dependencies]
+presidio = [
+    { name = "presidio-analyzer" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "presidio-analyzer", marker = "extra == 'presidio'", specifier = ">=2.2" }]
+provides-extras = ["presidio"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.0" }]
+
+[[package]]
+name = "pleno-scan"
+version = "0.1.0"
+source = { editable = "packages/scanner" }
+dependencies = [
+    { name = "click" },
+    { name = "pathspec" },
+    { name = "pleno-recognizers" },
+]
+
+[package.optional-dependencies]
+ai = [
+    { name = "httpx" },
+]
+deep = [
+    { name = "pleno-anonymize-server" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "click", specifier = ">=8.1" },
+    { name = "httpx", marker = "extra == 'ai'", specifier = ">=0.27.0" },
+    { name = "pathspec", specifier = ">=0.12" },
+    { name = "pleno-anonymize-server", marker = "extra == 'deep'", editable = "server" },
+    { name = "pleno-recognizers", editable = "packages/recognizers" },
+]
+provides-extras = ["deep", "ai"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "pluggy"
