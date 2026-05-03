@@ -1,22 +1,11 @@
 """共通フィクスチャ."""
 
-import sys
-from pathlib import Path
-
-# `recognizers_ja.py` は #74 で `server/src/` に移動した。
-# server は Python の正規 package ではなく workspace member なので、
-# `from server.src.recognizers_ja import ...` は uv sync 環境でも解決できない。
-# `src/` を sys.path に積んで bare import で解決する。
-_SRC = Path(__file__).resolve().parent.parent / "src"
-if str(_SRC) not in sys.path:
-    sys.path.insert(0, str(_SRC))
-
 import pytest
 import spacy
 from presidio_analyzer import AnalyzerEngine, RecognizerRegistry
 from presidio_analyzer.nlp_engine import SpacyNlpEngine
 
-from recognizers_ja import ALL_JA_RECOGNIZERS  # type: ignore[import-not-found]
+from pleno_recognizers.presidio_adapter import all_ja_presidio
 
 
 class _TestNlpEngine(SpacyNlpEngine):
@@ -34,7 +23,7 @@ def analyzer() -> AnalyzerEngine:
     nlp_engine = _TestNlpEngine()
 
     registry = RecognizerRegistry(supported_languages=["ja", "en"])
-    for recognizer in ALL_JA_RECOGNIZERS:
+    for recognizer in all_ja_presidio():
         registry.add_recognizer(recognizer)
 
     # Presidio requires at least one recognizer per supported language.
