@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pleno_scan.walker import walk, is_binary
+from pleno_pii_scanner.walker import walk, is_binary
 
 
 def test_walk_skips_noise_dirs(tmp_path: Path):

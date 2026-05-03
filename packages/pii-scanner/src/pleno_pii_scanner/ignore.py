@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pathspec
 
-from pleno_scan.models import Finding
+from pleno_pii_scanner.models import Finding
 
 _INLINE_RE = re.compile(r"pleno:ignore(?:\s+([A-Z_,]+))?", re.IGNORECASE)
 

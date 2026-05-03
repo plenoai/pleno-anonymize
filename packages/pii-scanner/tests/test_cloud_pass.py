@@ -8,7 +8,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from pleno_scan.cloud_pass import CloudConfig, _chunk, scan_files_cloud
+from pleno_pii_scanner.cloud_pass import CloudConfig, _chunk, scan_files_cloud
 
 
 def test_chunk_short_text_yields_single():

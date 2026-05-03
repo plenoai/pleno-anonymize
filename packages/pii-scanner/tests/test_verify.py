@@ -1,7 +1,7 @@
 from pleno_recognizers.ja import JA_CREDIT_CARD, JA_PHONE
 
-from pleno_scan.models import Finding
-from pleno_scan.verify import verify
+from pleno_pii_scanner.models import Finding
+from pleno_pii_scanner.verify import verify
 
 
 def _f(entity, matched, file="a.txt"):

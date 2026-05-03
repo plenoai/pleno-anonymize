@@ -11,7 +11,7 @@ WORKDIR /workspace
 # member の pyproject.toml は必要 (実体コードは sync 後にも不要)。
 COPY pyproject.toml uv.lock ./
 COPY packages/training/pyproject.toml packages/training/pyproject.toml
-COPY packages/scanner/pyproject.toml packages/scanner/pyproject.toml
+COPY packages/pii-scanner/pyproject.toml packages/pii-scanner/pyproject.toml
 # pleno-recognizers は server の dependency なので source ごと copy が必要
 # (uv は workspace member を wheel build するため pyproject だけでは足りない)。
 COPY packages/recognizers/ packages/recognizers/

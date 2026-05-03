@@ -1,5 +1,5 @@
 [project]
-name = "pleno-scan"
+name = "pleno-pii-scanner"
 version = "0.1.0"
 description = "PII scanner for source repositories with gitleaks/trufflehog-like UX"
 requires-python = ">=3.12"
@@ -8,15 +8,15 @@ dependencies = [
     "click>=8.1",
     "pathspec>=0.12",
     "httpx>=0.27.0",
-    # Default scan path uses Presidio + spaCy NER (ja_ner_ja). Cloud mode
-    # (--base-url) is an offload, not a substitute.
+    # Default scan path runs Presidio with spaCy NER on ja_ner_ja. Cloud mode
+    # via --base-url is an offload, not a substitute.
     "spacy[ja]>=3.8",
     "presidio-analyzer>=2.2",
     "ja-ner-ja",
 ]
 
 [project.scripts]
-pleno-scan = "pleno_scan.cli:main"
+pleno-pii-scanner = "pleno_pii_scanner.cli:main"
 
 [dependency-groups]
 dev = ["pytest>=8.0"]
@@ -33,4 +33,4 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/pleno_scan"]
+packages = ["src/pleno_pii_scanner"]

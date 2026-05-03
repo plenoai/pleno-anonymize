@@ -16,7 +16,7 @@ import bisect
 from pathlib import Path
 from typing import Iterable
 
-from pleno_scan.models import Finding
+from pleno_pii_scanner.models import Finding
 
 
 _analyzer = None
