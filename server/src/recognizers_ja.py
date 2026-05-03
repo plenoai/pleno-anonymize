@@ -322,15 +322,15 @@ _JA_BANK_ALT = "|".join(_JA_BANK_NAMES_SORTED)
 # 支店パート: 「<漢字/かな/カタカナ/数字>{0,12}支店」「本店」「本店営業部」「<漢字/かな>{1,8}営業部」
 # - 「第二営業支店」「四条支店」「梅田支店」「日本橋支店」を全て吸収
 # - 「本店」「本店営業部」も 受け入れ (entity_types 例参照)
-_JA_BANK_BRANCH_PART = (
-    r"(?:[一-龥ぁ-んァ-ヶー々〆\d]{0,12}支店|本店営業部|本店|[一-龥ぁ-んァ-ヶー]{1,8}営業部)"
-)
+_JA_BANK_BRANCH_PART = r"(?:[一-龥ぁ-んァ-ヶー々〆\d]{0,12}支店|本店営業部|本店|[一-龥ぁ-んァ-ヶー]{1,8}営業部)"
 
 JA_BANK_ACCOUNT_PATTERNS = [
     Pattern(
         name="bank_account_branch",
         regex=(
-            r"(?:" + _JA_BANK_ALT + r")銀行"
+            r"(?:"
+            + _JA_BANK_ALT
+            + r")銀行"
             + _JA_BANK_BRANCH_PART
             + r"(?:普通|当座)\d{7,8}"
         ),
