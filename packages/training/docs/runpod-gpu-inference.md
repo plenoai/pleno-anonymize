@@ -1,7 +1,8 @@
-# RunPod GPU Inference Guide (S6 / U6)
+# RunPod GPU Inference / Training Guide (S6 / U6 / #48)
 
-S6 baseline comparison (`compare_baselines.py`) を RunPod GPU pod で実行する手順。
+S6 baseline comparison (`compare_baselines.py`) を RunPod GPU pod で実行する手順、および HuggingFace token-classification の GPU 学習手順 (#48 Phase 2 で実測)。
 spaCy transformer (ja_core_news_trf, ja_ginza)、HuggingFace BERT (custom_bert) の推論を GPU で加速し、CNN 系 (ja_core_news_md, custom_cnn) との直接比較を可能にする。
+学習用途では `runpod/pytorch:1.0.3-cu1290-torch290-ubuntu2204` + `accelerate launch -m pleno_ner_training.train_hf` で 20 700 steps を 11 分 / RTX A5000 community で完走済み (cost ~$0.05)。
 
 CPU runbook (`runpod-training.md`) の構造を踏襲しつつ、GPU 固有の設定と **SSH security hardening** を加えている。
 
@@ -9,11 +10,12 @@ CPU runbook (`runpod-training.md`) の構造を踏襲しつつ、GPU 固有の�
 
 | 項目 | 推奨値 | 備考 |
 |---|---|---|
-| GPU (1 枚構成) | **RTX 4090 (24GB VRAM, ~$0.7/h)** | transformer 単体推論 (ja_core_news_trf / ja_ginza / custom_bert) |
+| GPU (1 枚構成) | **RTX 4090 (24GB VRAM, ~$0.7/h)** | transformer 単体推論 (ja_core_news_trf / ja_ginza / custom_bert)。SECURE cloud のみ |
 | GPU (上位構成) | **A40 (48GB VRAM, ~$0.5/h)** | 複数 transformer を同時ロードする場合 |
+| GPU (training 用最安) | **RTX A5000 (24GB VRAM, ~$0.16/h)** | COMMUNITY cloud で SCP 可。#48 deberta-v2-tiny 学習 11 分で完走、cost ~$0.05 |
 | vCPU / RAM | 8 vCPU / 32 GB | bootstrap 後段は CPU で post-hoc に走るため余裕を持たせる |
 | Disk | 50 GB | model cache + corpus + predictions |
-| Template | `runpod/pytorch:2.4.0-py3.11-cuda12.1-devel-ubuntu22.04` | CUDA 12.1 同梱 |
+| Template | `runpod/pytorch:1.0.3-cu1290-torch290-ubuntu2204` | 動作確認済 (#48 で実証)。命名規則 `<x.y.z>-cu<NNNN>-torch<NNN>-ubuntu<YYMM>` |
 | SSH | 有効必須 | SCP/SFTP は exposed TCP 経由 |
 
 VRAM 要件:
@@ -60,6 +62,52 @@ RunPod の proxy SSH (`ssh.runpod.io`) を使う場合、以下 3 点を全て�
    - 動作確認済 image: `runpod/pytorch:1.0.3-cu1290-torch290-ubuntu2204` (2026-05 時点最新フォーマット `<x.y.z>-cu<NNNN>-torch<NNN>-ubuntu<YYMM>`)
 
 これらに気付かないまま `Permission denied (publickey)` だけを見ると鍵未登録と誤診し、無限に確認 loop に入る。**まず console UI で Connect タブの SSH コマンド全文を読み取って、それと自分のコマンドを diff する**ところから始める。
+
+### 3.0.1 SECURE cloud vs COMMUNITY cloud の運用差 (#48 で発見)
+
+RunPod には 2 つの cloud tier があり、本リポジトリの artifact 回収パターンに対する制約が異なる:
+
+| 項目 | SECURE cloud | COMMUNITY cloud |
+|---|---|---|
+| Proxy SSH (`ssh.runpod.io`) | 利用可 (PTY 強制) | 利用可 |
+| **Direct TCP SSH (exposed `:22`)** | **不可** (port が公開されない) | **可** (例 `193.183.22.61:1845`) |
+| SCP / SFTP | **不可** (proxy SSH に subsystem 無し) | 可 (Direct TCP 経由) |
+| `ssh ... 'cmd'` exec mode | 不可 ("Your SSH client doesn't support PTY") | 可 |
+| GPU 在庫 | 安定 | 変動・取り合い |
+| 価格 | 高 (RTX 4090 ~$0.7/h) | 安 (RTX A5000 ~$0.16/h) |
+
+artifact 回収 (Section 8) と nohup 起動 (Section 6) に依存する本 runbook の流れは **COMMUNITY cloud 必須**。SECURE cloud で pod を立ててしまうと proxy SSH の `subsystem request failed` で SCP が一切通らず、artifact が取り出せない。
+
+#48 Phase 2 では当初 SECURE cloud で起動し SCP 不可で詰まり、COMMUNITY cloud (`193.183.22.61:1845`) に切り替えて 11 分で training + 回収まで完走した。
+
+### 3.0.2 RunPod MCP の port mapping 取得不可 (#48 で発見)
+
+`mcp__runpod__create-pod` および `get-pod` の戻り値は **`publicIp:""` / port mapping を含まない**。Direct TCP の `<host>:<port>` を取るには:
+
+1. Chrome MCP で `https://console.runpod.io/pods/<pod-id>` を開く
+2. "Connect" タブ → "TCP Port Mapping" の `22 → <ext-port>` を読み取る
+3. `Public IP` を別途取得 (同タブの Direct TCP SSH コマンドに含まれる)
+
+つまり pod の create は MCP で自動化できるが、artifact 回収のための SSH 接続情報取得には **chrome MCP (console UI 読み取り) が必須**。`mcp__runpod__*` だけで完結させようとすると Direct TCP 経由の SCP に到達できない。
+
+### 3.0.3 アクティブな bounded-timeout 監視 (#48 で発見)
+
+長尺の training を nohup で投げたあと、`tail -f` を passive に張り続けると進捗が止まっても通知が来ない (SSH idle timeout / nohup buffer / VRAM stall いずれも sshd 側は alive のまま)。`Monitor` ツール側で **regex 一致回数 + bounded sleep** で能動 polling する:
+
+```
+# bad: 通知が来ないまま放置
+ssh ... 'tail -f /workspace/nohup.out'
+
+# good: 1 epoch ごとに進捗 regex で wake、5 epoch なら最大 N 分で抜ける
+Monitor(
+  command = "ssh ... 'grep -c \"\\d\\+/20700\" /workspace/nohup.out || true'",
+  regex   = "^[0-9]+$",
+  poll_seconds = 30,
+  timeout_seconds = 1800
+)
+```
+
+「定期チェックして一生通知が来なくて放置されてます」を踏まないために、待ち系コマンドには必ず `timeout_seconds` を付ける。
 
 ### Critical: SSH host key 検証の bypass フラグを絶対に使わない
 
