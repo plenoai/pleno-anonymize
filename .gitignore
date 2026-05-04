@@ -82,3 +82,4 @@ package-lock.json
 .env.local
 .env.keys
 *.key
+.coverage

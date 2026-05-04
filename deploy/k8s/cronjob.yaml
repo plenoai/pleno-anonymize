@@ -1,0 +1,94 @@
+# Example: scheduled enterprise scan via k8s CronJob.
+# Mount the scan config from a ConfigMap and credentials from a Secret.
+# Findings get persisted via the FindingsStore configured in the
+# scanner config (default: SQLite under /var/lib/pii-scanner/state).
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pii-scanner-nightly
+  namespace: security
+spec:
+  schedule: "0 2 * * *"   # 02:00 UTC nightly
+  concurrencyPolicy: Forbid   # don't overlap if previous run still in flight
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    spec:
+      backoffLimit: 1   # one retry; failures want investigation, not loops
+      activeDeadlineSeconds: 21600   # 6h hard cap
+      template:
+        metadata:
+          labels:
+            app: pii-scanner
+            tier: security
+        spec:
+          restartPolicy: Never
+          serviceAccountName: pii-scanner   # bound to OIDC for cloud auth (see serviceaccount.yaml)
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: scanner
+              image: ghcr.io/plenoai/pii-scanner:latest
+              imagePullPolicy: IfNotPresent
+              args:
+                - "scan"
+                - "run"
+                - "github"
+                - "--config"
+                - "/etc/pii-scanner/scan.toml"
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              env:
+                - name: PLENO_PII_SCANNER_STATE_DIR
+                  value: /var/lib/pii-scanner
+                - name: PLENO_PII_SCANNER_LOG_FORMAT
+                  value: json
+                # FindingsStore master key for envelope encryption (#9).
+                # 32-byte base64; rotate via Vault transit + reseed cron.
+                - name: PLENO_PII_SCANNER_FINDINGS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: pii-scanner-secrets
+                      key: findings-master-key
+                # Connector credentials (one per source). Mounted as env
+                # so config TOML can reference ${ENV:VAR}.
+                - name: GITHUB_APP_PRIVATE_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: pii-scanner-secrets
+                      key: github-app-private-key
+              resources:
+                requests:
+                  cpu: "500m"
+                  memory: "1Gi"
+                limits:
+                  # NER models + concurrent fetches; tune per workload.
+                  cpu: "2"
+                  memory: "4Gi"
+              volumeMounts:
+                - name: scan-config
+                  mountPath: /etc/pii-scanner
+                  readOnly: true
+                - name: state
+                  mountPath: /var/lib/pii-scanner
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: scan-config
+              configMap:
+                name: pii-scanner-config
+            - name: state
+              persistentVolumeClaim:
+                claimName: pii-scanner-state
+            - name: tmp
+              emptyDir:
+                sizeLimit: 8Gi   # git clones + tar streams

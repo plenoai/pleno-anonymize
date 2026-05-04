@@ -1,13 +1,17 @@
 name: Release packages to PyPI
 
-# Trusted publishing for the two CLI/library wheels that ship from this repo.
-# Tag namespaces keep model releases (model/v*) isolated from package releases.
+# Trusted publishing for every wheel that ships from this monorepo.
 #
 # Tag conventions:
-#   recognizers/vX.Y.Z  -> publishes packages/recognizers
-#   scanner/vX.Y.Z      -> publishes packages/pii-scanner
+#   recognizers/vX.Y.Z              -> packages/recognizers           (legacy alias)
+#   scanner/vX.Y.Z                  -> packages/pii-scanner           (legacy alias)
+#   pii-scanner-<connector>/vX.Y.Z  -> packages/pii-scanner-<connector>
 #
-# PyPI side: the projects must have the GitHub Actions trusted publisher
+# The connector form scales without editing this workflow — every new
+# `packages/pii-scanner-*` package gets PyPI release on first tag once
+# its Trusted Publisher is registered on PyPI.
+#
+# PyPI side: each project must have the GitHub Actions trusted publisher
 # configured (or a Pending Publisher for the very first release). See
 # https://docs.pypi.org/trusted-publishers/
 
@@ -16,13 +20,13 @@ on:
     tags:
       - 'recognizers/v*'
       - 'scanner/v*'
+      - 'pii-scanner-*/v*'
   workflow_dispatch:
     inputs:
       package:
-        description: 'Which package to build (recognizers | scanner)'
+        description: 'Package directory under packages/ (e.g. pii-scanner-oci)'
         required: true
-        type: choice
-        options: [recognizers, scanner]
+        type: string
       dry_run:
         description: 'Build wheel but skip PyPI upload'
         required: false
@@ -47,7 +51,7 @@ jobs:
 
       - uses: astral-sh/setup-uv@v5
 
-      - name: Resolve package and dry-run flag
+      - name: Resolve package directory and dry-run flag
         id: resolve
         env:
           REF_NAME: ${{ github.ref_name }}
@@ -57,35 +61,44 @@ jobs:
         run: |
           set -euo pipefail
           if [ "$EVENT_NAME" = "push" ]; then
-            case "$REF_NAME" in
-              recognizers/v*) package="recognizers" ;;
-              scanner/v*)     package="scanner" ;;
+            # Strip "/vX.Y.Z" suffix to recover the tag-prefix.
+            prefix="${REF_NAME%/v*}"
+            case "$prefix" in
+              recognizers)        workdir="packages/recognizers" ;;
+              scanner)            workdir="packages/pii-scanner" ;;
+              pii-scanner-*)      workdir="packages/$prefix" ;;
               *)
-                echo "::error::tag $REF_NAME does not match recognizers/v* or scanner/v*"
+                echo "::error::tag $REF_NAME does not match any known package prefix"
                 exit 1
                 ;;
             esac
             dry_run="false"
           else
-            package="$INPUT_PACKAGE"
+            input="$INPUT_PACKAGE"
+            # Allow either a bare directory name ("pii-scanner-oci") or
+            # the legacy aliases ("scanner", "recognizers").
+            case "$input" in
+              recognizers)   workdir="packages/recognizers" ;;
+              scanner)       workdir="packages/pii-scanner" ;;
+              pii-scanner-*) workdir="packages/$input" ;;
+              *)
+                echo "::error::unknown package $input"
+                exit 1
+                ;;
+            esac
             dry_run="${INPUT_DRY_RUN:-true}"
           fi
 
-          case "$package" in
-            recognizers) workdir="packages/recognizers" ;;
-            scanner)     workdir="packages/pii-scanner" ;;
-            *)
-              echo "::error::unknown package $package"
-              exit 1
-              ;;
-          esac
+          if [ ! -f "$workdir/pyproject.toml" ]; then
+            echo "::error::no pyproject.toml under $workdir — refusing to build"
+            exit 1
+          fi
 
           {
-            echo "package=$package"
             echo "workdir=$workdir"
             echo "dry_run=$dry_run"
           } >> "$GITHUB_OUTPUT"
-          echo "Resolved: package=$package workdir=$workdir dry_run=$dry_run"
+          echo "Resolved: workdir=$workdir dry_run=$dry_run"
 
       - name: Build wheel and sdist
         working-directory: ${{ steps.resolve.outputs.workdir }}

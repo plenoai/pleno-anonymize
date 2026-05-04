@@ -28,6 +28,27 @@ dependencies = [
     # wheel metadata cannot embed direct URL dependencies.
     "spacy[ja]>=3.8",
     "presidio-analyzer>=2.2",
+    # Async SQLite wrapper for CheckpointStore (#6). Required to keep
+    # discover/fetch coroutines from blocking on disk I/O while persisting
+    # per-source resume cursors. WAL mode + single writer + asyncio.Lock
+    # gives us kill -9 durability without a separate process.
+    "aiosqlite>=0.20",
+    # Charset autodetection for the ContentExtractor text/* path (#8).
+    # Pure-Python (no native deps), maintained successor to the
+    # abandoned `chardet`. Used by every binary->text decode in the
+    # extractors layer, so it is core, not extra.
+    "charset-normalizer>=3.4",
+    # Envelope encryption for FindingsStore raw-value shards (#9 / ADR
+    # §11). AES-256-GCM via `cryptography.hazmat.primitives.ciphers.aead`.
+    # Pure native bindings, no openssl runtime requirement beyond what
+    # the wheel ships. Tier-1 cryptography library so it is core, not
+    # extra — every scan persists encrypted findings.
+    "cryptography>=43",
+    # Async SMTP transport for the Notifier subsystem (#14 / ADR §9).
+    # TLS-mandatory MSA 587 (STARTTLS) and SMTPS 465 are both supported.
+    # Email is a baseline notification channel that every enterprise
+    # tenant expects, so this lives in core deps rather than an extra.
+    "aiosmtplib>=3.0",
 ]
 
 [project.optional-dependencies]
@@ -39,6 +60,40 @@ hf = [
     "optimum[onnxruntime]>=1.21",
     "transformers>=4.40",
     "huggingface_hub>=0.23",
+]
+# OS keyring resolver (#5). Opt-in because the underlying lib drags in
+# dbus / Keychain bindings that are unwelcome in headless containers.
+# Without this extra, KeyringCredentialResolver gracefully degrades to
+# a no-op resolver so the broker just falls through to env / file.
+keyring = ["keyring>=24"]
+# PDF body extraction (#8 / ADR-0007 §6). pypdfium2 ships PDFium as a
+# native wheel — no system poppler / mupdf required, which keeps the
+# distroless container slim. Mandatory for enterprise scans of file
+# shares and SharePoint where PDF is the dominant body format.
+pdf = ["pypdfium2>=4.30"]
+# Office document extraction (#8). Three libs, one extra: docx for
+# Word, openpyxl for Excel, python-pptx for PowerPoint. All pure-Python
+# wheels. Activate when scanning M365 / Google Drive / SharePoint.
+office = [
+    "python-docx>=1.1",
+    "openpyxl>=3.1",
+    "python-pptx>=1.0",
+]
+# Columnar / row-oriented data lake formats (#8). pyarrow covers
+# parquet + orc; fastavro is a pure-Python avro reader (no JVM). Required
+# for S3 / GCS / Snowflake unload scans.
+columnar = [
+    "pyarrow>=17",
+    "fastavro>=1.9",
+]
+# OpenTelemetry Logs export for the Notifier subsystem (#14 / ADR §9).
+# Optional because the SDK is heavy (proto, grpc) and most deployments
+# already ship a sidecar collector that prefers stdout JSON. When the
+# extra is absent, OTLPNotifier degrades to a no-op with stderr warning.
+otlp = [
+    "opentelemetry-api>=1.27",
+    "opentelemetry-sdk>=1.27",
+    "opentelemetry-exporter-otlp>=1.27",
 ]
 
 [project.urls]
@@ -52,6 +107,8 @@ pleno-pii-scanner = "pleno_pii_scanner.cli:main"
 [dependency-groups]
 dev = [
     "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=5.0",
     # Workspace contributors get the model wheel preinstalled so they avoid
     # the runtime download path. End users running `uvx pleno-pii-scanner`
     # hit the lazy install in ner_pass.py instead.
@@ -64,6 +121,7 @@ ja-ner-ja = { url = "https://huggingface.co/0xhikae/ja-ner-ja/resolve/main/ja_ne
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "auto"
 
 [build-system]
 requires = ["hatchling"]
