@@ -1,6 +1,6 @@
 [project]
 name = "pleno-pii-scanner"
-version = "0.2.0"
+version = "0.2.1"
 description = "Japanese-first PII scanner for source repositories with gitleaks/trufflehog-like UX"
 readme = "README.md"
 license = { text = "AGPL-3.0-or-later" }
@@ -32,10 +32,11 @@ dependencies = [
 
 [project.optional-dependencies]
 # HF token-classification backend (#48/#98). Opt-in via env
-# PLENO_PII_SCANNER_BACKEND=hf. Adds ~600 MB of torch + transformers; left out
-# of the default install to keep `uvx pleno-pii-scanner` lightweight.
+# PLENO_PII_SCANNER_BACKEND=hf. Loads the INT8-quantized ONNX checkpoint
+# `0xhikae/ja-ner-onnx@v0.13.0` via optimum's ONNX Runtime backend — much
+# lighter than full torch inference, and matches the published artifact.
 hf = [
-    "torch>=2.2",
+    "optimum[onnxruntime]>=1.21",
     "transformers>=4.40",
     "huggingface_hub>=0.23",
 ]

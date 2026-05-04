@@ -1,5 +1,25 @@
 # pleno-pii-scanner CHANGELOG
 
+## [v0.2.1] - 2026-05-04 — fix: load published ONNX artifact via optimum
+
+The v0.2.0 [hf] extra pulled in `torch` + `transformers` and tried to
+`AutoModelForTokenClassification.from_pretrained(...)` against
+`0xhikae/ja-ner-onnx@v0.13.0`. That repo only ships the INT8-quantized ONNX
+file (`model_quantized.onnx`) — there is no `model.safetensors`, so v0.2.0
+crashed at first inference with "does not appear to have a file named
+pytorch_model.bin or model.safetensors".
+
+v0.2.1 switches to `optimum.onnxruntime.ORTModelForTokenClassification`,
+which loads the quantized ONNX file directly. As side effects: the [hf]
+extra drops `torch` (saves ~600 MB) and replaces logits softmax with a small
+numpy kernel.
+
+### Changed
+- `[hf]` extra: `torch` → `optimum[onnxruntime]>=1.21`.
+- `hf_ner_pass._load_pipeline` uses `ORTModelForTokenClassification`,
+  preferring `model_quantized.onnx` when available.
+- `scan_text_hf` runs softmax + argmax via numpy.
+
 ## [v0.2.0] - 2026-05-04 — opt-in HF NER backend (model/v0.13.0 consumer)
 
 ### Added

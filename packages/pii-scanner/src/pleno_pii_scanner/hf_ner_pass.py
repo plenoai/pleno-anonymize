@@ -71,16 +71,21 @@ def _resolve_model_source() -> tuple[str, str | None]:
 def _load_pipeline():
     """Lazy + cached load of the HF token-classification model.
 
-    Imports torch / transformers only when this path is actually used so the
-    default spaCy scan does not pay the import cost.
+    Uses optimum's ONNX Runtime backend (ORTModelForTokenClassification) so
+    we can load the published quantized artifact directly — the HF Hub repo
+    `0xhikae/ja-ner-onnx@v0.13.0` ships ONNX (`model_quantized.onnx`), not
+    safetensors. ONNX is also the canonical inference artifact: ~3× smaller
+    INT8 model, ~2× faster CPU inference vs torch.
+
+    Imports are lazy so the default spaCy path doesn't pay the optimum cost.
     """
     global _pipeline, _id2label
     if _pipeline is not None:
         return _pipeline
 
     try:
-        import torch  # noqa: F401
-        from transformers import AutoModelForTokenClassification, AutoTokenizer
+        from optimum.onnxruntime import ORTModelForTokenClassification
+        from transformers import AutoTokenizer
     except ImportError as e:
         raise RuntimeError(
             "PLENO_PII_SCANNER_BACKEND=hf requires the [hf] extra. "
@@ -95,8 +100,13 @@ def _load_pipeline():
             f"HF model {model_src} must ship a fast tokenizer "
             "(return_offsets_mapping required)."
         )
-    model = AutoModelForTokenClassification.from_pretrained(model_src, **kwargs)
-    model.eval()
+    # Prefer the INT8-quantized model (smaller, faster); fall back to FP32.
+    try:
+        model = ORTModelForTokenClassification.from_pretrained(
+            model_src, file_name="model_quantized.onnx", **kwargs
+        )
+    except Exception:
+        model = ORTModelForTokenClassification.from_pretrained(model_src, **kwargs)
     _id2label = {int(k): v for k, v in model.config.id2label.items()}
     _pipeline = (tokenizer, model)
     return _pipeline
@@ -187,6 +197,19 @@ def _chunk_text(text: str) -> Iterable[tuple[int, str]]:
         pos = end
 
 
+def _softmax_max_np(logits):
+    """Stable per-row softmax → (max prob, argmax) without a torch dep."""
+    import numpy as np
+
+    a = np.asarray(logits, dtype=np.float64)
+    a -= a.max(axis=-1, keepdims=True)
+    np.exp(a, out=a)
+    a /= a.sum(axis=-1, keepdims=True)
+    label_ids = a.argmax(axis=-1)
+    scores = a.max(axis=-1)
+    return scores.tolist(), label_ids.tolist()
+
+
 def scan_text_hf(
     text: str,
     file: str,
@@ -198,8 +221,6 @@ def scan_text_hf(
     """HF NER pass with per-label confidence floor."""
     if not text:
         return []
-    import torch
-    import torch.nn.functional as F  # noqa: N812
 
     tokenizer, model = _load_pipeline()
     assert _id2label is not None
@@ -219,18 +240,16 @@ def scan_text_hf(
             truncation=True,
             padding=False,
             return_offsets_mapping=True,
-            return_tensors="pt",
+            return_tensors="np",
         )
         offsets = [tuple(o) for o in enc.pop("offset_mapping")[0].tolist()]
-        with torch.inference_mode():
-            outputs = model(**enc)
+        outputs = model(**enc)
         logits = outputs.logits[0]
-        probs = F.softmax(logits, dim=-1)
-        scores, label_ids = probs.max(dim=-1)
+        scores, label_ids = _softmax_max_np(logits)
         spans = _decode_spans(
             offsets=offsets,
-            pred_label_ids=label_ids.tolist(),
-            token_scores=scores.tolist(),
+            pred_label_ids=label_ids,
+            token_scores=scores,
             id2label=_id2label,
         )
         for span_start, span_end, label, score in spans:
