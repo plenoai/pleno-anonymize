@@ -207,6 +207,28 @@ def test_drops_amazon_asin_phone():
     assert _kept([f], line) == []
 
 
+def test_drops_jwt_iat_claim_as_phone():
+    line = '  "iat": 1654514191,'
+    f = _f("PHONE_NUMBER", "1654514191", line, score=0.4)
+    assert _kept([f], line) == []
+
+
+def test_drops_jwt_jti_claim_as_phone():
+    line = '  "jti": "1654514191",'
+    f = _f("PHONE_NUMBER", "1654514191", line, score=0.4)
+    assert _kept([f], line) == []
+
+
+def test_keeps_10_digit_phone_without_jwt_context():
+    # 10 digits is unusual for a JP phone number, but a 10-digit phone
+    # in a non-JWT context (e.g. an international format mention) should
+    # not be silently dropped just because the value happens to fall in
+    # the Unix timestamp range. Without JWT keywords, keep.
+    line = "発信元: 1654514191 まで折り返し"
+    f = _f("PHONE_NUMBER", "1654514191", line, score=0.4)
+    assert len(_kept([f], line)) == 1
+
+
 # ---------------------------------------------------------------------------
 # PERSON / ORGANIZATION leader / digit / paren / box-drawing FPs.
 # Round 2 cases from claude-org-ja.
@@ -228,6 +250,23 @@ def test_drops_person_with_digit_in_match():
 def test_drops_person_with_paren_in_match():
     line = "プロンプト泥棒（Zenn）です"
     f = _f("PERSON", "（Zenn）", line)
+    assert _kept([f], line) == []
+
+
+def test_keeps_organization_with_trailing_markdown_bracket():
+    # fnwiya/japanese-rust-companies recall miss — spaCy captures the trailing
+    # ``]`` of ``[株式会社ユーザベース](https://...)``. The closing bracket is
+    # tolerable spaCy bleed, the org name itself is genuine PII candidate.
+    line = "- [株式会社ユーザベース](https://www.uzabase.com/)"
+    f = _f("ORGANIZATION", "株式会社ユーザベース]", line, score=0.85)
+    assert len(_kept([f], line)) == 1
+
+
+def test_drops_organization_when_match_extends_into_url():
+    # When the NER span keeps going past "](" into the URL itself, the match
+    # contains an OPENING bracket "(" mid-span — drop, the boundary is wrong.
+    line = "- [株式会社 LabBase ](https://labbase.co.jp/)"
+    f = _f("ORGANIZATION", "株式会社 LabBase ](https://labbase.co.jp/)", line, score=0.85)
     assert _kept([f], line) == []
 
 

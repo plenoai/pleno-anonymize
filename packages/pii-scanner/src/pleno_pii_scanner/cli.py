@@ -16,6 +16,7 @@ from pleno_pii_scanner.cloud_pass import CloudConfig, scan_files_cloud
 from pleno_pii_scanner.git_history import scan_history as _scan_history
 from pleno_pii_scanner.github import list_org_repos, shallow_clone
 from pleno_pii_scanner.ignore import IgnoreSet, filter_findings, load_baseline, write_baseline
+from pleno_pii_scanner.cluster import ClusterPolicy, keep_db_clusters
 from pleno_pii_scanner.models import Finding, ScanStats
 from pleno_pii_scanner.ner_pass import scan_files as scan_files_ner
 from pleno_pii_scanner.noise_filters import filter_noise
@@ -45,6 +46,17 @@ def _common_options(f):
     f = click.option("--exclude", multiple=True, help="Glob to exclude (gitignore syntax).")(f)
     f = click.option("--workers", type=int, default=None, help="Reserved for the regex-only history pass (default: CPU count).")(f)
     f = click.option("--only-verified", is_flag=True, help="Suppress unverified/failed findings.")(f)
+    f = click.option("--db-only", "db_only", is_flag=True,
+                     help="Cluster mode: keep findings only from files (>=2 findings) "
+                          "or folders (>=3 findings) that look like a PII database. "
+                          "Single isolated mentions are dropped — repository-level "
+                          "PII risk follows DB shape, not single contacts.")(f)
+    f = click.option("--db-file-threshold", "db_file_threshold", type=int, default=2,
+                     show_default=True,
+                     help="Minimum findings per file to count as a DB cluster (with --db-only).")(f)
+    f = click.option("--db-folder-threshold", "db_folder_threshold", type=int, default=3,
+                     show_default=True,
+                     help="Minimum findings per folder to count as a DB cluster (with --db-only).")(f)
     f = click.option("--no-color", is_flag=True, help="Disable ANSI colors.")(f)
     f = click.option("--exit-zero", is_flag=True, help="Always exit 0 even when findings exist.")(f)
     return f
@@ -214,6 +226,21 @@ def _maybe_filter_verified(stats: ScanStats, only_verified: bool) -> ScanStats:
     return stats
 
 
+def _maybe_cluster_db(stats: ScanStats, db_only: bool, file_t: int, folder_t: int) -> ScanStats:
+    """Apply DB-cluster filtering when --db-only is set.
+
+    Repository-level PII risk follows database shape: a single contact email
+    in a CODE_OF_CONDUCT is not a privacy incident, but a CSV row with
+    name+email+phone+address is. Drops findings whose file/folder lacks
+    co-occurring detections.
+    """
+    if not db_only:
+        return stats
+    policy = ClusterPolicy(file_threshold=file_t, folder_threshold=folder_t)
+    stats.findings = keep_db_clusters(stats.findings, policy=policy)
+    return stats
+
+
 def _exit_code(stats: ScanStats, exit_zero: bool) -> int:
     if exit_zero or not stats.findings:
         return 0
@@ -232,6 +259,7 @@ def main() -> None:
 def cmd_dir(path: Path, entities, language, base_url, api_key, concurrency,
             report_format, report_path, baseline_path,
             ignore_file, max_file_size, include, exclude, workers, only_verified,
+            db_only, db_file_threshold, db_folder_threshold,
             no_color, exit_zero) -> None:
     """Scan a directory tree."""
     ignore_set = _resolve_ignore(ignore_file, path)
@@ -249,6 +277,7 @@ def cmd_dir(path: Path, entities, language, base_url, api_key, concurrency,
         cloud=cloud,
     )
     stats = _maybe_filter_verified(stats, only_verified)
+    stats = _maybe_cluster_db(stats, db_only, db_file_threshold, db_folder_threshold)
     color = sys.stdout.isatty() and not no_color and report_format == "human"
     _emit(stats, report_format, report_path, color)
     sys.exit(_exit_code(stats, exit_zero))
@@ -262,7 +291,8 @@ def cmd_dir(path: Path, entities, language, base_url, api_key, concurrency,
 def cmd_git(path: Path, no_history, max_commits, entities, language, base_url, api_key,
             concurrency, report_format, report_path,
             baseline_path, ignore_file, max_file_size, include, exclude, workers,
-            only_verified, no_color, exit_zero) -> None:
+            only_verified, db_only, db_file_threshold, db_folder_threshold,
+            no_color, exit_zero) -> None:
     """Scan a local git repository (working tree + history).
 
     History pass always runs locally (regex only) since per-line cloud calls
@@ -297,6 +327,7 @@ def cmd_git(path: Path, no_history, max_commits, entities, language, base_url, a
         stats.duration_ms += int((time.monotonic() - t0) * 1000)
 
     stats = _maybe_filter_verified(stats, only_verified)
+    stats = _maybe_cluster_db(stats, db_only, db_file_threshold, db_folder_threshold)
     color = sys.stdout.isatty() and not no_color and report_format == "human"
     _emit(stats, report_format, report_path, color)
     sys.exit(_exit_code(stats, exit_zero))
@@ -311,7 +342,8 @@ def cmd_git(path: Path, no_history, max_commits, entities, language, base_url, a
 def cmd_github(target, org, full, include_history, entities, language, base_url, api_key,
                concurrency, report_format, report_path,
                baseline_path, ignore_file, max_file_size, include, exclude, workers,
-               only_verified, no_color, exit_zero) -> None:
+               only_verified, db_only, db_file_threshold, db_folder_threshold,
+               no_color, exit_zero) -> None:
     """Clone a GitHub repo (or all repos in an org) and scan."""
     if include_history and not full:
         raise click.UsageError("--scan-history requires --full")
@@ -365,6 +397,7 @@ def cmd_github(target, org, full, include_history, entities, language, base_url,
                 aggregate.commits_scanned += n_commits
 
     aggregate = _maybe_filter_verified(aggregate, only_verified)
+    aggregate = _maybe_cluster_db(aggregate, db_only, db_file_threshold, db_folder_threshold)
     color = sys.stdout.isatty() and not no_color and report_format == "human"
     _emit(aggregate, report_format, report_path, color)
     sys.exit(_exit_code(aggregate, exit_zero))

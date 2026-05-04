@@ -1,5 +1,61 @@
 # pleno-pii-scanner CHANGELOG
 
+## [v0.2.4] - 2026-05-04 — feat: --db-only cluster mode + JWT timestamp filter
+
+Repository-level PII risk follows database shape: a single contact email
+in a CODE_OF_CONDUCT.md is one identifiable person, not an exfiltration
+target; a CSV row with name + phone + email + my_number is. v0.2.4 adds
+``--db-only`` that surfaces only findings co-occurring in DB-shaped
+files or folders, plus three round-3 FP filters surfaced by expanding
+the eval to ten Japanese repositories.
+
+### Added
+- ``cluster.py`` — DB-cluster post-filter. Groups findings by file and
+  folder, keeps a finding only when its container is DB-shaped:
+    - File: count >= ``--db-file-threshold`` (default 2) AND distinct
+      matched values >= ``file_min_distinct`` (default 2).
+    - Folder: count >= ``--db-folder-threshold`` (default 3) AND
+      distinct matched values >= ``folder_min_distinct`` (default 3).
+  ``verification=failed`` findings are excluded from cluster computation
+  so an awesome-list of book ISBNs (which fail the MY_NUMBER checksum)
+  cannot promote a folder to "DB-shaped".
+- CLI flags ``--db-only`` (boolean), ``--db-file-threshold`` (int),
+  ``--db-folder-threshold`` (int) on ``dir``, ``git``, and ``github``.
+
+### Round-3 noise filters
+- **JWT timestamp** PHONE FPs. ``"iat": 1654514191``, ``"jti": "..."``
+  surface 10-digit Unix timestamps that Presidio reads as phone numbers.
+  Drops when the line carries a JWT claim name AND the value is in
+  the 2001–2033 epoch range. Surfaced by
+  ``heyinc/development-partner-docs/auth-oauth.md``.
+- **Trailing markdown bracket recall fix.** ``株式会社ユーザベース]``
+  captured from a ``[株式会社ユーザベース](https://...)`` link was
+  previously dropped by the paren-in-match check, costing 11 ORG TPs in
+  ``fnwiya/japanese-rust-companies``. ``_contains_paren`` now only fires
+  on **opening** brackets, not closing.
+
+### Ten-repo eval (raw → noise → db-only)
+
+| Repo | Raw | Noise | DB-only |
+|---|---:|---:|---:|
+| azu/azu | 9 | 1 | **0** |
+| nodejs/nodejs-ja | 30 | 10 | **0** |
+| mumumu/pep8-ja | 106 | 3 | 3 |
+| suisya-systems/claude-org-ja | 15 | 1 | **0** |
+| Ajay77187718/awesome-ai-red-teaming-jp | 12 | 2 | 2 |
+| s-takayanagi/Local-mac-pii-mask-jp | 304 | 304 | 302 |
+| fnwiya/japanese-rust-companies | 0 | 9 | 9 |
+| kllc/resume | 7 | 7 | 7 |
+| heyinc/development-partner-docs | 10 | 7 | **0** |
+| kazumasakawahara/neo4j-agno-agent | 612 | 616 | 586 |
+| **Total** | **1,105** | **960** | **909** |
+
+The headline metric is per-repository, not per-finding: ``--db-only``
+takes 6/10 repos from "has findings to triage" to **zero** without
+losing any genuine DB-shaped exposure (resumes, PII fixture banks,
+contributor lists). Single-contact mentions in
+``CODE_OF_CONDUCT.md`` / support docs no longer require triage.
+
 ## [v0.2.3] - 2026-05-04 — release: ship round-2 noise filter
 
 Bundles the round-1 (PR #100, v0.2.2 candidate) and round-2 (PR #103,
