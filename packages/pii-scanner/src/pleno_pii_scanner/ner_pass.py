@@ -44,6 +44,15 @@ def _load_ja_ner_ja(spacy_module):
         f"{_JA_NER_JA_WHEEL}",
         flush=True,
     )
+    # uvx-managed venvs ship without pip; bootstrap it before installing.
+    try:
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "--version"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        subprocess.check_call([sys.executable, "-m", "ensurepip", "--upgrade"])
     subprocess.check_call(
         [sys.executable, "-m", "pip", "install", "--quiet", _JA_NER_JA_WHEEL]
     )
