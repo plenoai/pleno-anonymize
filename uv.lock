@@ -37,6 +37,7 @@ members = [
     "pleno-pii-scanner",
     "pleno-pii-scanner-aws",
     "pleno-pii-scanner-github",
+    "pleno-pii-scanner-oci",
     "pleno-pii-scanner-postgres",
     "pleno-pii-scanner-slack",
     "pleno-recognizers",
@@ -3400,6 +3401,37 @@ dev = [
 requires-dist = [
     { name = "httpx", specifier = ">=0.27" },
     { name = "pleno-pii-scanner", editable = "packages/pii-scanner" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24" },
+    { name = "pytest-cov", specifier = ">=5.0" },
+]
+
+[[package]]
+name = "pleno-pii-scanner-oci"
+version = "0.1.0"
+source = { editable = "packages/pii-scanner-oci" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pleno-pii-scanner" },
+    { name = "zstandard" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "pleno-pii-scanner", editable = "packages/pii-scanner" },
+    { name = "zstandard", specifier = ">=0.22" },
 ]
 
 [package.metadata.requires-dev]

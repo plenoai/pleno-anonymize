@@ -6,6 +6,7 @@ members = [
     "packages/pii-scanner",
     "packages/pii-scanner-aws",
     "packages/pii-scanner-github",
+    "packages/pii-scanner-oci",
     "packages/pii-scanner-postgres",
     "packages/pii-scanner-slack",
 ]
