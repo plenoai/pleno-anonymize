@@ -52,6 +52,8 @@ pleno-pii-scanner = "pleno_pii_scanner.cli:main"
 [dependency-groups]
 dev = [
     "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=5.0",
     # Workspace contributors get the model wheel preinstalled so they avoid
     # the runtime download path. End users running `uvx pleno-pii-scanner`
     # hit the lazy install in ner_pass.py instead.
@@ -64,6 +66,7 @@ ja-ner-ja = { url = "https://huggingface.co/0xhikae/ja-ner-ja/resolve/main/ja_ne
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "auto"
 
 [build-system]
 requires = ["hatchling"]
