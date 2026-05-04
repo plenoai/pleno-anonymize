@@ -21,4 +21,6 @@ def test_email_matches():
 
 
 def test_recognizer_count():
-    assert len(ALL_JA_RECOGNIZERS) == 13
+    # Bumped to 14 in issue #102: PERSON_LATIN recognizer added as a recall
+    # booster for Latin-script names in Japanese-mixed text.
+    assert len(ALL_JA_RECOGNIZERS) == 14

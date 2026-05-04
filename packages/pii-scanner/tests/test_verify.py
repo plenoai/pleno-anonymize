@@ -32,3 +32,46 @@ def test_verify_context_promotes_to_passed():
     out = verify(findings, [JA_PHONE], file_text_for=text)
     assert out[0].verification == "passed"
     assert out[0].score > 0.5
+
+
+def test_verify_person_email_proximity_boosts_score():
+    """Issue #102: a low-score PERSON regex hit gains a strong bump when an
+    email sits in the wider window. PEP-style author lines need this so
+    "Guido van Rossum" surfaces above the noise floor."""
+    from pleno_recognizers.ja import JA_PERSON_LATIN
+
+    f = Finding(
+        entity="PERSON",
+        file="pep.rst",
+        line=3,
+        col=10,
+        score=0.3,
+        snippet="| Author: Guido van Rossum <guido@python.org>,",
+        matched="Guido van Rossum",
+        pattern_name="person_latin_multi_word",
+    )
+    text = {"pep.rst": "| PEP: 8\n| Title: Style\n| Author: Guido van Rossum <guido@python.org>,\n"}
+    out = verify([f], [JA_PERSON_LATIN], file_text_for=text)
+    assert out[0].verification == "passed"
+    assert out[0].score >= 0.7, out[0].score
+
+
+def test_verify_person_without_email_stays_unverified():
+    """No email nearby means no promotion — score floor preserved."""
+    from pleno_recognizers.ja import JA_PERSON_LATIN
+
+    f = Finding(
+        entity="PERSON",
+        file="readme.md",
+        line=1,
+        col=1,
+        score=0.3,
+        snippet="See Apache License terms.",
+        matched="Apache License",
+        pattern_name="person_latin_multi_word",
+    )
+    text = {"readme.md": "See Apache License terms.\n"}
+    out = verify([f], [JA_PERSON_LATIN], file_text_for=text)
+    # No email in window — no promotion. (noise_filters drops these later.)
+    assert out[0].verification == "unverified"
+    assert out[0].score == 0.3

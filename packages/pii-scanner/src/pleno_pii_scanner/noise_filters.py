@@ -330,6 +330,93 @@ def _is_unidic_short_common_noun(matched: str) -> bool:
 _NON_NAME_LEADERS = ("~", "～", "◎", "○", "△", "×", "（", "(", "［", "[", "※", "・")
 
 
+# ---------------------------------------------------------------------------
+# Latin-script PERSON candidates (issue #102). The PERSON_LATIN recognizer
+# fires on any 2..4 word title-case phrase, which without gating would flood
+# reports with "Apache License", "Pull Request", "New York" etc. Real Latin
+# personal names in the corpora that motivated this recognizer always sit
+# next to one of:
+#   - an email address (Sphinx PEP author lines, README contact blocks)
+#   - a Markdown PR/issue link `[#1234](...)` (changelog convention)
+#   - an "Author:" / "Translator:" / "Reviewed-by:" / "Signed-off-by:" header
+#   - a contributor parenthetical like "(Name) [#1313]" (nodejs changelog)
+#   - 著 / 訳 / 監訳 / 原著 (Japanese translation credit markers)
+#   - a Copyright marker
+# Without one of these signals nearby, a low-confidence Latin-name candidate
+# is treated as title-case prose and dropped.
+# ---------------------------------------------------------------------------
+
+_LATIN_NAME_RE = re.compile(r"\A[A-Z][a-z]+(?:\s+\S+){1,3}\Z")
+
+
+_LATIN_NAME_CONTEXT_RE = re.compile(
+    r"""
+        [A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}    # email address
+      | \[\#\d+\]                                            # markdown PR/issue link
+      | \bAuthor[s]?\s*[:：]                                 # "Author:" / "Authors:"
+      | \bAuthored[\s\-]by\b                                 # "Authored-by"
+      | \bSigned[\s\-]off[\s\-]by\b                          # "Signed-off-by:"
+      | \bReviewed[\s\-]by\b                                 # "Reviewed-by:"
+      | \bCo[\s\-]authored[\s\-]by\b                         # "Co-authored-by:"
+      | \bCommitted[\s\-]by\b
+      | \bTranslator\s*[:：]
+      | \bTranslated\s+by\b
+      | \bMaintainer[s]?\s*[:：]
+      | \bContributor[s]?\s*[:：]
+      | \bContact\s*[:：]
+      | \bCopyright\b | ©
+      | \bX-Translator\b
+      | 著者 | 訳者 | 監訳 | 原著 | 翻訳
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+
+
+# Common English title-case bigrams/trigrams that the broad regex matches but
+# are never personal names. Catches the highest-frequency offenders we saw in
+# the v0.2.x eval (LICENSE files, READMEs, changelog headers).
+_NON_NAME_LATIN_TOKENS = frozenset(
+    {
+        "License", "Public", "Apache", "Mozilla", "Foundation",
+        "Pull", "Request", "Requests", "Issue", "Issues",
+        "Source", "Open", "Free", "Software",
+        "Code", "Conduct", "Contributing", "Community",
+        "Copyright", "Reserved", "Rights",
+        "Read", "Quick", "Start", "Hello", "World",
+        "Lorem", "Ipsum",
+        "Java", "JavaScript", "TypeScript", "Node", "Script",
+        "York", "America", "Asia", "Europe", "Africa", "Australia",
+        "Major", "Minor", "Patch", "Stable", "Latest",
+        "Table", "Contents",
+        "Section", "Chapter", "Appendix",
+        "Note", "Notes", "Warning", "Caution", "Tip",
+        "True", "False", "None", "Null",
+    }
+)
+
+
+def _looks_like_latin_name(matched: str) -> bool:
+    if not matched or not _LATIN_NAME_RE.match(matched):
+        return False
+    # Pure ASCII letters + spaces only (drop names with digits/symbols, those
+    # are caught by other PERSON filters).
+    if any(not (c.isalpha() or c.isspace() or c == ".") for c in matched):
+        return False
+    return all(ord(c) < 128 for c in matched)
+
+
+def _has_non_name_token(matched: str) -> bool:
+    # Strip trailing dots (initials like "Barry W.") then split.
+    for tok in matched.replace(".", "").split():
+        if tok in _NON_NAME_LATIN_TOKENS:
+            return True
+    return False
+
+
+def _has_latin_name_context(window: str) -> bool:
+    return bool(_LATIN_NAME_CONTEXT_RE.search(window))
+
+
 def _starts_with_non_name_lead(matched: str) -> bool:
     if not matched:
         return False
@@ -517,6 +604,18 @@ def _should_drop(f: Finding, file_text_for: dict[str, str]) -> bool:
         # ASCII art "─────>│" runs of box-drawing chars — never a real entity.
         if any(c in f.matched for c in "─━│┃┌┐└┘├┤┬┴┼>"):
             return True
+        # Latin-script personal-name candidates from the PERSON_LATIN recall
+        # booster (issue #102). Two precision gates:
+        #   1. The match contains a closed-class English noun ("License",
+        #      "Pull Request" etc.) — drop unconditionally; never a name.
+        #   2. Otherwise require an author-context signal in the window. NER
+        #      hits with score ≥ 0.6 bypass this since spaCy's confidence on a
+        #      non-name span is rare enough to surface for human review.
+        if f.entity == "PERSON" and _looks_like_latin_name(f.matched):
+            if _has_non_name_token(f.matched):
+                return True
+            if f.score < 0.6 and not _has_latin_name_context(window):
+                return True
         return False
 
     return False
