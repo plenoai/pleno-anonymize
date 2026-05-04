@@ -42,5 +42,49 @@
     "corpus": "v0.11.0/en",
     "metric": "strict_span_f1",
     "aggregation": "micro"
+  },
+  "hf_v01_tiny_aug_ext": {
+    "ents_p": 0.8473282442748091,
+    "ents_r": 0.6,
+    "ents_f": 0.7025316455696202,
+    "ents_per_type": {
+      "PERSON": {
+        "p": 1.0,
+        "r": 0.4745762711864407,
+        "f": 0.6436781609195402
+      },
+      "DATE_OF_BIRTH": {
+        "p": 1.0,
+        "r": 0.5909090909090909,
+        "f": 0.7428571428571429
+      },
+      "ADDRESS": {
+        "p": 0.8837209302325582,
+        "r": 0.8444444444444444,
+        "f": 0.8636363636363636
+      },
+      "ORGANIZATION": {
+        "p": 0.4782608695652174,
+        "r": 0.3142857142857143,
+        "f": 0.3793103448275862
+      },
+      "BANK_ACCOUNT": {
+        "p": 0.875,
+        "r": 0.875,
+        "f": 0.875
+      }
+    },
+    "latency_ms_per_doc": 14.4,
+    "model_size_mb": 280.3,
+    "num_docs": 320,
+    "negative_docs": 260,
+    "negative_clean_docs": 256,
+    "negative_doc_clean_rate": 0.9846153846153847,
+    "negative_fp_total": 5,
+    "suite_kind": "benchmark",
+    "purpose": "広い slice を監視する curated DLP benchmark",
+    "corpus": "v0.11.0/en",
+    "metric": "strict_span_f1",
+    "aggregation": "micro"
   }
 }

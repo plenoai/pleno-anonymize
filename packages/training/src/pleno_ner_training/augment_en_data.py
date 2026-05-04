@@ -369,6 +369,14 @@ def main() -> None:
         type=Path,
         default=Path(__file__).parents[2] / "data" / "raw" / "en" / "generated.json",
     )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="Output path. Default: same as --input (legacy in-place behavior). "
+             "Pass an explicit --output to keep the source generated.json pristine "
+             "(matches the ja side's augment_ja_data flow).",
+    )
     parser.add_argument("--augment-count", type=int, default=500)
     parser.add_argument("--no-clean", action="store_true")
     args = parser.parse_args()
@@ -398,7 +406,8 @@ def main() -> None:
     for label, count in sorted(labels.items()):
         print(f"  {label}: {count}")
 
-    output = args.input
+    output = args.output or args.input
+    output.parent.mkdir(parents=True, exist_ok=True)
     with open(output, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
     print(f"\nSaved to {output}")
