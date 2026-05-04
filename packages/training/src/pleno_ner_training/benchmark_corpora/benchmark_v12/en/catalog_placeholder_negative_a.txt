@@ -1,0 +1,39 @@
+The onboarding handout merely shows examples such as sample_user, sample_name_01, street-city-state-12345, and MM/DD/YYYY, and contains no real data.
+---DOC_SEPARATOR---
+The screen-list explanation lists placeholders such as name unfilled, address pending registration, dob MM/DD/YYYY, and account TEMP-HOLD. They are not PII.
+---DOC_SEPARATOR---
+The HTML samples `<input placeholder="sample_user">` and `<input placeholder="street-city-state">` are UI mocks.
+---DOC_SEPARATOR---
+The design document only contains label names like person_name, address_line, organization_name, and bank_account, and the values are left as samples.
+---DOC_SEPARATOR---
+On the user forum, contributors discuss using sample_name_01 as a UI test name, and no actual person-name values are shared.
+---DOC_SEPARATOR---
+The screenshots in the onboarding guide display sample_user and street-city-state-12345, but these are fixed dummy values.
+---DOC_SEPARATOR---
+The phrases "owner sample_user", "shipping_to street-city-state", and "dob MM/DD/YYYY" in the explanation are all input examples.
+---DOC_SEPARATOR---
+The help text shows branch-main checking 0000000000 and UNASSIGNED, but each is merely an illustration of a sample setting.
+---DOC_SEPARATOR---
+The FAQ answers use only examples like sample_name_01 and do not handle a customer's real name or shipping destination.
+---DOC_SEPARATOR---
+The UI screenshots in the public material contain only mock values such as sample_user_91 and pending-town-12345.
+---DOC_SEPARATOR---
+The product page description box lists TEMP-HOLD, UNASSIGNED, and branch-main checking 0000000000 as examples of unset values.
+---DOC_SEPARATOR---
+The app release notes mention using sample_name_02 and sample_name_03 to verify display widths, and that is not actual person data.
+---DOC_SEPARATOR---
+The CSV row used for layout tests, `sample_name_01,MM/DD/YYYY,street-city-state-12345,UNASSIGNED,branch-main checking 0000000000`, is a fixed sample.
+---DOC_SEPARATOR---
+The development blog uses sample-state-sample-city and sample_user in demos. It is not a leak of real user information.
+---DOC_SEPARATOR---
+The tutorial only explains placeholders for the name field, the address field, and the DOB field, and contains no actual data.
+---DOC_SEPARATOR---
+The screenshots in the help docs show only mock displays such as owner sample_name_11 shipto street-city-state dob unknown.
+---DOC_SEPARATOR---
+The sample_user and TEMP-HOLD strings in the internal guide are fixed literals, unrelated to any real contract holder or refund account.
+---DOC_SEPARATOR---
+The sample form contains sample_name_01, street-city-state-12345, and branch-main checking 0000000000 verbatim, but only as illustrations.
+---DOC_SEPARATOR---
+The sample_user and MM/DD/YYYY shown in the FAQ are input examples, not the actual entity of a DOB or person name.
+---DOC_SEPARATOR---
+The UI design document contains only placeholder groups and field-label groups, and no record-level data exists.

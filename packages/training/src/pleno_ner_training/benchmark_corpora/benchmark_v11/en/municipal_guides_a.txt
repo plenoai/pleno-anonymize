@@ -1,0 +1,19 @@
+The resident guide explains how to use the Harbor Community Center, the West Boulder Cultural Hall, and the Madison Branch Frontage Plaza. It does not list individual addresses or contact details.
+---DOC_SEPARATOR---
+The municipal handbook lists program dates 04/01/2026, 05/31/2026, and 06/15/2026 only. They are activity schedules, not anyone's date of birth.
+---DOC_SEPARATOR---
+The brochure includes example screens with sample_user and state-city-street-1-2-3 as placeholders. These are fixed tutorial strings.
+---DOC_SEPARATOR---
+The notice prints inquiry phone 555-0123, program reference REQ-09-4412, and notice reference INV-778812 only. These are not bank account numbers and not residential information.
+---DOC_SEPARATOR---
+Names like "Central Hospital Crossing", "City Hall Frontage", and "North Avenue Convention Site" appear as part of the public guidance and are not personal delivery destinations.
+---DOC_SEPARATOR---
+The guidebook body covers facility hours, what to bring, and walking-route directions. Name and address fields are shown only as sample displays, never with real values.
+---DOC_SEPARATOR---
+Examples of operational behavior cite branch-main routing 0000000 and TEMP-HOLD strings, both clearly annotated as placeholders inside the document.
+---DOC_SEPARATOR---
+Public notices use locations such as "JP Morgan Plaza forecourt" and "Capital Bank exhibit booth" as wayfinding landmarks. These references do not contain any account information.
+---DOC_SEPARATOR---
+The venue map credit list mentions partnerships with major universities and the county medical association outreach hub, but does not publish individual participant records.
+---DOC_SEPARATOR---
+In the procedural guide, person_name, address_line, and bank_account are listed only as form-field labels. Actual values are never disclosed in this leaflet.

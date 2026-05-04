@@ -1,0 +1,15 @@
+Operations sample OCR: owner=sample_name_11ship_to=street-city-state-12345pay_to=branch-main checking 0000000000dob=MM/DD/YYYYorg=UNASSIGNED. Page-layout fixture, not personal data.
+---DOC_SEPARATOR---
+Design-review screenshot transcript namesample_useraddressstreet-city-state-12345dob19XX-XX-XXbankTEMP-HOLDorgorg-unit-temp. Illustration dummies only.
+---DOC_SEPARATOR---
+Form-width check sample_name_21 sample_name_22 sample_name_23 street-city-state-12345 branch-main checking 0000000000 MM/DD/YYYY organization=UNASSIGNED. All values are placeholders.
+---DOC_SEPARATOR---
+Form initial state owner sample_user_91 address pending-town-1-block dob 19XX/XX/XX bank masked account org unassigned code layout-check-only. No real data.
+---DOC_SEPARATOR---
+Screen reading test name pending address pending dob MM/DD/YYYY account branch-main checking 0000000000 org org-unit-temp ship_to street-city-state-12345. All examples.
+---DOC_SEPARATOR---
+Tutorial copy: sample_user lives at sample-state-sample-city and pays into branch-main checking 0000000000. The whole sentence is a fixed dummy string.
+---DOC_SEPARATOR---
+Masking check owner=sample_name_31 owner_phonetic=sample_name_phonetic shipto=street-city-state-12345 bank=TEMP-HOLD dob=YYYY-MM-DD route=0000. Form sample.
+---DOC_SEPARATOR---
+Illustration OCR owner sample_user_07 address street-city-state-12345 dob MM/DD/YYYY organization UNASSIGNED bank_account branch-main checking 0000000000 note no-real-data.

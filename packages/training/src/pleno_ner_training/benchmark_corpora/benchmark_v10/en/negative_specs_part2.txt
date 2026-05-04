@@ -1,0 +1,15 @@
+QA OCR sheet received_on 2026/04/01 updated_on 2026/05/31 deadline_on 2026/06/15 owner=sample_name_01 address=street-city-state-12345. Rule explanation; not personal data.
+---DOC_SEPARATOR---
+Header definition row_id owner_name owner_phonetic shipping_to organization_name bank_account masked_bank sample_dob sample_address. Column captions only, no values.
+---DOC_SEPARATOR---
+Internal-wiki false-positive examples: front of West Tower HQ, near Chase Branch entrance, Central Hospital intersection, Soho office row, (555) 010-5678, INV-778812. None of these is a leak.
+---DOC_SEPARATOR---
+sample config person_name=sample_user address_line=street-city-state-12345 date_line=MM/DD/YYYY bank_line=branch-main checking 0000000000 org_line=UNASSIGNED routing=000000000.
+---DOC_SEPARATOR---
+HTML skeleton OCR <label>Name</label><input placeholder="sample_user"><label>Address</label><input placeholder="street-city-state-12345"><label>Bank</label><input placeholder="branch-main checking 0000000000">.
+---DOC_SEPARATOR---
+Training material lists JPMorgan Chase, Bank of America, Wells Fargo, Citibank as canonical-name examples for an institution dropdown. Account holders, branch codes and routing numbers are intentionally absent — destination candidates only.
+---DOC_SEPARATOR---
+Scenario sample owner sample_name_41 dob MM/DD/YYYY address street-city-state-12345 bank branch-main checking 0000000000 status dry-run-only. No live entity, so out-of-scope for DLP.
+---DOC_SEPARATOR---
+Log narrative [INFO] sample_user moved to street-city-state-12345 on 2026/04/01 route branch-main checking 0000000000 organization UNASSIGNED. Sample copy for the alerting rule.

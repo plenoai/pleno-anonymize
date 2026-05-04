@@ -1,0 +1,19 @@
+Neighborhood association bulletin announcing the reopening of the Riverside Community Center, renovations at the West Boulder Cultural Hall, and upcoming events at Harborfront Plaza. No personal names, addresses, or banking details are included.
+---DOC_SEPARATOR---
+The local merchants newsletter mentions traffic restrictions near Central Hospital Crossing, an outdoor festival at City Hall Plaza, and cleanup activities at North Avenue Station. Only general public outreach.
+---DOC_SEPARATOR---
+Volunteer recruitment notice. Lists activity dates 04/01/2026, 05/31/2026, and 06/15/2026 along with venue names, but no participant rosters or address books are included.
+---DOC_SEPARATOR---
+Crime watch patrol leaflet referencing Harborfront Boulevard, Downtown Office District, and Bridge Street as patrol routes; these are landmarks, not delivery or workplace records.
+---DOC_SEPARATOR---
+The town association newsletter quotes UI mocks such as sample_user and pref-city-town-1-2-3 verbatim from a system explainer; these are fixed placeholder strings.
+---DOC_SEPARATOR---
+The community center bulletin advertises a public lecture series, a health talk hosted by the County Medical Society outreach hub, and an exhibit at Harborfront Hall. No individual records are included.
+---DOC_SEPARATOR---
+The town broadcast script lists 555-0123 as the inquiry line and REQ-09-4412 as the program reference number only; no banking or DOB content appears.
+---DOC_SEPARATOR---
+A regional transit news item mentions the JP Morgan Plaza forecourt, the Capital Bank PR booth, and the USPS Postal Bank exhibit corner, but contains no actual financial account entries.
+---DOC_SEPARATOR---
+Cleanup event flyer indicates meet-up points at "Harbor HQ Front", "West Boulder HQ Front", and "Central Hospital Crossing" but these are gathering landmarks, not residents' home addresses.
+---DOC_SEPARATOR---
+The bulletin board posts only event participation methods, venue maps, and inquiry contacts; applicant names and shipping addresses are managed separately and never published.

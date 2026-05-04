@@ -4,9 +4,9 @@
        benchmark-v03-generate benchmark-v03-generate-en benchmark-v03-evaluate benchmark-v03-evaluate-en \
        benchmark-v04-generate benchmark-v04-generate-en benchmark-v04-evaluate benchmark-v04-evaluate-en \
        benchmark-v05-generate benchmark-v05-generate-en benchmark-v05-evaluate benchmark-v05-evaluate-en \
-       benchmark-v10-generate benchmark-v10-evaluate \
-       benchmark-v11-generate benchmark-v11-evaluate \
-       benchmark-v12-generate benchmark-v12-evaluate \
+       benchmark-v10-generate benchmark-v10-evaluate benchmark-v10-generate-en benchmark-v10-evaluate-en \
+       benchmark-v11-generate benchmark-v11-evaluate benchmark-v11-generate-en benchmark-v11-evaluate-en \
+       benchmark-v12-generate benchmark-v12-evaluate benchmark-v12-generate-en benchmark-v12-evaluate-en \
        verify-leakage-v12 pin-noise-floor-v12 compare-baselines-v12 runpod-gpu-compare-v12 \
        convert-hf-v02 train-hf-v02 export-onnx-v02 push-hf-v02 all-hf-ja-v02 \
        convert-hf-v02-tiny train-hf-v02-tiny export-onnx-v02-tiny push-hf-v02-tiny all-hf-ja-v02-tiny \
@@ -19,6 +19,14 @@ BATCHES_PER_TEMPLATE ?= 50
 MAX_WORKERS ?= 5
 GPU_ID ?= 0
 DOTENVX = dotenvx run -f ../../.env --
+
+# Path (or spaCy package name) used by the en benchmark evaluate targets.
+# Default mirrors the ja side which uses $(OUTPUT_DIR)/model-best — i.e. the
+# locally trained output. Use the existing en transformer pipeline target so
+# it lines up with `train-en` (`configs/train_transformer_en.cfg`).
+# Override with EN_MODEL=en_ner_en (pip-installed wheel) or any other path
+# when evaluating a published / packaged model instead.
+EN_MODEL ?= $(OUTPUT_DIR)/en-transformer/model-best
 
 DATA_RAW = data/raw
 DATA_PROCESSED = data/processed
@@ -217,7 +225,7 @@ benchmark-v02-evaluate:
 
 benchmark-v02-evaluate-en:
 	uv run python -m pleno_ner_training.evaluate_benchmark \
-		--model $(OUTPUT_DIR)/en-transformer/model-best \
+		--model $(EN_MODEL) \
 		--language en --version v0.2.0
 
 benchmark-v03-generate:
@@ -245,7 +253,7 @@ benchmark-v03-evaluate:
 
 benchmark-v03-evaluate-en:
 	uv run python -m pleno_ner_training.evaluate_benchmark \
-		--model $(OUTPUT_DIR)/en-transformer/model-best \
+		--model $(EN_MODEL) \
 		--language en --version v0.3.0
 
 benchmark-v04-generate:
@@ -273,7 +281,7 @@ benchmark-v04-evaluate:
 
 benchmark-v04-evaluate-en:
 	uv run python -m pleno_ner_training.evaluate_benchmark \
-		--model $(OUTPUT_DIR)/en-transformer/model-best \
+		--model $(EN_MODEL) \
 		--language en --version v0.4.0
 
 benchmark-v05-generate:
@@ -301,7 +309,7 @@ benchmark-v05-evaluate:
 
 benchmark-v05-evaluate-en:
 	uv run python -m pleno_ner_training.evaluate_benchmark \
-		--model $(OUTPUT_DIR)/en-transformer/model-best \
+		--model $(EN_MODEL) \
 		--language en --version v0.5.0
 
 benchmark-v10-generate:
@@ -312,10 +320,23 @@ benchmark-v10-generate:
 		--batches-per-template $(BENCHMARK_BATCHES) \
 		--max-workers $(MAX_WORKERS)
 
+benchmark-v10-generate-en:
+	uv run python -m pleno_ner_training.generate_benchmark \
+		--version v0.10.0 \
+		--language en \
+		--docs-per-template $(DOCS_PER_TEMPLATE) \
+		--batches-per-template $(BENCHMARK_BATCHES) \
+		--max-workers $(MAX_WORKERS)
+
 benchmark-v10-evaluate:
 	uv run python -m pleno_ner_training.evaluate_benchmark \
 		--model $(OUTPUT_DIR)/model-best \
 		--language ja --version v0.10.0
+
+benchmark-v10-evaluate-en:
+	uv run python -m pleno_ner_training.evaluate_benchmark \
+		--model $(EN_MODEL) \
+		--language en --version v0.10.0
 
 benchmark-v11-generate:
 	uv run python -m pleno_ner_training.generate_benchmark \
@@ -325,10 +346,23 @@ benchmark-v11-generate:
 		--batches-per-template $(BENCHMARK_BATCHES) \
 		--max-workers $(MAX_WORKERS)
 
+benchmark-v11-generate-en:
+	uv run python -m pleno_ner_training.generate_benchmark \
+		--version v0.11.0 \
+		--language en \
+		--docs-per-template $(DOCS_PER_TEMPLATE) \
+		--batches-per-template $(BENCHMARK_BATCHES) \
+		--max-workers $(MAX_WORKERS)
+
 benchmark-v11-evaluate:
 	uv run python -m pleno_ner_training.evaluate_benchmark \
 		--model $(OUTPUT_DIR)/model-best \
 		--language ja --version v0.11.0
+
+benchmark-v11-evaluate-en:
+	uv run python -m pleno_ner_training.evaluate_benchmark \
+		--model $(EN_MODEL) \
+		--language en --version v0.11.0
 
 benchmark-v12-generate:
 	uv run python -m pleno_ner_training.generate_benchmark \
@@ -338,10 +372,23 @@ benchmark-v12-generate:
 		--batches-per-template $(BENCHMARK_BATCHES) \
 		--max-workers $(MAX_WORKERS)
 
+benchmark-v12-generate-en:
+	uv run python -m pleno_ner_training.generate_benchmark \
+		--version v0.12.0 \
+		--language en \
+		--docs-per-template $(DOCS_PER_TEMPLATE) \
+		--batches-per-template $(BENCHMARK_BATCHES) \
+		--max-workers $(MAX_WORKERS)
+
 benchmark-v12-evaluate:
 	uv run python -m pleno_ner_training.evaluate_benchmark \
 		--model $(OUTPUT_DIR)/model-best \
 		--language ja --version v0.12.0
+
+benchmark-v12-evaluate-en:
+	uv run python -m pleno_ner_training.evaluate_benchmark \
+		--model $(EN_MODEL) \
+		--language en --version v0.12.0
 
 # === HuggingFace Pipeline ===
 

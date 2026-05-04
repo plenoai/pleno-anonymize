@@ -1,0 +1,19 @@
+The logistics policy page mostly discusses delivery windows and temperature ranges, but at the edge of the OCR image only `<PERSON>Naoki Takahashi</PERSON>` and `<ADDRESS>234 Honcho Street, Apt 502, Yonkers, NY 10701</ADDRESS>` plus the sender `<ORGANIZATION>Shibuya Branch Business Support Corp.</ORGANIZATION>` remained.
+---DOC_SEPARATOR---
+The warehouse guide diagram shows mostly shelf numbers and operation dates, but only the slip in the bottom-right is legible: `<PERSON>Makoto Kimura</PERSON>`, return address `<ADDRESS>120 Bridge Street, 7th Floor, Jersey City, NJ 07302</ADDRESS>`, refund account `<BANK_ACCOUNT>Wells Fargo, Routing 121000248, Account 5566778, Checking</BANK_ACCOUNT>`.
+---DOC_SEPARATOR---
+The shipping FAQ body covers generic packaging and arrival estimates, but a small footnote image embeds `<PERSON>Mai Hayashi</PERSON>`, `<ADDRESS>205 Karasuma Street, 4th Floor, Sacramento, CA 95814</ADDRESS>`, `<DATE_OF_BIRTH>December 3, 1988</DATE_OF_BIRTH>`.
+---DOC_SEPARATOR---
+The venue notice page only carries maps and timetables, but a separately attached scan slips in a delivery slip with `<PERSON>Ryo Okada</PERSON>`, `<ADDRESS>222 Hakata Way, Apt 301, Atlanta, GA 30303</ADDRESS>`, `<ORGANIZATION>Aoba Bridge General Development</ORGANIZATION>`.
+---DOC_SEPARATOR---
+The delivery policy explainer mentions only acceptance conditions, while a label image left in by mistake printed `<PERSON>Yuto Ishida</PERSON>`, `<ADDRESS>2810 West Shinjuku Lane, 9th Floor, Seattle, WA 98101</ADDRESS>`, `<DATE_OF_BIRTH>03/28/1991</DATE_OF_BIRTH>`.
+---DOC_SEPARATOR---
+The logistics report body only lists generic KPIs and dates, but the OCR of the supplementary panel shows a single line with `<PERSON>Mariana Coleman</PERSON>`, `<ADDRESS>1500 Madison Avenue, Suite 1203, New York, NY 10128</ADDRESS>`, `<ORGANIZATION>Madison Center Business Support LLC</ORGANIZATION>`.
+---DOC_SEPARATOR---
+A thumbnail inserted into the distribution-center news article makes `<PERSON>Misaki Watanabe</PERSON>`, `<ADDRESS>1203 Ichijo Avenue, Suite 605, Anchorage, AK 99501</ADDRESS>`, `<ORGANIZATION>North-Ichijo Support Partners LLC</ORGANIZATION>` legible.
+---DOC_SEPARATOR---
+A single line of generic guidance retained, as a leftover return label, `<PERSON>Hannah Sato</PERSON>`, `<ADDRESS>234 Harbor Way, Apt 201, Boston, MA 02110</ADDRESS>`, `<BANK_ACCOUNT>Citibank, Routing 021000089, Account 7722114, Checking</BANK_ACCOUNT>`.
+---DOC_SEPARATOR---
+The body of the delivery-incident article is mostly weather and delay generalities, but the image caption ends with `<PERSON>Naoki Takahashi</PERSON>` and `<BANK_ACCOUNT>Chase Bank, Routing 021000021, Account 1234567, Checking</BANK_ACCOUNT>` appearing exactly once.
+---DOC_SEPARATOR---
+The warehouse blog's attached image OCR is mostly box and shelf numbers, but along the bottom edge `<PERSON>Mai Hayashi</PERSON>`, `<ORGANIZATION>Karasuma Regional Care Clinic</ORGANIZATION>`, `<ADDRESS>205 Karasuma Street, 4th Floor, Sacramento, CA 95814</ADDRESS>` are visible.

@@ -1,0 +1,19 @@
+The training material only shows examples like name unfilled, address pending registration, DOB 19XX-XX-XX, account TEMP-HOLD, affiliation org-unit-temp; it is not an individual's record.
+---DOC_SEPARATOR---
+Connectivity guide: Chase, Bank of America, Wells Fargo, and Citibank are illustrated as institution_name examples. These are partner names, not account information.
+---DOC_SEPARATOR---
+The venue notice lists names such as West Shinjuku HQ Front, Central Hospital intersection, North-Ichijo Station Front, and Konan Exchange Center. All are generic facility names.
+---DOC_SEPARATOR---
+Code example in the operations document `person_name=sample_user` `address_line=state-city-block` `date_line=MM/DD/YYYY` `bank_line=branch-main checking 0000000000`. No actual entity.
+---DOC_SEPARATOR---
+The screen-text catalog only contains "Please enter your name", "Please enter your address", "Please enter your date of birth"; the body holds no actual value.
+---DOC_SEPARATOR---
+The QA memo repeatedly uses sample-state-sample-city, sample_name_01, branch-main checking 0000000000 to test OCR distortion. Not subject to leakage detection.
+---DOC_SEPARATOR---
+The 04/01/2026, 05/31/2026, and 06/15/2026 dates in the technical spec are operational schedules, not the DOB of an insured or contract holder.
+---DOC_SEPARATOR---
+Product description: it uses display names like Shibuya Ward Office Front screen, Konan Main Branch Front screen, Bridge Street Branch Front screen, but these are not personal addresses or work-location records.
+---DOC_SEPARATOR---
+Sample log `organization=UNASSIGNED, account=TEMP-HOLD, address=state-city-block-1-2-3, dob=MM/DD/YYYY` is used to verify false-positive resilience.
+---DOC_SEPARATOR---
+The manual excerpt lists `sample_user`, `state-city-block-1-2-3`, `TEMP-HOLD`, `UNASSIGNED` as-is, but these do not represent any real individual or entity.

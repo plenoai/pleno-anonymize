@@ -1,0 +1,19 @@
+Operational screenshot transcript: owner=sample_user_91 address=pending-town-1-2-3 dob=19XX/XX/XX bank=masked account org=unassigned route=0000. Explanatory dummies only.
+---DOC_SEPARATOR---
+The form template sample prints name sample_user, address state-city-block, DOB MM/DD/YYYY, account branch-main checking 0000000000. Not personal information.
+---DOC_SEPARATOR---
+The internal wiki lists sample_name_01, sample_name_02, sample_name_03 in a row, but these are fixed values used to verify column width and not real names.
+---DOC_SEPARATOR---
+The admin-screen description uses `bank_account=TEMP-HOLD`, `organization=UNASSIGNED`, `address=state-city-block-1-2-3` as defaults. Nothing to leak.
+---DOC_SEPARATOR---
+The form layout test arranges 555-123-4567, INV-778812, REQ-09-4412 side by side, but these are sample inquiry numbers and tracking IDs, not financial information.
+---DOC_SEPARATOR---
+Dummy CSV: sample_user_07, YYYY-MM-DD, state-city-block-1-2-3, org-unit-temp, branch-main checking 0000000000. Annotated as no-real-data-allowed.
+---DOC_SEPARATOR---
+The screen-definition supplement mentions Bridge-Street-branch route, Shibuya-office-district route, and Konan-exchange-center route, but these are general route names, not delivery destinations.
+---DOC_SEPARATOR---
+Operations memo owner sample_name_11 shipto state-city-block dob unknown bank TEMP-HOLD org unassigned note for-layout-check-only. All placeholders.
+---DOC_SEPARATOR---
+A sample FAQ answer says "branch-main checking 0000000000 in the account field is a dummy" and "state-city-block-1-2-3 in the address field is also a dummy".
+---DOC_SEPARATOR---
+Debug log [INFO] sample_user moved to state-city-block-1-2-3 on 04/01/2026 using branch-main checking 0000000000. Fixed wording for monitoring-rule explanation.

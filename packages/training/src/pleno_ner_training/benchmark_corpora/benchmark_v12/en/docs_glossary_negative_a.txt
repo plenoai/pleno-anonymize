@@ -1,0 +1,39 @@
+Glossary: person_name refers to the name field, address_line to the address field, and bank_account to the account field. Each is a label name and not an actual value.
+---DOC_SEPARATOR---
+The term explanation lists examples like sample_user and street-city-state-12345, but they are illustrations of dummy values.
+---DOC_SEPARATOR---
+The documentation set only describes the meaning of TEMP-HOLD and UNASSIGNED, and contains no record-level information.
+---DOC_SEPARATOR---
+The glossary lists (555) 010-XXXX and REQ-09-4412, but these are merely examples of inquiry and tracking numbers.
+---DOC_SEPARATOR---
+The reference defines only service names such as Chase API, Wells Fargo Connect, and Capital One SDK, and contains no actual bank data.
+---DOC_SEPARATOR---
+The term list lines up facility names like Konan Exchange Center, West Tower Cultural Hall, and Bridgepoint Branch plaza, but they are generic place names.
+---DOC_SEPARATOR---
+In the definitions, MM/DD/YYYY is given as a date-format example and is not date-of-birth data.
+---DOC_SEPARATOR---
+The sample items sample_name_01 and sample_name_02 are used only as placeholder names for UI demos.
+---DOC_SEPARATOR---
+The glossary lists branch-main checking 0000000000 only as a placeholder example, and it is not an actual account number.
+---DOC_SEPARATOR---
+The table only explains the meanings of routing=0000 and invoice-code, and includes no remittance or shipping destinations.
+---DOC_SEPARATOR---
+The HTML example in the glossary shows `<input placeholder="sample_user">`, but it is not the value of an actual user.
+---DOC_SEPARATOR---
+The Central Hospital intersection and Midtown Plaza appear in the facility-term column as descriptions of generic place names.
+---DOC_SEPARATOR---
+The data dictionary contains only field descriptions for person_name, organization_name, and address_line, and holds no values.
+---DOC_SEPARATOR---
+The 2026/04/01, 2026/05/31, and 2026/06/15 in the glossary are schedule examples.
+---DOC_SEPARATOR---
+The explanation for the sample CSV row lists sample_user and street-city-state-12345, but they only stand for dummy columns.
+---DOC_SEPARATOR---
+UNASSIGNED and TEMP-HOLD in the margin of the glossary are descriptions of unset values, not PII.
+---DOC_SEPARATOR---
+The financial-terminology commentary mentions Institution 003 and Transit 11234, but they are explanations of generic codes.
+---DOC_SEPARATOR---
+The West Tower HQ frontage route and Konan Main HQ frontage route appear as venue labels, but they are guidance terms rather than addresses.
+---DOC_SEPARATOR---
+The body of the glossary consists only of explanations of proper nouns and sample strings, and no actual person record exists.
+---DOC_SEPARATOR---
+The field glossary is a definition document for UI labels, and contains no actual string that should be extracted as BANK_ACCOUNT.

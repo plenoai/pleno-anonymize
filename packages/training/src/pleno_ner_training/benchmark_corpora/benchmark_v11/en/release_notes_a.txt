@@ -1,0 +1,19 @@
+Release notes 2026-04-01: fixed a display defect where the sample_user label and placeholders such as state-city-street-1-2-3 were rendered with broken formatting. No real customer data was changed in this release.
+---DOC_SEPARATOR---
+Version 2026.05 update reworks the UI explainer to reference fixed sample values like branch-main routing 0000000, TEMP-HOLD, and UNASSIGNED directly from the strings catalog. These are demo tokens, not live values.
+---DOC_SEPARATOR---
+Known limitations: route labels such as "Madison HQ Frontage", "Harbor Branch Approach", and "West Boulder Headquarters Plaza" are general path names and must not be parsed as residential addresses by downstream consumers.
+---DOC_SEPARATOR---
+The changelog cites 555-0123 as an example inquiry line, REQ-09-4412 as a sample ticket reference, and INV-778812 as an invoice number example. No banking account information is included anywhere in this build.
+---DOC_SEPARATOR---
+This update reorganized the UI labels person_name, address_line, organization_name, and bank_account, but the policy of never bundling actual values with the schema docs remains unchanged.
+---DOC_SEPARATOR---
+The help-screen rework keeps sample_name_01, sample_name_02, and sample_name_03 as fixed strings used to verify text-width rendering. They are not real names and not sourced from any customer roster.
+---DOC_SEPARATOR---
+Release notes 2026-05-31: adjusted map captions for the Shibuya Office District, the Tenjin Office Quarter, and the North Avenue Convention Site. These are general place names, not residents' home addresses.
+---DOC_SEPARATOR---
+Form previews still display YYYY/MM/DD and 19XX-XX-XX as input hints, but these are illustrative dummy dates and do not represent any real date of birth captured by the product.
+---DOC_SEPARATOR---
+The names "Chase Open Banking API", "Wells Fargo Connect", and "Citi Direct SDK" appear only as integration partner labels in this release. The product does not retain account holders or account numbers.
+---DOC_SEPARATOR---
+This release ships an OCR sample showing "name not entered", "address pending registration", and "account TEMP-HOLD" as placeholders in the form template documentation; none of it reflects production data.

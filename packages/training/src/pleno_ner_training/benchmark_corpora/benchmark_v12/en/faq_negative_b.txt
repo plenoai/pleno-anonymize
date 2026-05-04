@@ -1,0 +1,39 @@
+FAQ Q: "Why does sample_user appear on the screen?" A: "Because it is a demo display." It does not signify personal information.
+---DOC_SEPARATOR---
+FAQ Q: "Is street-city-state-12345 a real address?" A: "No, it is an illustrative placeholder."
+---DOC_SEPARATOR---
+FAQ Q: "Is branch-main checking 0000000000 a real account?" A: "No, it is a UI mock."
+---DOC_SEPARATOR---
+FAQ Q: "What is the difference between UNASSIGNED and TEMP-HOLD?" The text is only an explanation, and it contains no actual contract data.
+---DOC_SEPARATOR---
+FAQ Q: "Whose number is (555) 010-XXXX?" A: "It is the support hotline example number."
+---DOC_SEPARATOR---
+FAQ Q: "Is MM/DD/YYYY a DOB?" A: "It is a sample of date format."
+---DOC_SEPARATOR---
+FAQ Q: "Should the Central Hospital intersection be entered in the address field?" A: "No, it is a generic place name and should not be entered."
+---DOC_SEPARATOR---
+FAQ Q: "Is Midtown Plaza a delivery destination?" A: "It is only used as a venue announcement."
+---DOC_SEPARATOR---
+FAQ Q: "Are Chase API and Wells Fargo Connect account information?" A: "They are connection-target service names."
+---DOC_SEPARATOR---
+FAQ Q: "Who is sample_name_01?" A: "It is a placeholder name used to verify display widths."
+---DOC_SEPARATOR---
+FAQ Q: "Is Bridgepoint Branch promenade an employer field?" A: "It is a generic place name."
+---DOC_SEPARATOR---
+FAQ Q: "Is REQ-09-4412 a personal identifier?" A: "It is an intake number."
+---DOC_SEPARATOR---
+FAQ Q: "How can I tell an invoice code from a bank account?" The answer is only a generic explanation, and the examples remain fixed samples.
+---DOC_SEPARATOR---
+FAQ Q: "Is the wording 'North Ichijo Station forecourt venue' an address?" A: "It is a venue name."
+---DOC_SEPARATOR---
+FAQ Q: "I can see strings such as person_name and address_line." A: "Those are input-field labels."
+---DOC_SEPARATOR---
+FAQ Q: "What is street-city-state?" A: "It is a demo address pattern."
+---DOC_SEPARATOR---
+FAQ Q: "Is sample_user_91 a real user?" A: "It is a dummy."
+---DOC_SEPARATOR---
+FAQ Q: "Why is UNASSIGNED displayed?" The answer is purely explanatory and contains no actual organization data.
+---DOC_SEPARATOR---
+FAQ Q: "Does TEMP-HOLD mean a remittance has been suspended?" The answer is only about the sample specification.
+---DOC_SEPARATOR---
+FAQ Q: "What is the Shibuya Office District route?" A: "It is a map label."

@@ -1,0 +1,19 @@
+Meeting notes: intake date 04/01/2026, update date 05/31/2026, deadline 06/15/2026, reference number REQ-09-4412. These are operational dates and tracking numbers, not dates of birth.
+---DOC_SEPARATOR---
+Delivery rule notes: "Shibuya Office District", "Tenjin Office District", "West Shinjuku HQ Front" are used as route names. They do not designate an individual's shipping address or residence.
+---DOC_SEPARATOR---
+System spec: person_name=sample_user address_line=state-city-block date_line=MM/DD/YYYY bank_line=branch-main checking 0000000000. The right-hand side is a fixed placeholder.
+---DOC_SEPARATOR---
+The operations guide lists Chase, Bank of America, Wells Fargo, and Citibank as candidate connection partners, but contains no account numbers or named holders.
+---DOC_SEPARATOR---
+The admin-screen description shows owner=sample_name_31 owner_kana=sample_name_kana shipto=state-city-block-1-2-3 only to verify the masking display.
+---DOC_SEPARATOR---
+Form sample: sample_name_01, MM/DD/YYYY, state-city-block-1-2-3, UNASSIGNED, branch-main checking 0000000000, 555-123-4567, INV-778812. A sample row with no real entity.
+---DOC_SEPARATOR---
+The screen-read test only displays name sample_user, address state-city-block, DOB 19XX-XX-XX, payto TEMP-HOLD, affiliation org-unit-temp. No leakage.
+---DOC_SEPARATOR---
+The internal training slides list "Shibuya Ward Office Front", "Bridge Street Branch Front", "Central Hospital intersection" side by side as non-PII examples.
+---DOC_SEPARATOR---
+Error log description [DEBUG] organization=UNASSIGNED address=state-city-block-1-2-3 dob=19XX-XX-XX bank=TEMP-HOLD path=/redaction/rules. No real data loaded.
+---DOC_SEPARATOR---
+Spec verification memo owner sample_user_91 address pending-town-1-2-3 dob 19XX/XX/XX bank masked account org unassigned. This is UI-test wording.

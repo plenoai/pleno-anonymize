@@ -1,0 +1,19 @@
+Local news: at the event held in front of the Borough Office Plaza, the public lecture by the University of Boulder and the exhibition at the Harbor Community Center drew large crowds. No attendee roster or address book was published.
+---DOC_SEPARATOR---
+The economy column references the Chase mobile app, the Wells Fargo API, and Citibank's new service, but no personal accounts and no account holders appear in the body.
+---DOC_SEPARATOR---
+Walking-tour feature: a strolling route from Central Hospital Crossing to Nihonbashi Branch Front is introduced, with shop guides and event dates only. No personal delivery information is included.
+---DOC_SEPARATOR---
+Culture page: the article covers programs at West End HQ Plaza Stage, Sapporo North Avenue Plaza, and Harbor Main Branch Front venue. Performer home addresses and DOBs are not disclosed.
+---DOC_SEPARATOR---
+The disaster preparedness feature lists 04/01/2026, 05/31/2026, and 06/15/2026 as drill dates. These are event dates, not personal dates of birth.
+---DOC_SEPARATOR---
+The local guide article mentions names like "Shibuya Office District", "Tenjin Office District", and "Harbor Community Hall". All of them are common facility or area names.
+---DOC_SEPARATOR---
+The public transit feature lists 555-0123 as the inquiry desk and REQ-09-4412 as the campaign reference number — nothing more. No personal financial or address information is shown.
+---DOC_SEPARATOR---
+Education page report: a joint program by Cambridge College, the University of Boulder, and the Shibuya Borough Medical Support Center is introduced; participant names and home addresses are not disclosed.
+---DOC_SEPARATOR---
+The technology article uses sample_user, state-city-town-1-2-3, and branch-main checking 0000000 only as UI mock examples. They are not real customer data.
+---DOC_SEPARATOR---
+A regional development news piece introduces a redevelopment plan for the Harbor Main Branch district, the area around West End Cultural Center, and Nihonbashi Branch Front Street. Only place and facility names appear, not personal information.

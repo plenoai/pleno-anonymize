@@ -1,0 +1,19 @@
+A technical blog uses `sample_user`, `pref-city-town-1-2-3`, `branch-main ordinary 0000000`, and `UNASSIGNED` to illustrate masking-UI behavior. These are not real data.
+---DOC_SEPARATOR---
+An operations article lists OCR misread mitigations like "name not entered", "address pending registration", "DOB YYYY/MM/DD", and "account TEMP-HOLD" as placeholders, with no personal information.
+---DOC_SEPARATOR---
+The API documentation merely shows fields person_name, address_line, organization_name, and bank_account as examples, without actual values.
+---DOC_SEPARATOR---
+An engineering blog post uses 555-0123, REQ-09-4412, and INV-778812 as ticket and quote numbers - they are not financial details.
+---DOC_SEPARATOR---
+A frontend explainer references display names such as "Downtown District route", "Bridge Street route", and "Harbor HQ route" - these are generic path labels.
+---DOC_SEPARATOR---
+A product article compares the JPMorgan API, Wells Fargo integration, and Capital Bank SDK - this is service-name introduction, not account-holder or branch-number data.
+---DOC_SEPARATOR---
+An ops-tips post uses 04/01/2026, 05/31/2026, and 06/15/2026 as release planning dates - these are schedule examples, not DOBs.
+---DOC_SEPARATOR---
+A dummy data generation tutorial lists sample_name_01, sample_name_02, and sample_name_03; all are fixed strings, not human names.
+---DOC_SEPARATOR---
+A technical memo's map caption shows West Boulder Cultural Hall Front, Central Hospital Crossing, and North Avenue Station - all common public facility names.
+---DOC_SEPARATOR---
+The sample HTML displays only `<input placeholder="sample_user">` and `<input placeholder="prefecture-city-block">`; it includes no user data.

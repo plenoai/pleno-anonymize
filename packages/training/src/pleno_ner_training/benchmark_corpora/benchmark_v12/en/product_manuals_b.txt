@@ -1,0 +1,19 @@
+The onboarding guide displays owner=sample_name_41, address=state-city-town-1-2-3, dob=MM/DD/YYYY, and bank=branch-main checking 0000000 as fixed sample values. None of them are real entries.
+---DOC_SEPARATOR---
+The HTML example in the operation walkthrough places `<input placeholder="sample_user">`, `<input placeholder="state-city-block">`, and `<input placeholder="TEMP-HOLD">` in sequence. The text is a UI component description only.
+---DOC_SEPARATOR---
+The masking feature specification lists field names such as person_name, address_line, organization_name, and bank_account, but the values are restricted to placeholder strings.
+---DOC_SEPARATOR---
+The application configuration manual mentions route names like West End HQ Plaza Route, Nihonbashi Branch Front Route, and Shibuya Office District Route. These are not personal mailing addresses.
+---DOC_SEPARATOR---
+The FAQ explains that "TEMP-HOLD is a temporary value", "UNASSIGNED means not configured", and "state-city-town-1-2-3 is an explanatory address". None of these are contractor data.
+---DOC_SEPARATOR---
+The verification procedure document cites 04/01/2026, 05/31/2026, and 06/15/2026 as illustrative examples. These are release plan dates, not dates of birth.
+---DOC_SEPARATOR---
+The sample CSV row `sample_name_01,MM/DD/YYYY,state-city-town-1-2-3,UNASSIGNED,branch-main checking 0000000` is for column-width verification only and the document warns it must not be uploaded.
+---DOC_SEPARATOR---
+The integration specification uses Chase Bank, Wells Fargo, Citibank, and US Postal Bank as example labels for system connection targets. No account holders and no branch numbers are listed.
+---DOC_SEPARATOR---
+The developer guide describes only placeholder appearance, label wording, and button placement. The premise is that no real user names, addresses, or accounts are entered.
+---DOC_SEPARATOR---
+The illustrations in the manual depict common facility names such as Borough Office Plaza Front, Central Hospital Crossing, and Harbor Community Center. They are not subject to redaction.
