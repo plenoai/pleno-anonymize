@@ -17,16 +17,23 @@ COPY packages/pii-scanner/pyproject.toml packages/pii-scanner/pyproject.toml
 COPY packages/recognizers/ packages/recognizers/
 COPY server/pyproject.toml server/pyproject.toml
 # server image は OSS baselines (ginza/ja-ginza/ja_core_news_trf) を含めない
-# image size 膨張を構造的に抑制 (plan U1 Deployment image impact)。
+# image size 膨張を構造的に抑制 (plan U1 Deployment image impact).
 # `bench` は packages/training の `[project.optional-dependencies]` に定義しており、
-# `--extra bench` を渡さない限り install されない (default exclude)。
-RUN uv sync --frozen --no-dev --no-install-project
+# `--extra bench` を渡さない限り install されない (default exclude).
+#
+# `--package pleno-anonymize-server` で workspace の install を server に絞る。
+# 以前は default の `uv sync` がすべての member を editable install しようと
+# したため、pii-scanner の README/src が image に無いと
+# `hatchling.build.build_editable` が `OSError: Readme file does not exist` で
+# 落ちていた (deploy 失敗の原因)。`--package` で graph を server サブセットに
+# 限定すれば pii-scanner / training は触られない。
+RUN uv sync --frozen --no-dev --no-install-project --package pleno-anonymize-server
 
 # アプリケーションコードをコピー（server のみ）。
 # #74 で `recognizers_ja.py` を server/src 配下へ移動したため training の
 # ソースは server image には不要。
 COPY server/ server/
-RUN uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev --package pleno-anonymize-server
 
 # spaCy / NER モデル wheel install は最後の uv sync の **後ろ** に置く必要がある。
 # 過去に sync の間に挟んでいた時期があり、`uv sync --frozen` が lockfile に存在しない
