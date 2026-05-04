@@ -1,0 +1,19 @@
+The venue operations report only describes traffic flow at the Riverside Community Center, security positioning along Bridge Street, and the meet-up area at West Boulder HQ Front; no personal information is included.
+---DOC_SEPARATOR---
+The app description lists sample_name_01, sample_name_02, and sample_name_03 to confirm character widths; these are not real person names.
+---DOC_SEPARATOR---
+Technical commentary uses route=0000, bank=TEMP-HOLD, organization=UNASSIGNED, address=pref-city-town-1-2-3 as samples; none qualify for leak detection.
+---DOC_SEPARATOR---
+The neighborhood association circular contains only event dates 04/01/2026, 05/31/2026, 06/15/2026 and venue names; it includes no DOBs or address rosters.
+---DOC_SEPARATOR---
+"Central Hospital Crossing", "City Hall Plaza Front", and "Harbor HQ Front" appear in the transit guide as map waypoints, not delivery destinations or workplaces.
+---DOC_SEPARATOR---
+The system operations material includes only HTML fragments such as `<input placeholder="sample_user">` and `<input placeholder="prefecture-city-block">`.
+---DOC_SEPARATOR---
+The explainer slides list JPMorgan, Wells Fargo, Capital Bank, and USPS Postal Bank as candidate integration partners, but no branch names or numbers are recorded.
+---DOC_SEPARATOR---
+Operational handbook diagrams display REQ-09-4412 and INV-778812 as workflow IDs, not as substitutes for account or address data.
+---DOC_SEPARATOR---
+The public PR body covers only general event notices and area facility introductions; it never includes insured-party, contract-holder, or patient records.
+---DOC_SEPARATOR---
+Product help screens show display names such as "Downtown District route", "Bridge Street route", and "North Avenue Station route" - all generic path labels.

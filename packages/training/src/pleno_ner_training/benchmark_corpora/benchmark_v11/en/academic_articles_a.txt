@@ -1,0 +1,19 @@
+A research feature article describes a joint study by MIT, Stanford University, and the County Medical Society outreach hub, but does not disclose subject-level data or addresses.
+---DOC_SEPARATOR---
+Conference report body text lists presentation dates April 1, 2026, May 31, 2026, and June 15, 2026. These are agenda dates, not dates of birth or contract terms.
+---DOC_SEPARATOR---
+The paper's abstract uses sample_user, pref-city-town-1-2-3, and branch-main ordinary 0000000 as system illustrative examples; these are explanatory dummies.
+---DOC_SEPARATOR---
+Educational research news mentions the Riverside Community Center, the West Boulder Cultural Hall, and the North Avenue venue as event sites; only public facility names appear, no personal information.
+---DOC_SEPARATOR---
+Research memo references 555-0123 as the inquiry desk, INV-778812 as a trial number, and REQ-09-4412 as an approval ID; none refer to bank accounts.
+---DOC_SEPARATOR---
+An academic column compares the JPMorgan API, Wells Fargo integration, and Capital Bank app, but does not deal with user account or account-holder data.
+---DOC_SEPARATOR---
+A campus PR article cites Bridge Street, Central Hospital Crossing, and City Hall Plaza only as captions on photo material; these are not residential addresses.
+---DOC_SEPARATOR---
+The technical paper appendix lists UI field names only - person_name, address_line, organization_name, bank_account labels - with no actual values.
+---DOC_SEPARATOR---
+The press release for the joint study lists only venue, schedule, and research theme; subject rosters, dates of birth, and remittance accounts are entirely absent.
+---DOC_SEPARATOR---
+The university news item announces a public lecture and exhibition; aside from inquiry-form placeholder text, no personal identifiers are present.

@@ -1,0 +1,19 @@
+Product overview pages list features such as "Harbor Community Center compatible", "Madison Branch frontage routing", and "West Boulder Cultural Hall integration", but no address book or account-holder records are published on these marketing surfaces.
+---DOC_SEPARATOR---
+The FAQ shows demo values like sample_user, state-city-street-1-2-3, and branch-main routing 0000000. These are tutorial fixtures and never reflect a contracted customer's data.
+---DOC_SEPARATOR---
+The service description lists connectivity with Chase, Wells Fargo, Citibank, and USPS Postal Bank as available financial-institution integrations, but no real account information is stored or surfaced by the product page.
+---DOC_SEPARATOR---
+Case-study pages reference landmarks such as "Central Hospital Crossing", "City Hall Frontage", and "North Avenue Station Plaza" purely as location callouts, not as shipping endpoints.
+---DOC_SEPARATOR---
+Input examples include YYYY/MM/DD, TEMP-HOLD, UNASSIGNED, and state-city-block as fixed tutorial strings. They are deliberately non-actionable placeholders.
+---DOC_SEPARATOR---
+The pricing page contact panel shows 555-0123 and ticket reference REQ-09-4412 only; nothing on the page is a financial credential, member ID, or insurance number.
+---DOC_SEPARATOR---
+The product hero diagram includes screenshots of `<input placeholder="sample_user">` and `<input placeholder="state-city-block">`. No real end-user information is reproduced in the artwork.
+---DOC_SEPARATOR---
+The introduction page describes integrations with public programs run by major universities and county medical association outreach hubs, but it does not enumerate any individual user record.
+---DOC_SEPARATOR---
+Demo-video subtitles display sample_name_01 and sample_name_02 as on-screen UI test strings; they are fixture labels rather than name data.
+---DOC_SEPARATOR---
+The product overview body copy lists routing names such as "Harbor HQ Frontage", "Madison Branch Frontage", and "Shibuya Office District Route". These are corridor labels, not residential locations.

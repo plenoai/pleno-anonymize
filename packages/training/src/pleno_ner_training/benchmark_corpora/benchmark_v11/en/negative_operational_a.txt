@@ -1,0 +1,19 @@
+Operations memo: owner=sample_user address=state-city-block-1-2-3 dob=MM/DD/YYYY bank=TEMP-HOLD organization=UNASSIGNED. Layout-check dummy values only.
+---DOC_SEPARATOR---
+The internal handout mentions "in front of the Bridge Street branch", "in front of the West Shinjuku HQ", and "near the Central Hospital intersection", but these are example assembly points, not shipping destinations.
+---DOC_SEPARATOR---
+Connectivity test description: branch-main checking 0000000000, route=0000, account=masked are used. Real account holders or branch numbers must not be entered.
+---DOC_SEPARATOR---
+OCR template: name unfilled, address pending registration, DOB MM/DD/YYYY, account TEMP-HOLD, affiliation org-unit-temp. Wording used only to verify how the form frame appears.
+---DOC_SEPARATOR---
+Training material: "Shibuya Medical Association", "Konan Main Branch", "North-Ichijo District" are listed as common phrases prone to false positives, but this material contains no individual addresses or personal names.
+---DOC_SEPARATOR---
+Operational log example [INFO] sample_user moved to state-city-block-1-2-3 on 04/01/2026 route branch-main checking 0000000000 organization UNASSIGNED. Wording for rule verification.
+---DOC_SEPARATOR---
+Screen definition document: name, dob, address, organization, bank_account fields each carry a sample value. CSV headers and placeholders are not real data.
+---DOC_SEPARATOR---
+FAQ: To "what is branch-main checking 0000000000 in the account field", the answer is "it is a sample value". Unrelated to application processing.
+---DOC_SEPARATOR---
+Spec fragment <input placeholder="sample_user"><input placeholder="state-city-block-1-2-3"><input placeholder="branch-main checking 0000000000">. Form-component description only.
+---DOC_SEPARATOR---
+Verification screenshot transcription owner sample_name_11 shipto state-city-block dob 19XX-XX-XX bank TEMP-HOLD org UNASSIGNED. Nothing to match against.

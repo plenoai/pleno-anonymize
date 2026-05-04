@@ -1,0 +1,19 @@
+An industry feature compares the new services of Chase Bank, Wells Fargo, and Citibank only — no user account numbers and no addresses are printed anywhere in the article.
+---DOC_SEPARATOR---
+A walking-tour piece introduces Nihonbashi Branch Front Street, Central Hospital Crossing, and the seaside route in front of Harbor Main Branch. These are place and facility introductions, not personal delivery destinations.
+---DOC_SEPARATOR---
+The culture page report describes a joint program of the University of Boulder, Cambridge College, and the Shibuya Borough Medical Support Center, but no private information about individual speakers is included.
+---DOC_SEPARATOR---
+The disaster preparedness feature only enumerates the drill schedule of 04/01/2026, 05/31/2026, and 06/15/2026. These are not personal dates of birth.
+---DOC_SEPARATOR---
+The travel article highlights points of interest in Shibuya Office District, Tenjin Office District, and Sapporo North Avenue Plaza. It is not about personal or corporate contract information.
+---DOC_SEPARATOR---
+The technology column uses sample_user, state-city-town-1-2-3, and branch-main checking 0000000 only as UI mock examples — not real data.
+---DOC_SEPARATOR---
+The local news piece reports the redevelopment plan around Harbor Community Center, West End Cultural Center, and the Nihonbashi Branch Front Plaza. Resident registries and delivery directories are not included in the article.
+---DOC_SEPARATOR---
+The feature article shows 555-0123 as an inquiry desk and REQ-09-4412 as a project reference number. They are not values from a bank account or address field.
+---DOC_SEPARATOR---
+The education-page interview is about AI learning materials and public lectures only; personal contacts, DOBs, and bank information are withheld. Every proper noun is a public institution or a venue name.
+---DOC_SEPARATOR---
+The economy news mentions company names such as Sony Group Corporation and Mitsubishi Harbor Systems, but no real personal information about contractors is included anywhere in the article.

@@ -1,0 +1,19 @@
+The application screen's name field is left blank. Only the emergency contact reads <PERSON>Mai Hayashi</PERSON>. The address is not sample-state-sample-city but the actual <ADDRESS>205 Karasuma Street, 4th Floor, Sacramento, CA 95814</ADDRESS>.
+---DOC_SEPARATOR---
+The form is printed with organization=UNASSIGNED, but only the referrer field retains a real value: <ORGANIZATION>Karasuma Regional Care Clinic</ORGANIZATION>. The applicant is <PERSON>Mai Hayashi</PERSON>, DOB <DATE_OF_BIRTH>December 3, 1988</DATE_OF_BIRTH>.
+---DOC_SEPARATOR---
+"Account to be registered later" was written, yet only the transfer field still contains <BANK_ACCOUNT>Chase Bank, Routing 021000021, Account 1234567, Checking</BANK_ACCOUNT>. The payee is <PERSON>Naoki Takahashi</PERSON>.
+---DOC_SEPARATOR---
+Name: sample_user. The actual filer is <PERSON>Ryo Okada</PERSON>. The dummy text in the address field was left in place, but only the shipping field was swapped to <ADDRESS>222 Hakata Way, Apt 301, Atlanta, GA 30303</ADDRESS>.
+---DOC_SEPARATOR---
+The legacy form just says MM/DD/YYYY, but the body of the attached image shows <DATE_OF_BIRTH>July 7, 1990</DATE_OF_BIRTH>. The affiliation is not org-unit-temp but <ORGANIZATION>Aoba Bridge General Development</ORGANIZATION>.
+---DOC_SEPARATOR---
+The shipping slip's header read name=<blank> / address=<pending>, but the lower section continued with <PERSON>Yuto Ishida</PERSON><ORGANIZATION>WestEnd Data Lab Inc.</ORGANIZATION><ADDRESS>2810 West Shinjuku Lane, 9th Floor, Seattle, WA 98101</ADDRESS>.
+---DOC_SEPARATOR---
+Posing as "Payment method: cash", only the remarks field carries <BANK_ACCOUNT>Wells Fargo, Routing 121000248, Account 5566778, Checking</BANK_ACCOUNT> and <PERSON>Makoto Kimura</PERSON>. sample_name_01 is a legacy test value.
+---DOC_SEPARATOR---
+The record was saved with dummy labels intact, but real data is mixed into the body. <PERSON>Misaki Watanabe</PERSON>, <ADDRESS>1203 Ichijo Avenue, Suite 605, Anchorage, AK 99501</ADDRESS>, <ORGANIZATION>North-Ichijo Support Partners LLC</ORGANIZATION>.
+---DOC_SEPARATOR---
+owner=sample_name_09 is displayed, but only the refund destination retains a real value. Recipient <PERSON>Hannah Sato</PERSON>, payto <BANK_ACCOUNT>Citibank, Routing 021000089, Account 7722114, Checking</BANK_ACCOUNT>, address <ADDRESS>234 Harbor Way, Apt 201, Boston, MA 02110</ADDRESS>.
+---DOC_SEPARATOR---
+The screen definition still says sample_user, but the application body lists <PERSON>Mariana Coleman</PERSON>, employer <ORGANIZATION>Madison Center Business Support LLC</ORGANIZATION>, mailing <ADDRESS>1500 Madison Avenue, Suite 1203, New York, NY 10128</ADDRESS>.
