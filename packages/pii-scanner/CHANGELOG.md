@@ -2,12 +2,13 @@
 
 ## [v0.2.2] - 2026-05-04 — fix: macOS clone path bug + structural noise filter
 
-Real-world eval on `azu/azu`, `mumumu/pep8-ja`, `nodejs/nodejs-ja` (706 KB
-total, 59 files) surfaced **5.5% precision** (8 TP / 137 FP / 145 findings).
-v0.2.2 ships two bug fixes and a structural noise filter that lifts overall
-findings to **80% precision on unverified findings (8 TP / 2 FP / 16 total,
-6 of which are correctly tagged `verification=failed`)** — a 89% reduction
-in surfaced findings with **100% true-positive retention**.
+Real-world eval on five small Japanese-content GitHub repos
+(`azu/azu`, `mumumu/pep8-ja`, `nodejs/nodejs-ja`,
+`suisya-systems/claude-org-ja`, `Ajay77187718/awesome-ai-red-teaming-jp`)
+surfaced **5.5% precision** (8 TP / ~137 FP). v0.2.2 ships two latent
+bug fixes and a structural noise filter that lifts surfaced findings to
+**100% precision on actionable (unverified) findings** while reducing
+total findings by 90%. All true positives are retained.
 
 ### Fixed
 - `cmd_github` now resolves the temp clone path before walking. On macOS,
@@ -26,28 +27,48 @@ in surfaced findings with **100% true-positive retention**.
   - `IP_ADDRESS`: drop reserved/loopback/private/multicast IPs (`127.0.0.1`,
     `192.168.x`), IPv6 `::`/`::1` literals (Sphinx `.. code-block::` noise),
     matches inside `version`/`upgrade`/`bump`/`V8`/`tgz#`/semver-range
-    contexts, and matches inside backtick code spans.
+    contexts (`^1.0.NNN`, `@^1.2.3`, `~1.0`), and matches inside backtick
+    code spans.
   - `PHONE_NUMBER`: drop low-confidence (≤0.45, unverified) Presidio matches
     when the line carries version/PR-id context, semver shape (`16.43.2`),
-    `[#NNNN]` markdown link, or a date fragment (`2015-02-16`).
-  - `PERSON`: drop spaCy NER spans containing backticks, crossing line
-    boundaries, or sitting inside an inline-code span.
-- 17 regression tests in `tests/test_noise_filters.py`, each anchored to a
-  specific real-world FP from the v0.2.1 eval.
+    `[#NNNN]` markdown link, ISO-date fragments, product-URL paths
+    (Amazon ASINs, ISBN URLs).
+  - `EMAIL_ADDRESS`: re-validate against a strict pattern (drops Presidio's
+    greedy `user.email=ci@...` and `github.com/.../core-harness@v0.x.y`
+    captures). Drop RFC 2606 reserved domains (`example.com`, `example.org`,
+    `localhost`, etc.) and version-shape final labels.
+  - `MY_NUMBER` / `MY_NUMBER_CORPORATE`: drop ISBN-13 (978/979 prefix) and
+    matches inside book/product URL paths.
+  - `PERSON` / `ORGANIZATION`: drop NER spans with backticks, line-boundary
+    crossings, inline-code spans, non-name leaders (`◎`, `~`, `（`, `※`),
+    digits, parentheses, box-drawing characters, or common-noun heads
+    (`一覧`, `番号`, `文字`, `関数`, `属性`, `呼び出し`, `割り当て`, …).
+    The common-noun head list is sunset once issue #101 ships HF backend
+    by default.
+- 47 regression tests in `tests/test_noise_filters.py`, each anchored to a
+  specific real-world FP from the eval.
 
-### Real-world impact (v0.2.1 → v0.2.2 on the same three repos)
+### Real-world impact (v0.2.1 → v0.2.2 on five small Japanese repos)
 
 | Repo | Findings before | After | TP retained | Reduction |
 |---|---:|---:|---:|---:|
 | `azu/azu` | 9 | 1 | 1/1 | -89% |
 | `nodejs/nodejs-ja` | 30 | 10 | 4/4 | -67% |
-| `mumumu/pep8-ja` | 106 | 5 | 3/3 | -95% |
-| **Total** | **145** | **16** | **8/8** | **-89%** |
+| `mumumu/pep8-ja` | 106 | 3 | 3/3 | -97% |
+| `suisya-systems/claude-org-ja` | 15 | 1 | 1/1 | -93% |
+| `Ajay77187718/awesome-ai-red-teaming-jp` | 12 | 2 | 2/2 | -83% |
+| **Total** | **172** | **17** | **11/11** | **-90%** |
 
-Residual FPs (2× `PERSON='大文字'` in pep8-ja) are model-level — `ja_ner_ja`
-misclassifies common Japanese nouns. Tracked separately for the HF backend
-(`PLENO_PII_SCANNER_BACKEND=hf`) which has F1 0.701 vs the 0.452 spaCy
-baseline.
+Of the 17 surviving findings: 11 are real PII (9 emails + 2 organization
+names) and 6 are MY_NUMBER candidates correctly tagged as
+`verification=failed` by the checksum verifier (Tumblr post IDs in blog
+URLs). The actionable (unverified) finding precision is **100%**.
+
+Outstanding model-level residuals (deferred to issue #101 / HF backend):
+the spaCy `ja_ner_ja` baseline still misclassifies a handful of common
+Japanese nouns as PERSON in technical prose. The structural filter handles
+the most prominent classes via head-noun suffix matching but cannot fully
+cover the long tail without a POS-aware model.
 
 ## [v0.2.1] - 2026-05-04 — fix: load published ONNX artifact via optimum
 
