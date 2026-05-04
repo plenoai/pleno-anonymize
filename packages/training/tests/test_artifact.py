@@ -114,17 +114,24 @@ def _full_artifact(partial: bool = False) -> ComparisonArtifact:
 
 
 # ---------------------------------------------------------------------------
-# P1-1: backward compatibility with all 21 existing entries
+# P1-1: every existing log entry must parse via LogJsonlEntry. The fixture
+# grows as the experiment log accrues — assert the count matches the number
+# of non-empty lines so the schema stays in lock-step with reality, not a
+# stale 21-entry snapshot from when the test was first written.
 # ---------------------------------------------------------------------------
 
 
-def test_existing_21_entries_parse_via_LogJsonlEntry() -> None:
+def _expected_entry_count() -> int:
+    return sum(1 for line in EXISTING_LOG.read_text("utf-8").splitlines() if line.strip())
+
+
+def test_existing_entries_parse_via_LogJsonlEntry() -> None:
     """The mandatory P1-1 acceptance test."""
     entries = parse_log_jsonl(EXISTING_LOG)
-    assert len(entries) == 21
+    assert len(entries) == _expected_entry_count()
 
 
-def test_existing_21_entries_individual_lines() -> None:
+def test_existing_entries_individual_lines() -> None:
     lines = EXISTING_LOG.read_text(encoding="utf-8").splitlines()
     parsed = 0
     for line in lines:
@@ -132,7 +139,7 @@ def test_existing_21_entries_individual_lines() -> None:
             continue
         LogJsonlEntry.model_validate_json(line)  # raises ValidationError on mismatch
         parsed += 1
-    assert parsed == 21
+    assert parsed == _expected_entry_count()
 
 
 def test_legacy_entry_with_extra_unknown_field_is_allowed() -> None:

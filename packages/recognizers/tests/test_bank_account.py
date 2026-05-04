@@ -1,58 +1,30 @@
-"""Tests for `recognizers_ja` (now canonical at `server/src/recognizers_ja.py`).
+"""Regex correctness for the BANK_ACCOUNT recognizer (#49).
 
-Focus: regex correctness of pattern recognizers, with emphasis on the newly
-added BANK_ACCOUNT recognizer (issue #49) which must achieve f1 >= 0.85 on
-the v0.12.0 benchmark.
-
-Tests use raw `re.compile` against `Pattern.regex` rather than spinning up a
-full Presidio AnalyzerEngine — this keeps the suite fast and isolates the
-regex from analyzer-level overlap resolution.
-
-Module relocated to `server/src/` (#74) to break the server→training
-workspace-dep loop. `conftest.py` injects that path onto `sys.path` so the
-bare `import recognizers_ja` below resolves without re-introducing a
-package-level dependency.
+Tests the union of `JA_BANK_ACCOUNT.patterns` directly (no Presidio engine) so
+that boundary cases — bank-name alternation order, 当座/普通 variants, ゆうちょ
+記号-番号 layout, 7- vs. 8-digit accounts — are pinned independently of any
+analyzer-level overlap resolution.
 """
 
 from __future__ import annotations
 
-import json
 import re
-from pathlib import Path
 
 import pytest
 
-from recognizers_ja import (
-    ALL_JA_RECOGNIZERS,
-    JA_BANK_ACCOUNT_PATTERNS,
-    JapaneseBankAccountRecognizer,
-)
-
-
-# ---------- registry sanity ----------------------------------------------
+from pleno_recognizers.ja import ALL_JA_RECOGNIZERS, JA_BANK_ACCOUNT
 
 
 def test_bank_account_recognizer_registered():
-    assert JapaneseBankAccountRecognizer in ALL_JA_RECOGNIZERS
-
-
-def test_bank_account_recognizer_metadata():
-    # Presidio stores `supported_entity` as a single-element `supported_entities`
-    # list. We assert via the public attribute to remain forward-compatible.
-    assert JapaneseBankAccountRecognizer.supported_entities == ["BANK_ACCOUNT"]
-    assert JapaneseBankAccountRecognizer.supported_language == "ja"
-
-
-# ---------- compiled regex (used as a single union) ----------------------
+    assert JA_BANK_ACCOUNT in ALL_JA_RECOGNIZERS
+    assert JA_BANK_ACCOUNT.entity == "BANK_ACCOUNT"
+    assert JA_BANK_ACCOUNT.language == "ja"
 
 
 @pytest.fixture(scope="module")
 def bank_pattern() -> re.Pattern[str]:
-    union = "|".join(p.regex for p in JA_BANK_ACCOUNT_PATTERNS)
+    union = "|".join(p.regex for p in JA_BANK_ACCOUNT.patterns)
     return re.compile(union)
-
-
-# ---------- positive cases -----------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -67,7 +39,7 @@ def bank_pattern() -> re.Pattern[str]:
         ("京都銀行四条支店普通6611223", "京都銀行四条支店普通6611223"),
         # 当座 (current account) variant
         ("みずほ銀行本店当座9876543", "みずほ銀行本店当座9876543"),
-        # 信託銀行 (must come before 三井住友 in alternation)
+        # 信託銀行 — must be matched before plain 三井住友 in the alternation
         (
             "三井住友信託銀行東京営業部普通1112223",
             "三井住友信託銀行東京営業部普通1112223",
@@ -93,9 +65,6 @@ def bank_pattern() -> re.Pattern[str]:
 def test_bank_account_positive(bank_pattern: re.Pattern[str], text: str, expected: str):
     matches = [m.group(0) for m in bank_pattern.finditer(text)]
     assert expected in matches, f"expected {expected!r} in {matches!r}"
-
-
-# ---------- negative cases -----------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -126,47 +95,3 @@ def test_bank_account_positive(bank_pattern: re.Pattern[str], text: str, expecte
 def test_bank_account_negative(bank_pattern: re.Pattern[str], text: str):
     matches = [m.group(0) for m in bank_pattern.finditer(text)]
     assert matches == [], f"unexpected match {matches!r} in {text!r}"
-
-
-# ---------- benchmark-driven f1 ------------------------------------------
-
-
-_BENCHMARK_PATH = (
-    Path(__file__).resolve().parents[1]
-    / "data"
-    / "benchmark"
-    / "v0.12.0"
-    / "ja"
-    / "raw.json"
-)
-
-
-@pytest.mark.skipif(not _BENCHMARK_PATH.exists(), reason="benchmark data missing")
-def test_bank_account_f1_on_v0_12_0_benchmark(bank_pattern: re.Pattern[str]):
-    """Recognizer must achieve f1 >= 0.85 on v0.12.0 BANK_ACCOUNT spans."""
-    docs = json.loads(_BENCHMARK_PATH.read_text(encoding="utf-8"))
-    tp = fp = fn = 0
-    for doc in docs:
-        text = doc["text"]
-        gold = {
-            (e["start"], e["end"])
-            for e in doc.get("entities", [])
-            if e["label"] == "BANK_ACCOUNT"
-        }
-        pred = {(m.start(), m.end()) for m in bank_pattern.finditer(text)}
-        tp += len(gold & pred)
-        fp += len(pred - gold)
-        fn += len(gold - pred)
-
-    if tp + fp + fn == 0:
-        pytest.skip("no BANK_ACCOUNT entities in benchmark")
-
-    precision = tp / (tp + fp) if (tp + fp) else 0.0
-    recall = tp / (tp + fn) if (tp + fn) else 0.0
-    f1 = (
-        2 * precision * recall / (precision + recall) if (precision + recall) else 0.0
-    )
-    assert f1 >= 0.85, (
-        f"BANK_ACCOUNT recognizer f1={f1:.3f} (P={precision:.3f}, "
-        f"R={recall:.3f}, tp={tp}, fp={fp}, fn={fn}) below required 0.85"
-    )

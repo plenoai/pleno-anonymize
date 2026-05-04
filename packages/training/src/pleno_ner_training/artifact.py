@@ -196,6 +196,11 @@ class LogJsonlEntry(BaseModel):
             "baseline_comparison",
             "rule_amendment",
             "verdict_override",
+            # Composite recorded when an iteration changed both the dataset and
+            # the training hardware in the same step (RunPod GPU adoption,
+            # iter12). Kept as a distinct enum rather than splitting the entry
+            # so the historical record is preserved verbatim.
+            "data_augmentation+training_hardware",
         ]
     ] = None
     changes: Optional[Any] = None
@@ -206,6 +211,10 @@ class LogJsonlEntry(BaseModel):
         Literal[
             "KEEP",
             "DISCARD",
+            # KEEP_PARTIAL: hypothesis improved most entities but missed the
+            # primary AC (e.g. iter12_aug_ext: 4/5 entities up, ORG precision
+            # still floored). Keep the artifact for follow-up; do not tag.
+            "KEEP_PARTIAL",
             "KILL",
             "COMMIT",
             "NO_DECISION",

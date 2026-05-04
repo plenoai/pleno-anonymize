@@ -97,15 +97,28 @@ jobs:
           set -eu
           EXPECTED_SHA="${{ github.sha }}"
           BEFORE='${{ steps.pre_deploy.outputs.before }}'
-          flyctl machine list --app pleno-anonymize --json > machines.json
+          # `flyctl deploy --strategy immediate` returns once the platform has
+          # accepted the request, but machines pass through "replacing" before
+          # reaching "started" — the previous one-shot check on commit 7836162
+          # caught machines mid-replace and reported a false "no started
+          # machine" error. Poll for up to ~2 min so the verification only
+          # fires after fly's machine state has settled.
+          STARTED=0
+          AFTER=""
+          for i in $(seq 1 24); do
+            flyctl machine list --app pleno-anonymize --json > machines.json
+            STARTED=$(jq '[.[] | select(.state=="started")] | length' machines.json)
+            AFTER=$(jq -r '[.[] | .config.image] | sort | unique | join(",")' machines.json)
+            echo "attempt $i: started=${STARTED} after=${AFTER}"
+            [ "$STARTED" -ge 1 ] && break
+            sleep 5
+          done
           cat machines.json
-          AFTER=$(jq -r '[.[] | .config.image] | sort | unique | join(",")' machines.json)
-          STARTED=$(jq '[.[] | select(.state=="started")] | length' machines.json)
           echo "before=${BEFORE}"
           echo "after=${AFTER}"
           echo "started_count=${STARTED}"
           if [ "$STARTED" -lt 1 ]; then
-            echo "::error::no started machine after deploy (sha=${EXPECTED_SHA})"
+            echo "::error::no started machine after deploy within 2min (sha=${EXPECTED_SHA})"
             exit 1
           fi
           # Empty BEFORE = first deploy / pre-snapshot failed; skip drift check
