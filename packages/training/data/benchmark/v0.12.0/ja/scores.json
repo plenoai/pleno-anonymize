@@ -49,11 +49,46 @@
     "ents_r": 0.979,
     "ents_f": 0.374,
     "ents_per_type": {
-      "PERSON": {"p": 0.750, "r": 0.966, "f": 0.844, "tp": 57, "fp": 19, "fn": 2},
-      "ADDRESS": {"p": 0.529, "r": 1.000, "f": 0.692, "tp": 45, "fp": 40, "fn": 0},
-      "ORGANIZATION": {"p": 0.067, "r": 0.946, "f": 0.124, "tp": 35, "fp": 491, "fn": 2},
-      "DATE_OF_BIRTH": {"p": 0.411, "r": 1.000, "f": 0.582, "tp": 23, "fp": 33, "fn": 0},
-      "BANK_ACCOUNT": {"p": 0.444, "r": 1.000, "f": 0.615, "tp": 24, "fp": 30, "fn": 0}
+      "PERSON": {
+        "p": 0.75,
+        "r": 0.966,
+        "f": 0.844,
+        "tp": 57,
+        "fp": 19,
+        "fn": 2
+      },
+      "ADDRESS": {
+        "p": 0.529,
+        "r": 1.0,
+        "f": 0.692,
+        "tp": 45,
+        "fp": 40,
+        "fn": 0
+      },
+      "ORGANIZATION": {
+        "p": 0.067,
+        "r": 0.946,
+        "f": 0.124,
+        "tp": 35,
+        "fp": 491,
+        "fn": 2
+      },
+      "DATE_OF_BIRTH": {
+        "p": 0.411,
+        "r": 1.0,
+        "f": 0.582,
+        "tp": 23,
+        "fp": 33,
+        "fn": 0
+      },
+      "BANK_ACCOUNT": {
+        "p": 0.444,
+        "r": 1.0,
+        "f": 0.615,
+        "tp": 24,
+        "fp": 30,
+        "fn": 0
+      }
     },
     "suite_kind": "benchmark",
     "purpose": "OCR・key-value 崩れと一般文書の偽陽性圧力を強めた curated DLP benchmark",
@@ -71,11 +106,46 @@
     "ents_r": 0.989,
     "ents_f": 0.416,
     "ents_per_type": {
-      "PERSON": {"p": 0.795, "r": 0.983, "f": 0.879, "tp": 58, "fp": 15, "fn": 1},
-      "ADDRESS": {"p": 0.500, "r": 1.000, "f": 0.667, "tp": 45, "fp": 45, "fn": 0},
-      "ORGANIZATION": {"p": 0.085, "r": 0.973, "f": 0.156, "tp": 36, "fp": 390, "fn": 1},
-      "DATE_OF_BIRTH": {"p": 0.418, "r": 1.000, "f": 0.590, "tp": 23, "fp": 32, "fn": 0},
-      "BANK_ACCOUNT": {"p": 0.387, "r": 1.000, "f": 0.558, "tp": 24, "fp": 38, "fn": 0}
+      "PERSON": {
+        "p": 0.795,
+        "r": 0.983,
+        "f": 0.879,
+        "tp": 58,
+        "fp": 15,
+        "fn": 1
+      },
+      "ADDRESS": {
+        "p": 0.5,
+        "r": 1.0,
+        "f": 0.667,
+        "tp": 45,
+        "fp": 45,
+        "fn": 0
+      },
+      "ORGANIZATION": {
+        "p": 0.085,
+        "r": 0.973,
+        "f": 0.156,
+        "tp": 36,
+        "fp": 390,
+        "fn": 1
+      },
+      "DATE_OF_BIRTH": {
+        "p": 0.418,
+        "r": 1.0,
+        "f": 0.59,
+        "tp": 23,
+        "fp": 32,
+        "fn": 0
+      },
+      "BANK_ACCOUNT": {
+        "p": 0.387,
+        "r": 1.0,
+        "f": 0.558,
+        "tp": 24,
+        "fp": 38,
+        "fn": 0
+      }
     },
     "suite_kind": "benchmark",
     "purpose": "OCR・key-value 崩れと一般文書の偽陽性圧力を強めた curated DLP benchmark",
@@ -87,5 +157,49 @@
     "trained": "2026-05-03",
     "source": "packages/training/models/v02-tiny-hardneg-eval-v012.md (one-off tmp/eval_v012.py prior to #69 unification)",
     "notes": "Hard-negative mining (2032 zero-entity docs from generated.json). +0.042 F1 vs v02-tiny baseline but precision still collapses on ORGANIZATION (390 FP). Rerun via `python -m pleno_ner_training.evaluate_benchmark --hf-model output/hf-ja-v02-tiny-hardneg --version v0.12.0 --merge` once model artifact is restored."
+  },
+  "hf_v02_tiny_aug_ext": {
+    "ents_p": 0.30347349177330896,
+    "ents_r": 0.8829787234042553,
+    "ents_f": 0.45170068027210886,
+    "ents_per_type": {
+      "PERSON": {
+        "p": 0.9206349206349206,
+        "r": 0.9830508474576272,
+        "f": 0.9508196721311476
+      },
+      "DATE_OF_BIRTH": {
+        "p": 0.4423076923076923,
+        "r": 1.0,
+        "f": 0.6133333333333333
+      },
+      "ADDRESS": {
+        "p": 0.6730769230769231,
+        "r": 0.7777777777777778,
+        "f": 0.7216494845360825
+      },
+      "ORGANIZATION": {
+        "p": 0.08831908831908832,
+        "r": 0.8378378378378378,
+        "f": 0.15979381443298968
+      },
+      "BANK_ACCOUNT": {
+        "p": 0.6551724137931034,
+        "r": 0.7916666666666666,
+        "f": 0.7169811320754716
+      }
+    },
+    "latency_ms_per_doc": 5.1,
+    "model_size_mb": 31.7,
+    "num_docs": 500,
+    "negative_docs": 440,
+    "negative_clean_docs": 278,
+    "negative_doc_clean_rate": 0.6318181818181818,
+    "negative_fp_total": 333,
+    "suite_kind": "benchmark",
+    "purpose": "OCR・key-value 崩れと一般文書の偽陽性圧力を強めた curated DLP benchmark",
+    "corpus": "v0.12.0/ja",
+    "metric": "strict_span_f1",
+    "aggregation": "micro"
   }
 }
