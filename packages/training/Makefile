@@ -7,6 +7,7 @@
        benchmark-v10-generate benchmark-v10-evaluate benchmark-v10-generate-en benchmark-v10-evaluate-en \
        benchmark-v11-generate benchmark-v11-evaluate benchmark-v11-generate-en benchmark-v11-evaluate-en \
        benchmark-v12-generate benchmark-v12-evaluate benchmark-v12-generate-en benchmark-v12-evaluate-en \
+       benchmark-v13-held-out-evaluate benchmark-v13-held-out-evaluate-en \
        verify-leakage-v12 pin-noise-floor-v12 compare-baselines-v12 runpod-gpu-compare-v12 \
        convert-hf-v02 train-hf-v02 export-onnx-v02 push-hf-v02 all-hf-ja-v02 \
        convert-hf-v02-tiny train-hf-v02-tiny export-onnx-v02-tiny push-hf-v02-tiny all-hf-ja-v02-tiny \
@@ -393,6 +394,20 @@ benchmark-v12-evaluate-en:
 	uv run python -m pleno_ner_training.evaluate_benchmark \
 		--model $(EN_MODEL) \
 		--language en --version v0.12.0
+
+# v0.13.0-held-out: pre-built raw.json under data/benchmark/v0.13.0-held-out/<lang>/
+# (no generate target — held-out is the *test* partition kept disjoint from
+# training data; rebuilding it from prompts would defeat that). Convert the
+# raw.json once to test.spacy via convert_to_docs, then evaluate.
+benchmark-v13-held-out-evaluate:
+	uv run python -m pleno_ner_training.evaluate_benchmark \
+		--model $(OUTPUT_DIR)/model-best \
+		--language ja --version v0.13.0-held-out
+
+benchmark-v13-held-out-evaluate-en:
+	uv run python -m pleno_ner_training.evaluate_benchmark \
+		--model $(EN_MODEL) \
+		--language en --version v0.13.0-held-out
 
 # === HuggingFace Pipeline ===
 

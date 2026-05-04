@@ -196,6 +196,27 @@ BENCHMARK_CONFIGS: dict[str, BenchmarkConfig] = {
         suite_kind="benchmark",
         purpose="OCR・key-value 崩れと一般文書の偽陽性圧力を強めた curated DLP benchmark",
     ),
+    "v0.13.0-held-out": BenchmarkConfig(
+        # Held-out test set (test partition) for both ja and en.
+        # Wording is paraphrased rather than copied from v11/v12 corpus, so
+        # this set stays disjoint from training-time data — the F0a R14
+        # leakage check should pass cleanly.
+        # No templates / corpus_subdir: this benchmark is consumed via a
+        # pre-built raw.json under data/benchmark/v0.13.0-held-out/<lang>/.
+        # generate_benchmark cannot rebuild it (no prompts / no curated
+        # source files), only evaluate_benchmark + a manual --benchmark-data
+        # pointer can use it.
+        version="v0.13.0-held-out",
+        prompts_subdir="",
+        generation_backend="held-out",
+        suite_kind="held_out",
+        purpose=(
+            "Held-out test partition kept disjoint from training data. "
+            "Slice mix mirrors v11/v12 (positive: logistics_labels_b, "
+            "partially_redacted_public_a, ocr_forms_a; negative: 10 v12 "
+            "FP-pressure slices). 80 docs / 89 entities / 50 negatives."
+        ),
+    ),
 }
 
 BENCHMARK_VERSIONS = list(BENCHMARK_CONFIGS)
