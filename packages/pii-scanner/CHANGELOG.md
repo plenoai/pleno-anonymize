@@ -1,5 +1,12 @@
 # pleno-pii-scanner CHANGELOG
 
+## [v0.2.3] - 2026-05-04 — release: ship round-2 noise filter
+
+Bundles the round-1 (PR #100, v0.2.2 candidate) and round-2 (PR #103,
+post-merge expansion) noise-filter work into a single PyPI release. See
+v0.2.2 below for the full scope; v0.2.3 is the first version actually
+published.
+
 ## [v0.2.2] - 2026-05-04 — fix: macOS clone path bug + structural noise filter
 
 Real-world eval on five small Japanese-content GitHub repos
