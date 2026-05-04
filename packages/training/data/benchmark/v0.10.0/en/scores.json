@@ -42,5 +42,49 @@
     "corpus": "v0.10.0/en",
     "metric": "strict_span_f1",
     "aggregation": "micro"
+  },
+  "hf_v01_tiny_aug_ext": {
+    "ents_p": 0.20967741935483872,
+    "ents_r": 0.10655737704918032,
+    "ents_f": 0.14130434782608697,
+    "ents_per_type": {
+      "ADDRESS": {
+        "p": 0.07692307692307693,
+        "r": 0.14285714285714285,
+        "f": 0.1
+      },
+      "PERSON": {
+        "p": 0.6666666666666666,
+        "r": 0.0392156862745098,
+        "f": 0.07407407407407407
+      },
+      "BANK_ACCOUNT": {
+        "p": 0.25925925925925924,
+        "r": 0.5384615384615384,
+        "f": 0.35000000000000003
+      },
+      "ORGANIZATION": {
+        "p": 0.4,
+        "r": 0.06060606060606061,
+        "f": 0.10526315789473685
+      },
+      "DATE_OF_BIRTH": {
+        "p": 0.0,
+        "r": 0.0,
+        "f": 0.0
+      }
+    },
+    "latency_ms_per_doc": 20.7,
+    "model_size_mb": 280.3,
+    "num_docs": 104,
+    "negative_docs": 48,
+    "negative_clean_docs": 46,
+    "negative_doc_clean_rate": 0.9583333333333334,
+    "negative_fp_total": 2,
+    "suite_kind": "quality_gate",
+    "purpose": "出荷阻止用の curated DLP quality gate",
+    "corpus": "v0.10.0/en",
+    "metric": "strict_span_f1",
+    "aggregation": "micro"
   }
 }
