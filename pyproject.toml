@@ -14,6 +14,7 @@ members = [
     "packages/pii-scanner-github",
     "packages/pii-scanner-gitlab",
     "packages/pii-scanner-mongodb",
+    "packages/pii-scanner-msteams",
     "packages/pii-scanner-mysql",
     "packages/pii-scanner-notion",
     "packages/pii-scanner-oci",
