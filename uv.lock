@@ -41,6 +41,7 @@ members = [
     "pleno-pii-scanner-bitbucket",
     "pleno-pii-scanner-ci-logs",
     "pleno-pii-scanner-discord",
+    "pleno-pii-scanner-elasticsearch",
     "pleno-pii-scanner-gcs",
     "pleno-pii-scanner-github",
     "pleno-pii-scanner-gitlab",
@@ -53,6 +54,7 @@ members = [
     "pleno-pii-scanner-postgres",
     "pleno-pii-scanner-postman",
     "pleno-pii-scanner-redis",
+    "pleno-pii-scanner-sharepoint",
     "pleno-pii-scanner-slack",
     "pleno-recognizers",
 ]
@@ -3574,6 +3576,35 @@ dev = [
 ]
 
 [[package]]
+name = "pleno-pii-scanner-elasticsearch"
+version = "0.1.0"
+source = { editable = "packages/pii-scanner-elasticsearch" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pleno-pii-scanner" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "pleno-pii-scanner", editable = "packages/pii-scanner" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24" },
+    { name = "pytest-cov", specifier = ">=5.0" },
+]
+
+[[package]]
 name = "pleno-pii-scanner-gcs"
 version = "0.1.0"
 source = { editable = "packages/pii-scanner-gcs" }
@@ -3916,6 +3947,35 @@ dev = [
 requires-dist = [
     { name = "pleno-pii-scanner", editable = "packages/pii-scanner" },
     { name = "redis", specifier = ">=5.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24" },
+    { name = "pytest-cov", specifier = ">=5.0" },
+]
+
+[[package]]
+name = "pleno-pii-scanner-sharepoint"
+version = "0.1.0"
+source = { editable = "packages/pii-scanner-sharepoint" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pleno-pii-scanner" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "pleno-pii-scanner", editable = "packages/pii-scanner" },
 ]
 
 [package.metadata.requires-dev]
