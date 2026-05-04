@@ -18,6 +18,7 @@ members = [
     "packages/pii-scanner-notion",
     "packages/pii-scanner-oci",
     "packages/pii-scanner-postgres",
+    "packages/pii-scanner-postman",
     "packages/pii-scanner-redis",
     "packages/pii-scanner-slack",
 ]
