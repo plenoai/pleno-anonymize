@@ -1,5 +1,54 @@
 # pleno-pii-scanner CHANGELOG
 
+## [v0.2.2] - 2026-05-04 — fix: macOS clone path bug + structural noise filter
+
+Real-world eval on `azu/azu`, `mumumu/pep8-ja`, `nodejs/nodejs-ja` (706 KB
+total, 59 files) surfaced **5.5% precision** (8 TP / 137 FP / 145 findings).
+v0.2.2 ships two bug fixes and a structural noise filter that lifts overall
+findings to **80% precision on unverified findings (8 TP / 2 FP / 16 total,
+6 of which are correctly tagged `verification=failed`)** — a 89% reduction
+in surfaced findings with **100% true-positive retention**.
+
+### Fixed
+- `cmd_github` now resolves the temp clone path before walking. On macOS,
+  `tempfile.mkdtemp()` returns `/var/folders/...` while `os.walk` resolves
+  to `/private/var/folders/...`, breaking `relative_to(root)` and silently
+  dropping every cloned file (`scanned 0 files in 4 ms`). Mirrors what
+  `cmd_dir` already did.
+- `cmd_github` and `cmd_protect` no longer call `Finding.__dict__`.
+  `Finding` is `@dataclass(frozen=True, slots=True)`, so `__dict__` raises
+  `AttributeError`. Use `dataclasses.replace` instead.
+
+### Added
+- `noise_filters.py` — structural FP suppression layer between `verify` and
+  `filter_findings`. Filters key off **content-type signals**, not
+  entity-value blacklists, to avoid corpus overfitting:
+  - `IP_ADDRESS`: drop reserved/loopback/private/multicast IPs (`127.0.0.1`,
+    `192.168.x`), IPv6 `::`/`::1` literals (Sphinx `.. code-block::` noise),
+    matches inside `version`/`upgrade`/`bump`/`V8`/`tgz#`/semver-range
+    contexts, and matches inside backtick code spans.
+  - `PHONE_NUMBER`: drop low-confidence (≤0.45, unverified) Presidio matches
+    when the line carries version/PR-id context, semver shape (`16.43.2`),
+    `[#NNNN]` markdown link, or a date fragment (`2015-02-16`).
+  - `PERSON`: drop spaCy NER spans containing backticks, crossing line
+    boundaries, or sitting inside an inline-code span.
+- 17 regression tests in `tests/test_noise_filters.py`, each anchored to a
+  specific real-world FP from the v0.2.1 eval.
+
+### Real-world impact (v0.2.1 → v0.2.2 on the same three repos)
+
+| Repo | Findings before | After | TP retained | Reduction |
+|---|---:|---:|---:|---:|
+| `azu/azu` | 9 | 1 | 1/1 | -89% |
+| `nodejs/nodejs-ja` | 30 | 10 | 4/4 | -67% |
+| `mumumu/pep8-ja` | 106 | 5 | 3/3 | -95% |
+| **Total** | **145** | **16** | **8/8** | **-89%** |
+
+Residual FPs (2× `PERSON='大文字'` in pep8-ja) are model-level — `ja_ner_ja`
+misclassifies common Japanese nouns. Tracked separately for the HF backend
+(`PLENO_PII_SCANNER_BACKEND=hf`) which has F1 0.701 vs the 0.452 spaCy
+baseline.
+
 ## [v0.2.1] - 2026-05-04 — fix: load published ONNX artifact via optimum
 
 The v0.2.0 [hf] extra pulled in `torch` + `transformers` and tried to

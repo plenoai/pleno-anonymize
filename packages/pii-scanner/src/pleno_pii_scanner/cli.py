@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 import time
+from dataclasses import replace
 from pathlib import Path
 
 import click
@@ -17,6 +18,7 @@ from pleno_pii_scanner.github import list_org_repos, shallow_clone
 from pleno_pii_scanner.ignore import IgnoreSet, filter_findings, load_baseline, write_baseline
 from pleno_pii_scanner.models import Finding, ScanStats
 from pleno_pii_scanner.ner_pass import scan_files as scan_files_ner
+from pleno_pii_scanner.noise_filters import filter_noise
 from pleno_pii_scanner.regex_pass import compile_patterns
 from pleno_pii_scanner.report import render_human, render_json, render_sarif
 from pleno_pii_scanner.verify import verify
@@ -187,6 +189,11 @@ def _scan_directory(
     # Verification (checksum + context) runs in both modes — the local
     # checksum can still flag obviously-fake values the server accepted.
     findings = verify(findings, recognizers, file_text_for=file_text)
+    # Structural noise filtering: drops findings whose value+context can be
+    # ruled out as user PII without overfitting to specific values
+    # (reserved IPs, version strings, inline code spans). Runs after verify
+    # so PHONE_NUMBER suppression can read the verification status.
+    findings = filter_noise(findings, file_text_for=file_text)
     kept, _ = filter_findings(
         findings, ignore_set=ignore_set, baseline=baseline, file_lines=file_lines
     )
@@ -319,6 +326,11 @@ def cmd_github(target, org, full, include_history, entities, language, base_url,
     for slug in targets:
         click.echo(f"==> {slug}", err=True)
         with shallow_clone(slug, full=full) as repo:
+            # macOS tempfile.mkdtemp returns /var/folders/... but os.walk
+            # resolves it to /private/var/folders/..., which breaks
+            # relative_to(root) inside _scan_directory and silently drops
+            # every file. Resolve once here, like cmd_dir does.
+            repo = repo.resolve()
             ignore_set = _resolve_ignore(ignore_file, repo)
             baseline = load_baseline(baseline_path) if baseline_path else set()
             sub = _scan_directory(
@@ -333,8 +345,10 @@ def cmd_github(target, org, full, include_history, entities, language, base_url,
                 cloud=cloud,
             )
             # Re-prefix file paths so output is unambiguous across many repos.
+            # Finding is a frozen slotted dataclass — use dataclasses.replace,
+            # not __dict__ (slots=True removes __dict__).
             sub.findings = [
-                Finding(**{**f.__dict__, "file": f"{slug}:{f.file}"}) for f in sub.findings
+                replace(f, file=f"{slug}:{f.file}") for f in sub.findings
             ]
             aggregate.files_scanned += sub.files_scanned
             aggregate.bytes_scanned += sub.bytes_scanned
@@ -346,7 +360,7 @@ def cmd_github(target, org, full, include_history, entities, language, base_url,
                 hist = verify(hist, recognizers)
                 hist, _ = filter_findings(hist, ignore_set=ignore_set, baseline=baseline)
                 aggregate.findings.extend(
-                    Finding(**{**h.__dict__, "file": f"{slug}:{h.file}"}) for h in hist
+                    replace(h, file=f"{slug}:{h.file}") for h in hist
                 )
                 aggregate.commits_scanned += n_commits
 
@@ -418,9 +432,7 @@ def cmd_protect(entities, only_verified, no_color) -> None:
             text = line[1:]
             from pleno_pii_scanner.regex_pass import scan_text as _scan_text
             for f in _scan_text(text, current_file, patterns):
-                findings.append(
-                    Finding(**{**f.__dict__, "line": new_line})
-                )
+                findings.append(replace(f, line=new_line))
             new_line += 1
 
     findings = verify(findings, recognizers)
