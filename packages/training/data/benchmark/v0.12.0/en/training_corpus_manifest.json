@@ -1,0 +1,23 @@
+{
+  "algorithm": "SHA256-NFC",
+  "generated_at": "2026-05-04T09:41:59.973770+00:00",
+  "language": "en",
+  "manifest_hash": "2835dee5c6b64d38199a4e0e5f55506f6a0a712daeb3f310c7b19350457ae7c7",
+  "note": "doc_hashes recomputed at runtime from source files (paths under git tracking).",
+  "schema_version": "1.1",
+  "sources": [
+    {
+      "doc_count": 4818,
+      "doc_hashes_first5": [
+        "c2d616811682938eb3ce83f6841e82c7143d24ca83bd214bcba11ef9b8d2e763",
+        "e4ff04332364511c57dc60a868f79313dd53a9c2ce4ae63ef1543746d3730618",
+        "94b2447a9889f6fd7838b3ab5a6a48a639d8ee8b4f506cb548b272d306fe4055",
+        "9ff16a007d96686a851b180364964399cfe12e9bf7a5d1b9a8e55af174a68f66",
+        "fab81cbff954960cd0e5d47cf5468c4111e9d86900ef43ae8f1c215e2f401c81"
+      ],
+      "file_sha256": "b51757216d883b83c036c4c44822540856dd235eb36827133be32702279b6d95",
+      "name": "raw_en_generated",
+      "path": "packages/training/data/raw/en/generated.json"
+    }
+  ]
+}

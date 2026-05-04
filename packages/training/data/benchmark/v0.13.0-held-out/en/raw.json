@@ -1,0 +1,1446 @@
+[
+  {
+    "text": "The logistics policy page mostly discusses delivery windows and temperature ranges, but the edge of an OCR scan still shows `John A. Smith` and `234 Harbor Way, Boston, MA 02110`, with sender `Shibuya Branch Business Support Inc.` left visible.",
+    "entities": [
+      {
+        "start": 125,
+        "end": 138,
+        "label": "PERSON",
+        "text": "John A. Smith"
+      },
+      {
+        "start": 145,
+        "end": 177,
+        "label": "ADDRESS",
+        "text": "234 Harbor Way, Boston, MA 02110"
+      },
+      {
+        "start": 193,
+        "end": 229,
+        "label": "ORGANIZATION",
+        "text": "Shibuya Branch Business Support Inc."
+      }
+    ],
+    "_meta": {
+      "template": "logistics_labels_b.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 0
+    }
+  },
+  {
+    "text": "Warehouse signage diagrams display only shelf numbers and work dates, yet the lower-right slip reads `Hannah Sato`, return address `488 Broadway, Apt 6B, New York, NY 10013`, refund account `Bank of America Routing 026009593 Account 5566778`.",
+    "entities": [
+      {
+        "start": 102,
+        "end": 113,
+        "label": "PERSON",
+        "text": "Hannah Sato"
+      },
+      {
+        "start": 132,
+        "end": 172,
+        "label": "ADDRESS",
+        "text": "488 Broadway, Apt 6B, New York, NY 10013"
+      },
+      {
+        "start": 191,
+        "end": 240,
+        "label": "BANK_ACCOUNT",
+        "text": "Bank of America Routing 026009593 Account 5566778"
+      }
+    ],
+    "_meta": {
+      "template": "logistics_labels_b.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 1
+    }
+  },
+  {
+    "text": "The shipping FAQ body covers parcel sizing and ETA boilerplate, but a footnote thumbnail embeds `Priya Iyer`, `17 Rue de Lisbonne, Paris 75008`, and `May 10, 1965`.",
+    "entities": [
+      {
+        "start": 97,
+        "end": 107,
+        "label": "PERSON",
+        "text": "Priya Iyer"
+      },
+      {
+        "start": 111,
+        "end": 142,
+        "label": "ADDRESS",
+        "text": "17 Rue de Lisbonne, Paris 75008"
+      },
+      {
+        "start": 150,
+        "end": 162,
+        "label": "DATE_OF_BIRTH",
+        "text": "May 10, 1965"
+      }
+    ],
+    "_meta": {
+      "template": "logistics_labels_b.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 2
+    }
+  },
+  {
+    "text": "The venue guide carries only maps and timetables, yet an attached scan slips in `Olivia Bennett`, `742 Evergreen Terrace, Springfield, IL 62701`, and `Aoyagi Bridge Development Co.` on a delivery slip.",
+    "entities": [
+      {
+        "start": 81,
+        "end": 95,
+        "label": "PERSON",
+        "text": "Olivia Bennett"
+      },
+      {
+        "start": 99,
+        "end": 143,
+        "label": "ADDRESS",
+        "text": "742 Evergreen Terrace, Springfield, IL 62701"
+      },
+      {
+        "start": 151,
+        "end": 180,
+        "label": "ORGANIZATION",
+        "text": "Aoyagi Bridge Development Co."
+      }
+    ],
+    "_meta": {
+      "template": "logistics_labels_b.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 3
+    }
+  },
+  {
+    "text": "The delivery policy explainer page only discusses receiving conditions, yet a stray label image prints `Marcus DeLuca`, `88 Market Street, Suite 410, San Francisco, CA 94103`, and `1991/03/28`.",
+    "entities": [
+      {
+        "start": 104,
+        "end": 117,
+        "label": "PERSON",
+        "text": "Marcus DeLuca"
+      },
+      {
+        "start": 121,
+        "end": 173,
+        "label": "ADDRESS",
+        "text": "88 Market Street, Suite 410, San Francisco, CA 94103"
+      },
+      {
+        "start": 181,
+        "end": 191,
+        "label": "DATE_OF_BIRTH",
+        "text": "1991/03/28"
+      }
+    ],
+    "_meta": {
+      "template": "logistics_labels_b.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 4
+    }
+  },
+  {
+    "text": "The logistics report body sticks to generic KPIs and dates, but the supplemental OCR shows `Mariana Coleman`, `12 Chestnut Lane, Austin, TX 78701`, `Umeda Operations Support Center Ltd.` on one stray line.",
+    "entities": [
+      {
+        "start": 92,
+        "end": 107,
+        "label": "PERSON",
+        "text": "Mariana Coleman"
+      },
+      {
+        "start": 111,
+        "end": 145,
+        "label": "ADDRESS",
+        "text": "12 Chestnut Lane, Austin, TX 78701"
+      },
+      {
+        "start": 149,
+        "end": 185,
+        "label": "ORGANIZATION",
+        "text": "Umeda Operations Support Center Ltd."
+      }
+    ],
+    "_meta": {
+      "template": "logistics_labels_b.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 5
+    }
+  },
+  {
+    "text": "In a thumbnail tucked into the distribution-center news article you can read `Aisha N. Carter`, `203 Maple Ave, Boulder, CO 80302`, and `Hokkaido North-One Branch Services`.",
+    "entities": [
+      {
+        "start": 78,
+        "end": 93,
+        "label": "PERSON",
+        "text": "Aisha N. Carter"
+      },
+      {
+        "start": 97,
+        "end": 129,
+        "label": "ADDRESS",
+        "text": "203 Maple Ave, Boulder, CO 80302"
+      },
+      {
+        "start": 137,
+        "end": 171,
+        "label": "ORGANIZATION",
+        "text": "Hokkaido North-One Branch Services"
+      }
+    ],
+    "_meta": {
+      "template": "logistics_labels_b.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 6
+    }
+  },
+  {
+    "text": "On a single line of the public notice, the leftover return label still shows `Daniel O'Connor`, `10 Downing Street, London SW1A 2AA`, and `Wells Fargo Routing 121000248 Account 7722114 Savings`.",
+    "entities": [
+      {
+        "start": 78,
+        "end": 93,
+        "label": "PERSON",
+        "text": "Daniel O'Connor"
+      },
+      {
+        "start": 97,
+        "end": 131,
+        "label": "ADDRESS",
+        "text": "10 Downing Street, London SW1A 2AA"
+      },
+      {
+        "start": 139,
+        "end": 192,
+        "label": "BANK_ACCOUNT",
+        "text": "Wells Fargo Routing 121000248 Account 7722114 Savings"
+      }
+    ],
+    "_meta": {
+      "template": "logistics_labels_b.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 7
+    }
+  },
+  {
+    "text": "The body of the delivery-incident article is a generic discussion of weather and delays, yet the image caption ends with `Yusuf Khalid` and `Chase, Routing 021000021, Account 123456789, Checking` showing once.",
+    "entities": [
+      {
+        "start": 122,
+        "end": 134,
+        "label": "PERSON",
+        "text": "Yusuf Khalid"
+      },
+      {
+        "start": 141,
+        "end": 194,
+        "label": "BANK_ACCOUNT",
+        "text": "Chase, Routing 021000021, Account 123456789, Checking"
+      }
+    ],
+    "_meta": {
+      "template": "logistics_labels_b.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 8
+    }
+  },
+  {
+    "text": "The OCR of the warehouse blog's attached image is mostly box and shelf numbers, but at the bottom edge you can see `Sergei Volkov`, `Karasuma Community Care Clinic`, and `55 King Street West, Toronto, ON M5K 1A1`.",
+    "entities": [
+      {
+        "start": 116,
+        "end": 129,
+        "label": "PERSON",
+        "text": "Sergei Volkov"
+      },
+      {
+        "start": 133,
+        "end": 163,
+        "label": "ORGANIZATION",
+        "text": "Karasuma Community Care Clinic"
+      },
+      {
+        "start": 171,
+        "end": 211,
+        "label": "ADDRESS",
+        "text": "55 King Street West, Toronto, ON M5K 1A1"
+      }
+    ],
+    "_meta": {
+      "template": "logistics_labels_b.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 9
+    }
+  },
+  {
+    "text": "Most of the published material is [REDACTED], but the residual text shows John A. Smith, 234 Harbor Way, Boston, MA 02110.",
+    "entities": [
+      {
+        "start": 74,
+        "end": 87,
+        "label": "PERSON",
+        "text": "John A. Smith"
+      },
+      {
+        "start": 89,
+        "end": 121,
+        "label": "ADDRESS",
+        "text": "234 Harbor Way, Boston, MA 02110"
+      }
+    ],
+    "_meta": {
+      "template": "partially_redacted_public_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 10
+    }
+  },
+  {
+    "text": "The name field of the public-facing brief is [REDACTED], yet the annotation still has Priya Iyer, affiliated with Karasuma Community Care Clinic.",
+    "entities": [
+      {
+        "start": 86,
+        "end": 96,
+        "label": "PERSON",
+        "text": "Priya Iyer"
+      },
+      {
+        "start": 114,
+        "end": 144,
+        "label": "ORGANIZATION",
+        "text": "Karasuma Community Care Clinic"
+      }
+    ],
+    "_meta": {
+      "template": "partially_redacted_public_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 11
+    }
+  },
+  {
+    "text": "The body is supposedly anonymized, but a footnote retains Bank of America Routing 026009593 Account 5566778 and Hannah Sato.",
+    "entities": [
+      {
+        "start": 58,
+        "end": 107,
+        "label": "BANK_ACCOUNT",
+        "text": "Bank of America Routing 026009593 Account 5566778"
+      },
+      {
+        "start": 112,
+        "end": 123,
+        "label": "PERSON",
+        "text": "Hannah Sato"
+      }
+    ],
+    "_meta": {
+      "template": "partially_redacted_public_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 12
+    }
+  },
+  {
+    "text": "The address column of the [MASKED] public report is partially redacted, but 742 Evergreen Terrace, Springfield, IL 62701 and Olivia Bennett can still be read.",
+    "entities": [
+      {
+        "start": 76,
+        "end": 120,
+        "label": "ADDRESS",
+        "text": "742 Evergreen Terrace, Springfield, IL 62701"
+      },
+      {
+        "start": 125,
+        "end": 139,
+        "label": "PERSON",
+        "text": "Olivia Bennett"
+      }
+    ],
+    "_meta": {
+      "template": "partially_redacted_public_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 13
+    }
+  },
+  {
+    "text": "The appendix of the public minutes was not fully [WITHHELD]: Marcus DeLuca, WestEnd Data Lab Inc., and 1991/03/28 remained.",
+    "entities": [
+      {
+        "start": 61,
+        "end": 74,
+        "label": "PERSON",
+        "text": "Marcus DeLuca"
+      },
+      {
+        "start": 76,
+        "end": 97,
+        "label": "ORGANIZATION",
+        "text": "WestEnd Data Lab Inc."
+      },
+      {
+        "start": 103,
+        "end": 113,
+        "label": "DATE_OF_BIRTH",
+        "text": "1991/03/28"
+      }
+    ],
+    "_meta": {
+      "template": "partially_redacted_public_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 14
+    }
+  },
+  {
+    "text": "Most of the handout appendix is marked [WITHHELD], yet the residue still identifies Aisha N. Carter at 203 Maple Ave, Boulder, CO 80302.",
+    "entities": [
+      {
+        "start": 84,
+        "end": 99,
+        "label": "PERSON",
+        "text": "Aisha N. Carter"
+      },
+      {
+        "start": 103,
+        "end": 135,
+        "label": "ADDRESS",
+        "text": "203 Maple Ave, Boulder, CO 80302"
+      }
+    ],
+    "_meta": {
+      "template": "partially_redacted_public_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 15
+    }
+  },
+  {
+    "text": "The press kit is partly blacked out [REDACTED], but Daniel O'Connor and Wells Fargo Routing 121000248 Account 7722114 Savings remain in the open.",
+    "entities": [
+      {
+        "start": 52,
+        "end": 67,
+        "label": "PERSON",
+        "text": "Daniel O'Connor"
+      },
+      {
+        "start": 72,
+        "end": 125,
+        "label": "BANK_ACCOUNT",
+        "text": "Wells Fargo Routing 121000248 Account 7722114 Savings"
+      }
+    ],
+    "_meta": {
+      "template": "partially_redacted_public_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 16
+    }
+  },
+  {
+    "text": "The public slides are claimed anonymized, but the edge OCR leaves Mariana Coleman, Umeda Operations Support Center Ltd. legible.",
+    "entities": [
+      {
+        "start": 66,
+        "end": 81,
+        "label": "PERSON",
+        "text": "Mariana Coleman"
+      },
+      {
+        "start": 83,
+        "end": 119,
+        "label": "ORGANIZATION",
+        "text": "Umeda Operations Support Center Ltd."
+      }
+    ],
+    "_meta": {
+      "template": "partially_redacted_public_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 17
+    }
+  },
+  {
+    "text": "Citations in the [MASKED] public article are heavily blacked out, yet John A. Smith's DOB June 15, 1988 alone survives.",
+    "entities": [
+      {
+        "start": 70,
+        "end": 83,
+        "label": "PERSON",
+        "text": "John A. Smith"
+      },
+      {
+        "start": 90,
+        "end": 103,
+        "label": "DATE_OF_BIRTH",
+        "text": "June 15, 1988"
+      }
+    ],
+    "_meta": {
+      "template": "partially_redacted_public_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 18
+    }
+  },
+  {
+    "text": "Across the [REDACTED] case-study volume, only one residual line still reads Priya Iyer, 17 Rue de Lisbonne, Paris 75008.",
+    "entities": [
+      {
+        "start": 76,
+        "end": 86,
+        "label": "PERSON",
+        "text": "Priya Iyer"
+      },
+      {
+        "start": 88,
+        "end": 119,
+        "label": "ADDRESS",
+        "text": "17 Rue de Lisbonne, Paris 75008"
+      }
+    ],
+    "_meta": {
+      "template": "partially_redacted_public_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 19
+    }
+  },
+  {
+    "text": "RESIDENCE OCR Applicant: Daniel O'Connor DOB: May 10, 1965 Address: 234 Harbor Way, Boston, MA 02110 Employer: Konan Harbor Solutions Inc.",
+    "entities": [
+      {
+        "start": 25,
+        "end": 40,
+        "label": "PERSON",
+        "text": "Daniel O'Connor"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "DATE_OF_BIRTH",
+        "text": "May 10, 1965"
+      },
+      {
+        "start": 68,
+        "end": 100,
+        "label": "ADDRESS",
+        "text": "234 Harbor Way, Boston, MA 02110"
+      },
+      {
+        "start": 111,
+        "end": 138,
+        "label": "ORGANIZATION",
+        "text": "Konan Harbor Solutions Inc."
+      }
+    ],
+    "_meta": {
+      "template": "ocr_forms_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 20
+    }
+  },
+  {
+    "text": "REFUND CLAIM OCR Recipient: John A. Smith Remit to: Chase, Routing 021000021, Account 123456789, Checking Mailing: 488 Broadway, Apt 6B, New York, NY 10013",
+    "entities": [
+      {
+        "start": 28,
+        "end": 41,
+        "label": "PERSON",
+        "text": "John A. Smith"
+      },
+      {
+        "start": 52,
+        "end": 105,
+        "label": "BANK_ACCOUNT",
+        "text": "Chase, Routing 021000021, Account 123456789, Checking"
+      },
+      {
+        "start": 115,
+        "end": 155,
+        "label": "ADDRESS",
+        "text": "488 Broadway, Apt 6B, New York, NY 10013"
+      }
+    ],
+    "_meta": {
+      "template": "ocr_forms_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 21
+    }
+  },
+  {
+    "text": "IDENTITY OCR Name: Mariana Coleman Current Address: 12 Chestnut Lane, Austin, TX 78701 Affiliation: Umeda Operations Support Center Ltd. Born: September 12, 1986",
+    "entities": [
+      {
+        "start": 19,
+        "end": 34,
+        "label": "PERSON",
+        "text": "Mariana Coleman"
+      },
+      {
+        "start": 52,
+        "end": 86,
+        "label": "ADDRESS",
+        "text": "12 Chestnut Lane, Austin, TX 78701"
+      },
+      {
+        "start": 100,
+        "end": 136,
+        "label": "ORGANIZATION",
+        "text": "Umeda Operations Support Center Ltd."
+      },
+      {
+        "start": 143,
+        "end": 161,
+        "label": "DATE_OF_BIRTH",
+        "text": "September 12, 1986"
+      }
+    ],
+    "_meta": {
+      "template": "ocr_forms_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 22
+    }
+  },
+  {
+    "text": "DIRECT-DEBIT OCR Holder: Hannah Sato DOB: June 15, 1988 Bank: Bank of America Routing 026009593 Account 5566778 Address: 488 Broadway, Apt 6B, New York, NY 10013",
+    "entities": [
+      {
+        "start": 25,
+        "end": 36,
+        "label": "PERSON",
+        "text": "Hannah Sato"
+      },
+      {
+        "start": 42,
+        "end": 55,
+        "label": "DATE_OF_BIRTH",
+        "text": "June 15, 1988"
+      },
+      {
+        "start": 62,
+        "end": 111,
+        "label": "BANK_ACCOUNT",
+        "text": "Bank of America Routing 026009593 Account 5566778"
+      },
+      {
+        "start": 121,
+        "end": 161,
+        "label": "ADDRESS",
+        "text": "488 Broadway, Apt 6B, New York, NY 10013"
+      }
+    ],
+    "_meta": {
+      "template": "ocr_forms_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 23
+    }
+  },
+  {
+    "text": "MEDICAL SUBSIDY OCR Applicant: Priya Iyer Contact: 17 Rue de Lisbonne, Paris 75008 Referral: Karasuma Community Care Clinic DOB: May 10, 1965",
+    "entities": [
+      {
+        "start": 31,
+        "end": 41,
+        "label": "PERSON",
+        "text": "Priya Iyer"
+      },
+      {
+        "start": 51,
+        "end": 82,
+        "label": "ADDRESS",
+        "text": "17 Rue de Lisbonne, Paris 75008"
+      },
+      {
+        "start": 93,
+        "end": 123,
+        "label": "ORGANIZATION",
+        "text": "Karasuma Community Care Clinic"
+      },
+      {
+        "start": 129,
+        "end": 141,
+        "label": "DATE_OF_BIRTH",
+        "text": "May 10, 1965"
+      }
+    ],
+    "_meta": {
+      "template": "ocr_forms_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 24
+    }
+  },
+  {
+    "text": "EMERGENCY CONTACT OCR Subject: Olivia Bennett Employer: Aoyagi Bridge Development Co. Address: 742 Evergreen Terrace, Springfield, IL 62701 Remit to: Rakuten Bank Branch 002 Ordinary 4567890",
+    "entities": [
+      {
+        "start": 31,
+        "end": 45,
+        "label": "PERSON",
+        "text": "Olivia Bennett"
+      },
+      {
+        "start": 56,
+        "end": 85,
+        "label": "ORGANIZATION",
+        "text": "Aoyagi Bridge Development Co."
+      },
+      {
+        "start": 95,
+        "end": 139,
+        "label": "ADDRESS",
+        "text": "742 Evergreen Terrace, Springfield, IL 62701"
+      },
+      {
+        "start": 150,
+        "end": 190,
+        "label": "BANK_ACCOUNT",
+        "text": "Rakuten Bank Branch 002 Ordinary 4567890"
+      }
+    ],
+    "_meta": {
+      "template": "ocr_forms_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 25
+    }
+  },
+  {
+    "text": "BUILDING ACCESS OCR Applicant: Marcus DeLuca Affiliation: WestEnd Data Lab Inc. Mail to: 88 Market Street, Suite 410, San Francisco, CA 94103 DOB: 1991/03/28",
+    "entities": [
+      {
+        "start": 31,
+        "end": 44,
+        "label": "PERSON",
+        "text": "Marcus DeLuca"
+      },
+      {
+        "start": 58,
+        "end": 79,
+        "label": "ORGANIZATION",
+        "text": "WestEnd Data Lab Inc."
+      },
+      {
+        "start": 89,
+        "end": 141,
+        "label": "ADDRESS",
+        "text": "88 Market Street, Suite 410, San Francisco, CA 94103"
+      },
+      {
+        "start": 147,
+        "end": 157,
+        "label": "DATE_OF_BIRTH",
+        "text": "1991/03/28"
+      }
+    ],
+    "_meta": {
+      "template": "ocr_forms_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 26
+    }
+  },
+  {
+    "text": "GRANT APPLICATION OCR Representative: Aisha N. Carter Premises: 203 Maple Ave, Boulder, CO 80302 Entity: Hokkaido North-One Branch Services Remit to: Japan Post Bank Symbol 10100 Number 12345671",
+    "entities": [
+      {
+        "start": 38,
+        "end": 53,
+        "label": "PERSON",
+        "text": "Aisha N. Carter"
+      },
+      {
+        "start": 64,
+        "end": 96,
+        "label": "ADDRESS",
+        "text": "203 Maple Ave, Boulder, CO 80302"
+      },
+      {
+        "start": 105,
+        "end": 139,
+        "label": "ORGANIZATION",
+        "text": "Hokkaido North-One Branch Services"
+      },
+      {
+        "start": 150,
+        "end": 194,
+        "label": "BANK_ACCOUNT",
+        "text": "Japan Post Bank Symbol 10100 Number 12345671"
+      }
+    ],
+    "_meta": {
+      "template": "ocr_forms_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 27
+    }
+  },
+  {
+    "text": "REISSUE OCR Applicant: John A. Smith Address: 234 Harbor Way, Boston, MA 02110 Employer: Shibuya Branch Business Support Inc. DOB: June 15, 1988",
+    "entities": [
+      {
+        "start": 23,
+        "end": 36,
+        "label": "PERSON",
+        "text": "John A. Smith"
+      },
+      {
+        "start": 46,
+        "end": 78,
+        "label": "ADDRESS",
+        "text": "234 Harbor Way, Boston, MA 02110"
+      },
+      {
+        "start": 89,
+        "end": 125,
+        "label": "ORGANIZATION",
+        "text": "Shibuya Branch Business Support Inc."
+      },
+      {
+        "start": 131,
+        "end": 144,
+        "label": "DATE_OF_BIRTH",
+        "text": "June 15, 1988"
+      }
+    ],
+    "_meta": {
+      "template": "ocr_forms_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 28
+    }
+  },
+  {
+    "text": "REGISTRATION OCR Name: Daniel O'Connor Account: Wells Fargo Routing 121000248 Account 7722114 Savings Address: 10 Downing Street, London SW1A 2AA Affiliation: Konan Harbor Solutions Inc.",
+    "entities": [
+      {
+        "start": 23,
+        "end": 38,
+        "label": "PERSON",
+        "text": "Daniel O'Connor"
+      },
+      {
+        "start": 48,
+        "end": 101,
+        "label": "BANK_ACCOUNT",
+        "text": "Wells Fargo Routing 121000248 Account 7722114 Savings"
+      },
+      {
+        "start": 111,
+        "end": 145,
+        "label": "ADDRESS",
+        "text": "10 Downing Street, London SW1A 2AA"
+      },
+      {
+        "start": 159,
+        "end": 186,
+        "label": "ORGANIZATION",
+        "text": "Konan Harbor Solutions Inc."
+      }
+    ],
+    "_meta": {
+      "template": "ocr_forms_a.txt",
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test",
+      "doc_idx": 29
+    }
+  },
+  {
+    "text": "A research feature article from Boulder University Public Lectures introduces a joint study with Stanford Outreach and the Manhattan Medical Society plaza, but states explicitly that no subject-level rosters or home addresses are disclosed.",
+    "entities": [],
+    "_meta": {
+      "template": "academic_articles_a.txt",
+      "doc_idx": 30,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The university journal abstract refers to MIT collaboration partners in passing; the study refers to anonymized cohorts only and the paper does not contain participant DOBs or contract terms.",
+    "entities": [],
+    "_meta": {
+      "template": "academic_articles_a.txt",
+      "doc_idx": 31,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The methodology section uses sample_user, sample_name_01, and street-city-state-12345 as figure captions to illustrate field rendering; these are explanatory dummies, not subject records.",
+    "entities": [],
+    "_meta": {
+      "template": "academic_articles_a.txt",
+      "doc_idx": 32,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "A campus PR feature lists the Boulder University auditorium, the West Tower HQ plaza, and the Bridgepoint branch entrance as photo backdrops only; none are residential addresses of co-authors.",
+    "entities": [],
+    "_meta": {
+      "template": "academic_articles_a.txt",
+      "doc_idx": 33,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The appendix of the technical paper enumerates UI label names person_name, address_line, organization_name, and bank_account, leaving every value as <pending> or [REDACTED] so that no actual record is exposed.",
+    "entities": [],
+    "_meta": {
+      "template": "academic_articles_a.txt",
+      "doc_idx": 34,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "A campus notice from Boulder University Public Lectures announces an open seminar series and a partnership program with the Manhattan Medical Society, with no participant rosters attached.",
+    "entities": [],
+    "_meta": {
+      "template": "academic_notices_b.txt",
+      "doc_idx": 35,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The information session bulletin lists session dates 04/01/2026, 05/31/2026, and 06/15/2026 on the calendar; these are agenda dates and not anyone's date of birth.",
+    "entities": [],
+    "_meta": {
+      "template": "academic_notices_b.txt",
+      "doc_idx": 36,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The campus tour script displays sample_user and street-city-state-12345 as on-screen example strings; the demo screen is a UI mock and shows no real applicant data.",
+    "entities": [],
+    "_meta": {
+      "template": "academic_notices_b.txt",
+      "doc_idx": 37,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "Course handouts cite (555) 010-XXXX as the inquiry hotline and REQ-09-4412 as the registration reference; no financial information appears on the handout.",
+    "entities": [],
+    "_meta": {
+      "template": "academic_notices_b.txt",
+      "doc_idx": 38,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The collaborative-research announcement uses sample_name_01 and sample_name_07 as illustrative names for screen rendering; these placeholder strings are not real person identifiers.",
+    "entities": [],
+    "_meta": {
+      "template": "academic_notices_b.txt",
+      "doc_idx": 39,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The configuration FAQ shows only example values such as branch-main checking 0000000000 and Routing 000000000; these are illustrative defaults and not real bank accounts.",
+    "entities": [],
+    "_meta": {
+      "template": "bankish_code_negative_a.txt",
+      "doc_idx": 40,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "An operations handout enumerates (555) 010-XXXX, REQ-09-4412, and INV-778812 as inquiry numbers and tracking IDs; none of these are financial account information.",
+    "entities": [],
+    "_meta": {
+      "template": "bankish_code_negative_a.txt",
+      "doc_idx": 41,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The setup guide states account=TEMP-HOLD, bank=masked, and institution=UNASSIGNED to describe unset states; no holder name or refund destination is recorded.",
+    "entities": [],
+    "_meta": {
+      "template": "bankish_code_negative_a.txt",
+      "doc_idx": 42,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The demo screen prints branch-main checking 0000000000 as a placeholder for layout verification; it is not the user's actual checking account number.",
+    "entities": [],
+    "_meta": {
+      "template": "bankish_code_negative_a.txt",
+      "doc_idx": 43,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The internal memo records (555) 010-XXXX as a support hotline and INV-778812 as an invoice example; neither field encodes banking information.",
+    "entities": [],
+    "_meta": {
+      "template": "bankish_code_negative_a.txt",
+      "doc_idx": 44,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The onboarding handout displays sample_user, sample_name_01, street-city-state-12345, and MM/DD/YYYY only as catalog placeholders, with no real customer data attached.",
+    "entities": [],
+    "_meta": {
+      "template": "catalog_placeholder_negative_a.txt",
+      "doc_idx": 45,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The screen-list explainer lists name=<pending>, address=UNASSIGNED, dob=MM/DD/YYYY, and account=TEMP-HOLD; these are placeholder labels and not PII.",
+    "entities": [],
+    "_meta": {
+      "template": "catalog_placeholder_negative_a.txt",
+      "doc_idx": 46,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The HTML mock <input placeholder=\"sample_user\"> and <input placeholder=\"street-city-state-12345\"> appear in the design doc as UI illustrations only.",
+    "entities": [],
+    "_meta": {
+      "template": "catalog_placeholder_negative_a.txt",
+      "doc_idx": 47,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "A CSV row used for layout testing reads sample_name_01,MM/DD/YYYY,street-city-state-12345,UNASSIGNED,branch-main checking 0000000000 verbatim; it is a fixed sample.",
+    "entities": [],
+    "_meta": {
+      "template": "catalog_placeholder_negative_a.txt",
+      "doc_idx": 48,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The product page description box presents TEMP-HOLD, [REDACTED], and branch-main checking 0000000000 as catalog examples of unset values, not real holder data.",
+    "entities": [],
+    "_meta": {
+      "template": "catalog_placeholder_negative_a.txt",
+      "doc_idx": 49,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "A neighborhood association bulletin announces the reopening of the Chase Branch promenade community room and renovation work at the West Tower HQ plaza, with no resident names attached.",
+    "entities": [],
+    "_meta": {
+      "template": "community_bulletins_a.txt",
+      "doc_idx": 50,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The town newsletter mentions traffic restrictions near the Manhattan Medical Society plaza and a cleanup activity in front of the West Tower HQ; no individual is identified.",
+    "entities": [],
+    "_meta": {
+      "template": "community_bulletins_a.txt",
+      "doc_idx": 51,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "A volunteer recruitment notice lists activity dates 04/01/2026, 05/31/2026, and 06/15/2026 alongside venue names; no participant rosters or address books are published.",
+    "entities": [],
+    "_meta": {
+      "template": "community_bulletins_a.txt",
+      "doc_idx": 52,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The community board posts only event participation methods, venue maps, and inquiry contacts; applicant names and shipping addresses are managed separately and never disclosed.",
+    "entities": [],
+    "_meta": {
+      "template": "community_bulletins_a.txt",
+      "doc_idx": 53,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "A regional bulletin quotes UI mocks such as sample_user and street-city-state-12345 verbatim from the city portal explainer; these are fixed placeholder strings, not residents.",
+    "entities": [],
+    "_meta": {
+      "template": "community_bulletins_a.txt",
+      "doc_idx": 54,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "Glossary: person_name refers to the name field, address_line to the address field, and bank_account to the account field. Each is a label name, not a value.",
+    "entities": [],
+    "_meta": {
+      "template": "docs_glossary_negative_a.txt",
+      "doc_idx": 55,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The term explanation lists examples like sample_user and street-city-state-12345 as illustrations of dummy values, not actual records.",
+    "entities": [],
+    "_meta": {
+      "template": "docs_glossary_negative_a.txt",
+      "doc_idx": 56,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The data dictionary gives only field descriptions for person_name, organization_name, and address_line; every value column is marked <pending> or UNASSIGNED.",
+    "entities": [],
+    "_meta": {
+      "template": "docs_glossary_negative_a.txt",
+      "doc_idx": 57,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "Within the glossary, MM/DD/YYYY appears as a date-format example; it is not date-of-birth data for any individual.",
+    "entities": [],
+    "_meta": {
+      "template": "docs_glossary_negative_a.txt",
+      "doc_idx": 58,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The facility-term column of the glossary describes the Bridgepoint branch entrance and the Boulder University auditorium as descriptions of generic place names.",
+    "entities": [],
+    "_meta": {
+      "template": "docs_glossary_negative_a.txt",
+      "doc_idx": 59,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The event brochure carries only the venue names Boulder University auditorium, West Tower HQ plaza, and Bridgepoint branch entrance; there is no record-level information.",
+    "entities": [],
+    "_meta": {
+      "template": "event_brochures_negative_a.txt",
+      "doc_idx": 60,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The handout flyer prints the event dates 2026/04/01, 2026/05/31, and 2026/06/15; these are agenda dates on the calendar, not dates of birth.",
+    "entities": [],
+    "_meta": {
+      "template": "event_brochures_negative_a.txt",
+      "doc_idx": 61,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The contact section of the brochure shows only the main hotline (555) 010-XXXX and reference REQ-09-4412; no individual contact records appear.",
+    "entities": [],
+    "_meta": {
+      "template": "event_brochures_negative_a.txt",
+      "doc_idx": 62,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The PR booklet announces Boulder University Public Lectures and a Stanford Outreach collaboration program; it is not a personal roster.",
+    "entities": [],
+    "_meta": {
+      "template": "event_brochures_negative_a.txt",
+      "doc_idx": 63,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "A note on the venue map shows street-city-state-12345 and sample_user_07 as map-layout sample strings; no real attendee address is encoded.",
+    "entities": [],
+    "_meta": {
+      "template": "event_brochures_negative_a.txt",
+      "doc_idx": 64,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The civic guide lists the Bridgepoint branch entrance, the West Tower HQ plaza, and the Manhattan Medical Society plaza, but contains no individual or corporate record-level data.",
+    "entities": [],
+    "_meta": {
+      "template": "facility_org_false_positive_a.txt",
+      "doc_idx": 65,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The civic-lecture announcement names the City of Boulder Department of Health, Boulder University Public Lectures, and Stanford Outreach as cooperating bodies; no attendees or mailing addresses are listed.",
+    "entities": [],
+    "_meta": {
+      "template": "facility_org_false_positive_a.txt",
+      "doc_idx": 66,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The redevelopment report explains maintenance plans for the Chase Branch promenade and the front of West Tower HQ; no record-level data is handled.",
+    "entities": [],
+    "_meta": {
+      "template": "facility_org_false_positive_a.txt",
+      "doc_idx": 67,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "The travel guide profiles the Boulder University auditorium, the Manhattan Medical Society plaza, and the front of West Tower HQ; it is not a register of mailing addresses or employers.",
+    "entities": [],
+    "_meta": {
+      "template": "facility_org_false_positive_a.txt",
+      "doc_idx": 68,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "A neighborhood handout mentions the City of Boulder Department of Health and the Manhattan Medical Society plaza only as common organizational and venue labels, with no resident records included.",
+    "entities": [],
+    "_meta": {
+      "template": "facility_org_false_positive_a.txt",
+      "doc_idx": 69,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "FAQ Q: \"Why does sample_user appear on the screen?\" A: \"It is a demo display string and does not signify personal information.\"",
+    "entities": [],
+    "_meta": {
+      "template": "faq_negative_b.txt",
+      "doc_idx": 70,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "FAQ Q: \"Is street-city-state-12345 a real address?\" A: \"No, it is an illustrative placeholder rendered for layout testing.\"",
+    "entities": [],
+    "_meta": {
+      "template": "faq_negative_b.txt",
+      "doc_idx": 71,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "FAQ Q: \"Is branch-main checking 0000000000 a real account?\" A: \"No, it is a UI mock used to verify display widths.\"",
+    "entities": [],
+    "_meta": {
+      "template": "faq_negative_b.txt",
+      "doc_idx": 72,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "FAQ Q: \"Whose number is (555) 010-XXXX?\" A: \"It is the support hotline example number; no specific holder is associated.\"",
+    "entities": [],
+    "_meta": {
+      "template": "faq_negative_b.txt",
+      "doc_idx": 73,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "FAQ Q: \"Is Boulder University auditorium an employer field?\" A: \"It is a venue name and should not be entered into the employer record.\"",
+    "entities": [],
+    "_meta": {
+      "template": "faq_negative_b.txt",
+      "doc_idx": 74,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "In the user forum thread, sample_user is asking why street-city-state-12345 appears on the signup screen; the poster shares no real personal information.",
+    "entities": [],
+    "_meta": {
+      "template": "forum_threads_a.txt",
+      "doc_idx": 75,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "Another thread debates why \"branch-main checking 0000000000\" is the example value in onboarding screens; the discussion is purely about dummy display content.",
+    "entities": [],
+    "_meta": {
+      "template": "forum_threads_a.txt",
+      "doc_idx": 76,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "A community post asks whether \"Manhattan Medical Society plaza\" should be flagged as an address; commenters note it is a landmark, not a residence.",
+    "entities": [],
+    "_meta": {
+      "template": "forum_threads_a.txt",
+      "doc_idx": 77,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "Members chat about scheduled rollouts on 04/01/2026, 05/31/2026, and 06/15/2026; these are upcoming release dates, not anyone's date of birth.",
+    "entities": [],
+    "_meta": {
+      "template": "forum_threads_a.txt",
+      "doc_idx": 78,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  },
+  {
+    "text": "Forum members explain that UNASSIGNED, TEMP-HOLD, and <pending> are UI labels for unset state, not real customer values being leaked from production.",
+    "entities": [],
+    "_meta": {
+      "template": "forum_threads_a.txt",
+      "doc_idx": 79,
+      "version": "v0.13.0-held-out",
+      "language": "en",
+      "partition": "test"
+    }
+  }
+]
