@@ -10,6 +10,7 @@ members = [
     "packages/pii-scanner-gcs",
     "packages/pii-scanner-github",
     "packages/pii-scanner-gitlab",
+    "packages/pii-scanner-mysql",
     "packages/pii-scanner-notion",
     "packages/pii-scanner-oci",
     "packages/pii-scanner-postgres",
