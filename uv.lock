@@ -44,6 +44,7 @@ members = [
     "pleno-pii-scanner-gcs",
     "pleno-pii-scanner-github",
     "pleno-pii-scanner-gitlab",
+    "pleno-pii-scanner-jira",
     "pleno-pii-scanner-mongodb",
     "pleno-pii-scanner-mysql",
     "pleno-pii-scanner-notion",
@@ -3635,6 +3636,35 @@ dev = [
 name = "pleno-pii-scanner-gitlab"
 version = "0.1.0"
 source = { editable = "packages/pii-scanner-gitlab" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pleno-pii-scanner" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "pleno-pii-scanner", editable = "packages/pii-scanner" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24" },
+    { name = "pytest-cov", specifier = ">=5.0" },
+]
+
+[[package]]
+name = "pleno-pii-scanner-jira"
+version = "0.1.0"
+source = { editable = "packages/pii-scanner-jira" }
 dependencies = [
     { name = "httpx" },
     { name = "pleno-pii-scanner" },
