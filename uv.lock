@@ -2641,7 +2641,7 @@ provides-extras = ["training", "hf", "bench"]
 
 [[package]]
 name = "pleno-pii-scanner"
-version = "0.2.4"
+version = "0.2.5"
 source = { editable = "packages/pii-scanner" }
 dependencies = [
     { name = "click" },
@@ -2687,7 +2687,7 @@ dev = [
 
 [[package]]
 name = "pleno-recognizers"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "packages/recognizers" }
 
 [package.optional-dependencies]
