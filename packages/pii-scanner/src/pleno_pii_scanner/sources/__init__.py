@@ -23,14 +23,38 @@ from pleno_pii_scanner.sources.base import (
     SourceConnector,
     SourceFilter,
 )
+from pleno_pii_scanner.sources.registry import (
+    ConnectorError,
+    ConnectorFactory,
+    ConnectorSpec,
+    DuplicateConnectorError,
+    UnknownConnectorError,
+    create,
+    get,
+    list_kinds,
+    list_specs,
+    register,
+    unregister,
+)
 
 __all__ = [
     "Capabilities",
+    "ConnectorError",
+    "ConnectorFactory",
+    "ConnectorSpec",
     "Cursor",
     "Document",
     "DocumentChunk",
     "DocumentRef",
+    "DuplicateConnectorError",
     "Principal",
     "SourceConnector",
     "SourceFilter",
+    "UnknownConnectorError",
+    "create",
+    "get",
+    "list_kinds",
+    "list_specs",
+    "register",
+    "unregister",
 ]
