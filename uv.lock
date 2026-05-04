@@ -55,6 +55,7 @@ members = [
     "pleno-pii-scanner-redis",
     "pleno-pii-scanner-sharepoint",
     "pleno-pii-scanner-slack",
+    "pleno-pii-scanner-snowflake",
     "pleno-recognizers",
 ]
 
@@ -3979,6 +3980,35 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.27" },
     { name = "pleno-pii-scanner", editable = "packages/pii-scanner" },
     { name = "slack-sdk", specifier = ">=3.27" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24" },
+    { name = "pytest-cov", specifier = ">=5.0" },
+]
+
+[[package]]
+name = "pleno-pii-scanner-snowflake"
+version = "0.1.0"
+source = { editable = "packages/pii-scanner-snowflake" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pleno-pii-scanner" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "pleno-pii-scanner", editable = "packages/pii-scanner" },
 ]
 
 [package.metadata.requires-dev]
