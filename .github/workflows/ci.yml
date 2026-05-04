@@ -24,8 +24,51 @@ jobs:
       - run: uv run pytest tests/ -v
         working-directory: server
 
+  # Discover every connector package and emit a matrix. New packages
+  # under `packages/pii-scanner*` are picked up automatically — no
+  # workflow edits required when adding a connector.
+  connectors-discover:
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.list.outputs.packages }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: list
+        run: |
+          set -euo pipefail
+          # JSON array of relative directories that contain pyproject.toml.
+          # Stable sort so log output is reproducible across runs.
+          mapfile -t pkgs < <(
+            for d in packages/pii-scanner packages/pii-scanner-*; do
+              [ -f "$d/pyproject.toml" ] && echo "$d"
+            done | sort -u
+          )
+          json=$(printf '%s\n' "${pkgs[@]}" | jq -R . | jq -sc .)
+          echo "Resolved connector packages: $json"
+          echo "packages=$json" >> "$GITHUB_OUTPUT"
+
+  connectors:
+    needs: connectors-discover
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.connectors-discover.outputs.packages) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Sync workspace
+        run: uv sync
+      - name: Lint
+        run: |
+          uvx ruff check ${{ matrix.package }}/src ${{ matrix.package }}/tests
+          uvx ruff format --check ${{ matrix.package }}/src ${{ matrix.package }}/tests
+      - name: Test
+        working-directory: ${{ matrix.package }}
+        run: uv run pytest -q
+
   deploy:
-    needs: [check, test]
+    needs: [check, test, connectors]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     concurrency:
