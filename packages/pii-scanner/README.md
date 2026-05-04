@@ -79,6 +79,34 @@ Each finding carries one of three labels.
 
 `--report-path FILE` writes to a file. Exit code is `0` for no findings, `1` when findings are present, `2` for usage errors.
 
+## DB-cluster mode (recommended for repo audits)
+
+Repository-level PII risk follows database shape, not single mentions. A
+contact email in a CODE_OF_CONDUCT is one identifiable person, not an
+exfiltration target; a CSV row with name + phone + email + my_number is.
+
+`--db-only` keeps a finding only when its file or folder forms a cluster
+of co-occurring detections with multiple distinct values:
+
+```sh
+uvx pleno-pii-scanner dir ./my-repo --db-only
+uvx pleno-pii-scanner github owner/repo --db-only
+```
+
+Tunables (defaults shown):
+
+| Flag | Default | Meaning |
+|---|---|---|
+| `--db-file-threshold` | `2` | Minimum findings in one file to qualify as a DB cluster. |
+| `--db-folder-threshold` | `3` | Minimum findings in one folder (for sharded-DB shape). |
+
+`verification=failed` findings (e.g. ISBN matched as MY_NUMBER) are
+excluded from cluster computation so an awesome-list of book links can
+not promote a folder to DB-shaped. On the v0.2.4 ten-repo Japanese eval,
+this mode takes 6/10 repos from "findings to triage" to zero while
+keeping every real exposure (resumes, PII fixture banks, contributor
+lists).
+
 ## Suppression
 
 A `.plenoignore` file at the repo root is read automatically.

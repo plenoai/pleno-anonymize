@@ -87,6 +87,33 @@ def _has_version_context(window: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# JWT / Unix timestamp digits: 10-digit numbers that look like phone
+# numbers but are actually JSON Web Token claims. Captured from
+# heyinc/development-partner-docs/auth-oauth.md where ``"jti"``, ``"iat"``,
+# ``"exp"``, ``"nbf"`` claim values triggered Presidio PHONE_NUMBER.
+# ---------------------------------------------------------------------------
+
+_JWT_CLAIM_RE = re.compile(
+    r"""
+    "(?:iat|exp|nbf|jti|iss|aud|sub|auth_time|acr|azp)"\s*:\s*"?\d
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+
+
+def _in_jwt_claim(line: str) -> bool:
+    return bool(_JWT_CLAIM_RE.search(line))
+
+
+def _is_unix_timestamp_shape(matched: str) -> bool:
+    """10-digit numbers in 1_000_000_000 .. 2_000_000_000 are 2001-2033 epochs."""
+    if not (len(matched) == 10 and matched.isdigit()):
+        return False
+    n = int(matched)
+    return 1_000_000_000 <= n <= 2_000_000_000
+
+
+# ---------------------------------------------------------------------------
 # Code-span detection: if the matched substring is bounded by inline-code
 # delimiters (``…``, `` ` ``, RST ``…``) on the same line, treat it as a
 # code identifier rather than data. Common in docs/READMEs that quote
@@ -242,7 +269,11 @@ def _contains_digit(matched: str) -> bool:
 
 
 def _contains_paren(matched: str) -> bool:
-    return any(ch in matched for ch in "（）()[]［］{}｛｝")
+    # Only OPENING brackets count as a non-name signal. Trailing closing
+    # brackets are a common spaCy markdown-leak — e.g. ``株式会社ユーザベース]``
+    # captured from a ``[株式会社ユーザベース](https://...)`` link. The bracket
+    # leader case (``（Zenn）``) is already covered by ``_starts_with_non_name_lead``.
+    return any(ch in matched for ch in "（(［[｛{")
 
 
 # ---------------------------------------------------------------------------
@@ -342,6 +373,11 @@ def _should_drop(f: Finding, file_text_for: dict[str, str]) -> bool:
                 return True
             # Amazon ASIN, ISBN path — product-id digits, not phones.
             if _in_product_url(line):
+                return True
+            # JWT claim values ("iat": 1654514191, etc.) are 10-digit Unix
+            # timestamps in JSON, not phone numbers. Gated on the claim-name
+            # context so we don't suppress legitimate 10-digit phones.
+            if _in_jwt_claim(line) and _is_unix_timestamp_shape(f.matched):
                 return True
         return False
 
