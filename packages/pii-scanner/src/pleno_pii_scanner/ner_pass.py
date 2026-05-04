@@ -118,6 +118,28 @@ def _line_col(line_starts: list[int], offset: int) -> tuple[int, int]:
     return line_idx + 1, offset - line_starts[line_idx] + 1
 
 
+# Sudachi (used by spaCy's ja tokenizer) hard-caps tokenize input at 49,149 bytes.
+# Chunk on character boundaries with margin for multi-byte characters; prefer
+# splitting on newlines so detections stay aligned with source lines.
+_NER_CHUNK_CHAR_LIMIT = 12_000
+
+
+def _chunk_text(text: str):
+    if len(text) <= _NER_CHUNK_CHAR_LIMIT:
+        yield 0, text
+        return
+    pos = 0
+    n = len(text)
+    while pos < n:
+        end = min(pos + _NER_CHUNK_CHAR_LIMIT, n)
+        if end < n:
+            newline = text.rfind("\n", pos, end)
+            if newline > pos:
+                end = newline + 1
+        yield pos, text[pos:end]
+        pos = end
+
+
 def scan_text(
     text: str,
     file: str,
@@ -128,39 +150,41 @@ def scan_text(
     if not text:
         return []
     analyzer = _init_analyzer()
-    results = analyzer.analyze(
-        text=text,
-        language=language,
-        entities=list(entities) if entities else None,
-    )
     line_starts = _line_offsets(text)
     findings: list[Finding] = []
-    for r in results:
-        start = int(r.start)
-        end = int(r.end)
-        line, col = _line_col(line_starts, start)
-        line_end_idx = bisect.bisect_right(line_starts, start)
-        line_end = (
-            line_starts[line_end_idx]
-            if line_end_idx < len(line_starts)
-            else len(text)
+    entity_filter = list(entities) if entities else None
+    for chunk_start, chunk in _chunk_text(text):
+        chunk_results = analyzer.analyze(
+            text=chunk,
+            language=language,
+            entities=entity_filter,
         )
-        snippet = text[line_starts[line - 1] : line_end].rstrip("\n")
-        if len(snippet) > 240:
-            rel = start - line_starts[line - 1]
-            snippet = snippet[max(0, rel - 80) : rel + 160]
-        findings.append(
-            Finding(
-                entity=str(r.entity_type),
-                file=file,
-                line=line,
-                col=col,
-                score=float(r.score),
-                snippet=snippet,
-                matched=text[start:end],
-                pattern_name="presidio",
+        for r in chunk_results:
+            start = int(r.start) + chunk_start
+            end = int(r.end) + chunk_start
+            line, col = _line_col(line_starts, start)
+            line_end_idx = bisect.bisect_right(line_starts, start)
+            line_end = (
+                line_starts[line_end_idx]
+                if line_end_idx < len(line_starts)
+                else len(text)
             )
-        )
+            snippet = text[line_starts[line - 1] : line_end].rstrip("\n")
+            if len(snippet) > 240:
+                rel = start - line_starts[line - 1]
+                snippet = snippet[max(0, rel - 80) : rel + 160]
+            findings.append(
+                Finding(
+                    entity=str(r.entity_type),
+                    file=file,
+                    line=line,
+                    col=col,
+                    score=float(r.score),
+                    snippet=snippet,
+                    matched=text[start:end],
+                    pattern_name="presidio",
+                )
+            )
     return findings
 
 
