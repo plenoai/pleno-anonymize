@@ -1,0 +1,107 @@
+# Default values for pleno-pii-scanner.
+# Override with `helm install --values my-overrides.yaml`.
+
+image:
+  repository: ghcr.io/plenoai/pii-scanner
+  tag: ""              # defaults to .Chart.AppVersion
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+# Cron schedule. Default: nightly at 02:00 cluster local time.
+# Use UTC explicitly via `timeZone` (k8s 1.27+).
+schedule: "0 2 * * *"
+timeZone: Etc/UTC
+
+# `Forbid` skips the run if the previous one is still in flight.
+# `Replace` cancels the previous and starts fresh — useful only if
+# scans never legitimately exceed the schedule interval.
+concurrencyPolicy: Forbid
+
+# Hard time cap on a single scan. Default 6h. The scanner has its
+# own per-source SLA from ScheduleRegistry; this is the outer guard.
+activeDeadlineSeconds: 21600
+backoffLimit: 1
+successfulJobsHistoryLimit: 3
+failedJobsHistoryLimit: 5
+
+# Default scan invocation. Override `args` to point at a different
+# kind / config. The example targets the GitHub connector.
+args:
+  - scan
+  - run
+  - github
+  - --config
+  - /etc/pii-scanner/scan.toml
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "1Gi"
+  limits:
+    cpu: "2"
+    memory: "4Gi"
+
+# Persistent state — SQLite checkpoint store + findings shards.
+# Disable only if you've configured a remote FindingsStore (Postgres
+# + S3) and a CheckpointStore that doesn't need local disk.
+persistence:
+  enabled: true
+  size: 20Gi
+  storageClass: ""
+  accessModes: [ReadWriteOnce]
+
+# Connector-side config — rendered into a ConfigMap and mounted
+# at /etc/pii-scanner/scan.toml.
+scanConfig: |
+  [github]
+  app_id = "REPLACE_ME"
+  private_key_env = "GITHUB_APP_PRIVATE_KEY"
+  organizations = ["acme-corp"]
+  archived = false
+
+# Secrets — populate via External Secrets / Vault Agent. The values
+# here are passed to a stub Secret (see secret.yaml). For production,
+# disable `createSecret` and bring your own Secret object.
+createSecret: true
+secrets:
+  findingsMasterKey: ""           # 32-byte base64
+  githubAppPrivateKey: ""         # PEM
+  # Add per-connector keys as you enable them. They become env vars
+  # of the same key (UPPER_SNAKE_CASE) on the scanner pod.
+
+# Egress posture. NetworkPolicy is on by default; private-RFC1918
+# ranges are blocked. Add your internal CIDRs back in if you have a
+# self-managed connector (GitLab/Bitbucket Server / Azure DevOps Server).
+networkPolicy:
+  enabled: true
+  allowedPrivateCIDRs: []
+  # e.g.:
+  # - 10.20.0.0/16    # internal GitLab
+  # - 10.30.0.0/16    # internal Vault
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  # eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/pii-scanner
+  # iam.gke.io/gcp-service-account: pii-scanner@my-project.iam.gserviceaccount.com
+  # azure.workload.identity/client-id: <azure-client-id>
+
+# Pod-level security context (non-root by default; matches the image).
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

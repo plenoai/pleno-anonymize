@@ -1,0 +1,100 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "pii-scanner.fullname" . }}
+  labels:
+    {{- include "pii-scanner.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.schedule | quote }}
+  {{- with .Values.timeZone }}
+  timeZone: {{ . | quote }}
+  {{- end }}
+  concurrencyPolicy: {{ .Values.concurrencyPolicy }}
+  successfulJobsHistoryLimit: {{ .Values.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.failedJobsHistoryLimit }}
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .Values.backoffLimit }}
+      activeDeadlineSeconds: {{ .Values.activeDeadlineSeconds }}
+      template:
+        metadata:
+          labels:
+            {{- include "pii-scanner.selectorLabels" . | nindent 12 }}
+            app: pii-scanner
+        spec:
+          restartPolicy: Never
+          serviceAccountName: {{ include "pii-scanner.serviceAccountName" . }}
+          {{- with .Values.podSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.image.pullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: scanner
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              args:
+                {{- toYaml .Values.args | nindent 16 }}
+              {{- with .Values.containerSecurityContext }}
+              securityContext:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              env:
+                - name: PLENO_PII_SCANNER_STATE_DIR
+                  value: /var/lib/pii-scanner
+                - name: PLENO_PII_SCANNER_LOG_FORMAT
+                  value: json
+                {{- if .Values.secrets.findingsMasterKey }}
+                - name: PLENO_PII_SCANNER_FINDINGS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "pii-scanner.fullname" . }}
+                      key: findings-master-key
+                {{- end }}
+                {{- if .Values.secrets.githubAppPrivateKey }}
+                - name: GITHUB_APP_PRIVATE_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "pii-scanner.fullname" . }}
+                      key: github-app-private-key
+                {{- end }}
+              resources:
+                {{- toYaml .Values.resources | nindent 16 }}
+              volumeMounts:
+                - name: scan-config
+                  mountPath: /etc/pii-scanner
+                  readOnly: true
+                {{- if .Values.persistence.enabled }}
+                - name: state
+                  mountPath: /var/lib/pii-scanner
+                {{- end }}
+                - name: tmp
+                  mountPath: /tmp
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumes:
+            - name: scan-config
+              configMap:
+                name: {{ include "pii-scanner.fullname" . }}-config
+            {{- if .Values.persistence.enabled }}
+            - name: state
+              persistentVolumeClaim:
+                claimName: {{ include "pii-scanner.fullname" . }}-state
+            {{- end }}
+            - name: tmp
+              emptyDir:
+                sizeLimit: 8Gi
