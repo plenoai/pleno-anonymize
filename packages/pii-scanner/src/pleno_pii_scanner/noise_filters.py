@@ -218,23 +218,24 @@ def _in_product_url(line: str) -> bool:
 
 # ---------------------------------------------------------------------------
 # Japanese common-noun / verb suffixes that NER mis-tags as PERSON / ORG.
-# This is a sunset list: once the HF backend (issue #101) is default, the
-# baseline F1 0.701 makes this redundant. Each entry is a closed-class
-# technical-document head noun or verb suffix that no Japanese personal name
-# or proper organization ends with.
+#
+# These compound-noun and deverbal-noun suffixes are kept for spans the
+# UniDic POS check below cannot reach (length > 3, or compounds Sudachi
+# doesn't lemmatize to a single common-noun morpheme). Short atomic common
+# nouns like 大文字 / 小文字 / 文字 / 名前 are intentionally NOT here — they
+# go through `_is_unidic_short_common_noun`, where Sudachi's dictionary
+# disagreement with spaCy NER is the audit trail.
 #
 # Sourced from the recurring FP set across azu/azu, mumumu/pep8-ja,
-# nodejs/nodejs-ja, suisya-systems/claude-org-ja eval. NOT a value blacklist
-# — we match the **suffix** of the candidate span, so general technical
-# prose suppresses naturally without listing every compound.
+# nodejs/nodejs-ja, suisya-systems/claude-org-ja eval. We match the
+# **suffix** of the candidate span, so general technical prose suppresses
+# naturally without listing every compound.
 # ---------------------------------------------------------------------------
 
 _NER_FP_NOUN_SUFFIXES = (
     # Generic head nouns frequent in dev-doc prose
     "一覧", "番号", "設計", "機能", "属性", "定数", "変数",
     "関数", "引数", "戻り値", "演算子", "例外", "数値",
-    "文字",                          # 大文字 / 小文字 / 半角文字
-    "名前",                          # 例外の名前 / 関数の名前
     "残置",                          # 原則残置 (leave-as-is)
     "呼び出し",                       # サンプル呼び出し
     # Verb-form deverbal nouns (action-of-X) — never personal names
@@ -248,6 +249,77 @@ _NER_FP_NOUN_SUFFIXES = (
 
 def _ends_with_common_noun_suffix(matched: str) -> bool:
     return any(matched.endswith(s) for s in _NER_FP_NOUN_SUFFIXES)
+
+
+# ---------------------------------------------------------------------------
+# UniDic-derived auditable allowlist for short common nouns (issue #101).
+#
+# spaCy ja_ner_ja hallucinates PERSON on common Japanese nouns that appear
+# in technical prose (大文字, 小文字, 文字, 名前, 半角, 全角, 残置, ...).
+# A surface-form blacklist would be brittle and reduce recall on real
+# surnames that share characters.
+#
+# Instead, we delegate to Sudachi/UniDic — a curated morphological
+# dictionary — to reject candidates whose every morpheme is tagged
+# **名詞-普通名詞** AND whose total length is ≤ 3 characters.
+#
+# The rule is auditable in two senses:
+#   * Sudachi's dictionary lookup is the gate, not a hand-crafted list.
+#   * The length≤3 cap bounds the harm: longer spans (e.g. real
+#     compound surnames like 五十嵐) are never even considered.
+#
+# Real surnames (山田, 田中, 佐藤, 鈴木, 本田, ...) are tagged
+# **名詞-固有名詞-人名-姓** by UniDic and pass through. Place names
+# (東京, 京都, 大阪) are 名詞-固有名詞-地名 and likewise pass through.
+# ---------------------------------------------------------------------------
+
+_UNIDIC_SHORT_COMMON_NOUN_MAX_LEN = 3
+_sudachi_tokenizer = None
+
+
+def _get_sudachi():
+    global _sudachi_tokenizer
+    if _sudachi_tokenizer is not None:
+        return _sudachi_tokenizer
+    try:
+        from sudachipy import dictionary, tokenizer as _sudachi_tok
+    except ImportError:
+        # spacy[ja] pulls sudachipy; if it's missing the filter degrades to
+        # no-op rather than raising. The suffix list still covers most cases.
+        _sudachi_tokenizer = (None, None)
+        return _sudachi_tokenizer
+    _sudachi_tokenizer = (
+        dictionary.Dictionary().create(),
+        _sudachi_tok.Tokenizer.SplitMode.C,
+    )
+    return _sudachi_tokenizer
+
+
+def _is_unidic_short_common_noun(matched: str) -> bool:
+    """Return True iff Sudachi/UniDic morphologically classifies ``matched``
+    as a short common noun (every morpheme tagged 名詞-普通名詞, length ≤ 3).
+
+    This is the principled replacement for surface-form blacklisting of
+    大文字/小文字/文字/名前 (issue #101). The dictionary lookup, not a
+    hand-curated list, decides what counts as a common noun — so the rule
+    extends naturally to 半角/全角/数値/etc. without a code change, and
+    never fires on UniDic-known proper nouns.
+    """
+    if not matched:
+        return False
+    if len(matched) > _UNIDIC_SHORT_COMMON_NOUN_MAX_LEN:
+        return False
+    tok, mode = _get_sudachi()
+    if tok is None:
+        return False
+    morphs = list(tok.tokenize(matched, mode))
+    if not morphs:
+        return False
+    for m in morphs:
+        pos = m.part_of_speech()
+        if pos[0] != "名詞" or pos[1] != "普通名詞":
+            return False
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -425,6 +497,14 @@ def _should_drop(f: Finding, file_text_for: dict[str, str]) -> bool:
         if _contains_paren(f.matched):
             return True
         if _ends_with_common_noun_suffix(f.matched):
+            return True
+        # Issue #101: UniDic morphological audit for short common-noun
+        # PERSON candidates. Drops 大文字 / 小文字 / 文字 / 名前 / 半角 /
+        # 全角 / 残置 / ... without a surface-form blacklist. Scoped to
+        # PERSON only — short common nouns can legitimately surface as
+        # ORGANIZATION (e.g. 総務省, 銀行), so the same morphological
+        # rule would over-filter the ORG class.
+        if f.entity == "PERSON" and _is_unidic_short_common_noun(f.matched):
             return True
         # Trailing/leading backtick adjacent to the match (matched span often
         # excludes the backtick because spaCy tokenises on it).

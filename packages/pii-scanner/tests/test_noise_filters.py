@@ -283,14 +283,66 @@ def test_keeps_real_organization():
 
 
 # ---------------------------------------------------------------------------
-# Common-noun-suffix sunset filter (until HF backend defaults — issue #101).
+# UniDic short-common-noun filter (issue #101).
+#
+# Drops short PERSON/ORG candidates whose morphology Sudachi parses as a
+# common noun. Audited via Sudachi/UniDic dictionary lookup, not a
+# surface-form blacklist.
 # ---------------------------------------------------------------------------
 
 
-def test_drops_person_with_kanji_letter_suffix():
+def test_drops_person_unidic_common_noun_oomoji():
+    # mumumu/pep8-ja@index.rst:661 — root cause of issue #101.
     line = "コメントは大文字にすべきです"
     f = _f("PERSON", "大文字", line)
     assert _kept([f], line) == []
+
+
+def test_drops_person_unidic_common_noun_komoji():
+    line = "全ての文字を大文字にします"
+    f = _f("PERSON", "小文字", line)
+    assert _kept([f], line) == []
+
+
+def test_drops_person_unidic_common_noun_moji():
+    line = "全ての文字を大文字にします"
+    f = _f("PERSON", "文字", line)
+    assert _kept([f], line) == []
+
+
+def test_drops_person_unidic_common_noun_namae():
+    line = "関数の名前は動詞句にする"
+    f = _f("PERSON", "名前", line)
+    assert _kept([f], line) == []
+
+
+def test_drops_person_unidic_common_noun_zankaku():
+    # Generalises beyond hard-coded suffix list — Sudachi tags 半角 as 普通名詞.
+    line = "半角スペースで区切る"
+    f = _f("PERSON", "半角", line)
+    assert _kept([f], line) == []
+
+
+def test_keeps_unidic_proper_noun_yamada():
+    # 山田 is UniDic 名詞-固有名詞-人名-姓 → must NOT be filtered.
+    line = "著者: 山田"
+    f = _f("PERSON", "山田", line, score=0.8)
+    assert len(_kept([f], line)) == 1
+
+
+def test_keeps_unidic_place_name_tokyo():
+    # 東京 is 名詞-固有名詞-地名 → not a common noun, must pass through.
+    line = "本社は東京にある"
+    f = _f("ORGANIZATION", "東京", line, score=0.7)
+    assert len(_kept([f], line)) == 1
+
+
+def test_keeps_organization_short_common_noun_tag():
+    # 総務省 is UniDic 名詞-普通名詞 but legitimately an ORGANIZATION.
+    # The UniDic filter is PERSON-scoped to avoid over-filtering ORG.
+    line = "総務省から発表された"
+    f = _f("ORGANIZATION", "総務省", line, score=0.7)
+    assert len(_kept([f], line)) == 1
 
 
 def test_drops_person_with_assignment_suffix():
