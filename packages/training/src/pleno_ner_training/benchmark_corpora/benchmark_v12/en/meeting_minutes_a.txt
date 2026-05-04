@@ -1,0 +1,19 @@
+Regular meeting minutes: attending teams were the Finance, Legal, and Shibuya Office Operations groups. Agenda items covered the 04/01/2026 release prep and the West End HQ Plaza pedestrian flow. No personal information was discussed.
+---DOC_SEPARATOR---
+Operations meeting memo: the team confirmed the delivery flow at Nihonbashi Branch Front, the signage at Central Hospital Crossing, and the security plan at Harbor Main Branch Front. No employee names or visitor addresses are recorded by policy.
+---DOC_SEPARATOR---
+PR sync notes: the group discussed a University of Boulder partnership concept, a Sapporo North Avenue venue, and an event in front of the Borough Office Plaza. Speaker candidates are not yet finalized and are not listed in the document.
+---DOC_SEPARATOR---
+QA meeting log: the team confirmed that sample_user, state-city-town-1-2-3, MM/DD/YYYY, and TEMP-HOLD will be displayed as UI placeholders. Real data is never to be entered.
+---DOC_SEPARATOR---
+Weekly minutes: the schedule shares intake date 04/01/2026, update date 05/31/2026, and deadline 06/15/2026. None of these are dates of birth — they are operational dates.
+---DOC_SEPARATOR---
+The project meeting only enumerated "Shibuya Borough Medical Support Center", "Harbor Community Center", and "West End Cultural Center" as candidate venues. Personal contact details for the staff in charge are not posted.
+---DOC_SEPARATOR---
+Operations memo: 555-0123 is the meeting room reservation hotline, INV-778812 is the internal quote ID, and REQ-09-4412 is the approval request number. None of these represent bank accounts or addresses.
+---DOC_SEPARATOR---
+The department meeting agenda lists Chase App, Wells Fargo API, and Citibank test environment as discussion topics, but only the integration target labels are debated — no financial account information.
+---DOC_SEPARATOR---
+Monthly minutes: the attendees field is left blank; agenda items are the flow change at Harbor Main Branch Front and the security plan for Sapporo North Avenue Plaza. No personal names are written into the document.
+---DOC_SEPARATOR---
+Facility meeting: shipping label samples shown were sample_name_01, sample-state-sample-city, and branch-main checking 0000000. All values are placeholders and not production data.

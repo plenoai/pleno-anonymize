@@ -1,0 +1,19 @@
+The neighborhood guide pamphlet lists names like Nihonbashi Branch Front Street, West End HQ Plaza, Harbor Community Center, and Sapporo North Avenue Plaza. No resident roster or address book is printed.
+---DOC_SEPARATOR---
+The municipal newsletter prints 04/01/2026, 05/31/2026, and 06/15/2026 as the schedule for upcoming events. These are not dates of birth and not personal contact dates.
+---DOC_SEPARATOR---
+Government FAQ: the page explains "Can the name field be left blank?" and "Is state-only acceptable in the address field?". No actual applicant data appears in the body.
+---DOC_SEPARATOR---
+The public facility guide names locations such as Chase Tower Front, Wells Fargo PR Booth, and Citibank Display Corner. No account numbers and no holder names are written down.
+---DOC_SEPARATOR---
+The travel feature describes the seaside route in front of Harbor Main Branch, the night view of Shibuya Office District, and the historic streetscape near Nihonbashi Branch Front. All entries are common place names and facility labels.
+---DOC_SEPARATOR---
+The neighborhood association bulletin quotes UI mock samples like sample_user, state-city-town-1-2-3, and branch-main checking 0000000. These are placeholder values, not personal information.
+---DOC_SEPARATOR---
+A station-area redevelopment article cites 555-0123 as the inquiry desk, INV-778812 as the project number, and REQ-09-4412 as the PR reference. None of these are financial accounts or postal addresses.
+---DOC_SEPARATOR---
+The civic lecture announcement introduces a joint program by the University of Boulder, Cambridge College, and Shibuya Borough Medical Support Center, but no lecturer's home address or date of birth is published.
+---DOC_SEPARATOR---
+The park renovation news lists only spot names such as Central Hospital Crossing, Nihonbashi Branch Front Street, and West End Cultural Center Front. None of them are individual delivery addresses.
+---DOC_SEPARATOR---
+The borough public bulletin clearly states that only venue guides, scheduled dates, and inquiry desks are published; no contractor names, refund accounts, or personal mailing addresses are included by editorial policy.

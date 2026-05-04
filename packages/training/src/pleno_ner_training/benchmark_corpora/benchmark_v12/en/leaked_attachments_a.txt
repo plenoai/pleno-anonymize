@@ -1,0 +1,19 @@
+The published article body is general commentary, but OCR of the attached PDF still shows <PERSON>Naoki Takahashi</PERSON>, <BANK_ACCOUNT>Wells Fargo, Routing 121000248, Account 1234567, Checking</BANK_ACCOUNT>, and <ADDRESS>234 Honcho Street, Apt 502, Yonkers, NY 10701</ADDRESS>.
+---DOC_SEPARATOR---
+The image OCR attached to a general news piece reads <PERSON>Mai Hayashi</PERSON>, <DATE_OF_BIRTH>December 3, 1988</DATE_OF_BIRTH>, and <ORGANIZATION>Karasuma Regional Care Clinic</ORGANIZATION>.
+---DOC_SEPARATOR---
+A scan attached to a venue announcement contains <PERSON>Makoto Kimura</PERSON>, <ADDRESS>120 Bridge Street, 7th Floor, Jersey City, NJ 07302</ADDRESS>, and <BANK_ACCOUNT>Citibank, Routing 021000089, Account 5566778, Checking</BANK_ACCOUNT>.
+---DOC_SEPARATOR---
+OCR of the JPG attached to a policy explainer retains <PERSON>Ryo Okada</PERSON>, <ADDRESS>222 Hakata Way, Apt 301, Atlanta, GA 30303</ADDRESS>, and <ORGANIZATION>Aoba Bridge General Development</ORGANIZATION>.
+---DOC_SEPARATOR---
+A screenshot from a PR article reveals <PERSON>Yuto Ishida</PERSON>, <DATE_OF_BIRTH>03/28/1991</DATE_OF_BIRTH>, and <ORGANIZATION>WestEnd Data Lab Inc.</ORGANIZATION>.
+---DOC_SEPARATOR---
+The image attached to a travel column shows <PERSON>Misaki Watanabe</PERSON>, <ADDRESS>1203 Ichijo Avenue, Suite 605, Anchorage, AK 99501</ADDRESS>, and <BANK_ACCOUNT>USPS Postal Bank, Symbol 10100, Account 12345671</BANK_ACCOUNT>.
+---DOC_SEPARATOR---
+OCR of an appendix attached to a tech article extracts <PERSON>Hannah Sato</PERSON>, <DATE_OF_BIRTH>May 10, 1965</DATE_OF_BIRTH>, and <ORGANIZATION>Konan Harbor Solutions Inc.</ORGANIZATION>.
+---DOC_SEPARATOR---
+The scan attached to a public pamphlet still contains <PERSON>Mariana Coleman</PERSON>, <ADDRESS>1500 Madison Avenue, Suite 1203, New York, NY 10128</ADDRESS>, and <ORGANIZATION>Madison Center Business Support LLC</ORGANIZATION>.
+---DOC_SEPARATOR---
+The OCR of an operations blog figure contains <PERSON>Naoki Takahashi</PERSON>, his DOB <DATE_OF_BIRTH>June 15, 1988</DATE_OF_BIRTH>, and refund account <BANK_ACCOUNT>Wells Fargo, Routing 121000248, Account 1234567, Checking</BANK_ACCOUNT> appearing only once.
+---DOC_SEPARATOR---
+The image attached to a public report yields, via OCR, <PERSON>Mai Hayashi</PERSON>, <ADDRESS>205 Karasuma Street, 4th Floor, Sacramento, CA 95814</ADDRESS>, and <ORGANIZATION>Karasuma Regional Care Clinic</ORGANIZATION>.

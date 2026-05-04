@@ -1,0 +1,39 @@
+The UI mock simply displays owner sample_user, shipping_to street-city-state, dob MM/DD/YYYY, and bank TEMP-HOLD, with no actual data.
+---DOC_SEPARATOR---
+The form sample lists placeholders such as name unfilled, address pending registration, and account branch-main checking 0000000000.
+---DOC_SEPARATOR---
+The notes on the screen design mention sample_name_01, sample_name_02, and sample_name_03, but they are fixed values used to verify display widths.
+---DOC_SEPARATOR---
+The input-field labels shown are only person_name, address_line, organization_name, and bank_account, and the values remain samples.
+---DOC_SEPARATOR---
+The tutorial illustration only shows `<input placeholder="sample_user">` and `<input placeholder="street-city-state-12345">`.
+---DOC_SEPARATOR---
+The screenshots of the settings screen display UNASSIGNED and TEMP-HOLD as descriptions of unset values.
+---DOC_SEPARATOR---
+The footer of the mock screen shows (555) 010-XXXX and REQ-09-4412, but they are examples of a support hotline and an intake number.
+---DOC_SEPARATOR---
+The data row used for UI testing, `sample_name_01,MM/DD/YYYY,street-city-state-12345,UNASSIGNED`, is not actual user information.
+---DOC_SEPARATOR---
+The developer guide shows branch-main checking 0000000000 and routing=0000 as fixed dummy values.
+---DOC_SEPARATOR---
+The example onboarding screen carries only sample_user_07 and pending-town-12345, with no actual address.
+---DOC_SEPARATOR---
+The explanatory deck has labels for Chase API and Wells Fargo Connect, but lists no individual account number.
+---DOC_SEPARATOR---
+The form sample contains only mock displays such as person_name=sample_user and address_line=street-city-state.
+---DOC_SEPARATOR---
+The design diagram mentions the Central Hospital intersection and Bridgepoint Branch promenade, but they are merely on-screen map labels.
+---DOC_SEPARATOR---
+The sample input uses MM/DD/YYYY and 19XX-XX-XX, but they are not stored as DOB.
+---DOC_SEPARATOR---
+The UI document mixes sample_user and sample_name_01, but each is explicitly noted as a placeholder value.
+---DOC_SEPARATOR---
+The margin of the mock image shows only street-city-state-12345 and TEMP-HOLD, with no actual customer record.
+---DOC_SEPARATOR---
+The legend of the input fields lists owner, address, bank, and organization, but the context is not one that emits real data.
+---DOC_SEPARATOR---
+The HTML used for layout verification only enumerates placeholders and holds no actual values for personal names or shipping destinations.
+---DOC_SEPARATOR---
+The configuration manual's UI example shows sample_user_91, but it is a dummy and not a user account.
+---DOC_SEPARATOR---
+The mock-screen illustration is composed solely of generic input examples, and contains no value that should be treated as PII.

@@ -1,0 +1,19 @@
+A travel blog post highlights the Shibuya Office District, the Madison Branch Frontage promenade, and a coastal walk near the Harbor HQ Frontage. It does not include any guest's address information.
+---DOC_SEPARATOR---
+Dates 04/01/2026, 05/31/2026, and 06/15/2026 appear in the post as festival schedule entries. They are not personal dates of birth or visit logs.
+---DOC_SEPARATOR---
+The post showcases an app screen with demo strings sample_user and state-city-street-1-2-3. These are tutorial fixtures, not the traveler's real data.
+---DOC_SEPARATOR---
+As local landmarks the article calls out "JP Morgan Plaza forecourt", "Capital Bank exhibit booth", and "USPS Postal Bank PR corner". No financial account information is involved.
+---DOC_SEPARATOR---
+Wayfinding paragraphs mention "Central Hospital Crossing", "North Avenue Convention Site", and "West Boulder Cultural Hall" as facility names; they are general place references.
+---DOC_SEPARATOR---
+The post lists inquiry contact 555-0123 and program reference REQ-09-4412 only. No traveler name or shipping address is recorded in the article.
+---DOC_SEPARATOR---
+Toward the end of the writeup, branch-main routing 0000000 and TEMP-HOLD appear as in-app placeholders shown in a screenshot, not as financial accounts.
+---DOC_SEPARATOR---
+The article focuses on parks and venue introductions and does not surface any real PERSON or ADDRESS values. The sample slot only contains fixed strings such as sample_name_01.
+---DOC_SEPARATOR---
+The destination guide mentions only general facility names like "Madison University", "Harbor Community Center", and "City Hall Frontage Plaza".
+---DOC_SEPARATOR---
+The blog FAQ explains that person_name and address_line are field-label descriptions and never publishes their actual values.

@@ -1,0 +1,19 @@
+The initial setup guide uses sample_user, state-city-street-1-2-3, and branch-main routing 0000000 as demo values. The section explains the system before any real user data is entered.
+---DOC_SEPARATOR---
+Onboarding materials list training dates 04/01/2026, 05/31/2026, and 06/15/2026. They are session schedules, not records of any participant's date of birth.
+---DOC_SEPARATOR---
+The input examples in the guide reference person_name, address_line, bank_account, and organization_name only as field labels. Actual values are never published in this document.
+---DOC_SEPARATOR---
+The guide text mentions "West Boulder HQ Frontage Route", "Madison Branch Frontage Route", and "Harbor HQ Frontage Route" as ordinary corridor names, not residential or workplace addresses.
+---DOC_SEPARATOR---
+Inquiry phone 555-0123, program reference REQ-09-4412, and quote reference INV-778812 are listed as references only. They are not personal account or shipping information.
+---DOC_SEPARATOR---
+Tutorial-screen HTML snippets include `<input placeholder="sample_user">` and similar components. No real user value is rendered in the snippets.
+---DOC_SEPARATOR---
+The narrative cites the names Chase Open Banking API, Wells Fargo Connect, and Citi Direct SDK only and does not describe any account holder or branch number.
+---DOC_SEPARATOR---
+Template examples line up sample_name_01, sample_name_02, and sample_name_03 to verify display widths. They are not name records.
+---DOC_SEPARATOR---
+The implementation guide cites venue names such as "Central Hospital Crossing", "City Hall Frontage Plaza", and "North Avenue Convention Site". These are general facility names.
+---DOC_SEPARATOR---
+The closing section of the onboarding deck only explains what TEMP-HOLD and UNASSIGNED mean. It does not contain any real contract or banking information.

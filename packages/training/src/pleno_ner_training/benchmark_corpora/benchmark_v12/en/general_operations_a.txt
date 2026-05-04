@@ -1,0 +1,19 @@
+Operations log: traffic flows at the Riverside Community Center, West Boulder Cultural Hall, and Bridge Street Plaza were checked. Only facility names and dates appear; no personal contact or shipping information is handled.
+---DOC_SEPARATOR---
+Internal staff notice lists schedules for April 1, 2026, May 31, 2026, and June 15, 2026 - all event dates, not dates of birth.
+---DOC_SEPARATOR---
+The system explainer materials use sample_user, pref-city-town-1-2-3, and branch-main ordinary 0000000 only as UI mocks; no real data is loaded.
+---DOC_SEPARATOR---
+The operations manual compares the JPMorgan API, Wells Fargo integration, and Capital Bank test environment - this is service comparison, not personal account or holder data.
+---DOC_SEPARATOR---
+A safety inspection note references Central Hospital Crossing, City Hall Plaza, and the North Avenue Station venue, treating them as common area names only.
+---DOC_SEPARATOR---
+An internal memo lists labels person_name, address_line, organization_name, and bank_account, leaving the actual values blank.
+---DOC_SEPARATOR---
+Distribution sheet annotations record 555-0123, REQ-09-4412, and INV-778812 only as inquiry and tracking IDs - no financial data.
+---DOC_SEPARATOR---
+The event guide describes a circulation route along Bridge Street, Harbor HQ Front, and Downtown Office District, not residence or workplace lists.
+---DOC_SEPARATOR---
+Training materials carry placeholders such as "name not entered", "address pending registration", "DOB YYYY/MM/DD", and "account TEMP-HOLD" verbatim; all are fixed strings.
+---DOC_SEPARATOR---
+The general guide body lists only venue, time, and inquiry contact; it never includes contract holder names, refund accounts, or personal mailing details.
