@@ -24,5 +24,6 @@ members = [
     "packages/pii-scanner-postman",
     "packages/pii-scanner-redis",
     "packages/pii-scanner-sharepoint",
+    "packages/pii-scanner-snowflake",
     "packages/pii-scanner-slack",
 ]
