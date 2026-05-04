@@ -1,38 +1,46 @@
-"""Atlassian Jira SourceConnector — Cloud + DC, ADF→text, JQL incremental.
+"""JiraConnector — Cloud + Data Center `SourceConnector`.
+
+Single connector kind (`jira`) backed by two REST flavors selected at
+construction time. The wire-level differences (URL prefix, body format
+for issue descriptions/comments, throttle status code) live inside
+`api.py` and the body converters; the `SourceConnector` contract the
+scheduler sees is identical to every other ADR-0007 §13 connector.
 
 Pipeline:
 
-  1. Build JQL: `(project in (P1,P2)) AND updated >= "<cursor>" ORDER BY updated ASC`
-     — `project in (...)` clause omitted when no allowlist is configured;
-     `updated >=` clause omitted on a fresh scan (cursor is None).
-  2. Paginate `/rest/api/3/search`:
-       - Cloud: `nextPageToken` (opaque server token)
-       - DC:    `startAt` / `maxResults` (classic offset paging)
-  3. For each issue, yield one DocumentRef (path = `<project>/<issue-key>`).
-  4. If `include_comments`, fetch `/rest/api/3/issue/{key}/comment` and
-     yield one DocumentRef per comment (path = `<project>/<issue-key>/comments/<id>`).
-  5. fetch() yields the cached body verbatim — discover() pre-renders
-     summary + ADF→text description / ADF→text comment body.
+    1. /project/search  -> enumerate every project the principal can read
+    2. JQL `project = X AND updated >= cursor`  -> issues touched since
+       the last incremental cursor (full walk on first run)
+    3. /issue/{key}/comment  -> all comments per issue (paginated)
+    4. ADF (Cloud) or storage XHTML (DC) -> plain text
+    5. attachments rendered as `attachment={name}, url={url}` lines —
+       we never download attachment bodies (operator-controlled cost)
 
-ADF (Atlassian Document Format) is a JSON tree of nodes. The walker
-descends unconditionally, accumulating every `text` node and emitting
-a newline at structural boundaries (`paragraph`, `heading`, `listItem`).
-A purpose-built walker beats pulling a heavy `atlaskit` dependency in.
+Each issue becomes one Document carrying:
 
-Cursor: ISO-8601 string of the latest `updated` timestamp seen in the
-run. Persisted verbatim by the scheduler and round-tripped through
-`discover(..., cursor=...)` — `Cursor` is a type alias for `str` in
-the core API, never a class.
+    key=PROJ-123
+    summary=...
+    status=...
+    assignee=...
+    reporter=...
+    description=...
+    comment[<id>]=...
+    attachment=name, url=...
+
+The `discover()` cursor is a JSON-encoded `{ "highest_updated":
+"<iso8601>" }`. On each scan the JQL `updated >= cursor` resumes
+incrementally; malformed cursor values are silently ignored so a
+forward-incompatible cursor never crashes a scan.
 """
 
 from __future__ import annotations
 
-import base64
-from collections.abc import AsyncIterator, Mapping
+import asyncio
+import json
+from collections.abc import AsyncIterator, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from fnmatch import fnmatch
-from typing import Any, Literal
+from typing import Any
 
 import httpx
 
@@ -40,89 +48,208 @@ from pleno_pii_scanner.sources.base import (
     Capabilities,
     Cursor,
     Document,
-    DocumentChunk,
+    DocumentChunk,  # noqa: F401 — referenced in fetch return-type annotation
     DocumentRef,
     SourceConnector,
     SourceFilter,
 )
 from pleno_pii_scanner.sources.registry import ConnectorSpec
 
+from .adf import adf_to_text
+from .api import (
+    DEFAULT_TIMEOUT,
+    AuthMode,
+    BasicAuth,
+    BearerAuth,
+    Flavor,
+    JiraApi,
+)
+from .storage import storage_to_text
 
-_SEARCH_PATH = "/rest/api/3/search"
-_ISSUE_PATH_TPL = "/rest/api/3/issue/{key}/comment"
-# Defensive cap on JQL pagination — protects against a misconfigured
-# server returning the same nextPageToken indefinitely.
-_MAX_PAGES = 10_000
+
+# Connector kind exported via the `pleno_pii_scanner.connectors` entry
+# point group (see pyproject.toml). One kind covers both flavors; the
+# wire flavor is selected by config.
+KIND = "jira"
+
+
+# Page size for /search and /project/search. Jira Cloud caps `/search`
+# at 100; DC defaults to 50 with a configurable max. 100 stays under
+# both — going higher trades latency for marginal request-count savings
+# and risks tripping admin-configured query timeouts.
+_PAGE_SIZE = 100
+
+
+# Comment endpoint page size. /issue/{key}/comment caps at 100 on Cloud
+# and DC; we use the max because comment bodies are typically small and
+# we want one paginated round-trip per typical issue.
+_COMMENT_PAGE_SIZE = 100
+
+
+# Maximum total pages we will walk per paginated endpoint without the
+# server signalling completion. Defends against a buggy upstream that
+# always claims more data exists. 10_000 × 100 = a million records,
+# well above any realistic single-project size.
+_MAX_PAGINATION_DEPTH = 10_000
 
 
 @dataclass(frozen=True, slots=True)
 class JiraConfig:
-    """Construction config for `JiraConnector`."""
+    """Construction config for `JiraConnector`.
 
+    `flavor` selects the wire protocol. `base_url` is the site root
+    (`https://acme.atlassian.net` for Cloud, `https://jira.acme.internal`
+    for DC) — the connector appends `/rest/api/3` or `/rest/api/2`.
+
+    Auth: pick exactly one of:
+      - `email` + `api_token` (Cloud Basic)
+      - `access_token` (Cloud OAuth 2.0 OR DC PAT — both are Bearer)
+      - `username` + `password` (DC HTTP Basic)
+
+    `projects` allow-lists projects by key (`("ENG", "OPS")`); empty
+    means every readable project. `include_comments` toggles the comment
+    endpoint walk; `include_attachments` toggles the `attachment=` line
+    serialisation (we never download attachment bodies regardless).
+    """
+
+    flavor: Flavor
     base_url: str
-    email: str
-    api_token: str
+    email: str | None = None
+    api_token: str | None = None
+    access_token: str | None = None
+    username: str | None = None
+    password: str | None = None
     projects: tuple[str, ...] = ()
     include_comments: bool = True
-    deployment: Literal["cloud", "dc"] = "cloud"
+    include_attachments: bool = True
+    request_timeout: float = DEFAULT_TIMEOUT
     id: str | None = None
 
     def __post_init__(self) -> None:
-        if not self.base_url:
-            raise ValueError("base_url must be non-empty")
-        if not self.api_token:
-            raise ValueError("api_token must be non-empty")
-        if self.deployment not in ("cloud", "dc"):
+        if self.flavor not in ("cloud", "datacenter"):
             raise ValueError(
-                f"deployment must be 'cloud' or 'dc'; got {self.deployment!r}"
+                f"JiraConfig.flavor must be 'cloud' or 'datacenter'; "
+                f"got {self.flavor!r}"
+            )
+        if not self.base_url:
+            raise ValueError("JiraConfig.base_url must be a non-empty URL")
+        if not self.base_url.startswith(("http://", "https://")):
+            raise ValueError(
+                f"JiraConfig.base_url must start with http:// or https://; "
+                f"got {self.base_url!r}"
+            )
+        # Validate auth shape upfront so a misconfigured profile fails
+        # at construction rather than mid-discover. We accept exactly
+        # one of the four supported modes.
+        modes = self._present_auth_modes()
+        if not modes:
+            raise ValueError(
+                "JiraConfig requires one of: (email + api_token) [cloud basic], "
+                "access_token [cloud OAuth or DC PAT], "
+                "or (username + password) [DC basic]"
+            )
+        if len(modes) > 1:
+            raise ValueError(
+                f"JiraConfig accepts exactly one auth mode; "
+                f"received: {sorted(modes)}"
             )
 
+    def _present_auth_modes(self) -> set[str]:
+        modes: set[str] = set()
+        if self.email and self.api_token:
+            modes.add("email+api_token")
+        if self.access_token:
+            modes.add("access_token")
+        if self.username and self.password:
+            modes.add("username+password")
+        return modes
+
     def resolved_id(self) -> str:
+        """Stable identifier safe to surface in logs / findings.
+
+        Critically: must not embed `api_token` / `access_token` /
+        `password`. We derive the id from the host portion of the
+        `base_url` plus the flavor — both are non-secret.
+        """
         if self.id is not None:
             return self.id
-        # Token is sensitive; identify by base_url + hashed token + project set.
-        import hashlib
+        host = _host_only(self.base_url)
+        return f"jira-{self.flavor}:{host}"
 
-        h = hashlib.sha256()
-        h.update(self.base_url.encode())
-        h.update(b"\0")
-        h.update(self.api_token.encode())
-        for p in sorted(self.projects):
-            h.update(b"\0")
-            h.update(p.encode())
-        return f"jira:{h.hexdigest()[:16]}"
+    def build_auth(self) -> AuthMode:
+        """Construct the AuthMode for the configured credential.
+
+        Order matches `__post_init__`'s validation. The check for
+        exactly-one-mode happens there, so by the time we reach here
+        we have one and only one set of fields populated.
+        """
+        if self.access_token:
+            return BearerAuth(token=self.access_token)
+        if self.email and self.api_token:
+            # Cloud Basic uses the user's email as the username and the
+            # API token as the password (Atlassian's documented form).
+            return BasicAuth(username=self.email, password=self.api_token)
+        # The remaining branch is `username + password` (DC Basic);
+        # __post_init__ guarantees these are both set.
+        assert self.username is not None and self.password is not None
+        return BasicAuth(username=self.username, password=self.password)
 
 
 class JiraConnector:
-    """Read-only SourceConnector for Atlassian Jira (Cloud + DC)."""
+    """`SourceConnector` for Jira Cloud + Jira Data Center.
 
-    kind = "jira"
+    Owns one `JiraApi` (HTTP session) for the connector's lifetime.
+    `discover()` enumerates issues; `fetch()` materialises an issue
+    into one Document. Issue payloads observed during discover are
+    cached in-memory so fetch() avoids re-issuing `/issue/{key}`.
+    """
+
+    kind = KIND
 
     def __init__(
         self,
         config: JiraConfig,
         *,
-        client: httpx.AsyncClient | None = None,
+        transport: httpx.AsyncBaseTransport | None = None,
+        sleep: Any | None = None,
     ) -> None:
         self._config = config
         self.id = config.resolved_id()
-        if client is None:
-            self._client = httpx.AsyncClient(
-                base_url=config.base_url.rstrip("/"),
-                timeout=30.0,
-            )
-            self._owns_client = True
-        else:
-            self._client = client
-            self._owns_client = False
-        self._auth_headers = _build_auth_headers(config)
-        # Cache of pre-rendered bodies keyed by ref.path so fetch()
-        # doesn't re-walk the JSON tree.
-        self._documents: dict[str, str] = {}
-        # Latest `updated` timestamp seen this run; drives cursor_after_run().
+        self._api = JiraApi(
+            flavor=config.flavor,
+            base_url=config.base_url,
+            auth=config.build_auth(),
+            transport=transport,
+            timeout=config.request_timeout,
+            sleep=sleep,
+        )
+        # Map of issue key -> {"issue": dict, "comments": list[dict]}
+        # populated during discover() so fetch() does not re-issue
+        # /issue/{key}; cleared on close().
+        self._issue_cache: dict[str, dict[str, Any]] = {}
+        # Highest `updated` timestamp seen across the run, in raw Jira
+        # ISO-8601 form. Surfaced via cursor_after_run() for the next
+        # incremental scan.
         self._high_water: str | None = None
+        # Lock guarding _issue_cache + _high_water mutation so concurrent
+        # fetch() calls (max_concurrent_fetches > 1) cannot race.
+        self._lock = asyncio.Lock()
+
+    @property
+    def api(self) -> JiraApi:
+        # Exposed for tests + advanced operators that want to issue raw
+        # endpoints (e.g. /myself for credential probing).
+        return self._api
+
+    @property
+    def config(self) -> JiraConfig:
+        return self._config
 
     def capabilities(self) -> Capabilities:
+        # `incremental=True` because we round-trip the highest-updated
+        # cursor between runs. `binary=False` — we never download
+        # attachment bodies (operators wire the `attachment=` URL into
+        # a separate http connector if they want body scans).
         return Capabilities(
             incremental=True,
             binary=False,
@@ -131,354 +258,579 @@ class JiraConnector:
             streaming=False,
         )
 
+    # ------------------------------------------------------------------
+    # discover
+    # ------------------------------------------------------------------
+
     async def discover(
         self,
         filter: SourceFilter,
         cursor: Cursor | None,
     ) -> AsyncIterator[DocumentRef]:
-        jql = _build_jql(self._config.projects, cursor)
-        async for issue in self._iter_issues(jql):
-            project_key = (
-                issue.get("fields", {}).get("project", {}).get("key")
-                or issue.get("key", "").split("-", 1)[0]
-            )
-            issue_key = issue.get("key", "")
-            full = f"{project_key}/{issue_key}"
-            if filter.include and not _matches_any(full, filter.include):
-                continue
-            if filter.exclude and _matches_any(full, filter.exclude):
-                continue
-            updated = issue.get("fields", {}).get("updated")
-            if isinstance(updated, str):
-                if self._high_water is None or updated > self._high_water:
-                    self._high_water = updated
-            text = _serialise_issue(issue)
-            self._documents[full] = text
-            yield DocumentRef(
-                source_id=self.id,
-                source_kind=self.kind,
-                path=full,
-                native_url=_issue_url(self._config.base_url, issue_key),
-                content_type="text/plain",
-                size=len(text),
-                etag=issue.get("id"),
-                last_modified=_parse_iso(updated),
-                metadata={
-                    "project_key": str(project_key or ""),
-                    "issue_key": issue_key,
-                    "issue_id": str(issue.get("id", "")),
-                    "kind": "issue",
-                    "_cursor": self._high_water or "",
-                },
-            )
-            if self._config.include_comments:
-                async for comment in self._iter_comments(issue_key):
-                    cid = str(comment.get("id", ""))
-                    cpath = f"{full}/comments/{cid}"
-                    if filter.include and not _matches_any(cpath, filter.include):
-                        continue
-                    if filter.exclude and _matches_any(cpath, filter.exclude):
-                        continue
-                    ctext = _serialise_comment(comment)
-                    self._documents[cpath] = ctext
-                    cupdated = comment.get("updated") or comment.get("created")
-                    yield DocumentRef(
-                        source_id=self.id,
-                        source_kind=self.kind,
-                        path=cpath,
-                        native_url=_issue_url(
-                            self._config.base_url, issue_key, comment_id=cid
-                        ),
-                        content_type="text/plain",
-                        size=len(ctext),
-                        etag=cid,
-                        last_modified=_parse_iso(cupdated),
-                        metadata={
-                            "project_key": str(project_key or ""),
-                            "issue_key": issue_key,
-                            "comment_id": cid,
-                            "kind": "comment",
-                        },
-                    )
+        """Yield one DocumentRef per issue updated since `cursor`.
+
+        The cursor is a JSON object carrying `highest_updated`. JQL is
+        built as `project = X AND updated >= "<ts>" ORDER BY updated
+        ASC`; ASC ordering means the last issue we see has the highest
+        `updated`, which we persist as the next cursor.
+        """
+        prior_high_water = _decode_cursor(cursor)
+        # `filter.since` overrides the cursor when both are present;
+        # operator-supplied `--since` is the authoritative knob (tests
+        # also rely on this for deterministic JQL assertions).
+        since = (
+            filter.since.isoformat()
+            if filter.since is not None
+            else prior_high_water
+        )
+        projects = await self._enumerate_projects(filter)
+        for project_key in projects:
+            async for issue in self._iter_issues(project_key, since=since):
+                key = issue.get("key")
+                if not isinstance(key, str) or not key:
+                    # Defensive: Jira's response schema is stable but
+                    # third-party Jira-compatible servers occasionally
+                    # emit issues without a key. Skip rather than crash.
+                    continue
+                comments: list[Mapping[str, Any]] = []
+                if self._config.include_comments:
+                    comments = await self._fetch_comments(key)
+                async with self._lock:
+                    self._issue_cache[key] = {
+                        "issue": issue,
+                        "comments": comments,
+                    }
+                    updated = _issue_updated(issue)
+                    if updated and (
+                        self._high_water is None or updated > self._high_water
+                    ):
+                        self._high_water = updated
+                yield self._issue_to_ref(project_key, issue, comments)
 
     async def fetch(
         self,
         ref: DocumentRef,
     ) -> AsyncIterator[Document | DocumentChunk]:
-        text = self._documents.get(ref.path)
-        if text is None:
+        """Materialise an issue into one Document."""
+        key = ref.metadata.get("key")
+        if not key:
+            return
+        async with self._lock:
+            cached = self._issue_cache.get(key)
+        if cached is None:
+            # The ref was emitted by a different connector instance, or
+            # the cache was already drained. Fall back to a live fetch
+            # so the operator can hand-craft a DocumentRef and still
+            # pull the body.
+            issue = await self._api.get(f"/issue/{key}")
+            comments: list[Mapping[str, Any]] = []
+            if self._config.include_comments and issue:
+                comments = await self._fetch_comments(key)
+        else:
+            issue = cached["issue"]
+            comments = cached["comments"]
+        if not issue:
+            return
+        text = self._serialise_issue(issue, comments)
+        if not text:
             return
         yield Document(
             ref=ref,
             text=text,
             fetched_at=datetime.now(UTC),
-            extra=dict(ref.metadata),
+            content_hash=str(key),
         )
 
     def cursor_after_run(self) -> Cursor | None:
-        """ISO-8601 timestamp of the newest issue seen this run, or None."""
-        return self._high_water
+        """Return the JSON-encoded cursor for the next incremental run.
+
+        Returns `None` (not an empty JSON object) when nothing was
+        observed; callers persist `None` as "no resume token" rather
+        than emitting a placeholder cursor that would later need to be
+        special-cased.
+        """
+        if self._high_water is None:
+            return None
+        return json.dumps({"highest_updated": self._high_water}, sort_keys=True)
 
     async def close(self) -> None:
-        self._documents.clear()
-        if self._owns_client:
-            await self._client.aclose()
+        """Release the HTTP client + drop in-memory caches.
 
-    # --- internals ------------------------------------------------
+        `close()` must be idempotent — the scheduler invokes it from a
+        finally clause and may also call it explicitly on shutdown.
+        Clearing the caches first means a double-call cannot leak
+        references after the second invocation.
+        """
+        async with self._lock:
+            self._issue_cache.clear()
+            self._high_water = None
+        await self._api.aclose()
 
-    async def _iter_issues(self, jql: str) -> AsyncIterator[dict[str, Any]]:
-        if self._config.deployment == "cloud":
-            async for issue in self._iter_issues_cloud(jql):
-                yield issue
+    # ------------------------------------------------------------------
+    # internals
+    # ------------------------------------------------------------------
+
+    async def _enumerate_projects(
+        self, filter: SourceFilter
+    ) -> list[str]:
+        """Return project keys to scan, applying allow-list + filter."""
+        if self._config.projects:
+            # Operator-supplied allow-list short-circuits enumeration —
+            # fewer API calls + the operator's intent is authoritative.
+            allow = list(self._config.projects)
         else:
-            async for issue in self._iter_issues_dc(jql):
-                yield issue
+            allow = await self._list_all_projects()
+        out: list[str] = []
+        for project_key in allow:
+            if filter.include and not _matches_any(project_key, filter.include):
+                continue
+            if filter.exclude and _matches_any(project_key, filter.exclude):
+                continue
+            out.append(project_key)
+        return out
 
-    async def _iter_issues_cloud(
-        self, jql: str
-    ) -> AsyncIterator[dict[str, Any]]:
-        next_token: str | None = None
-        pages = 0
-        while pages < _MAX_PAGES:  # pragma: no branch
-            pages += 1
-            params: dict[str, Any] = {
-                "jql": jql,
-                "fields": "summary,description,updated,project",
-            }
-            if next_token is not None:
-                params["nextPageToken"] = next_token
-            body = await self._get_json(_SEARCH_PATH, params=params)
-            issues = body.get("issues", []) or []
-            for issue in issues:
-                yield issue
-            next_token = body.get("nextPageToken")
-            if not next_token or not issues:
-                return
-
-    async def _iter_issues_dc(self, jql: str) -> AsyncIterator[dict[str, Any]]:
+    async def _list_all_projects(self) -> list[str]:
+        """Page through `/project/search` and return every project key."""
+        keys: list[str] = []
         start_at = 0
-        max_results = 50
-        pages = 0
-        while pages < _MAX_PAGES:  # pragma: no branch
-            pages += 1
-            params: dict[str, Any] = {
-                "jql": jql,
-                "fields": "summary,description,updated,project",
-                "startAt": start_at,
-                "maxResults": max_results,
-            }
-            body = await self._get_json(_SEARCH_PATH, params=params)
-            issues = body.get("issues", []) or []
+        depth = 0
+        while True:
+            depth += 1
+            if depth > _MAX_PAGINATION_DEPTH:
+                # See `_MAX_PAGINATION_DEPTH`: defensive against a
+                # buggy upstream that never sets `isLast`. Surfacing as
+                # an explicit failure beats spinning the discover loop.
+                raise RuntimeError(  # pragma: no cover
+                    f"jira /project/search exceeded {_MAX_PAGINATION_DEPTH} pages"
+                )
+            body = await self._api.get(
+                "/project/search",
+                params={"startAt": start_at, "maxResults": _PAGE_SIZE},
+            )
+            if not body:
+                return keys
+            values = body.get("values") or []
+            for project in values:
+                key = (
+                    project.get("key") if isinstance(project, Mapping) else None
+                )
+                if isinstance(key, str) and key:
+                    keys.append(key)
+            if body.get("isLast", True):
+                return keys
+            if not values:
+                # No values on this page but isLast=false — break to
+                # avoid an infinite loop. Treat as end-of-list.
+                return keys
+            start_at += len(values)
+
+    async def _iter_issues(
+        self, project_key: str, *, since: str | None
+    ) -> AsyncIterator[Mapping[str, Any]]:
+        """Paginate `/search` issues for `project_key`, applying `since`."""
+        jql = _build_jql(project_key, since)
+        # Field selection: keep the response payload small but include
+        # everything the serialiser needs. `*all` would balloon the
+        # response with every custom field; the explicit list keeps the
+        # surface stable for snapshot tests.
+        fields = ",".join(
+            (
+                "summary",
+                "status",
+                "assignee",
+                "reporter",
+                "description",
+                "updated",
+                "attachment",
+                "issuetype",
+                "priority",
+            )
+        )
+        start_at = 0
+        depth = 0
+        while True:
+            depth += 1
+            if depth > _MAX_PAGINATION_DEPTH:
+                raise RuntimeError(  # pragma: no cover
+                    f"jira /search exceeded {_MAX_PAGINATION_DEPTH} pages"
+                )
+            body = await self._api.get(
+                "/search",
+                params={
+                    "jql": jql,
+                    "startAt": start_at,
+                    "maxResults": _PAGE_SIZE,
+                    "fields": fields,
+                },
+            )
+            if not body:
+                return
+            issues = body.get("issues") or []
             for issue in issues:
-                yield issue
+                if isinstance(issue, Mapping):
+                    yield issue
+            total = body.get("total")
+            new_start = start_at + len(issues)
             if not issues:
                 return
-            total = body.get("total")
-            start_at += len(issues)
-            # Use server-reported max when present (lets the server
-            # cap pages without us guessing wrong).
-            srv_max = body.get("maxResults")
-            if isinstance(srv_max, int) and srv_max > 0:
-                max_results = srv_max
-            if isinstance(total, int) and start_at >= total:
+            # End-of-list when we've consumed every issue Jira reports.
+            # `total` is best-effort (Jira documents it as approximate)
+            # so we also stop when a page is shorter than maxResults.
+            if isinstance(total, int) and new_start >= total:
                 return
+            if len(issues) < _PAGE_SIZE:
+                return
+            start_at = new_start
 
-    async def _iter_comments(
+    async def _fetch_comments(
         self, issue_key: str
-    ) -> AsyncIterator[dict[str, Any]]:
+    ) -> list[Mapping[str, Any]]:
+        """Paginate `/issue/{key}/comment` and return every comment."""
+        out: list[Mapping[str, Any]] = []
         start_at = 0
-        pages = 0
-        while pages < _MAX_PAGES:  # pragma: no branch
-            pages += 1
-            body = await self._get_json(
-                _ISSUE_PATH_TPL.format(key=issue_key),
-                params={"startAt": start_at, "maxResults": 100},
+        depth = 0
+        while True:
+            depth += 1
+            if depth > _MAX_PAGINATION_DEPTH:
+                raise RuntimeError(  # pragma: no cover
+                    f"jira /issue/{issue_key}/comment exceeded "
+                    f"{_MAX_PAGINATION_DEPTH} pages"
+                )
+            body = await self._api.get(
+                f"/issue/{issue_key}/comment",
+                params={
+                    "startAt": start_at,
+                    "maxResults": _COMMENT_PAGE_SIZE,
+                },
             )
-            comments = body.get("comments", []) or []
-            for c in comments:
-                yield c
-            if not comments:
-                return
+            if not body:
+                return out
+            comments = body.get("comments") or []
+            for comment in comments:
+                if isinstance(comment, Mapping):
+                    out.append(comment)
             total = body.get("total")
-            start_at += len(comments)
-            if isinstance(total, int) and start_at >= total:
-                return
+            new_start = start_at + len(comments)
+            if not comments:
+                return out
+            if isinstance(total, int) and new_start >= total:
+                return out
+            if len(comments) < _COMMENT_PAGE_SIZE:
+                return out
+            start_at = new_start
 
-    async def _get_json(
-        self, path: str, *, params: Mapping[str, Any] | None = None
-    ) -> dict[str, Any]:
-        resp = await self._client.get(
-            path, params=params, headers=self._auth_headers
+    # --- ref + serialisation -----------------------------------------
+
+    def _issue_to_ref(
+        self,
+        project_key: str,
+        issue: Mapping[str, Any],
+        comments: Sequence[Mapping[str, Any]],
+    ) -> DocumentRef:
+        key = str(issue.get("key", ""))
+        fields = issue.get("fields") or {}
+        summary = fields.get("summary") if isinstance(fields, Mapping) else None
+        last_modified = _parse_iso(_issue_updated(issue))
+        # `etag` keys cache short-circuit: the issue's own `updated`
+        # changes monotonically, so the scheduler can use it to skip
+        # unchanged refs even when the cursor pulls them in.
+        etag = _issue_updated(issue)
+        size = len(summary) if isinstance(summary, str) else None
+        host = _host_only(self._config.base_url)
+        native_url = f"https://{host}/browse/{key}" if key else None
+        return DocumentRef(
+            source_id=self.id,
+            source_kind=self.kind,
+            path=f"jira://{project_key}/{key}",
+            native_url=native_url,
+            parent_chain=(f"jira://{project_key}",),
+            content_type="text/plain",
+            size=size,
+            etag=etag,
+            last_modified=last_modified,
+            metadata={
+                "key": key,
+                "project": project_key,
+                "flavor": self._config.flavor,
+                "comment_count": str(len(comments)),
+            },
         )
-        resp.raise_for_status()
-        return resp.json()
+
+    def _serialise_issue(
+        self,
+        issue: Mapping[str, Any],
+        comments: Sequence[Mapping[str, Any]],
+    ) -> str:
+        """Render an issue + its comments + attachments as one text block."""
+        fields = issue.get("fields")
+        if not isinstance(fields, Mapping):
+            fields = {}
+        parts: list[str] = []
+        key = issue.get("key")
+        if isinstance(key, str) and key:
+            parts.append(f"key={key}")
+        summary = fields.get("summary")
+        if isinstance(summary, str) and summary:
+            parts.append(f"summary={summary}")
+        status = _named(fields.get("status"))
+        if status:
+            parts.append(f"status={status}")
+        assignee = _display_name(fields.get("assignee"))
+        if assignee:
+            parts.append(f"assignee={assignee}")
+        reporter = _display_name(fields.get("reporter"))
+        if reporter:
+            parts.append(f"reporter={reporter}")
+        # Body conversion differs between flavors: Cloud is ADF JSON,
+        # DC is storage-XHTML string. The dispatcher picks the right
+        # converter based on the connector's flavor.
+        description_text = self._convert_body(fields.get("description"))
+        if description_text:
+            parts.append(f"description={description_text}")
+        for comment in comments:
+            comment_id = comment.get("id")
+            author = _display_name(
+                comment.get("author") or comment.get("updateAuthor")
+            )
+            body_text = self._convert_body(comment.get("body"))
+            if not body_text:
+                continue
+            label = f"comment[{comment_id}]" if comment_id else "comment"
+            if author:
+                parts.append(f"{label}={author}: {body_text}")
+            else:
+                parts.append(f"{label}={body_text}")
+        if self._config.include_attachments:
+            for attachment in fields.get("attachment") or []:
+                if not isinstance(attachment, Mapping):
+                    continue
+                name = (
+                    attachment.get("filename") or attachment.get("name") or ""
+                )
+                content_url = (
+                    attachment.get("content")
+                    or attachment.get("contentUrl")
+                    or ""
+                )
+                if name or content_url:
+                    parts.append(f"attachment={name}, url={content_url}")
+        return "\n".join(parts)
+
+    def _convert_body(self, body: Any) -> str:
+        """Dispatch body conversion based on the configured flavor.
+
+        Cloud bodies are ADF JSON (`{"type": "doc", "content": [...]}`);
+        DC bodies are storage-XHTML strings (or, for some custom-field
+        shapes, a `{"value": "...", "representation": "..."}` wrapper).
+        """
+        if body is None or body == "":
+            return ""
+        if self._config.flavor == "cloud":
+            # Cloud sometimes returns a raw string for legacy custom
+            # fields configured to use "text" representation; fall back
+            # to the storage stripper which handles plain strings too.
+            if isinstance(body, str):
+                return storage_to_text(body)
+            return adf_to_text(body)
+        return storage_to_text(body)
 
 
-# --- auth ---------------------------------------------------------
+# ---------------------------------------------------------------------
+# JQL + parsing helpers
+# ---------------------------------------------------------------------
 
 
-def _build_auth_headers(cfg: JiraConfig) -> dict[str, str]:
-    if cfg.deployment == "dc":
-        return {"Authorization": f"Bearer {cfg.api_token}"}
-    # Cloud: HTTP basic auth `email:api_token`.
-    raw = f"{cfg.email}:{cfg.api_token}".encode()
-    return {"Authorization": f"Basic {base64.b64encode(raw).decode()}"}
+def _build_jql(project_key: str, since: str | None) -> str:
+    """Render the JQL string for incremental issue enumeration.
 
-
-# --- JQL ----------------------------------------------------------
-
-
-def _build_jql(projects: tuple[str, ...], cursor: Cursor | None) -> str:
-    clauses: list[str] = []
-    if projects:
-        rendered = ", ".join(f'"{p}"' for p in projects)
-        clauses.append(f"project in ({rendered})")
-    if cursor:
-        # Quote the timestamp so JQL accepts it verbatim.
-        clauses.append(f'updated >= "{cursor}"')
-    where = " AND ".join(clauses)
-    if where:
-        return f"{where} ORDER BY updated ASC"
-    return "ORDER BY updated ASC"
-
-
-# --- ADF → text ---------------------------------------------------
-
-
-# Node types whose end implies a structural newline.
-_BLOCK_NODES: frozenset[str] = frozenset(
-    {"paragraph", "heading", "listItem", "blockquote", "codeBlock"}
-)
-
-
-def adf_to_text(node: Any) -> str:
-    """Walk an ADF tree and emit plain text.
-
-    Concatenates every `text` node verbatim. Inserts a newline after
-    each block-level node (`paragraph`, `heading`, `listItem`, ...).
-    Unknown node types are descended unconditionally — this means a
-    new ADF node introduced by Atlassian still has its `text` children
-    extracted, even before this walker is updated.
+    `project = "X"` is quoted so a project key containing reserved
+    characters (legal in DC for legacy projects) does not produce a
+    syntax error. `updated >= "..."` uses Jira's documented timestamp
+    form. ASC ordering is required so the last issue we see is the
+    highest-updated, which feeds the next cursor.
     """
-    out: list[str] = []
-    _walk_adf(node, out)
-    # Collapse repeated blank lines so the output stays readable.
-    text = "".join(out)
-    # Trim trailing whitespace per line, drop trailing newlines.
-    return text.rstrip()
+    clauses = [f'project = "{project_key}"']
+    if since:
+        clauses.append(f'updated >= "{since}"')
+    return " AND ".join(clauses) + " ORDER BY updated ASC"
 
 
-def _walk_adf(node: Any, out: list[str]) -> None:
-    if node is None:
-        return
-    if isinstance(node, list):
-        for child in node:
-            _walk_adf(child, out)
-        return
-    if not isinstance(node, Mapping):
-        # Strings or other scalars at a non-text position — surface
-        # them verbatim. Defensive against malformed wire data.
-        if isinstance(node, str):
-            out.append(node)
-        return
-    ntype = node.get("type")
-    if ntype == "text":
-        text = node.get("text", "")
-        if isinstance(text, str):
-            out.append(text)
-        return
-    # Descend into any "content" array (the canonical ADF child slot).
-    content = node.get("content")
-    if content is not None:
-        _walk_adf(content, out)
-    if ntype in _BLOCK_NODES:
-        out.append("\n")
+def _decode_cursor(cursor: Cursor | None) -> str | None:
+    """Parse a JSON cursor and return `highest_updated` if present.
 
-
-# --- serialisation ------------------------------------------------
-
-
-def _serialise_issue(issue: Mapping[str, Any]) -> str:
-    fields = issue.get("fields", {}) or {}
-    summary = fields.get("summary", "") or ""
-    desc = fields.get("description")
-    desc_text = adf_to_text(desc) if desc else ""
-    parts: list[str] = []
-    parts.append(f"key={issue.get('key', '')}")
-    parts.append(f"summary={summary}")
-    if desc_text:
-        parts.append(f"description={desc_text}")
-    return "\n".join(parts)
-
-
-def _serialise_comment(comment: Mapping[str, Any]) -> str:
-    body = comment.get("body")
-    body_text = adf_to_text(body) if body else ""
-    author = comment.get("author") or {}
-    author_name = author.get("displayName") if isinstance(author, Mapping) else ""
-    parts: list[str] = []
-    parts.append(f"id={comment.get('id', '')}")
-    if author_name:
-        parts.append(f"author={author_name}")
-    if body_text:
-        parts.append(f"body={body_text}")
-    return "\n".join(parts)
-
-
-# --- helpers ------------------------------------------------------
-
-
-def _matches_any(s: str, patterns: tuple[str, ...]) -> bool:
-    return any(fnmatch(s, p) for p in patterns)
+    Cursor is `str` in the core API. We persist a JSON object and
+    silently fall back to None on any decode failure — the caller
+    sees a fresh full scan, never a crash on a stale cursor format.
+    Empty string also falls back to None (rather than treating "" as
+    a literal JQL value, which Jira would reject).
+    """
+    if not cursor:
+        return None
+    try:
+        decoded = json.loads(cursor)
+    except (ValueError, TypeError):
+        return None
+    if not isinstance(decoded, Mapping):
+        return None
+    value = decoded.get("highest_updated")
+    if isinstance(value, str) and value:
+        return value
+    return None
 
 
 def _parse_iso(value: Any) -> datetime | None:
+    """Best-effort ISO-8601 parse; None if value is missing or malformed.
+
+    Jira emits `2026-05-04T12:34:56.789+0000` — Python's
+    `datetime.fromisoformat` accepts the colon-bearing offset form
+    starting in 3.11; we normalise the offset to be safe across runtimes.
+    """
     if not isinstance(value, str) or not value:
         return None
-    # Jira Cloud emits ISO-8601 with `Z` suffix; DC emits a numeric
-    # offset without colon (`+0000`). Both round-trip through
-    # `fromisoformat` after the `Z`→`+00:00` rewrite on Py3.12, with
-    # `strptime` as a last-ditch fallback for the older format.
+    normalised = value
+    if "+" in normalised[19:] or "-" in normalised[19:]:
+        # Insert a colon into the offset if missing (`+0000` -> `+00:00`).
+        head, sep, tail = (
+            normalised.rpartition("+")
+            if "+" in normalised[19:]
+            else normalised.rpartition("-")
+        )
+        if sep and len(tail) == 4 and tail.isdigit():
+            normalised = f"{head}{sep}{tail[:2]}:{tail[2:]}"
     try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        pass
-    try:
-        return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z")
+        return datetime.fromisoformat(normalised.replace("Z", "+00:00"))
     except ValueError:
         return None
 
 
-def _issue_url(base_url: str, issue_key: str, *, comment_id: str | None = None) -> str:
-    base = base_url.rstrip("/")
-    if comment_id:
-        return f"{base}/browse/{issue_key}?focusedCommentId={comment_id}"
-    return f"{base}/browse/{issue_key}"
+def _issue_updated(issue: Mapping[str, Any]) -> str | None:
+    """Return the issue's `fields.updated` ISO timestamp, if present."""
+    fields = issue.get("fields")
+    if not isinstance(fields, Mapping):
+        return None
+    updated = fields.get("updated")
+    if isinstance(updated, str) and updated:
+        return updated
+    return None
 
 
-# --- factory / spec -----------------------------------------------
+def _named(field: Any) -> str:
+    """Pull `name` out of a `{name: ...}` Jira sub-object."""
+    if isinstance(field, Mapping):
+        name = field.get("name")
+        if isinstance(name, str):
+            return name
+    return ""
+
+
+def _display_name(field: Any) -> str:
+    """Pull `displayName` (Cloud + DC) out of a user sub-object.
+
+    Falls back to `name` (DC-only username) when displayName is
+    unavailable; Cloud removed `name` in 2019 for GDPR but DC still
+    exposes it.
+    """
+    if isinstance(field, Mapping):
+        for key in ("displayName", "name", "emailAddress", "accountId"):
+            v = field.get(key)
+            if isinstance(v, str) and v:
+                return v
+    return ""
+
+
+def _host_only(base_url: str) -> str:
+    """Extract the host portion of a base URL, stripping scheme + path."""
+    # Walk a tiny state machine rather than pulling in urllib for one
+    # field; keeps the package free of stdlib import cycles.
+    s = base_url
+    for prefix in ("https://", "http://"):
+        if s.startswith(prefix):
+            s = s[len(prefix):]
+            break
+    if "/" in s:
+        s = s.split("/", 1)[0]
+    return s
+
+
+def _matches_any(s: str, patterns: tuple[str, ...]) -> bool:
+    from fnmatch import fnmatch
+
+    return any(fnmatch(s, p) for p in patterns)
+
+
+# ---------------------------------------------------------------------
+# Factory + Spec
+# ---------------------------------------------------------------------
 
 
 def _factory(config: Mapping[str, Any]) -> SourceConnector:
+    """Build a connector from a plain config mapping.
+
+    Required keys: `flavor`, `base_url`, plus exactly one auth mode.
+    All other keys map to JiraConfig defaults.
+    """
+    flavor_raw = config.get("flavor")
+    if flavor_raw not in ("cloud", "datacenter"):
+        raise ValueError(
+            f"jira connector config['flavor'] must be 'cloud' or "
+            f"'datacenter'; got {flavor_raw!r}"
+        )
     if "base_url" not in config:
         raise ValueError("jira connector config requires 'base_url'")
-    if "api_token" not in config:
-        raise ValueError("jira connector config requires 'api_token'")
     return JiraConnector(
         JiraConfig(
+            flavor=flavor_raw,
             base_url=str(config["base_url"]),
-            email=str(config.get("email", "")),
-            api_token=str(config["api_token"]),
-            projects=tuple(str(p) for p in config.get("projects", ())),
+            email=_opt_str(config.get("email")),
+            api_token=_opt_str(config.get("api_token")),
+            access_token=_opt_str(config.get("access_token")),
+            username=_opt_str(config.get("username")),
+            password=_opt_str(config.get("password")),
+            projects=_string_tuple(config.get("projects")),
             include_comments=bool(config.get("include_comments", True)),
-            deployment=str(config.get("deployment", "cloud")),  # type: ignore[arg-type]
-            id=str(config["id"]) if config.get("id") is not None else None,
+            include_attachments=bool(config.get("include_attachments", True)),
+            request_timeout=float(
+                config.get("request_timeout", DEFAULT_TIMEOUT)
+            ),
+            id=_opt_str(config.get("id")),
         )
     )
 
 
+def _opt_str(value: Any) -> str | None:
+    if value is None:
+        return None
+    s = str(value)
+    return s if s else None
+
+
+def _string_tuple(value: Any) -> tuple[str, ...]:
+    """Accept list/tuple of strings; reject everything else loudly."""
+    if value is None:
+        return ()
+    if isinstance(value, str):
+        # A bare string is almost certainly an operator typo (one key
+        # instead of a list); reject so they catch it before scan launch.
+        raise ValueError(
+            "jira connector list-typed configs (projects) must be a list, "
+            "not a bare string"
+        )
+    if not isinstance(value, Iterable):
+        raise ValueError(
+            "jira connector list-typed configs must be iterable"
+        )
+    out: list[str] = []
+    for item in value:
+        if not isinstance(item, str) or not item:
+            raise ValueError(
+                "jira connector list-typed configs must contain non-empty strings"
+            )
+        out.append(item)
+    return tuple(out)
+
+
 SPEC = ConnectorSpec(
-    kind="jira",
+    kind=KIND,
     version="0.1.0",
     factory=_factory,
     capabilities=Capabilities(
@@ -488,13 +840,29 @@ SPEC = ConnectorSpec(
         max_concurrent_fetches=4,
         streaming=False,
     ),
-    required_scopes=("jira:read",),
+    required_scopes=(
+        # Cloud OAuth scope; DC PATs are scoped per-token in the admin
+        # UI rather than via API surface so this is an aspirational
+        # documentation hint for `connectors describe jira`.
+        "read:jira-work",
+        "read:jira-user",
+    ),
     description=(
-        "Atlassian Jira SourceConnector. Cloud + Data Center; paginates "
-        "/rest/api/3/search with JQL `updated >= <cursor>` for incremental "
-        "scans; walks ADF descriptions and comments into plain text."
+        "Atlassian Jira (Cloud + Data Center) connector. Single kind, two "
+        "wire flavors selected by config (`flavor=cloud|datacenter`). "
+        "Cloud: /rest/api/3 + ADF body conversion + 429 backoff. "
+        "DC: /rest/api/2 + storage-XHTML body conversion + 503 backoff. "
+        "Project enumeration with allow-list; JQL `updated >= cursor` "
+        "for incremental scan; comments + attachment refs included by "
+        "default; never downloads attachment bodies. ADR-0007 §13."
     ),
 )
 
 
-__all__ = ["JiraConfig", "JiraConnector", "SPEC", "adf_to_text"]
+__all__ = [
+    "KIND",
+    "SPEC",
+    "JiraConfig",
+    "JiraConnector",
+    "adf_to_text",
+]
