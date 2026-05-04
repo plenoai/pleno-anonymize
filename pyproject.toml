@@ -8,6 +8,7 @@ members = [
     "packages/pii-scanner-azure-blob",
     "packages/pii-scanner-azure-devops",
     "packages/pii-scanner-bitbucket",
+    "packages/pii-scanner-bigquery",
     "packages/pii-scanner-ci-logs",
     "packages/pii-scanner-discord",
     "packages/pii-scanner-gcs",
