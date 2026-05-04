@@ -11,7 +11,11 @@
        convert-hf-v02 train-hf-v02 export-onnx-v02 push-hf-v02 all-hf-ja-v02 \
        convert-hf-v02-tiny train-hf-v02-tiny export-onnx-v02-tiny push-hf-v02-tiny all-hf-ja-v02-tiny \
        mine-external-hardneg-ja mine-external-hardneg-ja-dry-run \
-       convert-hf-v02-tiny-hardneg-ext train-hf-v02-tiny-hardneg-ext
+       convert-hf-v02-tiny-hardneg-ext train-hf-v02-tiny-hardneg-ext \
+       mine-external-hardneg-en mine-external-hardneg-en-dry-run \
+       convert-hf-en-v01-tiny convert-hf-en-v01-tiny-hardneg-ext \
+       train-hf-en-v01-tiny train-hf-en-v01-tiny-hardneg-ext \
+       export-onnx-en-v01-tiny push-hf-en-v01-tiny all-hf-en-v01-tiny
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
@@ -593,6 +597,96 @@ sweep-threshold-org-v12: predict-scores-v12-aug-ext
 		--thresholds 0.0 0.5 0.7 0.8 0.85 0.9 0.95 0.99 \
 		--output-md data/benchmark/v0.12.0/ja/threshold_sweep_org.md \
 		--output-json data/benchmark/v0.12.0/ja/threshold_sweep_org.json
+
+# === HuggingFace Pipeline (en, tiny, browser-optimized) ===
+# Mirrors the ja v02-tiny pipeline (#48) for English. The en side has only
+# data/raw/en/generated.json (4818 docs) today vs ja's ~64.5k docs across
+# generated + augmented + address_extra + ja-v02-extra; this scaffolding lets
+# subsequent runs grow the en training set incrementally without bespoke
+# Makefile edits each time.
+#
+# Tokenizer / model: microsoft/deberta-v3-xsmall (~22M params), the en
+# analogue of ku-nlp/deberta-v2-tiny-japanese. Fast tokenizer, ONNX-friendly,
+# small enough for browser inference via optimum onnxruntime-web.
+
+# Mine PII-free hard-negative docs from English Wikipedia (CC-BY-SA 4.0) for
+# ORG / person-name / address FP pressure. Same generated.json schema as the
+# ja flow so it can be merged before convert.
+mine-external-hardneg-en:
+	uv run python -m pleno_ner_training.mine_external_hardneg \
+		--dataset wikimedia/wikipedia \
+		--config 20231101.en \
+		--output data/raw/en/external_hardneg.json \
+		--max-docs 4000
+
+# Network-free smoke test for CI / local dev.
+mine-external-hardneg-en-dry-run:
+	uv run python -m pleno_ner_training.mine_external_hardneg \
+		--output data/raw/en/external_hardneg.json \
+		--max-docs 5 --dry-run
+
+# en-v01-tiny: convert raw/en/generated.json → HF dataset (BIO labels, fast
+# tokenizer alignment). PII_HINT_RE in convert_to_hf_dataset.py is a strict
+# superset of ja patterns; en text simply does not match the ja-only regexes
+# so they degrade to no-ops, keeping en zero-entity docs as-is (true negatives,
+# not silently dropped).
+convert-hf-en-v01-tiny:
+	uv run python -m pleno_ner_training.convert_to_hf_dataset \
+		--input data/raw/en/generated.json \
+		--output data/hf/en-v01-tiny \
+		--tokenizer microsoft/deberta-v3-xsmall
+
+# en-v01-tiny + Wikipedia hardneg merged (ORG-FP pressure analogue of #64).
+# Pre-merges generated.json + external_hardneg.json into a single tmp file
+# so the converter sees one input. Inline python avoids adding a stand-alone
+# merge module for a 6-line operation (mirrors convert-hf-v02-tiny-hardneg-ext).
+convert-hf-en-v01-tiny-hardneg-ext: mine-external-hardneg-en
+	uv run python -c "import json; \
+a=json.load(open('data/raw/en/generated.json',encoding='utf-8')); \
+b=json.load(open('data/raw/en/external_hardneg.json',encoding='utf-8')); \
+json.dump(a+b,open('data/raw/en/generated_with_external.json','w',encoding='utf-8'),ensure_ascii=False)"
+	uv run python -m pleno_ner_training.convert_to_hf_dataset \
+		--input data/raw/en/generated_with_external.json \
+		--output data/hf/en-v01-tiny-hardneg-ext \
+		--tokenizer microsoft/deberta-v3-xsmall \
+		--include-negatives
+
+# Train deberta-v3-xsmall fine-tune. RunPod GPU expected (CLAUDE.md: do not
+# train on local machine). Hyperparameters mirror ja-v02-tiny so deltas
+# isolate the data variable, not the optimizer.
+train-hf-en-v01-tiny:
+	uv run python -m pleno_ner_training.train_hf \
+		--dataset data/hf/en-v01-tiny \
+		--model microsoft/deberta-v3-xsmall \
+		--output output/hf-en-v01-tiny \
+		--fp16 --num-epochs 20 --batch-size 16 \
+		--learning-rate 3e-5 --warmup-ratio 0.15
+
+train-hf-en-v01-tiny-hardneg-ext:
+	uv run python -m pleno_ner_training.train_hf \
+		--dataset data/hf/en-v01-tiny-hardneg-ext \
+		--model microsoft/deberta-v3-xsmall \
+		--output output/hf-en-v01-tiny-hardneg-ext \
+		--fp16 --num-epochs 20 --batch-size 16 \
+		--learning-rate 3e-5 --warmup-ratio 0.15
+
+export-onnx-en-v01-tiny:
+	uv run python -m pleno_ner_training.export_onnx \
+		--model output/hf-en-v01-tiny \
+		--output output/hf-en-v01-tiny-onnx
+
+# Push to HF Hub. Repo `0xhikae/en-ner-onnx` is the en analogue of
+# `0xhikae/ja-ner-onnx@v0.13.0` consumed by pleno-pii-scanner's HF backend.
+push-hf-en-v01-tiny:
+	uv run python -m pleno_ner_training.export_onnx \
+		--model output/hf-en-v01-tiny \
+		--output output/hf-en-v01-tiny-onnx \
+		--push-to 0xhikae/en-ner-onnx
+
+# End-to-end (assumes en raw + RunPod GPU). The `mine-external-hardneg-en`
+# step in convert-hf-en-v01-tiny-hardneg-ext makes this network-dependent;
+# split into two runs for offline reproducibility.
+all-hf-en-v01-tiny: convert-hf-en-v01-tiny train-hf-en-v01-tiny export-onnx-en-v01-tiny push-hf-en-v01-tiny
 
 # === 共通 ===
 
