@@ -28,6 +28,11 @@ dependencies = [
     # wheel metadata cannot embed direct URL dependencies.
     "spacy[ja]>=3.8",
     "presidio-analyzer>=2.2",
+    # Async SQLite wrapper for CheckpointStore (#6). Required to keep
+    # discover/fetch coroutines from blocking on disk I/O while persisting
+    # per-source resume cursors. WAL mode + single writer + asyncio.Lock
+    # gives us kill -9 durability without a separate process.
+    "aiosqlite>=0.20",
 ]
 
 [project.optional-dependencies]
