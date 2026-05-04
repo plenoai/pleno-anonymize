@@ -10,9 +10,10 @@ import pytest
 
 from pleno_pii_scanner.hf_ner_pass import (
     _DEFAULT_LABEL_THRESHOLDS,
+    _LANG_DEFAULTS,
     _decode_spans,
     _parse_thresholds,
-    _resolve_model_source,
+    _resolve_model_sources,
 )
 
 
@@ -54,17 +55,49 @@ def test_decode_spans_separates_adjacent_distinct_labels():
     assert [s[3] for s in spans] == [0.9, 0.8]
 
 
-def test_resolve_model_source_defaults_to_hub_v013(monkeypatch):
+def test_resolve_defaults_to_ja_v013(monkeypatch):
     monkeypatch.delenv("PLENO_PII_SCANNER_HF_MODEL", raising=False)
     monkeypatch.delenv("PLENO_PII_SCANNER_HF_REVISION", raising=False)
-    src, rev = _resolve_model_source()
-    assert src == "0xhikae/ja-ner-onnx"
-    assert rev == "v0.13.0"
+    monkeypatch.delenv("PLENO_PII_SCANNER_HF_LANG", raising=False)
+    sources = _resolve_model_sources()
+    assert sources == [("0xhikae/ja-ner-onnx", "v0.13.0")]
 
 
-def test_resolve_model_source_honors_env_overrides(monkeypatch):
+def test_resolve_lang_en_picks_en_default(monkeypatch):
+    monkeypatch.delenv("PLENO_PII_SCANNER_HF_MODEL", raising=False)
+    monkeypatch.delenv("PLENO_PII_SCANNER_HF_REVISION", raising=False)
+    monkeypatch.setenv("PLENO_PII_SCANNER_HF_LANG", "en")
+    sources = _resolve_model_sources()
+    assert sources == [("0xhikae/en-ner-onnx", "v0.1.0")]
+
+
+def test_resolve_lang_auto_returns_both(monkeypatch):
+    monkeypatch.delenv("PLENO_PII_SCANNER_HF_MODEL", raising=False)
+    monkeypatch.delenv("PLENO_PII_SCANNER_HF_REVISION", raising=False)
+    monkeypatch.setenv("PLENO_PII_SCANNER_HF_LANG", "auto")
+    sources = _resolve_model_sources()
+    assert sorted(sources) == sorted(list(_LANG_DEFAULTS.values()))
+    assert len(sources) >= 2
+
+
+def test_resolve_lang_unknown_raises(monkeypatch):
+    monkeypatch.delenv("PLENO_PII_SCANNER_HF_MODEL", raising=False)
+    monkeypatch.setenv("PLENO_PII_SCANNER_HF_LANG", "fr")
+    with pytest.raises(RuntimeError, match="not supported"):
+        _resolve_model_sources()
+
+
+def test_resolve_explicit_model_pins_single(monkeypatch):
     monkeypatch.setenv("PLENO_PII_SCANNER_HF_MODEL", "myorg/custom-ner")
     monkeypatch.setenv("PLENO_PII_SCANNER_HF_REVISION", "v9.9.9")
-    src, rev = _resolve_model_source()
-    assert src == "myorg/custom-ner"
-    assert rev == "v9.9.9"
+    monkeypatch.setenv("PLENO_PII_SCANNER_HF_LANG", "auto")  # ignored when explicit
+    sources = _resolve_model_sources()
+    assert sources == [("myorg/custom-ner", "v9.9.9")]
+
+
+def test_resolve_lang_revision_override(monkeypatch):
+    monkeypatch.delenv("PLENO_PII_SCANNER_HF_MODEL", raising=False)
+    monkeypatch.setenv("PLENO_PII_SCANNER_HF_LANG", "ja")
+    monkeypatch.setenv("PLENO_PII_SCANNER_HF_REVISION", "v0.12.0")
+    sources = _resolve_model_sources()
+    assert sources == [("0xhikae/ja-ner-onnx", "v0.12.0")]
