@@ -253,6 +253,40 @@ def main() -> None:
     """Scan source repositories for PII (Japanese-first)."""
 
 
+# Register builtin connectors so `connectors list` always shows them
+# even when no third-party wheels are installed. Imports run at module
+# load so the CLI startup cost is bounded — registry itself remains
+# lazy for entry-points discovered from other wheels.
+def _register_builtins() -> None:
+    from pleno_pii_scanner.sources import builtin as _builtin  # noqa: F401
+    from pleno_pii_scanner.sources.registry import (
+        DuplicateConnectorError,
+        register,
+    )
+
+    for spec in (_builtin.DIR_SPEC, _builtin.GIT_SPEC, _builtin.GITHUB_SPEC):
+        try:
+            register(spec)
+        except DuplicateConnectorError:
+            # Re-running main() in tests / repeated imports — idempotent.
+            pass
+
+
+_register_builtins()
+
+
+# Mount the multi-source CLI groups (#15). They live in sibling modules
+# so backward-compat subcommands (dir/git/github/baseline/protect) above
+# stay byte-identical and the new groups can be tested in isolation.
+from pleno_pii_scanner.cli_connectors import connectors_group as _connectors_group
+from pleno_pii_scanner.cli_schedule import schedule_group as _schedule_group
+from pleno_pii_scanner.cli_scan import scan_group as _scan_group
+
+main.add_command(_connectors_group)
+main.add_command(_schedule_group)
+main.add_command(_scan_group)
+
+
 @main.command(name="dir")
 @click.argument("path", type=click.Path(exists=True, file_okay=False, path_type=Path))
 @_common_options
