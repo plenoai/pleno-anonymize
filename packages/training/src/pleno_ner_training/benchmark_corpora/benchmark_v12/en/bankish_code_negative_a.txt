@@ -1,0 +1,39 @@
+The FAQ only shows examples like branch-main checking 0000000000 and routing 000000000, and they are not real bank accounts.
+---DOC_SEPARATOR---
+The operations handout lists (555) 010-XXXX, REQ-09-4412, and INV-778812 as inquiry numbers and tracking IDs. None of these are financial account information.
+---DOC_SEPARATOR---
+The technical article merely compares names like Chase API, Wells Fargo Connect, and Capital One SDK, and no account holders or branch numbers appear.
+---DOC_SEPARATOR---
+The configuration guide states account=TEMP-HOLD, bank=masked, institution=UNASSIGNED, but these are explanations of unset values.
+---DOC_SEPARATOR---
+The demo screen displays branch-main checking 0000000000 as a placeholder. It is not the user's actual bank account.
+---DOC_SEPARATOR---
+The meeting memo records (555) 010-XXXX and (555) 010-1234 only as support hotline numbers, not banking information.
+---DOC_SEPARATOR---
+In the footnotes of the educational material, REQ-09-4412, SN-20260402-00123, and INV-778812 are listed as ticket and serial examples.
+---DOC_SEPARATOR---
+The debug log uses only fixed values branch-main checking 0000000000, TEMP-HOLD, and UNASSIGNED. They are not refund destination accounts.
+---DOC_SEPARATOR---
+The operations manual prints 10100 and 12345671 only to illustrate OCR character widths, and they are not actual checking account values.
+---DOC_SEPARATOR---
+The financial-literacy article merely explains the services of Chase, Wells Fargo, and Capital One, and contains no individual account numbers.
+---DOC_SEPARATOR---
+The app description includes `<input placeholder="branch-main checking 0000000000">`, but this is just a dummy display.
+---DOC_SEPARATOR---
+The footnotes of the operations report only show variable examples such as account=TEMP-HOLD and routing=0000, and there is no holder information.
+---DOC_SEPARATOR---
+The test CSV is composed only of mock values such as sample_user, MM/DD/YYYY, TEMP-HOLD, and branch-main checking 0000000000.
+---DOC_SEPARATOR---
+The support page only lists (555) 010-XXXX as a hotline and REQ-09-4412 as an intake number; neither is account information.
+---DOC_SEPARATOR---
+The bank-integration comparison sheet shows tokens like Institution 003 and Transit 11234, but these are generic illustrative codes, not actual transfer info.
+---DOC_SEPARATOR---
+The onboarding guide only explains what sample values like TEMP-HOLD and UNASSIGNED mean, and contains no real remittance destinations.
+---DOC_SEPARATOR---
+The operations newsletter lists invoice-code and tracking-code examples side by side, and neither category is an account number.
+---DOC_SEPARATOR---
+The screen design uses sequences of digits only to confirm display width, and retains no actual refund-account or routing data.
+---DOC_SEPARATOR---
+The internal handout offers conceptual descriptions of Chase API and Wells Fargo Connect, and contains no string that should be treated as BANK_ACCOUNT.
+---DOC_SEPARATOR---
+The incident report contains only support numbers and request IDs, and includes no account information or holder names.

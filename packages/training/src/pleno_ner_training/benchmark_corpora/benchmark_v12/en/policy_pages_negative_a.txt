@@ -1,0 +1,39 @@
+The terms-of-use page only lists person_name, address_line, and bank_account as input-field names, and never contains any actual values.
+---DOC_SEPARATOR---
+The annotation in the terms shows sample_user and street-city-state-12345, but these are fixed strings used in the UI mock.
+---DOC_SEPARATOR---
+The policy document only states the operational schedule of 2026/04/01, 2026/05/31, and 2026/06/15, and these are not dates of birth.
+---DOC_SEPARATOR---
+The rule book contains expressions such as branch-main checking 0000000000 and TEMP-HOLD, but they remain explanations of dummy values.
+---DOC_SEPARATOR---
+The terms-update notice mentions only Konan Exchange Center, Bridgepoint Branch promenade, and West Tower Cultural Hall.
+---DOC_SEPARATOR---
+The legal-policy template contains only (555) 010-XXXX and REQ-09-4412, and includes no financial accounts.
+---DOC_SEPARATOR---
+The conditions-of-use page describes Chase API and Wells Fargo Connect, but no actual bank account is included.
+---DOC_SEPARATOR---
+The footnote in the document mentions sample_name_01 only as an explanation of a sample account name.
+---DOC_SEPARATOR---
+The body of the terms contains only place names such as Midtown Plaza, Central Hospital intersection, and the North Ichijo Station forecourt.
+---DOC_SEPARATOR---
+The policy HTML example shows `<input placeholder="sample_user">`, and contains no actual user data.
+---DOC_SEPARATOR---
+UNASSIGNED and TEMP-HOLD appear in the change log, but they are merely descriptions of unset values.
+---DOC_SEPARATOR---
+The sample form in the terms shows MM/DD/YYYY, but it does not signify a DOB.
+---DOC_SEPARATOR---
+The policy page only enumerates labels such as person_name and organization_name, and the actual values remain blank.
+---DOC_SEPARATOR---
+An excerpt of the internal policy mentions Boulder University and the Manhattan Medical Society support center, but only as references to general facility names.
+---DOC_SEPARATOR---
+The operational policy contains only examples like routing=0000 and invoice-code, and no transfer information.
+---DOC_SEPARATOR---
+The sample_name_02 and street-city-state used on the guidance page are mock displays, not PII.
+---DOC_SEPARATOR---
+The contact section of the terms is composed only of the hotline number (555) 010-XXXX. No personal address or name is published.
+---DOC_SEPARATOR---
+The policy commentary contains strings like Shibuya Office District route and Konan Main HQ frontage route, but these are route labels.
+---DOC_SEPARATOR---
+The data retention policy only describes how TEMP-HOLD and UNASSIGNED are handled, and lists no real data.
+---DOC_SEPARATOR---
+The illustrations in the user agreement show only sample_user_91 and pending-town-12345.

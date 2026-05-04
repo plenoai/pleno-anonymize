@@ -1,0 +1,31 @@
+Initial form state: name=sample_user / address=123 Sample Street, Sample City, ST 00000 / dob=MM/DD/YYYY / account=branch-main checking 0000000000. QA dummy values; live data is never persisted.
+---DOC_SEPARATOR---
+FAQ: when organization=UNASSIGNED, return account=TEMP-HOLD. address=<pending> and dob=<unknown> are placeholder markers and have nothing to match against.
+---DOC_SEPARATOR---
+Verification note: drop sample_name_01 into the owner_name field and 1 Sample Avenue, Sample, ST into the shipping_address field to confirm the layout. No actual PII is ingested.
+---DOC_SEPARATOR---
+In the wire-test sandbox we hold bank_account=bank-branch-kind-number, branch=main, route=000000000 as fixed values. Real bank names, branch codes and account numbers must never be entered.
+---DOC_SEPARATOR---
+The OCR template ships with name: blank / address: pending / dob: 19XX/XX/XX / account: paid in cash to confirm the form layout only.
+---DOC_SEPARATOR---
+Screen spec v4: the name, dob, address, organization, bank_account fields each render a placeholder. street-city-state-12345 and org-unit-temp are example strings and not personal data.
+---DOC_SEPARATOR---
+Inquiry template: "Enter your name", "Enter your address", "Enter your date of birth", "Enter your bank account". Label copy only; values stay empty.
+---DOC_SEPARATOR---
+Fault triage: the exception only reproduces when the request body carries address=street-city-state-12345, organization=UNASSIGNED, bank_account=TEMP-HOLD. These are test fixtures, not a leak.
+---DOC_SEPARATOR---
+Fillable example name=<blank>address=<pending>dob=MM/DD/YYYYaccount=TEMP-HOLD organization=UNASSIGNED address=street-city-state-12345 bank_account=branch-main checking 0000000000. Layout-check fixtures only.
+---DOC_SEPARATOR---
+Walk-through copy: sample_name_01 / sample_name_02 / sample_name_03 are sort-order checks; ship_to=street-city-state-12345, owner=masked-user, dob=19XX-XX-XX are all placeholders.
+---DOC_SEPARATOR---
+The KYC mock concatenates name pending address pending dob MM/DD/YYYY account branch-main checking 0000000000 in a single string for screen-reader testing.
+---DOC_SEPARATOR---
+OCR transcript of the verification screenshot: organization=UNASSIGNED address=street-city-state-12345 dob=<unknown> bank_account=<masked> person_name=sample_user_09. No real data is included.
+---DOC_SEPARATOR---
+Field list OCR: namesample_useraddressstreet-city-state-12345dobYYYY-MM-DDpaymentTEMP-HOLDorgorg-unit-temp. Layout boilerplate, not stored.
+---DOC_SEPARATOR---
+Chat snippet owner=sample_name_01 pay_to=branch-main checking 0000000000 ship_to=street-city-state-12345 org=UNASSIGNED note=for-layout-check-only. Test strings only.
+---DOC_SEPARATOR---
+The mail-merge sample lists Smith-style placeholder, Jones-style placeholder, Manhattan block, Soho office row, 2026/04/01 — none of which is treated as personal data.
+---DOC_SEPARATOR---
+Header reference: name dob address organization bank_account is printed directly above sample_user MM/DD/YYYY street-city-state-12345 org-unit-temp branch-main checking 0000000000, then auto-purged.

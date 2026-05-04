@@ -1,0 +1,39 @@
+The route guide lists Bridgepoint Branch promenade, Konan Main HQ frontage route, and West Tower HQ frontage route, but each is a generic flow-line label.
+---DOC_SEPARATOR---
+The body of the map description is composed only of place names such as Shibuya Office District, Tenjin Office District, and the North Ichijo Station forecourt.
+---DOC_SEPARATOR---
+The signage wording mentions the Central Hospital intersection, but that is a generic place name and not a personal delivery destination.
+---DOC_SEPARATOR---
+The access guide only describes routes to the Konan Exchange Center, West Tower Cultural Hall, and Midtown Plaza.
+---DOC_SEPARATOR---
+The venue flow chart lists the Boulder University public lecture venue and the Stanford University collaboration venue side by side, but it is not an affiliation roster.
+---DOC_SEPARATOR---
+The (555) 010-XXXX shown on the route page is the inquiry hotline and is not a personal record.
+---DOC_SEPARATOR---
+The route-guide app demo simply displays sample_user and street-city-state-12345.
+---DOC_SEPARATOR---
+The navigation description uses dummy values such as routing=0000 and branch-main checking 0000000000, but they are unrelated to financial information.
+---DOC_SEPARATOR---
+REQ-09-4412 and INV-778812 in the map legend are explanations of program codes.
+---DOC_SEPARATOR---
+The access guide mentions the Chase Branch entrance and the Capital One exhibition booth, but they are generic landmark names.
+---DOC_SEPARATOR---
+The route comparison table shows only the labels person_name and address_line, and there are no actual values.
+---DOC_SEPARATOR---
+The guide presents only the operating schedule of 2026/04/01, 2026/05/31, and 2026/06/15. They are not DOBs.
+---DOC_SEPARATOR---
+TEMP-HOLD and UNASSIGNED appear in the map's comment column for display testing.
+---DOC_SEPARATOR---
+The explanatory slide uses sample_name_01 only to verify display widths; it is not a person's name.
+---DOC_SEPARATOR---
+The route list shows the strings West Tower HQ front, Konan Main HQ front, and Midtown Plaza front, but each is a place-name label.
+---DOC_SEPARATOR---
+The map commentary contains only "in front of branch" and intersection names, with no return-shipping addresses or insured-person addresses.
+---DOC_SEPARATOR---
+The HTML example on the guidance page shows only `<input placeholder="street-city-state">`, and there is no actual address.
+---DOC_SEPARATOR---
+The document listing station-front venues contains no personal names, accounts, or dates of birth.
+---DOC_SEPARATOR---
+The route notation in the public guide states "the North Ichijo Station forecourt venue", which is a generic venue name.
+---DOC_SEPARATOR---
+The footnote on the map description shows sample_user_91, but it is a demo-account notation, not person data.

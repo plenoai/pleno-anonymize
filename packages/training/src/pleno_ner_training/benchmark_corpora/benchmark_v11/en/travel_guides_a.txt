@@ -1,0 +1,19 @@
+A travel guide introduces West Boulder Cultural Hall Plaza, Bridge Street, the Riverside Community Center, and North Avenue Station as part of a sightseeing route; these are not personal mailing addresses.
+---DOC_SEPARATOR---
+A walking tour article body lists a spring festival on 04/01/2026, a night market on 05/31/2026, and an outdoor screening on 06/15/2026 - all are event dates, not DOBs.
+---DOC_SEPARATOR---
+The tourism FAQ shows app-screen samples like sample_user and pref-city-town-1-2-3, but these are not real hotel guest data.
+---DOC_SEPARATOR---
+The regional guide describes the JPMorgan Plaza forecourt, Capital Bank PR booth, and USPS Postal Bank exhibit corner as landmarks; no financial account data is included.
+---DOC_SEPARATOR---
+A line-by-line guide lists Downtown Office District, Capital Office Quarter, and Harbor HQ Front as common district names, not workplace rosters or residential lists.
+---DOC_SEPARATOR---
+The travel pamphlet shows 555-0123 as the inquiry line and REQ-09-4412 as a program reference; no account numbers or names are printed.
+---DOC_SEPARATOR---
+A tourism feature column mentions an MIT public lecture series and a regional event hosted by the County Medical Society outreach hub, but the speakers' personal addresses remain undisclosed.
+---DOC_SEPARATOR---
+The public-transit guide contains only route names, venue names, and departure times - it includes no contract holder names or insured-party DOBs.
+---DOC_SEPARATOR---
+The travel app settings explainer cites samples such as branch-main ordinary 0000000 and TEMP-HOLD; these are not real payment data.
+---DOC_SEPARATOR---
+The tourism news item simply reports congestion at Riverside Community Hall, West Boulder HQ Plaza, and Bridge Street Plaza; no individual addresses or contact details appear.

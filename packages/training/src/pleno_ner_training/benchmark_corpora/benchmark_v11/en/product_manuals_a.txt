@@ -1,0 +1,19 @@
+Operating manual: owner=sample_user, address=state-city-town-1-2-3, dob=MM/DD/YYYY, bank=TEMP-HOLD are initial placeholder values. Real personal data must never be entered.
+---DOC_SEPARATOR---
+Admin console reference: the fields person_name, address_line, organization_name, bank_account, and date_value display only placeholders. The body of the document is specification-only.
+---DOC_SEPARATOR---
+The OCR setup guide includes examples like "name field empty", "address pending", "DOB MM/DD/YYYY", and "account branch-main checking 0000000". All entries are illustrative dummy values.
+---DOC_SEPARATOR---
+API documentation: the example puts "Chase Bank" in institution_name, "Shibuya Office District" in display_name, and "0000" in route_code. No personally identifying information is included.
+---DOC_SEPARATOR---
+The tutorial screen HTML snippet shows only `<input placeholder="sample_user">` and `<input placeholder="state-city-town-1-2-3">`. No real user values are present.
+---DOC_SEPARATOR---
+The product specification document uses route names like West End HQ Plaza Route, Nihonbashi Branch Front Route, and Central Hospital Crossing Route. These are flow names, not address lists.
+---DOC_SEPARATOR---
+Onboarding guide: sample_name_01, sample_name_02, and sample_name_03 are listed side by side for column-width verification. They are fixed sample strings, not real personal names.
+---DOC_SEPARATOR---
+FAQ: in response to "What is TEMP-HOLD?", "What is UNASSIGNED?", and "What is state-city-block?", the document explains that they are all placeholder values or unset markers.
+---DOC_SEPARATOR---
+Configuration manual: 04/01/2026, 05/31/2026, and 06/15/2026 are used as schedule examples. They are never stored as a date of birth or as a contractor identifier.
+---DOC_SEPARATOR---
+The connection setup document lists numbers like 555-0123, INV-778812, and REQ-09-4412. These are reference and management numbers — not account information.

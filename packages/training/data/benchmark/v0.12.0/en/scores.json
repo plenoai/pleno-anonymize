@@ -1,0 +1,46 @@
+{
+  "pleno_ner": {
+    "ents_p": 0.3050847457627119,
+    "ents_r": 0.7783783783783784,
+    "ents_f": 0.4383561643835617,
+    "ents_per_type": {
+      "PERSON": {
+        "p": 0.8620689655172413,
+        "r": 0.847457627118644,
+        "f": 0.8547008547008546
+      },
+      "DATE_OF_BIRTH": {
+        "p": 0.41509433962264153,
+        "r": 1.0,
+        "f": 0.5866666666666668
+      },
+      "ADDRESS": {
+        "p": 0.38461538461538464,
+        "r": 0.6666666666666666,
+        "f": 0.4878048780487804
+      },
+      "ORGANIZATION": {
+        "p": 0.10204081632653061,
+        "r": 0.7142857142857143,
+        "f": 0.17857142857142858
+      },
+      "BANK_ACCOUNT": {
+        "p": 0.4473684210526316,
+        "r": 0.7083333333333334,
+        "f": 0.5483870967741936
+      }
+    },
+    "latency_ms_per_doc": 21.1,
+    "model_size_mb": 480.8,
+    "num_docs": 500,
+    "negative_docs": 440,
+    "negative_clean_docs": 278,
+    "negative_doc_clean_rate": 0.6318181818181818,
+    "negative_fp_total": 302,
+    "suite_kind": "benchmark",
+    "purpose": "OCR・key-value 崩れと一般文書の偽陽性圧力を強めた curated DLP benchmark",
+    "corpus": "v0.12.0/en",
+    "metric": "strict_span_f1",
+    "aggregation": "micro"
+  }
+}
