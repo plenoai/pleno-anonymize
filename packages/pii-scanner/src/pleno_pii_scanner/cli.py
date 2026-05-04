@@ -55,6 +55,13 @@ _NOISY_ENTITIES = frozenset({"URL", "HEALTH_INSURANCE", "DRIVER_LICENSE"})
 _NER_ENTITIES = ("PERSON", "ADDRESS", "ORGANIZATION", "DATE_OF_BIRTH", "BANK_ACCOUNT")
 
 
+def _hf_backend_selected() -> bool:
+    """`PLENO_PII_SCANNER_BACKEND=hf` opts into the HF NER path (#48/#98)."""
+    import os
+
+    return os.environ.get("PLENO_PII_SCANNER_BACKEND", "").lower() == "hf"
+
+
 def _resolve_entities(entities_csv: str | None) -> tuple[str, ...] | None:
     """Return the entity filter to send to NER/cloud, or None for no filter (--entities ALL)."""
     if not entities_csv:
@@ -164,6 +171,13 @@ def _scan_directory(
     if cloud is not None:
         # Cloud offload: same Presidio + NER + regex pipeline, just remote.
         findings = scan_files_cloud(file_pairs, file_text, cloud)
+    elif _hf_backend_selected():
+        # #48/#98: opt-in HF token-classification path with per-label
+        # confidence floor (default ORG=0.99). Same Finding shape so verify /
+        # baseline / report flows are unchanged.
+        from pleno_pii_scanner.hf_ner_pass import scan_files_hf
+
+        findings = scan_files_hf(file_pairs, file_text, entities=entity_filter)
     else:
         # Default: local Presidio + spaCy NER (ja_ner_ja) + regex recognizers.
         findings = scan_files_ner(

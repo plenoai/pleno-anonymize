@@ -2641,7 +2641,7 @@ provides-extras = ["training", "hf", "bench"]
 
 [[package]]
 name = "pleno-pii-scanner"
-version = "0.1.2"
+version = "0.2.0"
 source = { editable = "packages/pii-scanner" }
 dependencies = [
     { name = "click" },
@@ -2650,6 +2650,13 @@ dependencies = [
     { name = "pleno-recognizers" },
     { name = "presidio-analyzer" },
     { name = "spacy", extra = ["ja"] },
+]
+
+[package.optional-dependencies]
+hf = [
+    { name = "huggingface-hub" },
+    { name = "torch" },
+    { name = "transformers" },
 ]
 
 [package.dev-dependencies]
@@ -2662,11 +2669,15 @@ dev = [
 requires-dist = [
     { name = "click", specifier = ">=8.1" },
     { name = "httpx", specifier = ">=0.27.0" },
+    { name = "huggingface-hub", marker = "extra == 'hf'", specifier = ">=0.23" },
     { name = "pathspec", specifier = ">=0.12" },
     { name = "pleno-recognizers", editable = "packages/recognizers" },
     { name = "presidio-analyzer", specifier = ">=2.2" },
     { name = "spacy", extras = ["ja"], specifier = ">=3.8" },
+    { name = "torch", marker = "extra == 'hf'", specifier = ">=2.2" },
+    { name = "transformers", marker = "extra == 'hf'", specifier = ">=4.40" },
 ]
+provides-extras = ["hf"]
 
 [package.metadata.requires-dev]
 dev = [

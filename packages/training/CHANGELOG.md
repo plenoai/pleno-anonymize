@@ -1,5 +1,43 @@
 # Training CHANGELOG
 
+## [v0.13.0] - 2026-05-04 — `hf-ja-v02-tiny-aug-ext` + ORG=0.99 confidence floor
+
+### Added
+- `evaluate_scored_predictions_on_benchmark` (evaluate_benchmark.py) — decouples
+  HF inference from spaCy-Scorer scoring so predictions can be re-scored at many
+  per-label thresholds without re-running the model.
+- `sweep_org_threshold.py` — picks max-overall-F1 per-label threshold under #98
+  AC (overall F1 ≥ 0.5 ∧ ORG precision ≥ 0.30). spaCy Scorer parity (matches
+  `scores.json`).
+- `sweep_threshold.evaluate_at_threshold` accepts `threshold: float | dict[str,
+  float]` so per-label confidence floors are first-class. New `run_per_label_sweep`.
+- Makefile targets `predict-scores-v12-aug-ext`, `sweep-threshold-org-v12`.
+
+### Performance — v0.12.0 / ja adversarial (500 docs, FP-pressure DLP corpus)
+| Metric | hf_v02_tiny_aug_ext (no threshold) | + ORG≥0.99 (v0.13.0) | Δ |
+|---|---:|---:|---:|
+| Overall F1 | 0.452 | **0.701** | +0.249 |
+| Overall P  | 0.303 | **0.632** | +0.329 |
+| Overall R  | 0.883 | 0.787 | -0.096 |
+| ORG F1     | 0.160 | **0.371** | +0.211 |
+| ORG P      | 0.088 | **0.394** | +0.306 |
+| PERSON F1  | 0.951 | 0.935 | -0.016 (R 0.983 維持) |
+| Negative-doc clean rate | 63.2 % | **90.7 %** | +27.5 pt |
+| Negative-doc FP total | 333 | **52** | -281 (6.4× 削減) |
+
+### Changed
+- Default ORG threshold for v0.13.0 production rollout: **0.99** (DLP profile).
+  Tunable per consumer; lower it if recall matters more than precision.
+- `release-model.yml` defaults `model_path` to `output/hf-ja-v02-tiny-aug-ext`
+  (was `output/hf-ja-v02-tiny`).
+
+### Refs
+- Closes #98 (ORG-FP precision floor).
+- Partial #48 (overall F1 ≥ 70 % achieved; per-entity ADDRESS/DOB/BANK ≥ 70 %
+  outstanding — separate follow-up).
+- Eval doc: `models/hf-ja-v02-tiny-aug-ext-org-threshold-eval-v012.md`
+- Commits: c230422
+
 ## [Unreleased] - 2026-04-03
 
 ### Added

@@ -12,6 +12,22 @@ uvx pleno-pii-scanner --help
 
 The `ja_ner_ja` spaCy model is downloaded into the uvx-managed environment on first NER invocation. To pin a persistent install, use `uv tool install pleno-pii-scanner` instead. Workspace contributors get the model wheel preinstalled via `uv sync` (it lives in the `dev` dependency group).
 
+### Higher-precision HF backend (opt-in)
+
+For DLP-grade workloads where false-positive `<ORGANIZATION>` masks are unacceptable, opt into the HuggingFace token-classification backend (model `model/v0.13.0`, `0xhikae/ja-ner-onnx@v0.13.0`). It applies a per-label confidence floor (default `ORGANIZATION=0.99`) — overall F1 0.452 → 0.701 vs the spaCy baseline on the `v0.12.0/ja` adversarial corpus.
+
+```sh
+PLENO_PII_SCANNER_BACKEND=hf \
+  uvx --with 'pleno-pii-scanner[hf]' pleno-pii-scanner dir <path>
+```
+
+Tunables:
+
+- `PLENO_PII_SCANNER_THRESHOLDS=ORGANIZATION=0.99,PERSON=0.0` — per-label confidence floor (default ORG=0.99).
+- `PLENO_PII_SCANNER_HF_MODEL` / `PLENO_PII_SCANNER_HF_REVISION` — pin to a custom HF Hub repo / revision (default `0xhikae/ja-ner-onnx@v0.13.0`).
+
+The HF backend adds ~600 MB of torch + transformers; the default install stays lightweight.
+
 ## Subcommands
 
 ```sh

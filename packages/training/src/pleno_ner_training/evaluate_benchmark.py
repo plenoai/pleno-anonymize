@@ -194,29 +194,7 @@ def evaluate_hf_on_benchmark(
 
         tags = [id2label.get(int(i), "O") for i in tag_ids]
         char_spans = _bio_tags_to_char_spans(tags, offsets)
-
-        # gold doc と同じ text/tokens を持つ pred Doc を作る。
-        # spaCy Scorer は ent の char offset を比較するので tokenization は同一でなくてよい。
-        pred_doc = Doc(blank_nlp.vocab, words=[t.text for t in gold_doc], spaces=[t.whitespace_ != "" for t in gold_doc])
-        pred_ents = []
-        for s, e, label in char_spans:
-            span = pred_doc.char_span(s, e, label=label, alignment_mode="expand")
-            if span is not None:
-                pred_ents.append(span)
-        try:
-            pred_doc.ents = pred_ents  # type: ignore[assignment]
-        except ValueError:
-            # 重複スパンが出たら長い方を優先 (greedy non-overlap)
-            occupied: list[tuple[int, int]] = []
-            unique = []
-            for span in sorted(pred_ents, key=lambda s: (-(s.end - s.start), s.start)):
-                if any(span.start < oe and os < span.end for os, oe in occupied):
-                    continue
-                unique.append(span)
-                occupied.append((span.start, span.end))
-            unique.sort(key=lambda s: s.start)
-            pred_doc.ents = unique  # type: ignore[assignment]
-
+        pred_doc = _align_pred_ents_to_gold(blank_nlp, gold_doc, char_spans)
         examples.append(Example(pred_doc, gold_doc))
         if not gold_doc.ents:
             negative_docs += 1

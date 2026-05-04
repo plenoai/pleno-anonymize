@@ -1,6 +1,6 @@
 [project]
 name = "pleno-pii-scanner"
-version = "0.1.2"
+version = "0.2.0"
 description = "Japanese-first PII scanner for source repositories with gitleaks/trufflehog-like UX"
 readme = "README.md"
 license = { text = "AGPL-3.0-or-later" }
@@ -28,6 +28,16 @@ dependencies = [
     # wheel metadata cannot embed direct URL dependencies.
     "spacy[ja]>=3.8",
     "presidio-analyzer>=2.2",
+]
+
+[project.optional-dependencies]
+# HF token-classification backend (#48/#98). Opt-in via env
+# PLENO_PII_SCANNER_BACKEND=hf. Adds ~600 MB of torch + transformers; left out
+# of the default install to keep `uvx pleno-pii-scanner` lightweight.
+hf = [
+    "torch>=2.2",
+    "transformers>=4.40",
+    "huggingface_hub>=0.23",
 ]
 
 [project.urls]

@@ -20,10 +20,10 @@ on:
         required: true
         type: string
       model_path:
-        description: 'Trained model directory under packages/training/. Default: output/hf-ja-v02-tiny'
+        description: 'Trained model directory under packages/training/. Default: output/hf-ja-v02-tiny-aug-ext'
         required: false
         type: string
-        default: 'output/hf-ja-v02-tiny'
+        default: 'output/hf-ja-v02-tiny-aug-ext'
       dry_run:
         description: 'Skip HF Hub push (export + log only).'
         required: false
@@ -68,11 +68,16 @@ jobs:
                 exit 1
                 ;;
             esac
-            model_path="output/hf-ja-v02-tiny"
+            # v0.13.0 ships hf_v02_tiny_aug_ext (#48/#98). Future revisions may
+            # bump this — keep the mapping explicit so it's reviewable in PRs.
+            case "$revision" in
+              v0.13.*) model_path="output/hf-ja-v02-tiny-aug-ext" ;;
+              *)       model_path="output/hf-ja-v02-tiny-aug-ext" ;;
+            esac
             dry_run="false"
           else
             revision="$INPUT_REVISION"
-            model_path="${INPUT_MODEL_PATH:-output/hf-ja-v02-tiny}"
+            model_path="${INPUT_MODEL_PATH:-output/hf-ja-v02-tiny-aug-ext}"
             dry_run="${INPUT_DRY_RUN:-true}"
           fi
           {
