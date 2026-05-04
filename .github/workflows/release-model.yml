@@ -112,26 +112,21 @@ jobs:
           # tag-triggered runs, treat the workflow as a verification step: if
           # the HF Hub revision is already published, the local push happened
           # out-of-band and we exit success. Otherwise fail with clear guidance.
-          published_files=$(
-            uv run --with huggingface_hub python -c "
-import sys
-from huggingface_hub import HfApi
-from huggingface_hub.utils import RepositoryNotFoundError, RevisionNotFoundError
-try:
-    files = HfApi().list_repo_files('0xhikae/ja-ner-onnx', revision='${REVISION}')
-    print(len(files))
-except (RepositoryNotFoundError, RevisionNotFoundError):
-    print(0)
-" 2>/dev/null || echo 0
-          )
-          if [ "${published_files:-0}" -gt 0 ]; then
-            echo "::notice::HF revision ${REVISION} already has ${published_files} files; treating as already published."
+          # Use the public HF Hub API via curl — no auth needed for read.
+          tree_url="https://huggingface.co/api/models/0xhikae/ja-ner-onnx/tree/${REVISION}"
+          http_status=$(curl -s -o /tmp/hf-tree.json -w "%{http_code}" "$tree_url" || echo 000)
+          file_count=0
+          if [ "$http_status" = "200" ]; then
+            file_count=$(grep -o '"type":' /tmp/hf-tree.json | wc -l | tr -d ' ')
+          fi
+          if [ "${file_count:-0}" -gt 0 ]; then
+            echo "::notice::HF revision ${REVISION} already has ${file_count} files; treating as already published."
             echo "artifact_present=false" >> "$GITHUB_OUTPUT"
             echo "skip_export=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          echo "::error::trained model not found at $full and HF revision ${REVISION} is empty."
+          echo "::error::trained model not found at $full and HF revision ${REVISION} is empty (HTTP $http_status)."
           echo "::error::Push from a workstation: cd packages/training && uv run --extra hf python -m pleno_ner_training.export_onnx --model ${MODEL_PATH} --output ${MODEL_PATH}-onnx --push-to 0xhikae/ja-ner-onnx --revision ${REVISION}"
           exit 1
 
