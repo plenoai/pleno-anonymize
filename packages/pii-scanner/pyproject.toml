@@ -1,6 +1,6 @@
 [project]
 name = "pleno-pii-scanner"
-version = "0.2.1"
+version = "0.2.2"
 description = "Japanese-first PII scanner for source repositories with gitleaks/trufflehog-like UX"
 readme = "README.md"
 license = { text = "AGPL-3.0-or-later" }
