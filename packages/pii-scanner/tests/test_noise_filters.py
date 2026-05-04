@@ -29,6 +29,70 @@ def _kept(findings, file_text):
 
 
 # ---------------------------------------------------------------------------
+# Issue #102: PERSON_LATIN recall booster — keep author-context names, drop
+# title-case prose. The recognizer is intentionally permissive; noise_filters
+# is what makes it safe to ship.
+# ---------------------------------------------------------------------------
+
+
+def test_keeps_latin_name_with_email_in_window():
+    f = _f(
+        "PERSON",
+        "Guido van Rossum",
+        "| Author: Guido van Rossum <guido@python.org>,",
+        score=0.3,
+    )
+    assert _kept([f], f.snippet) == [f]
+
+
+def test_keeps_latin_name_with_pr_link_changelog_pattern():
+    """nodejs-ja "(Name) [#1313]" credits."""
+    line = "- 修正されました。(Yosuke Furukawa) [#1313](https://github.com/...)"
+    f = _f("PERSON", "Yosuke Furukawa", line, score=0.3)
+    assert _kept([f], line) == [f]
+
+
+def test_keeps_latin_name_with_author_marker():
+    line = "Author: Barry Warsaw"
+    f = _f("PERSON", "Barry Warsaw", line, score=0.3)
+    assert _kept([f], line) == [f]
+
+
+def test_drops_apache_license_in_readme():
+    line = "Licensed under the Apache License, Version 2.0."
+    f = _f("PERSON", "Apache License", line, score=0.3)
+    assert _kept([f], line) == []
+
+
+def test_drops_pull_request_in_contributing():
+    line = "Open a Pull Request against main."
+    f = _f("PERSON", "Pull Request", line, score=0.3)
+    assert _kept([f], line) == []
+
+
+def test_drops_hello_world_in_quickstart():
+    line = "Run the Hello World example."
+    f = _f("PERSON", "Hello World", line, score=0.3)
+    assert _kept([f], line) == []
+
+
+def test_drops_latin_title_case_without_context():
+    """Plain title-case bigrams in normal Japanese prose stay suppressed."""
+    line = "詳細は New York のドキュメントを参照してください。"
+    f = _f("PERSON", "New York", line, score=0.3)
+    assert _kept([f], line) == []
+
+
+def test_keeps_high_score_ner_latin_name_even_without_context():
+    """ja_ner_ja confidence ≥ 0.6 bypasses the context gate — the model
+    rarely hallucinates ASCII names at that score, and human review is
+    cheaper than a silent drop."""
+    line = "Speakers: Some Person."
+    f = _f("PERSON", "Some Person", line, score=0.85)
+    assert _kept([f], line) == [f]
+
+
+# ---------------------------------------------------------------------------
 # IP_ADDRESS
 # ---------------------------------------------------------------------------
 

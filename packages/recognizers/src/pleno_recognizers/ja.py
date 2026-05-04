@@ -193,6 +193,55 @@ _JA_BANK_BRANCH_PART = (
     r"(?:[一-龥ぁ-んァ-ヶー々〆\d]{0,12}支店|本店営業部|本店|[一-龥ぁ-んァ-ヶー]{1,8}営業部)"
 )
 
+# --- Latin-script personal names (recall booster, issue #102) ---
+# ja_ner_ja は日本語まじり文中のLatin文字人名 (Yosuke Furukawa, Guido van Rossum,
+# Barry Warsaw など) を PERSON として検出できないため、低スコアの正規表現
+# recognizer を追加してリコールを補う。precision を犠牲にしないよう、
+# noise_filters.py が author-context (email隣接, "(Name) [#PR]", "Author:" 等) を
+# 持たない候補を落とし、verify.py が email隣接時にスコアを promote する。
+JA_PERSON_LATIN = PiiRecognizer(
+    entity="PERSON",
+    language="ja",
+    patterns=(
+        PiiPattern(
+            "person_latin_multi_word",
+            # Title-case 2..4 word names with optional Dutch/Spanish/etc.
+            # particle (``van``, ``von``, ``de``, ...) between the given and
+            # family name. ``\b`` anchors avoid matching mid-word capitals.
+            #
+            # ``(?-i:...)`` disables IGNORECASE for the whole pattern. Presidio
+            # passes ``re.IGNORECASE`` by default to PatternRecognizer regexes,
+            # which would otherwise let ``[A-Z]`` match lowercase letters and
+            # surface every ``def hello`` and ``import os`` in Python source.
+            r"(?-i:"
+            r"\b[A-Z][a-z]+"
+            r"(?:\s+(?:van|von|de|der|den|del|della|du|di|da|le|la|el|al|bin|ibn))?"
+            r"(?:\s+[A-Z][a-z]+\.?){1,3}\b"
+            r")",
+            0.3,
+        ),
+    ),
+    # Keywords are matched via plain substring search by ``verify``, so they
+    # MUST be specific enough not to collide with common English/code prose.
+    # ``"by"`` was deliberately dropped after it boosted ``Android Studio``
+    # via ``RubyMine``; ``"@"`` is dropped because the same boost triggers
+    # for any URL (``git@github.com``). The strong attribution signals
+    # below ("Author", "Translator", "©" etc.) plus the email-proximity
+    # rule in ``verify`` cover the high-recall cases.
+    context=(
+        # Generic "Contributor"/"Maintainer" were dropped: they collide with
+        # their own match strings ("Contributor Covenant") and self-promote
+        # a Latin-name candidate via the keyword boost. The remaining list
+        # is restricted to attribution prefixes that almost never appear as
+        # the *content* of a name span.
+        "Author", "Authored-by", "Authored by",
+        "Translator", "Translated by",
+        "Reviewed-by", "Signed-off-by", "Co-authored-by",
+        "Copyright", "©",
+        "翻訳", "監訳", "原著", "著者", "訳者",
+    ),
+)
+
 JA_BANK_ACCOUNT = PiiRecognizer(
     entity="BANK_ACCOUNT",
     language="ja",
@@ -225,4 +274,5 @@ ALL_JA_RECOGNIZERS: tuple[PiiRecognizer, ...] = (
     JA_POSTAL_CODE,
     JA_URL,
     JA_BANK_ACCOUNT,
+    JA_PERSON_LATIN,
 )
