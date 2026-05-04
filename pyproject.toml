@@ -7,6 +7,7 @@ members = [
     "packages/pii-scanner-aws",
     "packages/pii-scanner-azure-devops",
     "packages/pii-scanner-bitbucket",
+    "packages/pii-scanner-discord",
     "packages/pii-scanner-gcs",
     "packages/pii-scanner-github",
     "packages/pii-scanner-gitlab",
