@@ -49,7 +49,14 @@ RUN uv pip install \
 # thread died silently because of a wrong spacy.load() argument, leaving the
 # server up but unable to serve. This RUN line forces the failure mode visible
 # at build time so a bad image is never pushed.
-RUN uv run python -c "import spacy; spacy.load('ja_ner_ja'); spacy.load('en_ner_en'); print('models loadable')"
+#
+# `--no-sync` is required: `uv run` defaults to re-syncing the workspace before
+# executing, which tries to editable-install every workspace member. pii-scanner
+# pyproject references README.md (post-6cec687 PyPI publish), and the README
+# is intentionally not in the server image, so the auto-sync fails with
+# `OSError: Readme file does not exist`. The wheels installed by the previous
+# `uv pip install` lines are already in place — no sync is desired here.
+RUN uv run --no-sync python -c "import spacy; spacy.load('ja_ner_ja'); spacy.load('en_ner_en'); print('models loadable')"
 
 FROM python:3.12-slim
 
@@ -60,4 +67,8 @@ COPY --from=builder /workspace /workspace
 COPY --from=builder /root /root
 
 EXPOSE 8080
-CMD ["uv", "run", "uvicorn", "server.src.app:app", "--host", "0.0.0.0", "--port", "8080"]
+# `--no-sync` mirrors the build-time smoke test: at container start `uv run`
+# would otherwise auto-sync the workspace, which fails for the same reason
+# (pii-scanner README absent). The runtime image already has all required
+# wheels installed in /workspace/.venv from the builder stage.
+CMD ["uv", "run", "--no-sync", "uvicorn", "server.src.app:app", "--host", "0.0.0.0", "--port", "8080"]
