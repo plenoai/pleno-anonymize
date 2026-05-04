@@ -5,6 +5,7 @@ members = [
     "packages/recognizers",
     "packages/pii-scanner",
     "packages/pii-scanner-aws",
+    "packages/pii-scanner-azure-devops",
     "packages/pii-scanner-bitbucket",
     "packages/pii-scanner-gcs",
     "packages/pii-scanner-github",
