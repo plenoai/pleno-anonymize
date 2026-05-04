@@ -33,6 +33,11 @@ dependencies = [
     # per-source resume cursors. WAL mode + single writer + asyncio.Lock
     # gives us kill -9 durability without a separate process.
     "aiosqlite>=0.20",
+    # Charset autodetection for the ContentExtractor text/* path (#8).
+    # Pure-Python (no native deps), maintained successor to the
+    # abandoned `chardet`. Used by every binary->text decode in the
+    # extractors layer, so it is core, not extra.
+    "charset-normalizer>=3.4",
 ]
 
 [project.optional-dependencies]
@@ -50,6 +55,26 @@ hf = [
 # Without this extra, KeyringCredentialResolver gracefully degrades to
 # a no-op resolver so the broker just falls through to env / file.
 keyring = ["keyring>=24"]
+# PDF body extraction (#8 / ADR-0007 §6). pypdfium2 ships PDFium as a
+# native wheel — no system poppler / mupdf required, which keeps the
+# distroless container slim. Mandatory for enterprise scans of file
+# shares and SharePoint where PDF is the dominant body format.
+pdf = ["pypdfium2>=4.30"]
+# Office document extraction (#8). Three libs, one extra: docx for
+# Word, openpyxl for Excel, python-pptx for PowerPoint. All pure-Python
+# wheels. Activate when scanning M365 / Google Drive / SharePoint.
+office = [
+    "python-docx>=1.1",
+    "openpyxl>=3.1",
+    "python-pptx>=1.0",
+]
+# Columnar / row-oriented data lake formats (#8). pyarrow covers
+# parquet + orc; fastavro is a pure-Python avro reader (no JVM). Required
+# for S3 / GCS / Snowflake unload scans.
+columnar = [
+    "pyarrow>=17",
+    "fastavro>=1.9",
+]
 
 [project.urls]
 Homepage = "https://github.com/plenoai/pleno-anonymize"
