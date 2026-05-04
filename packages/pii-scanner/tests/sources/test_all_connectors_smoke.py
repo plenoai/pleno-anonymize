@@ -63,6 +63,12 @@ _MIN_CONFIGS: dict[str, dict[str, Any]] = {
     "jira": {"base_url": "https://x", "email": "e", "api_token": "t"},
     "confluence": {"base_url": "https://x", "email": "e", "api_token": "t"},
     "notion": {"integration_token": "x"},
+    "salesforce": {
+        "instance_url": "https://x.my.salesforce.com",
+        "client_id": "k",
+        "username": "u@example.com",
+        "private_key_pem": "PEM",
+    },
 }
 
 
