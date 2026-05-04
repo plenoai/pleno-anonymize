@@ -1,0 +1,546 @@
+{
+  "0.00": {
+    "token_acc": 1.0,
+    "token_p": 1.0,
+    "token_r": 1.0,
+    "token_f": 1.0,
+    "sents_p": null,
+    "sents_r": null,
+    "sents_f": null,
+    "tag_acc": null,
+    "pos_acc": null,
+    "morph_acc": null,
+    "morph_micro_p": null,
+    "morph_micro_r": null,
+    "morph_micro_f": null,
+    "morph_per_feat": null,
+    "dep_uas": null,
+    "dep_las": null,
+    "dep_las_per_type": null,
+    "ents_p": 0.8102189781021898,
+    "ents_r": 0.6,
+    "ents_f": 0.6894409937888198,
+    "ents_per_type": {
+      "PERSON": {
+        "p": 1.0,
+        "r": 0.4745762711864407,
+        "f": 0.6436781609195402
+      },
+      "DATE_OF_BIRTH": {
+        "p": 1.0,
+        "r": 0.5909090909090909,
+        "f": 0.7428571428571429
+      },
+      "ADDRESS": {
+        "p": 0.8837209302325582,
+        "r": 0.8444444444444444,
+        "f": 0.8636363636363636
+      },
+      "ORGANIZATION": {
+        "p": 0.3793103448275862,
+        "r": 0.3142857142857143,
+        "f": 0.34375
+      },
+      "BANK_ACCOUNT": {
+        "p": 0.875,
+        "r": 0.875,
+        "f": 0.875
+      }
+    },
+    "cats_score": 0.0,
+    "cats_score_desc": "macro F",
+    "cats_micro_p": 0.0,
+    "cats_micro_r": 0.0,
+    "cats_micro_f": 0.0,
+    "cats_macro_p": 0.0,
+    "cats_macro_r": 0.0,
+    "cats_macro_f": 0.0,
+    "cats_macro_auc": 0.0,
+    "cats_f_per_type": {},
+    "cats_auc_per_type": {},
+    "num_docs": 500,
+    "negative_docs": 440,
+    "negative_clean_docs": 432,
+    "negative_doc_clean_rate": 0.9818181818181818,
+    "negative_fp_total": 11,
+    "label_thresholds": {
+      "ORGANIZATION": 0.0
+    }
+  },
+  "0.50": {
+    "token_acc": 1.0,
+    "token_p": 1.0,
+    "token_r": 1.0,
+    "token_f": 1.0,
+    "sents_p": null,
+    "sents_r": null,
+    "sents_f": null,
+    "tag_acc": null,
+    "pos_acc": null,
+    "morph_acc": null,
+    "morph_micro_p": null,
+    "morph_micro_r": null,
+    "morph_micro_f": null,
+    "morph_per_feat": null,
+    "dep_uas": null,
+    "dep_las": null,
+    "dep_las_per_type": null,
+    "ents_p": 0.8161764705882353,
+    "ents_r": 0.6,
+    "ents_f": 0.691588785046729,
+    "ents_per_type": {
+      "PERSON": {
+        "p": 1.0,
+        "r": 0.4745762711864407,
+        "f": 0.6436781609195402
+      },
+      "DATE_OF_BIRTH": {
+        "p": 1.0,
+        "r": 0.5909090909090909,
+        "f": 0.7428571428571429
+      },
+      "ADDRESS": {
+        "p": 0.8837209302325582,
+        "r": 0.8444444444444444,
+        "f": 0.8636363636363636
+      },
+      "ORGANIZATION": {
+        "p": 0.39285714285714285,
+        "r": 0.3142857142857143,
+        "f": 0.34920634920634924
+      },
+      "BANK_ACCOUNT": {
+        "p": 0.875,
+        "r": 0.875,
+        "f": 0.875
+      }
+    },
+    "cats_score": 0.0,
+    "cats_score_desc": "macro F",
+    "cats_micro_p": 0.0,
+    "cats_micro_r": 0.0,
+    "cats_micro_f": 0.0,
+    "cats_macro_p": 0.0,
+    "cats_macro_r": 0.0,
+    "cats_macro_f": 0.0,
+    "cats_macro_auc": 0.0,
+    "cats_f_per_type": {},
+    "cats_auc_per_type": {},
+    "num_docs": 500,
+    "negative_docs": 440,
+    "negative_clean_docs": 432,
+    "negative_doc_clean_rate": 0.9818181818181818,
+    "negative_fp_total": 11,
+    "label_thresholds": {
+      "ORGANIZATION": 0.5
+    }
+  },
+  "0.70": {
+    "token_acc": 1.0,
+    "token_p": 1.0,
+    "token_r": 1.0,
+    "token_f": 1.0,
+    "sents_p": null,
+    "sents_r": null,
+    "sents_f": null,
+    "tag_acc": null,
+    "pos_acc": null,
+    "morph_acc": null,
+    "morph_micro_p": null,
+    "morph_micro_r": null,
+    "morph_micro_f": null,
+    "morph_per_feat": null,
+    "dep_uas": null,
+    "dep_las": null,
+    "dep_las_per_type": null,
+    "ents_p": 0.8409090909090909,
+    "ents_r": 0.6,
+    "ents_f": 0.7003154574132492,
+    "ents_per_type": {
+      "PERSON": {
+        "p": 1.0,
+        "r": 0.4745762711864407,
+        "f": 0.6436781609195402
+      },
+      "DATE_OF_BIRTH": {
+        "p": 1.0,
+        "r": 0.5909090909090909,
+        "f": 0.7428571428571429
+      },
+      "ADDRESS": {
+        "p": 0.8837209302325582,
+        "r": 0.8444444444444444,
+        "f": 0.8636363636363636
+      },
+      "ORGANIZATION": {
+        "p": 0.4583333333333333,
+        "r": 0.3142857142857143,
+        "f": 0.3728813559322034
+      },
+      "BANK_ACCOUNT": {
+        "p": 0.875,
+        "r": 0.875,
+        "f": 0.875
+      }
+    },
+    "cats_score": 0.0,
+    "cats_score_desc": "macro F",
+    "cats_micro_p": 0.0,
+    "cats_micro_r": 0.0,
+    "cats_micro_f": 0.0,
+    "cats_macro_p": 0.0,
+    "cats_macro_r": 0.0,
+    "cats_macro_f": 0.0,
+    "cats_macro_auc": 0.0,
+    "cats_f_per_type": {},
+    "cats_auc_per_type": {},
+    "num_docs": 500,
+    "negative_docs": 440,
+    "negative_clean_docs": 433,
+    "negative_doc_clean_rate": 0.9840909090909091,
+    "negative_fp_total": 8,
+    "label_thresholds": {
+      "ORGANIZATION": 0.7
+    }
+  },
+  "0.80": {
+    "token_acc": 1.0,
+    "token_p": 1.0,
+    "token_r": 1.0,
+    "token_f": 1.0,
+    "sents_p": null,
+    "sents_r": null,
+    "sents_f": null,
+    "tag_acc": null,
+    "pos_acc": null,
+    "morph_acc": null,
+    "morph_micro_p": null,
+    "morph_micro_r": null,
+    "morph_micro_f": null,
+    "morph_per_feat": null,
+    "dep_uas": null,
+    "dep_las": null,
+    "dep_las_per_type": null,
+    "ents_p": 0.8409090909090909,
+    "ents_r": 0.6,
+    "ents_f": 0.7003154574132492,
+    "ents_per_type": {
+      "PERSON": {
+        "p": 1.0,
+        "r": 0.4745762711864407,
+        "f": 0.6436781609195402
+      },
+      "DATE_OF_BIRTH": {
+        "p": 1.0,
+        "r": 0.5909090909090909,
+        "f": 0.7428571428571429
+      },
+      "ADDRESS": {
+        "p": 0.8837209302325582,
+        "r": 0.8444444444444444,
+        "f": 0.8636363636363636
+      },
+      "ORGANIZATION": {
+        "p": 0.4583333333333333,
+        "r": 0.3142857142857143,
+        "f": 0.3728813559322034
+      },
+      "BANK_ACCOUNT": {
+        "p": 0.875,
+        "r": 0.875,
+        "f": 0.875
+      }
+    },
+    "cats_score": 0.0,
+    "cats_score_desc": "macro F",
+    "cats_micro_p": 0.0,
+    "cats_micro_r": 0.0,
+    "cats_micro_f": 0.0,
+    "cats_macro_p": 0.0,
+    "cats_macro_r": 0.0,
+    "cats_macro_f": 0.0,
+    "cats_macro_auc": 0.0,
+    "cats_f_per_type": {},
+    "cats_auc_per_type": {},
+    "num_docs": 500,
+    "negative_docs": 440,
+    "negative_clean_docs": 433,
+    "negative_doc_clean_rate": 0.9840909090909091,
+    "negative_fp_total": 8,
+    "label_thresholds": {
+      "ORGANIZATION": 0.8
+    }
+  },
+  "0.85": {
+    "token_acc": 1.0,
+    "token_p": 1.0,
+    "token_r": 1.0,
+    "token_f": 1.0,
+    "sents_p": null,
+    "sents_r": null,
+    "sents_f": null,
+    "tag_acc": null,
+    "pos_acc": null,
+    "morph_acc": null,
+    "morph_micro_p": null,
+    "morph_micro_r": null,
+    "morph_micro_f": null,
+    "morph_per_feat": null,
+    "dep_uas": null,
+    "dep_las": null,
+    "dep_las_per_type": null,
+    "ents_p": 0.8461538461538461,
+    "ents_r": 0.5945945945945946,
+    "ents_f": 0.6984126984126985,
+    "ents_per_type": {
+      "PERSON": {
+        "p": 1.0,
+        "r": 0.4745762711864407,
+        "f": 0.6436781609195402
+      },
+      "DATE_OF_BIRTH": {
+        "p": 1.0,
+        "r": 0.5909090909090909,
+        "f": 0.7428571428571429
+      },
+      "ADDRESS": {
+        "p": 0.8837209302325582,
+        "r": 0.8444444444444444,
+        "f": 0.8636363636363636
+      },
+      "ORGANIZATION": {
+        "p": 0.45454545454545453,
+        "r": 0.2857142857142857,
+        "f": 0.3508771929824561
+      },
+      "BANK_ACCOUNT": {
+        "p": 0.875,
+        "r": 0.875,
+        "f": 0.875
+      }
+    },
+    "cats_score": 0.0,
+    "cats_score_desc": "macro F",
+    "cats_micro_p": 0.0,
+    "cats_micro_r": 0.0,
+    "cats_micro_f": 0.0,
+    "cats_macro_p": 0.0,
+    "cats_macro_r": 0.0,
+    "cats_macro_f": 0.0,
+    "cats_macro_auc": 0.0,
+    "cats_f_per_type": {},
+    "cats_auc_per_type": {},
+    "num_docs": 500,
+    "negative_docs": 440,
+    "negative_clean_docs": 434,
+    "negative_doc_clean_rate": 0.9863636363636363,
+    "negative_fp_total": 7,
+    "label_thresholds": {
+      "ORGANIZATION": 0.85
+    }
+  },
+  "0.90": {
+    "token_acc": 1.0,
+    "token_p": 1.0,
+    "token_r": 1.0,
+    "token_f": 1.0,
+    "sents_p": null,
+    "sents_r": null,
+    "sents_f": null,
+    "tag_acc": null,
+    "pos_acc": null,
+    "morph_acc": null,
+    "morph_micro_p": null,
+    "morph_micro_r": null,
+    "morph_micro_f": null,
+    "morph_per_feat": null,
+    "dep_uas": null,
+    "dep_las": null,
+    "dep_las_per_type": null,
+    "ents_p": 0.8515625,
+    "ents_r": 0.5891891891891892,
+    "ents_f": 0.6964856230031949,
+    "ents_per_type": {
+      "PERSON": {
+        "p": 1.0,
+        "r": 0.4745762711864407,
+        "f": 0.6436781609195402
+      },
+      "DATE_OF_BIRTH": {
+        "p": 1.0,
+        "r": 0.5909090909090909,
+        "f": 0.7428571428571429
+      },
+      "ADDRESS": {
+        "p": 0.8837209302325582,
+        "r": 0.8444444444444444,
+        "f": 0.8636363636363636
+      },
+      "ORGANIZATION": {
+        "p": 0.45,
+        "r": 0.2571428571428571,
+        "f": 0.32727272727272727
+      },
+      "BANK_ACCOUNT": {
+        "p": 0.875,
+        "r": 0.875,
+        "f": 0.875
+      }
+    },
+    "cats_score": 0.0,
+    "cats_score_desc": "macro F",
+    "cats_micro_p": 0.0,
+    "cats_micro_r": 0.0,
+    "cats_micro_f": 0.0,
+    "cats_macro_p": 0.0,
+    "cats_macro_r": 0.0,
+    "cats_macro_f": 0.0,
+    "cats_macro_auc": 0.0,
+    "cats_f_per_type": {},
+    "cats_auc_per_type": {},
+    "num_docs": 500,
+    "negative_docs": 440,
+    "negative_clean_docs": 435,
+    "negative_doc_clean_rate": 0.9886363636363636,
+    "negative_fp_total": 6,
+    "label_thresholds": {
+      "ORGANIZATION": 0.9
+    }
+  },
+  "0.95": {
+    "token_acc": 1.0,
+    "token_p": 1.0,
+    "token_r": 1.0,
+    "token_f": 1.0,
+    "sents_p": null,
+    "sents_r": null,
+    "sents_f": null,
+    "tag_acc": null,
+    "pos_acc": null,
+    "morph_acc": null,
+    "morph_micro_p": null,
+    "morph_micro_r": null,
+    "morph_micro_f": null,
+    "morph_per_feat": null,
+    "dep_uas": null,
+    "dep_las": null,
+    "dep_las_per_type": null,
+    "ents_p": 0.8582677165354331,
+    "ents_r": 0.5891891891891892,
+    "ents_f": 0.6987179487179488,
+    "ents_per_type": {
+      "PERSON": {
+        "p": 1.0,
+        "r": 0.4745762711864407,
+        "f": 0.6436781609195402
+      },
+      "DATE_OF_BIRTH": {
+        "p": 1.0,
+        "r": 0.5909090909090909,
+        "f": 0.7428571428571429
+      },
+      "ADDRESS": {
+        "p": 0.8837209302325582,
+        "r": 0.8444444444444444,
+        "f": 0.8636363636363636
+      },
+      "ORGANIZATION": {
+        "p": 0.47368421052631576,
+        "r": 0.2571428571428571,
+        "f": 0.3333333333333333
+      },
+      "BANK_ACCOUNT": {
+        "p": 0.875,
+        "r": 0.875,
+        "f": 0.875
+      }
+    },
+    "cats_score": 0.0,
+    "cats_score_desc": "macro F",
+    "cats_micro_p": 0.0,
+    "cats_micro_r": 0.0,
+    "cats_micro_f": 0.0,
+    "cats_macro_p": 0.0,
+    "cats_macro_r": 0.0,
+    "cats_macro_f": 0.0,
+    "cats_macro_auc": 0.0,
+    "cats_f_per_type": {},
+    "cats_auc_per_type": {},
+    "num_docs": 500,
+    "negative_docs": 440,
+    "negative_clean_docs": 435,
+    "negative_doc_clean_rate": 0.9886363636363636,
+    "negative_fp_total": 6,
+    "label_thresholds": {
+      "ORGANIZATION": 0.95
+    }
+  },
+  "0.99": {
+    "token_acc": 1.0,
+    "token_p": 1.0,
+    "token_r": 1.0,
+    "token_f": 1.0,
+    "sents_p": null,
+    "sents_r": null,
+    "sents_f": null,
+    "tag_acc": null,
+    "pos_acc": null,
+    "morph_acc": null,
+    "morph_micro_p": null,
+    "morph_micro_r": null,
+    "morph_micro_f": null,
+    "morph_per_feat": null,
+    "dep_uas": null,
+    "dep_las": null,
+    "dep_las_per_type": null,
+    "ents_p": 0.872,
+    "ents_r": 0.5891891891891892,
+    "ents_f": 0.7032258064516128,
+    "ents_per_type": {
+      "PERSON": {
+        "p": 1.0,
+        "r": 0.4745762711864407,
+        "f": 0.6436781609195402
+      },
+      "DATE_OF_BIRTH": {
+        "p": 1.0,
+        "r": 0.5909090909090909,
+        "f": 0.7428571428571429
+      },
+      "ADDRESS": {
+        "p": 0.8837209302325582,
+        "r": 0.8444444444444444,
+        "f": 0.8636363636363636
+      },
+      "ORGANIZATION": {
+        "p": 0.5294117647058824,
+        "r": 0.2571428571428571,
+        "f": 0.34615384615384615
+      },
+      "BANK_ACCOUNT": {
+        "p": 0.875,
+        "r": 0.875,
+        "f": 0.875
+      }
+    },
+    "cats_score": 0.0,
+    "cats_score_desc": "macro F",
+    "cats_micro_p": 0.0,
+    "cats_micro_r": 0.0,
+    "cats_micro_f": 0.0,
+    "cats_macro_p": 0.0,
+    "cats_macro_r": 0.0,
+    "cats_macro_f": 0.0,
+    "cats_macro_auc": 0.0,
+    "cats_f_per_type": {},
+    "cats_auc_per_type": {},
+    "num_docs": 500,
+    "negative_docs": 440,
+    "negative_clean_docs": 436,
+    "negative_doc_clean_rate": 0.990909090909091,
+    "negative_fp_total": 4,
+    "label_thresholds": {
+      "ORGANIZATION": 0.99
+    }
+  }
+}
