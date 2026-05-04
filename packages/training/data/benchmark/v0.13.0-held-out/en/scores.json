@@ -42,5 +42,49 @@
     "corpus": "v0.13.0-held-out/en",
     "metric": "strict_span_f1",
     "aggregation": "micro"
+  },
+  "hf_v01_tiny_aug_ext": {
+    "ents_p": 0.9122807017543859,
+    "ents_r": 0.5842696629213483,
+    "ents_f": 0.7123287671232877,
+    "ents_per_type": {
+      "PERSON": {
+        "p": 1.0,
+        "r": 0.43333333333333335,
+        "f": 0.6046511627906976
+      },
+      "ADDRESS": {
+        "p": 1.0,
+        "r": 0.7391304347826086,
+        "f": 0.85
+      },
+      "ORGANIZATION": {
+        "p": 0.5833333333333334,
+        "r": 0.4375,
+        "f": 0.5
+      },
+      "BANK_ACCOUNT": {
+        "p": 1.0,
+        "r": 0.9,
+        "f": 0.9473684210526316
+      },
+      "DATE_OF_BIRTH": {
+        "p": 1.0,
+        "r": 0.6,
+        "f": 0.7499999999999999
+      }
+    },
+    "latency_ms_per_doc": 15.4,
+    "model_size_mb": 280.3,
+    "num_docs": 80,
+    "negative_docs": 50,
+    "negative_clean_docs": 48,
+    "negative_doc_clean_rate": 0.96,
+    "negative_fp_total": 2,
+    "suite_kind": "held_out",
+    "purpose": "Held-out test partition kept disjoint from training data. Slice mix mirrors v11/v12 (positive: logistics_labels_b, partially_redacted_public_a, ocr_forms_a; negative: 10 v12 FP-pressure slices). 80 docs / 89 entities / 50 negatives.",
+    "corpus": "v0.13.0-held-out/en",
+    "metric": "strict_span_f1",
+    "aggregation": "micro"
   }
 }
