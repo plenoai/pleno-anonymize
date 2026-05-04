@@ -1,0 +1,46 @@
+{
+  "pleno_ner": {
+    "ents_p": 0.2066115702479339,
+    "ents_r": 0.20491803278688525,
+    "ents_f": 0.205761316872428,
+    "ents_per_type": {
+      "DATE_OF_BIRTH": {
+        "p": 0.0,
+        "r": 0.0,
+        "f": 0.0
+      },
+      "ORGANIZATION": {
+        "p": 0.375,
+        "r": 0.36363636363636365,
+        "f": 0.3692307692307692
+      },
+      "ADDRESS": {
+        "p": 0.0,
+        "r": 0.0,
+        "f": 0.0
+      },
+      "BANK_ACCOUNT": {
+        "p": 0.0,
+        "r": 0.0,
+        "f": 0.0
+      },
+      "PERSON": {
+        "p": 0.43333333333333335,
+        "r": 0.2549019607843137,
+        "f": 0.32098765432098764
+      }
+    },
+    "latency_ms_per_doc": 22.6,
+    "model_size_mb": 480.8,
+    "num_docs": 104,
+    "negative_docs": 48,
+    "negative_clean_docs": 43,
+    "negative_doc_clean_rate": 0.8958333333333334,
+    "negative_fp_total": 7,
+    "suite_kind": "quality_gate",
+    "purpose": "出荷阻止用の curated DLP quality gate",
+    "corpus": "v0.10.0/en",
+    "metric": "strict_span_f1",
+    "aggregation": "micro"
+  }
+}
