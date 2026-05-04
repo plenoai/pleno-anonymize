@@ -22,6 +22,7 @@ packages/training/data/hf/
 # `make mine-external-hardneg-ja`, large (~MB), not committed.
 packages/training/data/raw/ja-v02/external_hardneg.json
 packages/training/data/raw/ja-v02/generated_with_external.json
+packages/training/data/raw/ja-v02/augmented_with_external.json
 
 # Rust/WASM build artifacts
 **/target/

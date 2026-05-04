@@ -1,7 +1,7 @@
 # ADR-0006: Supersede ADR-0005 with Phase 2 Measurement Triad
 
-**Status:** Proposed (#48 完了後に Accepted へ昇格)
-**Date:** 2026-05-04
+**Status:** Proposed (#48 first iteration ran 2026-05-03, AC not met; Accepted 昇格は ORG-FP 改善イテレーション後)
+**Date:** 2026-05-04 (Phase 2 numbers added 2026-05-03)
 **Supersedes:** [ADR-0005: GiNZA + Presidio Partial Supersede of ADR-0004](./0005-ginza-presidio-partial-supersede.md)
 
 ---
@@ -52,39 +52,42 @@ Phase 2 (#48 NER 再訓練) では `custom_cnn` artifact が更新され、同�
 
 ## Numbers
 
-<!-- pending #48 results -->
+Phase 2 first iteration (`hf_v02_tiny_aug_ext`, 2026-05-03; RunPod RTX A5000, 11 min, ~$0.05):
 
 | 指標 | ORGANIZATION | DATE_OF_BIRTH |
 |---|---|---|
-| custom best variant | <!-- pending #48 --> | <!-- pending #48 --> |
-| strict-span F1 (held-out v0.13.0) | <!-- pending #48 --> | <!-- pending #48 --> |
-| strict-span F1 (in-domain) | <!-- pending #48 --> | <!-- pending #48 --> |
-| OSS best variant | <!-- pending #48 --> | <!-- pending #48 --> |
-| OSS strict-span F1 | <!-- pending #48 --> | <!-- pending #48 --> |
-| `mean_diff` (custom − oss) | <!-- pending #48 --> | <!-- pending #48 --> |
-| bootstrap CI 95% | <!-- pending #48 --> | <!-- pending #48 --> |
-| verdict (MERGE / COMMIT / KILL) | <!-- pending #48 --> | <!-- pending #48 --> |
+| custom variant | `hf_v02_tiny_aug_ext` (deberta-v2-tiny-japanese) | `hf_v02_tiny_aug_ext` |
+| strict-span F1 (v0.12.0/ja, micro) | 0.160 (P 0.088 / R 0.838) | 0.613 (P 0.442 / R 1.000) |
+| strict-span F1 (v0.13.0 held-out) | (not re-run for this iter; baseline `pleno_ner` p=1.0/r=0.875) | (baseline `pleno_ner` p=1.0/r=1.0) |
+| OSS best variant | matched-precision floor not met by any OSS variant | `ja_ginza` |
+| OSS strict-span F1 | n/a | p=0.909 / r=1.000 (held-out v0.13.0) |
+| verdict (custom_cnn baseline) | NO_DECISION (OSS unfit at p_budget; custom strong on held-out) | NO_DECISION (tied at perfect recall) |
+| verdict (Phase 2 hf candidate) | **KILL — precision 8.8 % is well below floor; FP volume dominant** | **KILL — precision 44.2 % below 0.7 floor** |
 
-Phase 2 measurement triad metadata:
+Phase 2 hf candidate verdict on the v0.12.0 adversarial corpus is **KILL** for both ORG and DOB: the model meets neither the matched-precision floor nor the strict-span F1 of the spaCy `pleno_ner` baseline on this primary metric. The custom_cnn (`pleno_ner`) baseline retains the operational lead pending the next iteration.
 
-- corpus: `<!-- pending #69 scores.json schema -->`
-- metric: `<!-- pending #69 scores.json schema -->`
-- aggregation: `<!-- pending #69 scores.json schema -->`
+Phase 2 measurement triad metadata (per `scores.json` entries):
+
+- corpus: `v0.12.0/ja` (500-doc FP-pressure DLP benchmark)
+- metric: `strict_span_f1`
+- aggregation: `micro`
 
 Pre-Registration anchor (Accepted 昇格時に追記):
 
-- Phase 2 plan PR merge SHA: `<!-- pending -->`
-- measurement script commit SHA: `<!-- pending -->`
+- Phase 2 plan PR merge SHA: `88d2f8c` (`packages/training/Makefile` aug+ext targets, 2026-05-03)
+- measurement script commit SHA: `9868ea8` (`evaluate_benchmark` unification #69/#70, 2026-05-03)
+- Phase 2 result PR merge SHA: `<!-- this PR -->`
 
 ## Validation
 
 Accepted 昇格時に下記を満たすこと:
 
-- [ ] #48 が close されており、Phase 2 artifact (`scores.json` triad metadata 付き) が repo に存在する
-- [ ] ORG / DOB ともに verdict が MERGE / COMMIT / KILL のいずれか決定的になっている
+- [x] Phase 2 artifact (`scores.json` triad metadata 付き) が repo に存在する (`packages/training/data/benchmark/v0.12.0/ja/scores.json` `hf_v02_tiny_aug_ext` 項)
+- [x] ORG / DOB ともに verdict が MERGE / COMMIT / KILL のいずれか決定的になっている (Phase 2 hf candidate: KILL/KILL; custom_cnn baseline 維持)
+- [x] Numbers セクションの placeholder がすべて実数値に置換されている
+- [x] Pre-Registration anchor (Phase 2 plan PR merge SHA / measurement script commit SHA) が記録されている
+- [ ] #48 close — first iteration AC 未達、ORG-FP follow-up issue 起票後に判断
 - [ ] NO_DECISION が再発する場合は S1 brainstorm を起案し、recall@FP-budget metric への切替を別 ADR (-0007) で議論する
-- [ ] Numbers セクションの placeholder がすべて実数値に置換されている
-- [ ] Pre-Registration anchor (Phase 2 plan PR merge SHA / measurement script commit SHA) が記録されている
 
 ## Follow-on
 
