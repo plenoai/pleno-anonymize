@@ -15,7 +15,10 @@ from pleno_pii_scanner.sources.registry import register
 
 
 @pytest.fixture(autouse=True)
-def _isolated_registry():
+def _isolated_registry(monkeypatch: pytest.MonkeyPatch):
+    # Patch `entry_points` to [] so workspace third-party connectors
+    # (e.g. `pleno-pii-scanner-github`) do not pollute `scan kinds` output.
+    monkeypatch.setattr(_registry_mod, "entry_points", lambda **_: [])
     _registry_mod._reset_for_tests()
     register(DIR_SPEC)
     yield

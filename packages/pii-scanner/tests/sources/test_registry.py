@@ -57,9 +57,14 @@ def _stub_factory(config: Mapping[str, Any]) -> SourceConnector:
 
 
 @pytest.fixture(autouse=True)
-def _isolate_registry():
+def _isolate_registry(monkeypatch: pytest.MonkeyPatch):
     # Each test gets a fresh process-global registry. Otherwise registrations
     # leak between tests and cause flaky DuplicateConnectorError failures.
+    # We also default `entry_points` to an empty list so that any third-party
+    # connector wheel installed in the workspace (e.g. `pleno-pii-scanner-github`
+    # under `[tool.uv.workspace]`) does not pollute the registry. The four
+    # discovery tests below override this with their own monkeypatch.setattr.
+    monkeypatch.setattr(_registry_mod, "entry_points", lambda **_: [])
     _registry_mod._reset_for_tests()
     yield
     _registry_mod._reset_for_tests()

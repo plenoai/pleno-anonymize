@@ -18,8 +18,13 @@ from pleno_pii_scanner.sources.registry import register
 
 
 @pytest.fixture(autouse=True)
-def _isolated_registry():
-    """Re-populate only the builtins so list/describe are deterministic."""
+def _isolated_registry(monkeypatch: pytest.MonkeyPatch):
+    """Re-populate only the builtins so list/describe are deterministic.
+
+    Patch `entry_points` to [] so workspace-installed third-party connector
+    wheels (e.g. `pleno-pii-scanner-github`) do not pollute the listing.
+    """
+    monkeypatch.setattr(_registry_mod, "entry_points", lambda **_: [])
     _registry_mod._reset_for_tests()
     for spec in (DIR_SPEC, GIT_SPEC, GITHUB_SPEC):
         register(spec)

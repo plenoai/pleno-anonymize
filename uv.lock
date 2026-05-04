@@ -35,6 +35,7 @@ members = [
     "pleno-anonymize-server",
     "pleno-ner-training",
     "pleno-pii-scanner",
+    "pleno-pii-scanner-github",
     "pleno-recognizers",
 ]
 
@@ -3209,6 +3210,35 @@ provides-extras = ["hf", "keyring", "pdf", "office", "columnar", "otlp"]
 [package.metadata.requires-dev]
 dev = [
     { name = "ja-ner-ja", url = "https://huggingface.co/0xhikae/ja-ner-ja/resolve/main/ja_ner_ja-0.2.0-py3-none-any.whl" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24" },
+    { name = "pytest-cov", specifier = ">=5.0" },
+]
+
+[[package]]
+name = "pleno-pii-scanner-github"
+version = "0.1.0"
+source = { editable = "packages/pii-scanner-github" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pleno-pii-scanner" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "pleno-pii-scanner", editable = "packages/pii-scanner" },
+]
+
+[package.metadata.requires-dev]
+dev = [
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-asyncio", specifier = ">=0.24" },
     { name = "pytest-cov", specifier = ">=5.0" },
