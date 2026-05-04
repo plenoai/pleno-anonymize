@@ -14,8 +14,8 @@
        mine-external-hardneg-ja mine-external-hardneg-ja-dry-run \
        convert-hf-v02-tiny-hardneg-ext train-hf-v02-tiny-hardneg-ext \
        mine-external-hardneg-en mine-external-hardneg-en-dry-run \
-       convert-hf-en-v01-tiny convert-hf-en-v01-tiny-hardneg-ext \
-       train-hf-en-v01-tiny train-hf-en-v01-tiny-hardneg-ext \
+       convert-hf-en-v01-tiny convert-hf-en-v01-tiny-hardneg-ext convert-hf-en-v01-tiny-aug-ext \
+       train-hf-en-v01-tiny train-hf-en-v01-tiny-hardneg-ext train-hf-en-v01-tiny-aug-ext \
        export-onnx-en-v01-tiny push-hf-en-v01-tiny all-hf-en-v01-tiny
 
 MODEL ?= gpt-5.4-nano
@@ -159,7 +159,7 @@ augment-en:
 	uv run python -m pleno_ner_training.augment_en_data \
 		--input $(DATA_RAW)/en/generated.json \
 		--output $(DATA_RAW)/en/augmented.json \
-		--augment-count 1000
+		--augment-count 5000
 
 convert-en:
 	uv run python -m pleno_ner_training.convert_to_docbin \
@@ -666,6 +666,21 @@ json.dump(a+b,open('data/raw/en/generated_with_external.json','w',encoding='utf-
 		--tokenizer microsoft/deberta-v3-xsmall \
 		--include-negatives
 
+# en-v01-tiny + augmented (DOB / BANK / ORG / short-name diverse via
+# augment_en_data) + Wikipedia hardneg (#64 analogue). Mirrors ja's
+# convert-hf-v02-tiny-aug-ext. Required for the en model to break past the
+# v0.10 collapse (ADDR/DOB/BANK 0% F1 with the wheel-installed en_ner_en).
+convert-hf-en-v01-tiny-aug-ext: augment-en mine-external-hardneg-en
+	uv run python -c "import json; \
+a=json.load(open('data/raw/en/augmented.json',encoding='utf-8')); \
+b=json.load(open('data/raw/en/external_hardneg.json',encoding='utf-8')); \
+json.dump(a+b,open('data/raw/en/augmented_with_external.json','w',encoding='utf-8'),ensure_ascii=False)"
+	uv run python -m pleno_ner_training.convert_to_hf_dataset \
+		--input data/raw/en/augmented_with_external.json \
+		--output data/hf/en-v01-tiny-aug-ext \
+		--tokenizer microsoft/deberta-v3-xsmall \
+		--include-negatives
+
 # Train deberta-v3-xsmall fine-tune. RunPod GPU expected (CLAUDE.md: do not
 # train on local machine). Hyperparameters mirror ja-v02-tiny so deltas
 # isolate the data variable, not the optimizer.
@@ -682,6 +697,17 @@ train-hf-en-v01-tiny-hardneg-ext:
 		--dataset data/hf/en-v01-tiny-hardneg-ext \
 		--model microsoft/deberta-v3-xsmall \
 		--output output/hf-en-v01-tiny-hardneg-ext \
+		--fp16 --num-epochs 20 --batch-size 16 \
+		--learning-rate 3e-5 --warmup-ratio 0.15
+
+# Train counterpart for the augmented + hardneg-ext dataset (en analogue of
+# train-hf-v02-tiny-aug-ext). Same hyperparameters as the other tiny variants
+# so deltas isolate the dataset variable, not the optimizer.
+train-hf-en-v01-tiny-aug-ext:
+	uv run python -m pleno_ner_training.train_hf \
+		--dataset data/hf/en-v01-tiny-aug-ext \
+		--model microsoft/deberta-v3-xsmall \
+		--output output/hf-en-v01-tiny-aug-ext \
 		--fp16 --num-epochs 20 --batch-size 16 \
 		--learning-rate 3e-5 --warmup-ratio 0.15
 
