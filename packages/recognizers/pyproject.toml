@@ -1,6 +1,6 @@
 [project]
 name = "pleno-recognizers"
-version = "0.1.0"
+version = "0.1.1"
 description = "Pure-Python PII recognizer definitions (regex + checksum validators) shared across pleno-anonymize server and scanner"
 readme = "README.md"
 license = { text = "AGPL-3.0-or-later" }
