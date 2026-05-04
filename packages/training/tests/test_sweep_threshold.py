@@ -20,6 +20,7 @@ from pleno_ner_training.sweep_threshold import (
     evaluate_at_threshold,
     pick_recommended_threshold,
     render_markdown,
+    run_per_label_sweep,
     run_sweep,
     write_csv,
 )
@@ -212,6 +213,44 @@ def test_render_markdown_contains_recommendation_and_per_label_section():
     assert "## Per-threshold PERSON" in md
     assert "## Recommendation" in md
     assert f"threshold = {rec:.2f}" in md
+
+
+def test_evaluate_per_label_threshold_filters_only_targeted_label():
+    """#98: ORG-only floor must not filter PERSON predictions."""
+    docs = _docs()
+    # ORG floor 0.9 drops doc1's (9,12) FP and doc2's (0,3) TP.
+    # PERSON floor 0.0 keeps both PERSON preds.
+    res = evaluate_at_threshold(
+        docs,
+        threshold={"ORGANIZATION": 0.9, "PERSON": 0.0},
+        labels=["ORGANIZATION", "PERSON"],
+    )
+    # ORG: only doc1's (0,3) survives (score 0.95). gold=2 -> tp=1, fp=0, fn=1.
+    assert res["ORGANIZATION"]["tp"] == 1
+    assert res["ORGANIZATION"]["fp"] == 0
+    assert res["ORGANIZATION"]["fn"] == 1
+    # PERSON unchanged from threshold=0: tp=1, fp=1, fn=1.
+    assert res["PERSON"]["tp"] == 1
+    assert res["PERSON"]["fp"] == 1
+    assert res["PERSON"]["fn"] == 1
+
+
+def test_run_per_label_sweep_holds_other_labels_constant():
+    docs = _docs()
+    sweep = run_per_label_sweep(
+        docs,
+        sweep_label="ORGANIZATION",
+        thresholds=[0.0, 0.6, 0.9],
+        labels=["ORGANIZATION", "PERSON"],
+    )
+    # PERSON tp/fp/fn should be identical across all sweep points (label not swept).
+    person_sigs = {
+        (r["PERSON"]["tp"], r["PERSON"]["fp"], r["PERSON"]["fn"]) for r in sweep.values()
+    }
+    assert len(person_sigs) == 1
+    # ORG should monotonically lose true positives as threshold rises.
+    org_tps = [sweep[t]["ORGANIZATION"]["tp"] for t in sorted(sweep.keys())]
+    assert org_tps == sorted(org_tps, reverse=True)
 
 
 def test_write_csv_emits_one_row_per_threshold_label(tmp_path: Path):

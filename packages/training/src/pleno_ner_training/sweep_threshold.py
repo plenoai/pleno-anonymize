@@ -39,15 +39,28 @@ def _prf(tp: int, fp: int, fn: int) -> tuple[float, float, float]:
     return p, r, f1
 
 
+def _label_threshold(threshold: float | dict[str, float], label: str) -> float:
+    """Resolve the threshold to apply for `label`.
+
+    `threshold` may be a single float (uniform) or a per-label mapping. Labels
+    missing from the mapping default to 0.0 (= keep all predictions). This lets
+    callers pass `{"ORGANIZATION": 0.85}` to filter ORG only.
+    """
+    if isinstance(threshold, dict):
+        return float(threshold.get(label, 0.0))
+    return float(threshold)
+
+
 def evaluate_at_threshold(
     docs: Sequence[dict[str, Any]],
-    threshold: float,
+    threshold: float | dict[str, float],
     labels: Sequence[str],
 ) -> dict[str, dict[str, float | int]]:
     """Return {label: {p, r, f1, tp, fp, fn, n_pred, n_gold}, "_overall": {...}}.
 
     Pure function; the heavy lifting in this module. `docs` follow the
-    raw_with_scores.json schema.
+    raw_with_scores.json schema. `threshold` may be a uniform float or a
+    per-label dict (#98: ORG-only confidence floor).
     """
     per_label: dict[str, dict[str, float | int]] = {
         lbl: {"tp": 0, "fp": 0, "fn": 0, "n_pred": 0, "n_gold": 0} for lbl in labels
@@ -65,7 +78,8 @@ def evaluate_at_threshold(
         pred_set: set[tuple[int, int, str]] = {
             (int(p["start"]), int(p["end"]), str(p["label"]))
             for p in doc.get("predictions", [])
-            if str(p.get("label")) in labels and float(p.get("score", 0.0)) >= threshold
+            if str(p.get("label")) in labels
+            and float(p.get("score", 0.0)) >= _label_threshold(threshold, str(p["label"]))
         }
 
         for lbl in labels:
@@ -220,6 +234,28 @@ def run_sweep(
     return {float(t): evaluate_at_threshold(docs, float(t), labels) for t in thresholds}
 
 
+def run_per_label_sweep(
+    docs: Sequence[dict[str, Any]],
+    sweep_label: str,
+    thresholds: Sequence[float],
+    labels: Sequence[str],
+    base_thresholds: dict[str, float] | None = None,
+) -> dict[float, dict[str, dict[str, float | int]]]:
+    """Sweep `sweep_label`'s threshold while holding others at `base_thresholds`.
+
+    #98: ORG precision is the sole bottleneck; PERSON / ADDRESS / DOB / BANK are
+    well-calibrated at the default (0.0) threshold. Sweeping a per-label floor
+    lets us recover overall precision without sacrificing well-tuned recall on
+    the other labels.
+    """
+    base = dict(base_thresholds or {})
+    out: dict[float, dict[str, dict[str, float | int]]] = {}
+    for t in thresholds:
+        per_label = {**base, sweep_label: float(t)}
+        out[float(t)] = evaluate_at_threshold(docs, per_label, labels)
+    return out
+
+
 def _infer_labels(docs: Sequence[dict[str, Any]]) -> list[str]:
     """Discover the label set used in this benchmark (gold ∪ predictions)."""
     seen: set[str] = set()
@@ -269,6 +305,26 @@ def main() -> None:
         type=float,
         default=RECALL_FLOOR,
     )
+    parser.add_argument(
+        "--sweep-label",
+        type=str,
+        default=None,
+        help=(
+            "If set, sweep this label's threshold only and hold others at the "
+            "values from --base-threshold (or 0.0). #98 ORG-only precision floor."
+        ),
+    )
+    parser.add_argument(
+        "--base-threshold",
+        action="append",
+        default=[],
+        metavar="LABEL=VALUE",
+        help=(
+            "Per-label baseline threshold while sweeping. Repeatable; e.g. "
+            "--base-threshold PERSON=0.0 --base-threshold ADDRESS=0.0. "
+            "Only used with --sweep-label."
+        ),
+    )
     args = parser.parse_args()
 
     with open(args.predictions, encoding="utf-8") as f:
@@ -279,7 +335,23 @@ def main() -> None:
 
     labels = _infer_labels(docs)
     print(f"Labels: {labels}")
-    sweep = run_sweep(docs, args.thresholds, labels)
+    if args.sweep_label:
+        if args.sweep_label not in labels:
+            raise SystemExit(
+                f"--sweep-label {args.sweep_label!r} not present in dataset labels {labels}"
+            )
+        base: dict[str, float] = {}
+        for kv in args.base_threshold:
+            if "=" not in kv:
+                raise SystemExit(f"--base-threshold expects LABEL=VALUE; got {kv!r}")
+            k, v = kv.split("=", 1)
+            base[k.strip()] = float(v)
+        print(f"Sweeping {args.sweep_label} only; base = {base}")
+        sweep = run_per_label_sweep(
+            docs, args.sweep_label, args.thresholds, labels, base_thresholds=base
+        )
+    else:
+        sweep = run_sweep(docs, args.thresholds, labels)
     recommended, met_floor = pick_recommended_threshold(sweep, args.recall_floor)
 
     md = render_markdown(

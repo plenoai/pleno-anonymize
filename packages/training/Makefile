@@ -529,6 +529,24 @@ sweep-threshold-v12: predict-scores-v12
 		--thresholds 0.3 0.5 0.7 0.85 0.95 \
 		--recall-floor 0.90
 
+# #98: Predict + ORG-only confidence floor sweep on the latest hf_v02_tiny_aug_ext
+# checkpoint. ORG precision (8.8%) is the dominant FP source — sweeping the ORG
+# threshold while holding others at 0.0 isolates the precision lever from the
+# well-tuned recall on PERSON/ADDRESS/DOB/BANK.
+predict-scores-v12-aug-ext:
+	uv run --extra hf python -m pleno_ner_training.predict_hf_with_scores \
+		--model output/hf-ja-v02-tiny-aug-ext \
+		--input data/benchmark/v0.12.0/ja/raw.json \
+		--output data/benchmark/v0.12.0/ja/raw_with_scores_aug_ext.json
+
+sweep-threshold-org-v12: predict-scores-v12-aug-ext
+	uv run --extra hf python -m pleno_ner_training.sweep_org_threshold \
+		--scored-predictions data/benchmark/v0.12.0/ja/raw_with_scores_aug_ext.json \
+		--sweep-label ORGANIZATION \
+		--thresholds 0.0 0.5 0.7 0.8 0.85 0.9 0.95 0.99 \
+		--output-md data/benchmark/v0.12.0/ja/threshold_sweep_org.md \
+		--output-json data/benchmark/v0.12.0/ja/threshold_sweep_org.json
+
 # === 共通 ===
 
 clean:

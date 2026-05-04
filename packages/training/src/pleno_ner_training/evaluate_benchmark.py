@@ -244,6 +244,115 @@ def evaluate_hf_on_benchmark(
     return scores
 
 
+def _align_pred_ents_to_gold(
+    blank_nlp: spacy.Language,
+    gold_doc: Doc,
+    char_spans: list[tuple[int, int, str]],
+) -> Doc:
+    """Build a pred Doc with char_spans projected onto gold's tokenization.
+
+    Mirrors the alignment logic in `evaluate_hf_on_benchmark`: char_span with
+    alignment_mode="expand" snaps to nearest token boundary, then greedy
+    non-overlap dedup keeps the longest spans. spaCy `Scorer` operates on this
+    token-aligned representation.
+    """
+    pred_doc = Doc(
+        blank_nlp.vocab,
+        words=[t.text for t in gold_doc],
+        spaces=[t.whitespace_ != "" for t in gold_doc],
+    )
+    pred_ents = []
+    for s, e, label in char_spans:
+        span = pred_doc.char_span(s, e, label=label, alignment_mode="expand")
+        if span is not None:
+            pred_ents.append(span)
+    try:
+        pred_doc.ents = pred_ents  # type: ignore[assignment]
+    except ValueError:
+        occupied: list[tuple[int, int]] = []
+        unique = []
+        for span in sorted(pred_ents, key=lambda s: (-(s.end - s.start), s.start)):
+            if any(span.start < oe and os < span.end for os, oe in occupied):
+                continue
+            unique.append(span)
+            occupied.append((span.start, span.end))
+        unique.sort(key=lambda s: s.start)
+        pred_doc.ents = unique  # type: ignore[assignment]
+    return pred_doc
+
+
+def evaluate_scored_predictions_on_benchmark(
+    scored_predictions_path: Path,
+    benchmark_path: Path,
+    language: str = "ja",
+    label_thresholds: dict[str, float] | None = None,
+) -> dict:
+    """Score `predict_hf_with_scores.py` output against a DocBin gold set.
+
+    Decouples model inference from scoring: predict once → score many times at
+    different per-label thresholds (#98 ORG-only floor sweep). Uses the same
+    spaCy Scorer + char_span alignment as `evaluate_hf_on_benchmark`, so
+    numbers are directly comparable to scores.json entries.
+
+    `label_thresholds` filters spans whose `score < threshold[label]`. Labels
+    missing from the dict default to 0.0 (no filtering).
+    """
+    label_thresholds = label_thresholds or {}
+    blank_nlp = spacy.blank(language)
+    gold_docs = load_benchmark_docs(blank_nlp, benchmark_path)
+
+    with open(scored_predictions_path, encoding="utf-8") as f:
+        scored = json.load(f)
+    if not isinstance(scored, list):
+        raise SystemExit(
+            f"Expected list at {scored_predictions_path}; got {type(scored)}"
+        )
+    if len(scored) != len(gold_docs):
+        raise SystemExit(
+            f"Doc count mismatch: scored={len(scored)} gold={len(gold_docs)}"
+        )
+
+    examples: list[Example] = []
+    negative_docs = 0
+    clean_negative_docs = 0
+    negative_fp_total = 0
+
+    for gold_doc, pred_record in zip(gold_docs, scored):
+        # Sanity check: text alignment. raw.json was produced from the same
+        # corpus as test.spacy, so texts must match exactly.
+        if pred_record.get("text", "") != gold_doc.text:
+            raise SystemExit(
+                "Doc text mismatch — scored predictions do not align with gold "
+                "DocBin. Re-run predict_hf_with_scores against the same raw.json."
+            )
+        char_spans: list[tuple[int, int, str]] = []
+        for p in pred_record.get("predictions", []):
+            label = str(p["label"])
+            score = float(p.get("score", 0.0))
+            if score < float(label_thresholds.get(label, 0.0)):
+                continue
+            char_spans.append((int(p["start"]), int(p["end"]), label))
+
+        pred_doc = _align_pred_ents_to_gold(blank_nlp, gold_doc, char_spans)
+        examples.append(Example(pred_doc, gold_doc))
+        if not gold_doc.ents:
+            negative_docs += 1
+            negative_fp_total += len(pred_doc.ents)
+            if not pred_doc.ents:
+                clean_negative_docs += 1
+
+    scores = Scorer().score(examples)
+    scores["num_docs"] = len(gold_docs)
+    scores["negative_docs"] = negative_docs
+    scores["negative_clean_docs"] = clean_negative_docs
+    scores["negative_doc_clean_rate"] = (
+        clean_negative_docs / negative_docs if negative_docs else 0
+    )
+    scores["negative_fp_total"] = negative_fp_total
+    scores["label_thresholds"] = dict(label_thresholds)
+    return scores
+
+
 def print_benchmark_report(
     results: dict[str, dict],
     language: str,
