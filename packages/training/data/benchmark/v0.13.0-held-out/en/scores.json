@@ -1,0 +1,46 @@
+{
+  "pleno_ner": {
+    "ents_p": 0.7889908256880734,
+    "ents_r": 0.9662921348314607,
+    "ents_f": 0.8686868686868687,
+    "ents_per_type": {
+      "PERSON": {
+        "p": 1.0,
+        "r": 1.0,
+        "f": 1.0
+      },
+      "ADDRESS": {
+        "p": 1.0,
+        "r": 1.0,
+        "f": 1.0
+      },
+      "ORGANIZATION": {
+        "p": 0.42857142857142855,
+        "r": 0.9375,
+        "f": 0.588235294117647
+      },
+      "BANK_ACCOUNT": {
+        "p": 0.8,
+        "r": 0.8,
+        "f": 0.8000000000000002
+      },
+      "DATE_OF_BIRTH": {
+        "p": 0.9090909090909091,
+        "r": 1.0,
+        "f": 0.9523809523809523
+      }
+    },
+    "latency_ms_per_doc": 23.9,
+    "model_size_mb": 480.8,
+    "num_docs": 80,
+    "negative_docs": 50,
+    "negative_clean_docs": 35,
+    "negative_doc_clean_rate": 0.7,
+    "negative_fp_total": 21,
+    "suite_kind": "held_out",
+    "purpose": "Held-out test partition kept disjoint from training data. Slice mix mirrors v11/v12 (positive: logistics_labels_b, partially_redacted_public_a, ocr_forms_a; negative: 10 v12 FP-pressure slices). 80 docs / 89 entities / 50 negatives.",
+    "corpus": "v0.13.0-held-out/en",
+    "metric": "strict_span_f1",
+    "aggregation": "micro"
+  }
+}
