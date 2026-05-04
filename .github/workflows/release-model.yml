@@ -87,27 +87,61 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           echo "Resolved: revision=$revision model_path=$model_path dry_run=$dry_run"
 
-      - name: Verify trained model artifact exists (skipped on dry-run)
+      - name: Verify trained model artifact or already-published revision
+        id: verify
         env:
           MODEL_PATH: ${{ steps.resolve.outputs.model_path }}
           DRY_RUN: ${{ steps.resolve.outputs.dry_run }}
+          REVISION: ${{ steps.resolve.outputs.revision }}
         run: |
           set -eu
           full="packages/training/${MODEL_PATH}"
-          if [ ! -d "$full" ]; then
-            if [ "$DRY_RUN" = "true" ]; then
-              echo "::warning::$full not present; dry-run will still scaffold but export will fail without an artifact"
-            else
-              echo "::error::trained model not found at $full — see #48 for the training pipeline"
-              exit 1
-            fi
+          if [ -d "$full" ]; then
+            echo "artifact_present=true" >> "$GITHUB_OUTPUT"
+            echo "Trained artifact found at $full"
+            exit 0
           fi
 
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "::warning::$full not present; dry-run continues without artifact"
+            echo "artifact_present=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Trained artifacts are gitignored (heavy; produced on RunPod). For
+          # tag-triggered runs, treat the workflow as a verification step: if
+          # the HF Hub revision is already published, the local push happened
+          # out-of-band and we exit success. Otherwise fail with clear guidance.
+          published_files=$(
+            uv run --with huggingface_hub python -c "
+import sys
+from huggingface_hub import HfApi
+from huggingface_hub.utils import RepositoryNotFoundError, RevisionNotFoundError
+try:
+    files = HfApi().list_repo_files('0xhikae/ja-ner-onnx', revision='${REVISION}')
+    print(len(files))
+except (RepositoryNotFoundError, RevisionNotFoundError):
+    print(0)
+" 2>/dev/null || echo 0
+          )
+          if [ "${published_files:-0}" -gt 0 ]; then
+            echo "::notice::HF revision ${REVISION} already has ${published_files} files; treating as already published."
+            echo "artifact_present=false" >> "$GITHUB_OUTPUT"
+            echo "skip_export=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "::error::trained model not found at $full and HF revision ${REVISION} is empty."
+          echo "::error::Push from a workstation: cd packages/training && uv run --extra hf python -m pleno_ner_training.export_onnx --model ${MODEL_PATH} --output ${MODEL_PATH}-onnx --push-to 0xhikae/ja-ner-onnx --revision ${REVISION}"
+          exit 1
+
       - name: Install training extras
+        if: steps.verify.outputs.skip_export != 'true'
         working-directory: packages/training
         run: uv sync --extra hf
 
       - name: Export and push ONNX (dry-run guarded)
+        if: steps.verify.outputs.skip_export != 'true'
         working-directory: packages/training
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
