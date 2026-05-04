@@ -20,14 +20,34 @@ from pleno_pii_scanner.sources.builtin.dir_source import (
     DirConfig,
     SPEC as DIR_SPEC,
 )
+from pleno_pii_scanner.sources.builtin.git_source import (
+    GitConnector,
+    GitConfig,
+    SPEC as GIT_SPEC,
+)
+from pleno_pii_scanner.sources.builtin.github_source import (
+    GithubConnector,
+    GithubConfig,
+    SPEC as GITHUB_SPEC,
+)
 
 # Re-export the canonical kinds so tests and other modules can refer to
 # them by symbol instead of magic strings.
 DIR_KIND = DIR_SPEC.kind
+GIT_KIND = GIT_SPEC.kind
+GITHUB_KIND = GITHUB_SPEC.kind
 
 __all__ = [
     "DIR_KIND",
     "DIR_SPEC",
     "DirConfig",
     "DirConnector",
+    "GIT_KIND",
+    "GIT_SPEC",
+    "GITHUB_KIND",
+    "GITHUB_SPEC",
+    "GitConfig",
+    "GitConnector",
+    "GithubConfig",
+    "GithubConnector",
 ]
