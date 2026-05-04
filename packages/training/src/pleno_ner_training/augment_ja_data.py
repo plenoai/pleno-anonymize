@@ -11,7 +11,6 @@
 
 import json
 import random
-import copy
 from pathlib import Path
 
 random.seed(42)

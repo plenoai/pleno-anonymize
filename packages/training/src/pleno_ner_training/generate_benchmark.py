@@ -218,14 +218,14 @@ def generate_benchmark(
         for ent in doc["entities"]:
             entity_counts[ent["label"]] = entity_counts.get(ent["label"], 0) + 1
 
-    print(f"\n=== Generation Summary ===")
+    print("\n=== Generation Summary ===")
     print(f"Total documents: {len(all_docs)} (negative: {neg_docs})")
     print(f"Failed batches: {failed}")
-    print(f"Entity counts:")
+    print("Entity counts:")
     for label, count in sorted(entity_counts.items()):
         print(f"  {label}: {count}")
 
-    print(f"\nConverting to DocBin...")
+    print("\nConverting to DocBin...")
     nlp = spacy.blank(language)
     docs, total_ents, align_fail = convert_to_docs(nlp, all_docs)
     save_docbin(docs, docbin_path)

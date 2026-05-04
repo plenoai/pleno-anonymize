@@ -89,7 +89,7 @@ def main() -> None:
         shutil.move(str(optimized_path), str(quantized_path))
 
     # 出力ファイル一覧
-    print(f"\n=== Export Summary ===")
+    print("\n=== Export Summary ===")
     print(f"Output directory: {args.output}")
     for f in sorted(args.output.iterdir()):
         if f.is_file():

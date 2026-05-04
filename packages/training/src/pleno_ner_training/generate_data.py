@@ -8,7 +8,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 
 from jinja2 import Environment, FileSystemLoader
 from openai import OpenAI
@@ -231,7 +231,7 @@ def generate_dataset(
     print(f"\n=== Generation Summary ({language}) ===")
     print(f"Total documents: {len(all_docs)} (new: {new_docs})")
     print(f"Failed batches: {failed}")
-    print(f"Entity counts:")
+    print("Entity counts:")
     for label, count in sorted(entity_counts.items()):
         print(f"  {label}: {count}")
     print(f"Output: {output_path}")

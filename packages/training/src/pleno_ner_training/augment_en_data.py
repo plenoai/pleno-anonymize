@@ -210,7 +210,6 @@ def _build_doc(template: str, **kwargs) -> dict | None:
     remaining = template
 
     # Simple tag-based approach: replace {key} with value and track offsets
-    import re
 
     tag_map = {
         "person": ("PERSON", kwargs.get("person", "")),

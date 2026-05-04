@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import bisect
 from pathlib import Path
-from typing import Iterable
 
 from pleno_pii_scanner.models import Finding
 

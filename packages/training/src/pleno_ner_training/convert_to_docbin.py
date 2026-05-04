@@ -141,7 +141,7 @@ def main() -> None:
     docs, total_entities, failures = convert_to_docs(nlp, data)
 
     failure_rate = failures / total_entities * 100 if total_entities > 0 else 0
-    print(f"\n=== Conversion Summary ===")
+    print("\n=== Conversion Summary ===")
     print(f"Documents: {len(docs)}")
     print(f"Total entities: {total_entities}")
     print(f"Alignment failures: {failures} ({failure_rate:.1f}%)")

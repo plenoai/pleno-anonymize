@@ -13,7 +13,6 @@ from pathlib import Path
 import numpy as np
 from datasets import DatasetDict, load_from_disk
 from seqeval.metrics import (
-    classification_report,
     f1_score,
     precision_score,
     recall_score,
