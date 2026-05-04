@@ -23,6 +23,7 @@ members = [
     "packages/pii-scanner-postgres",
     "packages/pii-scanner-postman",
     "packages/pii-scanner-redis",
+    "packages/pii-scanner-salesforce",
     "packages/pii-scanner-sharepoint",
     "packages/pii-scanner-slack",
 ]
