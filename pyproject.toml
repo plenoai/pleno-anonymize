@@ -13,6 +13,7 @@ members = [
     "packages/pii-scanner-gcs",
     "packages/pii-scanner-github",
     "packages/pii-scanner-gitlab",
+    "packages/pii-scanner-jira",
     "packages/pii-scanner-mongodb",
     "packages/pii-scanner-msteams",
     "packages/pii-scanner-mysql",
