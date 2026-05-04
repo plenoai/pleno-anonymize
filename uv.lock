@@ -42,6 +42,7 @@ members = [
     "pleno-pii-scanner-ci-logs",
     "pleno-pii-scanner-discord",
     "pleno-pii-scanner-gcs",
+    "pleno-pii-scanner-gdrive",
     "pleno-pii-scanner-github",
     "pleno-pii-scanner-gitlab",
     "pleno-pii-scanner-jira",
@@ -3593,6 +3594,35 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "cryptography", specifier = ">=42" },
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "pleno-pii-scanner", editable = "packages/pii-scanner" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24" },
+    { name = "pytest-cov", specifier = ">=5.0" },
+]
+
+[[package]]
+name = "pleno-pii-scanner-gdrive"
+version = "0.1.0"
+source = { editable = "packages/pii-scanner-gdrive" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pleno-pii-scanner" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
     { name = "httpx", specifier = ">=0.27" },
     { name = "pleno-pii-scanner", editable = "packages/pii-scanner" },
 ]
