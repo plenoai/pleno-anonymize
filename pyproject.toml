@@ -1,2 +1,9 @@
 [tool.uv.workspace]
-members = ["server", "packages/training", "packages/recognizers", "packages/pii-scanner", "packages/pii-scanner-github"]
+members = [
+    "server",
+    "packages/training",
+    "packages/recognizers",
+    "packages/pii-scanner",
+    "packages/pii-scanner-github",
+    "packages/pii-scanner-postgres",
+]
