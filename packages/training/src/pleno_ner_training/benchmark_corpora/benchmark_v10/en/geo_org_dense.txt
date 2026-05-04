@@ -1,0 +1,15 @@
+Pickup near Bridgepoint branch front<ORGANIZATION>Bridgepoint Support Partners</ORGANIZATION><ADDRESS>120 Bridge Street, Jersey City, NJ 07302</ADDRESS><PERSON>Makoto Kimura</PERSON><BANK_ACCOUNT>Resona Bank, Routing 998877665, Account 5566778, Checking</BANK_ACCOUNT>
+---DOC_SEPARATOR---
+Meet at WestEnd HQ entrance<ORGANIZATION>WestEnd Data Lab Inc.</ORGANIZATION><ADDRESS>2810 West Shinjuku Lane, Seattle, WA 98101</ADDRESS><PERSON>Yuto Ishida</PERSON>
+---DOC_SEPARATOR---
+Reception at Konan Harbor flagship<ORGANIZATION>Konan Harbor Solutions Inc.</ORGANIZATION><ADDRESS>234 Harbor Way, Boston, MA 02110</ADDRESS><PERSON>Hannah Sato</PERSON><DATE_OF_BIRTH>May 10, 1965</DATE_OF_BIRTH>
+---DOC_SEPARATOR---
+Via Central Hospital crossing<ORGANIZATION>Central Hospital Operations Group</ORGANIZATION><ADDRESS>1500 Madison Avenue, New York, NY 10128</ADDRESS><PERSON>Mariana Coleman</PERSON>
+---DOC_SEPARATOR---
+Pickup outside Manhattan Medical Society<ORGANIZATION>Manhattan Medical Society Support Center</ORGANIZATION><ADDRESS>56 Sakuragaoka Avenue, Brooklyn, NY 11215</ADDRESS><PERSON>Naoki Takahashi</PERSON>
+---DOC_SEPARATOR---
+Visit at Aoba Bridge plaza<ORGANIZATION>Aoba Bridge General Development</ORGANIZATION><ADDRESS>123 Aobadai Lane, Yonkers, NY 10701</ADDRESS><PERSON>Ryo Okada</PERSON>
+---DOC_SEPARATOR---
+Standby in front of North-Ichijo station<ORGANIZATION>North-Ichijo Legal Office</ORGANIZATION><ADDRESS>1203 Ichijo Avenue, Anchorage, AK 99501</ADDRESS><PERSON>Misaki Watanabe</PERSON>
+---DOC_SEPARATOR---
+Pickup along the Tenjin office row<ORGANIZATION>Tenjin Management Inc.</ORGANIZATION><ADDRESS>345 Tenjin Boulevard, San Diego, CA 92101</ADDRESS><PERSON>Mai Hayashi</PERSON>

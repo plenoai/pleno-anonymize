@@ -1,0 +1,31 @@
+CSV spec: columns are name,dob,address,organization,bank_account,owner_name,route_code in that order. Example row sample_name_01, MM/DD/YYYY, street-city-state-12345, org-unit-temp, branch-main checking 0000000000.
+---DOC_SEPARATOR---
+Internal wiki: "JPMorgan Chase", "Bank of America", "Wells Fargo" appear here as candidate destination banks. Branch identifiers and account numbers are never written down — connection tests use dummies.
+---DOC_SEPARATOR---
+Form mapping table: person_label=Full Name, address_label=Mailing Address, dob_label=Date of Birth, bank_label=Account. The right-hand actual_value column stays blank.
+---DOC_SEPARATOR---
+Log format sample [INFO] name=<blank> addr=<pending> dob=<unknown> org=<unassigned> bank=<masked>. This is alert-rule documentation, not real data.
+---DOC_SEPARATOR---
+Operating procedure: even when the form carries received_on 2026/04/01, updated_on 2026/05/31 and deadline_on 2026/06/15, those are business dates and not dates of birth. Verify with the applicant block left empty.
+---DOC_SEPARATOR---
+FAQ excerpt: the answer to "what is account=branch-main checking 0000000000?" is "an explanatory fixed string". owner=sample_name_01 likewise refers to no real account holder.
+---DOC_SEPARATOR---
+The runbook lists "front of West Tower HQ", "near Chase Branch entrance", "in front of Central Hospital" as meeting points. None of these denote anyone's mailing address or employer.
+---DOC_SEPARATOR---
+Product spec: drop "unassigned" into org_name, "sample_user" into person_name, and "street-city-state-12345" into shipping_to to verify masking visuals only.
+---DOC_SEPARATOR---
+OCR masking spec: the name field should read sample_user, the address field should read street-city-state-12345, the dob field should read MM/DD/YYYY, the bank field branch-main checking 0000000000. Not subject to leak detection.
+---DOC_SEPARATOR---
+Data dictionary excerpt person=Full Name address=Mailing Address dob=Date of Birth org=Affiliation bank=Payment Account note=Remarks. The right side is column captions, not values.
+---DOC_SEPARATOR---
+Operational log example [DEBUG] organization=UNASSIGNED address=street-city-state-12345 dob=19XX-XX-XX bank=TEMP-HOLD path=/redaction/rules. Rule documentation; live data has not been ingested.
+---DOC_SEPARATOR---
+Internal training material lists "Manhattan Medical Society", "front of West Tower HQ", "near Chase Branch entrance", "Central Hospital intersection" as examples that must NOT trip detection — none is a delivery target or affiliation.
+---DOC_SEPARATOR---
+Sample CSV row: sample_name_01,MM/DD/YYYY,street-city-state-12345,UNASSIGNED,branch-main checking 0000000000,(555) 010-5678,INV-778812. Used for column-width checks only.
+---DOC_SEPARATOR---
+Guideline: received_on 2026/04/01, updated_on 2026/05/31, deadline_on 2026/06/15, ref REQ-09-4412 are operational dates and ticket IDs, not dates of birth or account information.
+---DOC_SEPARATOR---
+HTML spec fragment <input name="person" placeholder="sample_user"><input name="address" placeholder="street-city-state-12345"><input name="bank" placeholder="branch-main checking 0000000000">. Form skeleton only.
+---DOC_SEPARATOR---
+Screen-flow note owner sample_name_01 account TEMP-HOLD address street-city-state-12345 organization UNASSIGNED schedule 2026-04-01. Copy-deck definition; no live data is retained.
