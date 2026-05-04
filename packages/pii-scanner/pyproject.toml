@@ -45,6 +45,11 @@ hf = [
     "transformers>=4.40",
     "huggingface_hub>=0.23",
 ]
+# OS keyring resolver (#5). Opt-in because the underlying lib drags in
+# dbus / Keychain bindings that are unwelcome in headless containers.
+# Without this extra, KeyringCredentialResolver gracefully degrades to
+# a no-op resolver so the broker just falls through to env / file.
+keyring = ["keyring>=24"]
 
 [project.urls]
 Homepage = "https://github.com/plenoai/pleno-anonymize"
