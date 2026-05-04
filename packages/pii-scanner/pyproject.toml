@@ -38,6 +38,17 @@ dependencies = [
     # abandoned `chardet`. Used by every binary->text decode in the
     # extractors layer, so it is core, not extra.
     "charset-normalizer>=3.4",
+    # Envelope encryption for FindingsStore raw-value shards (#9 / ADR
+    # §11). AES-256-GCM via `cryptography.hazmat.primitives.ciphers.aead`.
+    # Pure native bindings, no openssl runtime requirement beyond what
+    # the wheel ships. Tier-1 cryptography library so it is core, not
+    # extra — every scan persists encrypted findings.
+    "cryptography>=43",
+    # Async SMTP transport for the Notifier subsystem (#14 / ADR §9).
+    # TLS-mandatory MSA 587 (STARTTLS) and SMTPS 465 are both supported.
+    # Email is a baseline notification channel that every enterprise
+    # tenant expects, so this lives in core deps rather than an extra.
+    "aiosmtplib>=3.0",
 ]
 
 [project.optional-dependencies]
@@ -74,6 +85,15 @@ office = [
 columnar = [
     "pyarrow>=17",
     "fastavro>=1.9",
+]
+# OpenTelemetry Logs export for the Notifier subsystem (#14 / ADR §9).
+# Optional because the SDK is heavy (proto, grpc) and most deployments
+# already ship a sidecar collector that prefers stdout JSON. When the
+# extra is absent, OTLPNotifier degrades to a no-op with stderr warning.
+otlp = [
+    "opentelemetry-api>=1.27",
+    "opentelemetry-sdk>=1.27",
+    "opentelemetry-exporter-otlp>=1.27",
 ]
 
 [project.urls]
