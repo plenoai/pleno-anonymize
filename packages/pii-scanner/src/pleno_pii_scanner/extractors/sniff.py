@@ -77,19 +77,12 @@ def _sniff_zip_family(data: bytes) -> str:
     seeking from the file tail and we may only hold a prefix.
     """
     if b"word/" in data and b"[Content_Types].xml" in data:
-        return (
-            "application/vnd.openxmlformats-officedocument."
-            "wordprocessingml.document"
-        )
+        return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     if b"xl/" in data and b"[Content_Types].xml" in data:
-        return (
-            "application/vnd.openxmlformats-officedocument."
-            "spreadsheetml.sheet"
-        )
+        return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     if b"ppt/" in data and b"[Content_Types].xml" in data:
         return (
-            "application/vnd.openxmlformats-officedocument."
-            "presentationml.presentation"
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation"
         )
     if data[30:38] == b"mimetype" and b"opendocument" in data[:512]:
         return "application/vnd.oasis.opendocument"
@@ -122,7 +115,5 @@ def _is_text_likely(data: bytes) -> bool:
         return False
     if not sample:
         return False
-    control = sum(
-        1 for b in sample if b < 0x09 or (0x0E <= b <= 0x1F) or b == 0x7F
-    )
+    control = sum(1 for b in sample if b < 0x09 or (0x0E <= b <= 0x1F) or b == 0x7F)
     return control / len(sample) < 0.30

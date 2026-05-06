@@ -34,7 +34,9 @@ class TestEnvCredentialResolver:
         assert cred.payload == {"token": "ghp_xxx"}
         assert "ghp_xxx" not in repr(cred)
 
-    async def test_github_pat_legacy_token_form(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def test_github_pat_legacy_token_form(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         # Backwards-compat: PLENO_<KIND>_TOKEN with no _NAME_ segment.
         monkeypatch.setenv("PLENO_GITHUB_PAT_TOKEN", "ghp_legacy")
         r = EnvCredentialResolver()
@@ -62,7 +64,9 @@ class TestEnvCredentialResolver:
         assert cred.payload["session_token"] == "FwoG"
         assert cred.payload["region"] == "us-west-2"
 
-    async def test_aws_iam_partial_returns_none(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def test_aws_iam_partial_returns_none(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         # Missing secret half: resolver yields None so the chain falls
         # through to the next resolver (file / keyring) instead of
         # synthesizing a half-credential.
@@ -115,7 +119,9 @@ class TestEnvCredentialResolver:
         assert "xoxb-secret" not in repr(cred)
 
     async def test_gcp_sa_key(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setenv("PLENO_GCP_SA_KEY_CLIENT_EMAIL", "scanner@proj.iam.gserviceaccount.com")
+        monkeypatch.setenv(
+            "PLENO_GCP_SA_KEY_CLIENT_EMAIL", "scanner@proj.iam.gserviceaccount.com"
+        )
         monkeypatch.setenv("PLENO_GCP_SA_KEY_PRIVATE_KEY", "-----BEGIN-----")
         r = EnvCredentialResolver()
         cred = await r.resolve("gcp-sa-key", "default")
@@ -132,7 +138,9 @@ class TestEnvCredentialResolver:
         assert cred.payload["tenant_id"] == "tid"
         assert "csecret" not in repr(cred)
 
-    async def test_bitbucket_app_password(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    async def test_bitbucket_app_password(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         monkeypatch.setenv("PLENO_BITBUCKET_APP_PASSWORD_USERNAME", "alice")
         monkeypatch.setenv("PLENO_BITBUCKET_APP_PASSWORD_APP_PASSWORD", "secret")
         r = EnvCredentialResolver()

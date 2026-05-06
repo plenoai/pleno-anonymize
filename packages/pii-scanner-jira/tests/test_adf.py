@@ -145,9 +145,7 @@ class TestNodeTypes:
         doc = adf_doc(
             {
                 "type": "paragraph",
-                "content": [
-                    {"type": "mention", "attrs": {"id": "557058:abc"}}
-                ],
+                "content": [{"type": "mention", "attrs": {"id": "557058:abc"}}],
             }
         )
         assert "@557058:abc" in adf_to_text(doc)
@@ -165,9 +163,7 @@ class TestNodeTypes:
         doc = adf_doc(
             {
                 "type": "paragraph",
-                "content": [
-                    {"type": "emoji", "attrs": {"shortName": ":+1:"}}
-                ],
+                "content": [{"type": "emoji", "attrs": {"shortName": ":+1:"}}],
             }
         )
         assert ":+1:" in adf_to_text(doc)
@@ -256,9 +252,7 @@ class TestNodeTypes:
             {
                 "type": "panel",
                 "attrs": {"panelType": "warning"},
-                "content": [
-                    {"type": "paragraph", "content": [adf_text("be careful")]}
-                ],
+                "content": [{"type": "paragraph", "content": [adf_text("be careful")]}],
             }
         )
         assert "be careful" in adf_to_text(doc)
@@ -267,9 +261,7 @@ class TestNodeTypes:
         doc = adf_doc(
             {
                 "type": "blockquote",
-                "content": [
-                    {"type": "paragraph", "content": [adf_text("quoted")]}
-                ],
+                "content": [{"type": "paragraph", "content": [adf_text("quoted")]}],
             }
         )
         assert "quoted" in adf_to_text(doc)
@@ -368,9 +360,7 @@ class TestMarks:
                         marks=[
                             {
                                 "type": "link",
-                                "attrs": {
-                                    "href": "https://acme/?token=secret"
-                                },
+                                "attrs": {"href": "https://acme/?token=secret"},
                             }
                         ],
                     )
@@ -412,15 +402,11 @@ class TestMarks:
 
     def test_text_without_marks_field(self) -> None:
         # No marks at all — most common case.
-        assert (
-            adf_to_text({"type": "text", "text": "plain"}) == "plain"
-        )
+        assert adf_to_text({"type": "text", "text": "plain"}) == "plain"
 
     def test_text_with_non_mapping_marks(self) -> None:
         # Defensive: a malformed `marks` field.
-        out = adf_to_text(
-            {"type": "text", "text": "x", "marks": ["not a mapping"]}
-        )
+        out = adf_to_text({"type": "text", "text": "x", "marks": ["not a mapping"]})
         assert out == "x"
 
     def test_text_missing_text_field(self) -> None:
@@ -430,9 +416,7 @@ class TestMarks:
         doc = adf_doc(
             {
                 "type": "paragraph",
-                "content": [
-                    adf_text("click", marks=[{"type": "link"}])
-                ],
+                "content": [adf_text("click", marks=[{"type": "link"}])],
             }
         )
         assert adf_to_text(doc).strip() == "click"
@@ -450,9 +434,7 @@ class TestUnsupported:
         out = adf_to_text(
             {
                 "type": "futureWidget",
-                "content": [
-                    {"type": "paragraph", "content": [adf_text("inside")]}
-                ],
+                "content": [{"type": "paragraph", "content": [adf_text("inside")]}],
             }
         )
         assert "<!-- unsupported: futureWidget -->" in out
@@ -511,18 +493,14 @@ class TestDefensive:
         assert adf_to_text({"type": "bulletList", "content": "oops"}) == ""
 
     def test_bullet_list_skips_non_mapping_children(self) -> None:
-        out = adf_to_text(
-            {"type": "bulletList", "content": ["bad", None, 5]}
-        )
+        out = adf_to_text({"type": "bulletList", "content": ["bad", None, 5]})
         assert out == ""
 
     def test_bullet_list_skips_non_list_item(self) -> None:
         out = adf_to_text(
             {
                 "type": "bulletList",
-                "content": [
-                    {"type": "paragraph", "content": [adf_text("not item")]}
-                ],
+                "content": [{"type": "paragraph", "content": [adf_text("not item")]}],
             }
         )
         assert out == ""
@@ -537,9 +515,7 @@ class TestDefensive:
         out = adf_to_text(
             {
                 "type": "table",
-                "content": [
-                    {"type": "paragraph", "content": [adf_text("not row")]}
-                ],
+                "content": [{"type": "paragraph", "content": [adf_text("not row")]}],
             }
         )
         assert out == ""
@@ -567,9 +543,7 @@ class TestDefensive:
 
     def test_emoji_attrs_with_non_string_shortname(self) -> None:
         # shortName is non-string → skip; falls through to text fallback.
-        out = adf_to_text(
-            {"type": "emoji", "attrs": {"shortName": 5, "text": "ok"}}
-        )
+        out = adf_to_text({"type": "emoji", "attrs": {"shortName": 5, "text": "ok"}})
         assert out == "ok"
 
     def test_emoji_attrs_neither_string(self) -> None:

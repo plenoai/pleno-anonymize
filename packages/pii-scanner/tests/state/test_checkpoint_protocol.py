@@ -8,7 +8,7 @@ extending the `store_factory` parametrization.
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -43,9 +43,7 @@ def sqlite_factory(tmp_path: Path) -> StoreFactory:
     async def _make() -> CheckpointStore:
         counter["i"] += 1
         target = tmp_path / f"store-{counter['i']}.sqlite"
-        return await SqliteCheckpointStore.open(
-            "scan-test", path=target
-        )
+        return await SqliteCheckpointStore.open("scan-test", path=target)
 
     return _make
 
@@ -143,9 +141,7 @@ class TestByteRangeCodec:
 
 class TestCheckpointStoreContract:
     @pytest.mark.asyncio
-    async def test_isinstance_protocol(
-        self, store_factory: StoreFactory
-    ) -> None:
+    async def test_isinstance_protocol(self, store_factory: StoreFactory) -> None:
         store = await store_factory()
         try:
             assert isinstance(store, CheckpointStore)
@@ -153,9 +149,7 @@ class TestCheckpointStoreContract:
             await store.close()
 
     @pytest.mark.asyncio
-    async def test_load_missing_returns_none(
-        self, store_factory: StoreFactory
-    ) -> None:
+    async def test_load_missing_returns_none(self, store_factory: StoreFactory) -> None:
         store = await store_factory()
         try:
             assert await store.load("scan-x", "src-x") is None
@@ -163,9 +157,7 @@ class TestCheckpointStoreContract:
             await store.close()
 
     @pytest.mark.asyncio
-    async def test_save_then_load_round_trip(
-        self, store_factory: StoreFactory
-    ) -> None:
+    async def test_save_then_load_round_trip(self, store_factory: StoreFactory) -> None:
         store = await store_factory()
         try:
             cp = _cp()
@@ -188,9 +180,7 @@ class TestCheckpointStoreContract:
             await store.close()
 
     @pytest.mark.asyncio
-    async def test_save_overwrites_same_key(
-        self, store_factory: StoreFactory
-    ) -> None:
+    async def test_save_overwrites_same_key(self, store_factory: StoreFactory) -> None:
         store = await store_factory()
         try:
             t0 = datetime(2026, 5, 4, 12, tzinfo=UTC)
@@ -205,9 +195,7 @@ class TestCheckpointStoreContract:
             await store.close()
 
     @pytest.mark.asyncio
-    async def test_save_many_atomic(
-        self, store_factory: StoreFactory
-    ) -> None:
+    async def test_save_many_atomic(self, store_factory: StoreFactory) -> None:
         store = await store_factory()
         try:
             batch = [
@@ -223,9 +211,7 @@ class TestCheckpointStoreContract:
             await store.close()
 
     @pytest.mark.asyncio
-    async def test_save_many_empty_is_noop(
-        self, store_factory: StoreFactory
-    ) -> None:
+    async def test_save_many_empty_is_noop(self, store_factory: StoreFactory) -> None:
         store = await store_factory()
         try:
             await store.save_many([])
@@ -234,9 +220,7 @@ class TestCheckpointStoreContract:
             await store.close()
 
     @pytest.mark.asyncio
-    async def test_save_many_dedups_same_key(
-        self, store_factory: StoreFactory
-    ) -> None:
+    async def test_save_many_dedups_same_key(self, store_factory: StoreFactory) -> None:
         store = await store_factory()
         try:
             await store.save_many(
@@ -266,9 +250,7 @@ class TestCheckpointStoreContract:
             await store.close()
 
     @pytest.mark.asyncio
-    async def test_list_for_scan_empty(
-        self, store_factory: StoreFactory
-    ) -> None:
+    async def test_list_for_scan_empty(self, store_factory: StoreFactory) -> None:
         store = await store_factory()
         try:
             collected = [cp async for cp in store.list_for_scan("scan-empty")]
@@ -277,9 +259,7 @@ class TestCheckpointStoreContract:
             await store.close()
 
     @pytest.mark.asyncio
-    async def test_delete_removes_checkpoint(
-        self, store_factory: StoreFactory
-    ) -> None:
+    async def test_delete_removes_checkpoint(self, store_factory: StoreFactory) -> None:
         store = await store_factory()
         try:
             await store.save(_cp())
@@ -289,9 +269,7 @@ class TestCheckpointStoreContract:
             await store.close()
 
     @pytest.mark.asyncio
-    async def test_delete_missing_is_noop(
-        self, store_factory: StoreFactory
-    ) -> None:
+    async def test_delete_missing_is_noop(self, store_factory: StoreFactory) -> None:
         store = await store_factory()
         try:
             await store.delete("scan-x", "src-x")
@@ -299,9 +277,7 @@ class TestCheckpointStoreContract:
             await store.close()
 
     @pytest.mark.asyncio
-    async def test_record_and_list_shards(
-        self, store_factory: StoreFactory
-    ) -> None:
+    async def test_record_and_list_shards(self, store_factory: StoreFactory) -> None:
         store = await store_factory()
         try:
             await store.record_shard("scan-1", "src-a", 0, 5)
@@ -328,9 +304,7 @@ class TestCheckpointStoreContract:
             await store.close()
 
     @pytest.mark.asyncio
-    async def test_list_shards_empty(
-        self, store_factory: StoreFactory
-    ) -> None:
+    async def test_list_shards_empty(self, store_factory: StoreFactory) -> None:
         store = await store_factory()
         try:
             assert await store.list_shards("scan-1", "src-a") == []
@@ -338,9 +312,7 @@ class TestCheckpointStoreContract:
             await store.close()
 
     @pytest.mark.asyncio
-    async def test_delete_purges_shards(
-        self, store_factory: StoreFactory
-    ) -> None:
+    async def test_delete_purges_shards(self, store_factory: StoreFactory) -> None:
         store = await store_factory()
         try:
             await store.save(_cp())
@@ -385,9 +357,7 @@ class TestCheckpointStoreContract:
             n = 20
 
             async def write(i: int) -> None:
-                await store.save(
-                    _cp(source_id=f"src-{i:02d}", cursor=f"v{i}")
-                )
+                await store.save(_cp(source_id=f"src-{i:02d}", cursor=f"v{i}"))
 
             await asyncio.gather(*(write(i) for i in range(n)))
             collected: list[Checkpoint] = [
@@ -401,17 +371,13 @@ class TestCheckpointStoreContract:
             await store.close()
 
     @pytest.mark.asyncio
-    async def test_close_is_idempotent(
-        self, store_factory: StoreFactory
-    ) -> None:
+    async def test_close_is_idempotent(self, store_factory: StoreFactory) -> None:
         store = await store_factory()
         await store.close()
         await store.close()
 
     @pytest.mark.asyncio
-    async def test_use_after_close_raises(
-        self, store_factory: StoreFactory
-    ) -> None:
+    async def test_use_after_close_raises(self, store_factory: StoreFactory) -> None:
         store = await store_factory()
         await store.close()
         with pytest.raises(RuntimeError, match="closed"):

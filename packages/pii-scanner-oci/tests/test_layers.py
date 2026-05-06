@@ -59,9 +59,7 @@ class TestGzipLayer:
         tar_bytes = _build_dir_tarball()
         gz = gzip.compress(tar_bytes)
         members = list(
-            iter_layer_members(
-                "application/vnd.oci.image.layer.v1.tar+gzip", gz
-            )
+            iter_layer_members("application/vnd.oci.image.layer.v1.tar+gzip", gz)
         )
         # Only the regular file, not the directory.
         assert [m.path for m in members] == ["etc/passwd"]

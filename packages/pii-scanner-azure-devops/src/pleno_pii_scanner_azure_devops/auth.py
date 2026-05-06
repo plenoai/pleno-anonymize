@@ -49,9 +49,7 @@ AZURE_DEVOPS_DEFAULT_SCOPE = f"{AZURE_DEVOPS_RESOURCE_ID}/.default"
 # Microsoft Entra v2.0 token endpoint template. Tenant-scoped because
 # the multi-tenant `/common/` endpoint cannot issue tokens for the
 # Azure DevOps resource without an admin-consented common app.
-_AAD_TOKEN_URL_TEMPLATE = (
-    "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token"
-)
+_AAD_TOKEN_URL_TEMPLATE = "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token"
 
 # Re-mint the federated bearer 5 minutes before expiry so an in-flight
 # request never carries a token that expires mid-flight. AAD issues
@@ -60,9 +58,7 @@ _TOKEN_SKEW_SECONDS = 5 * 60
 
 # JWT-bearer client-assertion grant. RFC 7521 / 7523. AAD documents
 # this string verbatim; any deviation 400s with an unhelpful message.
-_CLIENT_ASSERTION_TYPE = (
-    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
-)
+_CLIENT_ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
 
 
 AuthMode = Literal["pat", "oauth", "federated"]
@@ -172,9 +168,7 @@ class AzureDevOpsAuth:
         """
         if self.mode == "pat":
             assert self._pat is not None
-            encoded = base64.b64encode(f":{self._pat}".encode("ascii")).decode(
-                "ascii"
-            )
+            encoded = base64.b64encode(f":{self._pat}".encode("ascii")).decode("ascii")
             return f"Basic {encoded}"
         if self.mode == "oauth":
             assert self._bearer is not None
@@ -254,9 +248,7 @@ class AzureDevOpsAuth:
         payload = response.json()
         token = payload.get("access_token")
         if not isinstance(token, str) or not token:
-            raise FederatedTokenError(
-                "AAD response missing 'access_token'"
-            )
+            raise FederatedTokenError("AAD response missing 'access_token'")
         # `expires_in` is seconds-from-now per RFC 6749 §5.1. AAD always
         # emits it; default to 1h if it is somehow missing so the cache
         # is never poisoned with a never-expiring token.

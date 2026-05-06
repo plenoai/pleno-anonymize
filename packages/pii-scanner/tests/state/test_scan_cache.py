@@ -52,9 +52,7 @@ class TestRoundTrip:
     @pytest.mark.asyncio
     async def test_get_missing_key_returns_none(self, cache: ScanCache) -> None:
         try:
-            assert (
-                await cache.get("k", fingerprint="fp", schema_version="sv")
-            ) is None
+            assert (await cache.get("k", fingerprint="fp", schema_version="sv")) is None
         finally:
             await cache.close()
 
@@ -63,18 +61,14 @@ class TestRoundTrip:
         try:
             await cache.put("k", fingerprint="fp", schema_version="sv", value=b"a")
             await cache.put("k", fingerprint="fp", schema_version="sv", value=b"b")
-            assert (
-                await cache.get("k", fingerprint="fp", schema_version="sv")
-            ) == b"b"
+            assert (await cache.get("k", fingerprint="fp", schema_version="sv")) == b"b"
         finally:
             await cache.close()
 
 
 class TestFingerprintGating:
     @pytest.mark.asyncio
-    async def test_stale_fingerprint_returns_none(
-        self, cache: ScanCache
-    ) -> None:
+    async def test_stale_fingerprint_returns_none(self, cache: ScanCache) -> None:
         try:
             await cache.put("k", fingerprint="old", schema_version="sv", value=b"v")
             assert (
@@ -86,12 +80,8 @@ class TestFingerprintGating:
     @pytest.mark.asyncio
     async def test_stale_schema_returns_none(self, cache: ScanCache) -> None:
         try:
-            await cache.put(
-                "k", fingerprint="fp", schema_version="v1", value=b"v"
-            )
-            assert (
-                await cache.get("k", fingerprint="fp", schema_version="v2")
-            ) is None
+            await cache.put("k", fingerprint="fp", schema_version="v1", value=b"v")
+            assert (await cache.get("k", fingerprint="fp", schema_version="v2")) is None
         finally:
             await cache.close()
 
@@ -150,12 +140,8 @@ class TestPurgeOtherSchemas:
             await cache.put("b", fingerprint="y", schema_version="old", value=b"2")
             removed = await cache.purge_other_schemas("cur")
             assert removed == 1
-            assert (
-                await cache.get("a", fingerprint="x", schema_version="cur")
-            ) == b"1"
-            assert (
-                await cache.get("b", fingerprint="y", schema_version="old")
-            ) is None
+            assert (await cache.get("a", fingerprint="x", schema_version="cur")) == b"1"
+            assert (await cache.get("b", fingerprint="y", schema_version="old")) is None
         finally:
             await cache.close()
 
@@ -166,9 +152,7 @@ class TestDelete:
         try:
             await cache.put("k", fingerprint="f", schema_version="s", value=b"v")
             await cache.delete("k")
-            assert (
-                await cache.get("k", fingerprint="f", schema_version="s")
-            ) is None
+            assert (await cache.get("k", fingerprint="f", schema_version="s")) is None
         finally:
             await cache.close()
 
@@ -197,9 +181,7 @@ class TestClosedSemantics:
     async def test_use_after_close_raises(self, cache: ScanCache) -> None:
         await cache.close()
         with pytest.raises(RuntimeError):
-            await cache.put(
-                "k", fingerprint="f", schema_version="s", value=b"v"
-            )
+            await cache.put("k", fingerprint="f", schema_version="s", value=b"v")
 
     @pytest.mark.asyncio
     async def test_double_close_is_noop(self, cache: ScanCache) -> None:
@@ -244,9 +226,7 @@ class TestSqlitePersistence:
         await first.close()
         second = await SqliteScanCache.open(path=path)
         try:
-            assert (
-                await second.get("k", fingerprint="f", schema_version="s")
-            ) == b"v"
+            assert (await second.get("k", fingerprint="f", schema_version="s")) == b"v"
         finally:
             await second.close()
 

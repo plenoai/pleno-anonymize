@@ -13,7 +13,6 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
-from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 
 import httpx
@@ -62,9 +61,7 @@ def _canned_cache() -> TokenCache:
 
 
 def _account(name: str = "acct1", subscription: str = "sub-1") -> AzureAccount:
-    return AzureAccount(
-        storage_account=name, subscription_id=subscription
-    )
+    return AzureAccount(storage_account=name, subscription_id=subscription)
 
 
 def _explicit_config(
@@ -84,9 +81,7 @@ def _explicit_config(
     return AzureBlobConfig(
         auth=AzureBlobAuthConfig(managed_identity=True),
         discovery=AzureBlobDiscovery(
-            containers=tuple(
-                ContainerSpec(account=a, name=c) for a, c in containers
-            )
+            containers=tuple(ContainerSpec(account=a, name=c) for a, c in containers)
         ),
         accounts=accounts,
         id=id,
@@ -131,19 +126,13 @@ def _list_xml(
         ):
             parts.append("<Properties>")
             if b.get("last_modified"):
-                parts.append(
-                    f"<Last-Modified>{b['last_modified']}</Last-Modified>"
-                )
+                parts.append(f"<Last-Modified>{b['last_modified']}</Last-Modified>")
             if b.get("etag"):
                 parts.append(f'<Etag>"{b["etag"]}"</Etag>')
             if b.get("size") is not None:
-                parts.append(
-                    f"<Content-Length>{b['size']}</Content-Length>"
-                )
+                parts.append(f"<Content-Length>{b['size']}</Content-Length>")
             if b.get("content_type"):
-                parts.append(
-                    f"<Content-Type>{b['content_type']}</Content-Type>"
-                )
+                parts.append(f"<Content-Type>{b['content_type']}</Content-Type>")
             if b.get("cmk_sha256"):
                 parts.append(
                     f"<CustomerProvidedKeySha256>{b['cmk_sha256']}"
@@ -160,9 +149,7 @@ def _list_xml(
     return "".join(parts).encode("utf-8")
 
 
-def _container_list_xml(
-    *names: str, next_marker: str | None = None
-) -> bytes:
+def _container_list_xml(*names: str, next_marker: str | None = None) -> bytes:
     parts = [
         '<?xml version="1.0" encoding="utf-8"?>',
         "<EnumerationResults>",
@@ -270,9 +257,7 @@ class TestConfigValidation:
 
 class TestProtocol:
     async def test_runtime_isinstance(self) -> None:
-        c = AzureBlobConnector(
-            _explicit_config(("acct1", "c1")), _canned_cache()
-        )
+        c = AzureBlobConnector(_explicit_config(("acct1", "c1")), _canned_cache())
         try:
             assert isinstance(c, SourceConnector)
         finally:
@@ -349,13 +334,9 @@ class TestDiscoverExplicit:
             assert request.url.params.get("comp") == "list"
             marker = request.url.params.get("marker")
             seen_markers.append(marker)
-            return httpx.Response(
-                200, content=page2 if marker == "page2" else page1
-            )
+            return httpx.Response(200, content=page2 if marker == "page2" else page1)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "c1")),
                 _canned_cache(),
@@ -384,9 +365,7 @@ class TestDiscoverExplicit:
             seen_prefix["v"] = request.url.params.get("prefix")
             return httpx.Response(200, content=_list_xml())
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "c1"), prefix="logs/"),
                 _canned_cache(),
@@ -400,17 +379,27 @@ class TestDiscoverExplicit:
 
     async def test_glob_filters_client_side(self) -> None:
         body = _list_xml(
-            {"name": "a.log", "size": "1", "last_modified": "Wed, 01 Jan 2026 00:00:00 GMT"},
-            {"name": "b.txt", "size": "1", "last_modified": "Wed, 01 Jan 2026 00:00:00 GMT"},
-            {"name": "c.log", "size": "1", "last_modified": "Wed, 01 Jan 2026 00:00:00 GMT"},
+            {
+                "name": "a.log",
+                "size": "1",
+                "last_modified": "Wed, 01 Jan 2026 00:00:00 GMT",
+            },
+            {
+                "name": "b.txt",
+                "size": "1",
+                "last_modified": "Wed, 01 Jan 2026 00:00:00 GMT",
+            },
+            {
+                "name": "c.log",
+                "size": "1",
+                "last_modified": "Wed, 01 Jan 2026 00:00:00 GMT",
+            },
         )
 
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, content=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "c1"), glob="*.log"),
                 _canned_cache(),
@@ -427,16 +416,22 @@ class TestDiscoverExplicit:
 
     async def test_filter_include_used_when_no_explicit_glob(self) -> None:
         body = _list_xml(
-            {"name": "x.json", "size": "1", "last_modified": "Wed, 01 Jan 2026 00:00:00 GMT"},
-            {"name": "y.csv", "size": "1", "last_modified": "Wed, 01 Jan 2026 00:00:00 GMT"},
+            {
+                "name": "x.json",
+                "size": "1",
+                "last_modified": "Wed, 01 Jan 2026 00:00:00 GMT",
+            },
+            {
+                "name": "y.csv",
+                "size": "1",
+                "last_modified": "Wed, 01 Jan 2026 00:00:00 GMT",
+            },
         )
 
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, content=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "c1")),
                 _canned_cache(),
@@ -444,10 +439,7 @@ class TestDiscoverExplicit:
             )
             try:
                 refs = [
-                    r
-                    async for r in c.discover(
-                        SourceFilter(include=("*.csv",)), None
-                    )
+                    r async for r in c.discover(SourceFilter(include=("*.csv",)), None)
                 ]
             finally:
                 await c.close()
@@ -455,16 +447,22 @@ class TestDiscoverExplicit:
 
     async def test_since_filter_drops_old_items(self) -> None:
         body = _list_xml(
-            {"name": "old", "size": "1", "last_modified": "Sun, 01 Jan 2023 00:00:00 GMT"},
-            {"name": "new", "size": "1", "last_modified": "Tue, 01 Jun 2027 00:00:00 GMT"},
+            {
+                "name": "old",
+                "size": "1",
+                "last_modified": "Sun, 01 Jan 2023 00:00:00 GMT",
+            },
+            {
+                "name": "new",
+                "size": "1",
+                "last_modified": "Tue, 01 Jun 2027 00:00:00 GMT",
+            },
         )
 
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, content=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "c1")),
                 _canned_cache(),
@@ -505,9 +503,7 @@ class TestVersioning:
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, content=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "c1")),
                 _canned_cache(),
@@ -535,9 +531,7 @@ class TestVersioning:
             seen_include["v"] = request.url.params.get("include")
             return httpx.Response(200, content=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "c1"), include_versions=True),
                 _canned_cache(),
@@ -578,9 +572,7 @@ class TestAccessDenied:
                 )
             return httpx.Response(404)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "denied"), ("acct1", "ok")),
                 _canned_cache(),
@@ -606,15 +598,19 @@ class TestPerAccountDiscovery:
         def handler(request: httpx.Request) -> httpx.Response:
             url = str(request.url)
             seen_paths.append(url)
-            if "acct1." in url and request.url.params.get("comp") == "list" and request.url.params.get("restype") is None:
+            if (
+                "acct1." in url
+                and request.url.params.get("comp") == "list"
+                and request.url.params.get("restype") is None
+            ):
                 # Container enumeration for acct1.
-                return httpx.Response(
-                    200, content=_container_list_xml("c1", "c2")
-                )
-            if "acct2." in url and request.url.params.get("comp") == "list" and request.url.params.get("restype") is None:
-                return httpx.Response(
-                    200, content=_container_list_xml("c3")
-                )
+                return httpx.Response(200, content=_container_list_xml("c1", "c2"))
+            if (
+                "acct2." in url
+                and request.url.params.get("comp") == "list"
+                and request.url.params.get("restype") is None
+            ):
+                return httpx.Response(200, content=_container_list_xml("c3"))
             # Blob listing inside any container.
             return httpx.Response(
                 200,
@@ -632,9 +628,7 @@ class TestPerAccountDiscovery:
             discovery=AzureBlobDiscovery(accounts=("acct1", "acct2")),
             accounts=(_account("acct1"), _account("acct2", "sub-2")),
         )
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(cfg, _canned_cache(), client=client)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
@@ -669,9 +663,7 @@ class TestPerAccountDiscovery:
             discovery=AzureBlobDiscovery(accounts=("acct1",)),
             accounts=(_account("acct1"),),
         )
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(cfg, _canned_cache(), client=client)
             try:
                 _ = [r async for r in c.discover(SourceFilter(), None)]
@@ -701,9 +693,7 @@ class TestPerAccountDiscovery:
             discovery=AzureBlobDiscovery(accounts=("acct1",)),
             accounts=(_account("acct1"),),
         )
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(cfg, _canned_cache(), client=client)
             try:
                 names = await c._list_containers(c._accounts_by_name["acct1"])
@@ -725,9 +715,7 @@ class TestPerAccountDiscovery:
             discovery=AzureBlobDiscovery(accounts=("acct1",)),
             accounts=(_account("acct1"),),
         )
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(cfg, _canned_cache(), client=client)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
@@ -760,9 +748,7 @@ class TestFetch:
                 return httpx.Response(200, content=payload)
             return httpx.Response(200, content=list_body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "c1")),
                 _canned_cache(),
@@ -787,9 +773,7 @@ class TestFetch:
             seen_version["v"] = request.url.params.get("versionid")
             return httpx.Response(200, content=b"x")
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "c1")),
                 _canned_cache(),
@@ -814,9 +798,7 @@ class TestFetch:
         assert seen_version["v"] == "v-9"
 
     async def test_fetch_rejects_ref_without_metadata(self) -> None:
-        c = AzureBlobConnector(
-            _explicit_config(("acct1", "c1")), _canned_cache()
-        )
+        c = AzureBlobConnector(_explicit_config(("acct1", "c1")), _canned_cache())
         try:
             ref = DocumentRef(
                 source_id=c.id, source_kind=c.kind, path="azure-blob://acct1/c1/x"
@@ -828,9 +810,7 @@ class TestFetch:
             await c.close()
 
     async def test_fetch_rejects_ref_with_unknown_account(self) -> None:
-        c = AzureBlobConnector(
-            _explicit_config(("acct1", "c1")), _canned_cache()
-        )
+        c = AzureBlobConnector(_explicit_config(("acct1", "c1")), _canned_cache())
         try:
             ref = DocumentRef(
                 source_id=c.id,
@@ -927,9 +907,7 @@ class TestAuthRetry:
             assert request.headers["Authorization"] == "Bearer tok-2"
             return httpx.Response(200, content=_list_xml())
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "c1")), cache, client=client
             )
@@ -962,16 +940,10 @@ class TestSharedKeyAuth:
             accounts=(_account("acct1"),),
         )
         shared_keys = {
-            "acct1": SharedKeyCredential(
-                account_name="acct1", account_key_b64=key_b64
-            )
+            "acct1": SharedKeyCredential(account_name="acct1", account_key_b64=key_b64)
         }
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
-            c = AzureBlobConnector(
-                cfg, None, shared_keys=shared_keys, client=client
-            )
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            c = AzureBlobConnector(cfg, None, shared_keys=shared_keys, client=client)
             try:
                 _ = [r async for r in c.discover(SourceFilter(), None)]
             finally:
@@ -1003,9 +975,7 @@ class TestCursor:
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, content=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "c1")),
                 _canned_cache(),
@@ -1031,9 +1001,7 @@ class TestCursor:
                     return httpx.Response(200, content=_list_xml())
             return httpx.Response(404)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "first"), ("acct1", "second")),
                 _canned_cache(),
@@ -1047,9 +1015,7 @@ class TestCursor:
         assert seen_containers == ["second"]
 
     async def test_cursor_unparseable_raises(self) -> None:
-        c = AzureBlobConnector(
-            _explicit_config(("acct1", "c1")), _canned_cache()
-        )
+        c = AzureBlobConnector(_explicit_config(("acct1", "c1")), _canned_cache())
         try:
             with pytest.raises(ValueError, match="unparseable cursor"):
                 async for _ in c.discover(SourceFilter(), "not-json"):
@@ -1065,9 +1031,7 @@ class TestFactory:
     def test_spec_metadata(self) -> None:
         assert SPEC.kind == "azure_blob"
         assert SPEC.version == "0.1.0"
-        assert any(
-            "blobs/read" in s for s in SPEC.required_scopes
-        )
+        assert any("blobs/read" in s for s in SPEC.required_scopes)
 
     def test_factory_minimal_managed_identity(self) -> None:
         register(SPEC)
@@ -1095,12 +1059,8 @@ class TestFactory:
                     "client_id": "c",
                     "oidc_token_path": str(token_file),
                 },
-                "discovery": {
-                    "containers": [{"account": "acct1", "name": "c1"}]
-                },
-                "accounts": [
-                    {"storage_account": "acct1", "subscription_id": "sub-1"}
-                ],
+                "discovery": {"containers": [{"account": "acct1", "name": "c1"}]},
+                "accounts": [{"storage_account": "acct1", "subscription_id": "sub-1"}],
                 "prefix": "logs/",
                 "glob": "*.json",
                 "include_versions": True,
@@ -1119,9 +1079,7 @@ class TestFactory:
             "azure_blob",
             {
                 "auth": {"account_keys": {"acct1": key_b64}},
-                "discovery": {
-                    "containers": [{"account": "acct1", "name": "c1"}]
-                },
+                "discovery": {"containers": [{"account": "acct1", "name": "c1"}]},
                 "accounts": [{"storage_account": "acct1"}],
             },
         )
@@ -1217,9 +1175,7 @@ class TestFactory:
 
 class TestLifecycle:
     async def test_close_owned_client(self) -> None:
-        c = AzureBlobConnector(
-            _explicit_config(("acct1", "c1")), _canned_cache()
-        )
+        c = AzureBlobConnector(_explicit_config(("acct1", "c1")), _canned_cache())
         assert c._owns_client
         await c.close()
 
@@ -1235,9 +1191,7 @@ class TestLifecycle:
         await client.aclose()
 
     async def test_close_idempotent(self) -> None:
-        c = AzureBlobConnector(
-            _explicit_config(("acct1", "c1")), _canned_cache()
-        )
+        c = AzureBlobConnector(_explicit_config(("acct1", "c1")), _canned_cache())
         await c.close()
         await c.close()
 
@@ -1261,9 +1215,7 @@ class TestRefParsing:
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, content=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "c1")),
                 _canned_cache(),
@@ -1287,9 +1239,7 @@ class TestRefParsing:
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, content=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "c1")),
                 _canned_cache(),
@@ -1313,9 +1263,7 @@ class TestRefParsing:
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, content=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "c1")),
                 _canned_cache(),
@@ -1339,9 +1287,7 @@ class TestRefParsing:
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, content=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "c1")),
                 _canned_cache(),
@@ -1359,9 +1305,7 @@ class TestRefParsing:
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, content=b"<not-xml")
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = AzureBlobConnector(
                 _explicit_config(("acct1", "c1")),
                 _canned_cache(),

@@ -135,9 +135,7 @@ class TestDiscover:
         refs = await _drain(c.discover(SourceFilter(since=future), None))
         assert refs == []
 
-    async def test_filter_max_size_passes_when_size_unknown(
-        self, repo: Path
-    ) -> None:
+    async def test_filter_max_size_passes_when_size_unknown(self, repo: Path) -> None:
         # GitConnector never sets ref.size, so max_size never filters
         # anything out — we still want the branch executed for coverage.
         c = GitConnector(GitConfig(repo=repo))
@@ -174,9 +172,7 @@ class TestFetch:
             assert d.created_by.email == "alice@example.com"
             assert d.created_by.display_name == "Alice"
 
-    async def test_fetch_for_unknown_ref_yields_nothing(
-        self, repo: Path
-    ) -> None:
+    async def test_fetch_for_unknown_ref_yields_nothing(self, repo: Path) -> None:
         c = GitConnector(GitConfig(repo=repo))
         unknown = DocumentRef(
             source_id=c.id,
@@ -300,9 +296,7 @@ class TestIncrementalSubsources:
         subs = await c.list_subsources()
         assert subs[0].fingerprint.startswith("unknown:")
 
-    async def test_set_subsource_skip_yields_zero_refs(
-        self, repo: Path
-    ) -> None:
+    async def test_set_subsource_skip_yields_zero_refs(self, repo: Path) -> None:
         c = GitConnector(GitConfig(repo=repo))
         c.set_subsource_skip(frozenset({c.id}))
         try:
@@ -311,9 +305,7 @@ class TestIncrementalSubsources:
         finally:
             await c.close()
 
-    async def test_subsource_metadata_attached_to_refs(
-        self, repo: Path
-    ) -> None:
+    async def test_subsource_metadata_attached_to_refs(self, repo: Path) -> None:
         c = GitConnector(GitConfig(repo=repo))
         try:
             refs = await _drain(c.discover(SourceFilter(), None))

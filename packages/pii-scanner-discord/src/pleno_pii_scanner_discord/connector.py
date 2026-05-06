@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import AsyncIterator, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
@@ -223,9 +223,7 @@ class DiscordConnector:
         async with self._sem:
             resp = await self._request("GET", f"/guilds/{guild_id}/channels")
         all_channels = resp.json()
-        out = [
-            c for c in all_channels if c.get("type") in self._config.channel_types
-        ]
+        out = [c for c in all_channels if c.get("type") in self._config.channel_types]
         if self._config.include_threads:
             # Public threads enumerated via the parent channel; we
             # approximate by including thread-typed channels here.
@@ -361,12 +359,8 @@ def _factory(config: Mapping[str, Any]) -> SourceConnector:
         DiscordConfig(
             token=str(config["token"]),
             guilds=tuple(str(g) for g in config.get("guilds", ())),
-            channel_types=tuple(
-                int(c) for c in config.get("channel_types", (0, 5))
-            ),
-            max_messages_per_channel=int(
-                config.get("max_messages_per_channel", 5000)
-            ),
+            channel_types=tuple(int(c) for c in config.get("channel_types", (0, 5))),
+            max_messages_per_channel=int(config.get("max_messages_per_channel", 5000)),
             include_threads=bool(config.get("include_threads", True)),
             concurrency=int(config.get("concurrency", 2)),
             id=str(config["id"]) if config.get("id") is not None else None,

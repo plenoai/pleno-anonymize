@@ -13,7 +13,9 @@ from pleno_pii_scanner_notion.markdown import (
 )
 
 
-def text_element(content: str, *, link: str | None = None, **annotations: bool) -> dict[str, Any]:
+def text_element(
+    content: str, *, link: str | None = None, **annotations: bool
+) -> dict[str, Any]:
     obj: dict[str, Any] = {
         "type": "text",
         "text": {"content": content, "link": {"url": link} if link else None},
@@ -23,7 +25,14 @@ def text_element(content: str, *, link: str | None = None, **annotations: bool) 
     return obj
 
 
-def block(block_type: str, payload: dict[str, Any], *, archived: bool = False, has_children: bool = False, block_id: str = "b") -> dict[str, Any]:
+def block(
+    block_type: str,
+    payload: dict[str, Any],
+    *,
+    archived: bool = False,
+    has_children: bool = False,
+    block_id: str = "b",
+) -> dict[str, Any]:
     return {
         "id": block_id,
         "object": "block",
@@ -166,11 +175,21 @@ class TestRichText:
 
     def test_annotations_on_empty_text_passthrough(self) -> None:
         # Empty text → no wrapping (avoid `**`` etc on empty).
-        element = {"type": "text", "text": {"content": ""}, "annotations": {"bold": True}, "plain_text": ""}
+        element = {
+            "type": "text",
+            "text": {"content": ""},
+            "annotations": {"bold": True},
+            "plain_text": "",
+        }
         assert render_rich_text([element]) == ""
 
     def test_annotations_non_mapping_returns_text_unchanged(self) -> None:
-        element = {"type": "text", "text": {"content": "x"}, "annotations": "nope", "plain_text": "x"}
+        element = {
+            "type": "text",
+            "text": {"content": "x"},
+            "annotations": "nope",
+            "plain_text": "x",
+        }
         # `_render_text_element` reads annotations as `or {}` so non-mapping
         # becomes empty mapping and text passes through.
         assert render_rich_text([element]) == "x"
@@ -235,7 +254,11 @@ class TestBlocks:
 
     def test_code_with_language_fence(self) -> None:
         out = render_blocks(
-            [block("code", {"rich_text": [text_element("x = 1")], "language": "python"})]
+            [
+                block(
+                    "code", {"rich_text": [text_element("x = 1")], "language": "python"}
+                )
+            ]
         )
         assert out == "```python\nx = 1\n```"
 
@@ -250,7 +273,10 @@ class TestBlocks:
                 block("quote", {"rich_text": [text_element("wisdom")]}),
                 block(
                     "callout",
-                    {"rich_text": [text_element("info")], "icon": {"type": "emoji", "emoji": "💡"}},
+                    {
+                        "rich_text": [text_element("info")],
+                        "icon": {"type": "emoji", "emoji": "💡"},
+                    },
                 ),
             ]
         )
@@ -262,7 +288,9 @@ class TestBlocks:
         assert out == ">"
 
     def test_callout_without_emoji(self) -> None:
-        out = render_blocks([block("callout", {"rich_text": [text_element("hi")], "icon": None})])
+        out = render_blocks(
+            [block("callout", {"rich_text": [text_element("hi")], "icon": None})]
+        )
         assert out == "> hi"
 
     def test_divider(self) -> None:
@@ -293,7 +321,9 @@ class TestBlocks:
         assert out == ""
 
     def test_bookmark_without_caption_falls_back_to_url(self) -> None:
-        out = render_blocks([block("bookmark", {"url": "https://b.test/y", "caption": []})])
+        out = render_blocks(
+            [block("bookmark", {"url": "https://b.test/y", "caption": []})]
+        )
         assert out == "[https://b.test/y](https://b.test/y)"
 
     def test_bookmark_without_url_emits_nothing(self) -> None:
@@ -301,7 +331,9 @@ class TestBlocks:
         assert out == ""
 
     def test_link_to_page(self) -> None:
-        out = render_blocks([block("link_to_page", {"type": "page_id", "page_id": "pid-1"})])
+        out = render_blocks(
+            [block("link_to_page", {"type": "page_id", "page_id": "pid-1"})]
+        )
         assert out == "[link](notion://page_id/pid-1)"
 
     def test_link_to_page_with_unknown_target_returns_empty(self) -> None:
@@ -333,7 +365,9 @@ class TestBlocks:
         out = render_blocks(
             [
                 block("paragraph", {"rich_text": [text_element("kept")]}),
-                block("paragraph", {"rich_text": [text_element("dropped")]}, archived=True),
+                block(
+                    "paragraph", {"rich_text": [text_element("dropped")]}, archived=True
+                ),
             ]
         )
         assert "kept" in out
@@ -342,14 +376,18 @@ class TestBlocks:
     def test_archived_block_kept_with_flag(self) -> None:
         out = render_blocks(
             [
-                block("paragraph", {"rich_text": [text_element("kept")]}, archived=True),
+                block(
+                    "paragraph", {"rich_text": [text_element("kept")]}, archived=True
+                ),
             ],
             include_archived=True,
         )
         assert "kept" in out
 
     def test_non_mapping_block_skipped(self) -> None:
-        out = render_blocks(["broken", block("paragraph", {"rich_text": [text_element("x")]})])
+        out = render_blocks(
+            ["broken", block("paragraph", {"rich_text": [text_element("x")]})]
+        )
         assert out == "x"
 
     def test_block_with_non_mapping_payload_renders_via_empty_payload(self) -> None:
@@ -391,15 +429,29 @@ class TestNestedBlocks:
         # with `has_children=True`. The cap should kick in before stack
         # overflow.
         def lookup(_: Any) -> list[Any]:
-            return [block("paragraph", {"rich_text": [text_element("deep")]}, has_children=True, block_id="recurse")]
+            return [
+                block(
+                    "paragraph",
+                    {"rich_text": [text_element("deep")]},
+                    has_children=True,
+                    block_id="recurse",
+                )
+            ]
 
-        parent = block("paragraph", {"rich_text": [text_element("root")]}, has_children=True, block_id="recurse")
+        parent = block(
+            "paragraph",
+            {"rich_text": [text_element("root")]},
+            has_children=True,
+            block_id="recurse",
+        )
         # Call the renderer at MAX_DEPTH — must short-circuit.
         out = render_blocks([parent], children_for=lookup, depth=MAX_DEPTH)
         assert out == DEPTH_TRUNCATED_MARKER
 
     def test_children_skipped_when_no_lookup(self) -> None:
-        parent = block("paragraph", {"rich_text": [text_element("root")]}, has_children=True)
+        parent = block(
+            "paragraph", {"rich_text": [text_element("root")]}, has_children=True
+        )
         # No `children_for` callback → just render the parent body.
         assert render_blocks([parent]) == "root"
 
@@ -422,8 +474,16 @@ class TestNestedBlocks:
 class TestTable:
     def test_table_with_header_and_rows(self) -> None:
         rows = [
-            block("table_row", {"cells": [[text_element("name")], [text_element("email")]]}, block_id="r0"),
-            block("table_row", {"cells": [[text_element("alice")], [text_element("a@b.test")]]}, block_id="r1"),
+            block(
+                "table_row",
+                {"cells": [[text_element("name")], [text_element("email")]]},
+                block_id="r0",
+            ),
+            block(
+                "table_row",
+                {"cells": [[text_element("alice")], [text_element("a@b.test")]]},
+                block_id="r1",
+            ),
         ]
         children = {"t1": rows}
 
@@ -443,7 +503,11 @@ class TestTable:
 
     def test_table_without_column_header_synthesizes_blank(self) -> None:
         rows = [
-            block("table_row", {"cells": [[text_element("alice")], [text_element("bob")]]}, block_id="r0"),
+            block(
+                "table_row",
+                {"cells": [[text_element("alice")], [text_element("bob")]]},
+                block_id="r0",
+            ),
         ]
         children = {"t2": rows}
 
@@ -479,13 +543,26 @@ class TestTable:
 
     def test_render_one_row_with_non_mapping_payload(self) -> None:
         # Defensive guard inside `_render_one_row`.
-        rows = [{"id": "r", "type": "table_row", "table_row": "broken", "archived": False, "has_children": False}]
+        rows = [
+            {
+                "id": "r",
+                "type": "table_row",
+                "table_row": "broken",
+                "archived": False,
+                "has_children": False,
+            }
+        ]
         children = {"t": rows}
 
         def lookup(bid: Any) -> list[Any]:
             return children.get(bid, [])
 
-        table = block("table", {"table_width": 0, "has_column_header": True}, has_children=True, block_id="t")
+        table = block(
+            "table",
+            {"table_width": 0, "has_column_header": True},
+            has_children=True,
+            block_id="t",
+        )
         # `_row_width` returns 0 → no separator columns; renderer copes.
         out = render_blocks([table], children_for=lookup)
         # The table renderer still emits the (empty) header & separator rows;
@@ -519,7 +596,10 @@ class TestDatabaseRow:
     def test_skips_low_signal_metadata(self) -> None:
         props = {
             "Created": {"type": "created_time", "created_time": "2020-01-01T00:00:00Z"},
-            "Edited": {"type": "last_edited_time", "last_edited_time": "2020-01-01T00:00:00Z"},
+            "Edited": {
+                "type": "last_edited_time",
+                "last_edited_time": "2020-01-01T00:00:00Z",
+            },
             "By": {"type": "created_by", "created_by": {"id": "u"}},
             "EditBy": {"type": "last_edited_by", "last_edited_by": {"id": "u"}},
             "Name": {"type": "title", "title": [text_element("alice")]},
@@ -534,7 +614,10 @@ class TestDatabaseRow:
         out = render_database_row(
             {
                 "Title": {"type": "title", "title": [text_element("Hello")]},
-                "Body": {"type": "rich_text", "rich_text": [text_element("World", bold=True)]},
+                "Body": {
+                    "type": "rich_text",
+                    "rich_text": [text_element("World", bold=True)],
+                },
             }
         )
         assert "Title: Hello" in out
@@ -554,7 +637,10 @@ class TestDatabaseRow:
         out = render_database_row(
             {
                 "Sel": {"type": "select", "select": {"name": "Open"}},
-                "Tags": {"type": "multi_select", "multi_select": [{"name": "a"}, {"name": "b"}]},
+                "Tags": {
+                    "type": "multi_select",
+                    "multi_select": [{"name": "a"}, {"name": "b"}],
+                },
                 "St": {"type": "status", "status": {"name": "InProgress"}},
             }
         )
@@ -574,7 +660,10 @@ class TestDatabaseRow:
         out = render_database_row(
             {
                 "Day": {"type": "date", "date": {"start": "2026-05-04"}},
-                "Range": {"type": "date", "date": {"start": "2026-05-04", "end": "2026-05-10"}},
+                "Range": {
+                    "type": "date",
+                    "date": {"start": "2026-05-04", "end": "2026-05-10"},
+                },
                 "Empty": {"type": "date", "date": None},
             }
         )
@@ -612,7 +701,11 @@ class TestDatabaseRow:
                 "Owners": {
                     "type": "people",
                     "people": [
-                        {"id": "u1", "name": "Alice", "person": {"email": "alice@x.test"}},
+                        {
+                            "id": "u1",
+                            "name": "Alice",
+                            "person": {"email": "alice@x.test"},
+                        },
                         {"id": "u2", "name": "Bob"},
                         {"id": "u3", "person": {"email": "anon@x.test"}},
                         {"id": "u4"},
@@ -624,7 +717,12 @@ class TestDatabaseRow:
 
     def test_people_skips_non_mapping_entries(self) -> None:
         out = render_database_row(
-            {"Owners": {"type": "people", "people": ["broken", {"id": "u1", "name": "Alice"}]}}
+            {
+                "Owners": {
+                    "type": "people",
+                    "people": ["broken", {"id": "u1", "name": "Alice"}],
+                }
+            }
         )
         assert out == "Owners: Alice"
 
@@ -634,8 +732,16 @@ class TestDatabaseRow:
                 "Files": {
                     "type": "files",
                     "files": [
-                        {"name": "a.png", "type": "file", "file": {"url": "https://x.test/a"}},
-                        {"name": "b.png", "type": "external", "external": {"url": "https://x.test/b"}},
+                        {
+                            "name": "a.png",
+                            "type": "file",
+                            "file": {"url": "https://x.test/a"},
+                        },
+                        {
+                            "name": "b.png",
+                            "type": "external",
+                            "external": {"url": "https://x.test/b"},
+                        },
                         {"name": "c"},
                     ],
                 }
@@ -661,7 +767,12 @@ class TestDatabaseRow:
 
     def test_relation(self) -> None:
         out = render_database_row(
-            {"Rel": {"type": "relation", "relation": [{"id": "p1"}, {"id": "p2"}, "broken", {}]}}
+            {
+                "Rel": {
+                    "type": "relation",
+                    "relation": [{"id": "p1"}, {"id": "p2"}, "broken", {}],
+                }
+            }
         )
         assert out == "Rel: p1, p2"
 
@@ -680,10 +791,14 @@ class TestDatabaseRow:
     def test_formula_invalid(self) -> None:
         out = render_database_row({"F": {"type": "formula", "formula": None}})
         assert out == "F: "
-        out2 = render_database_row({"F": {"type": "formula", "formula": {"type": "string", "string": None}}})
+        out2 = render_database_row(
+            {"F": {"type": "formula", "formula": {"type": "string", "string": None}}}
+        )
         assert out2 == "F: "
         # Mapping value that isn't a date object renders empty.
-        out3 = render_database_row({"F": {"type": "formula", "formula": {"type": "weird", "weird": {"k": 1}}}})
+        out3 = render_database_row(
+            {"F": {"type": "formula", "formula": {"type": "weird", "weird": {"k": 1}}}}
+        )
         assert out3 == "F: "
 
     def test_rollup_array_and_scalar(self) -> None:
@@ -723,7 +838,9 @@ class TestDatabaseRow:
     def test_rollup_invalid(self) -> None:
         out = render_database_row({"R": {"type": "rollup", "rollup": None}})
         assert out == "R: "
-        out2 = render_database_row({"R": {"type": "rollup", "rollup": {"type": "number", "number": None}}})
+        out2 = render_database_row(
+            {"R": {"type": "rollup", "rollup": {"type": "number", "number": None}}}
+        )
         assert out2 == "R: "
 
     def test_unknown_property_type_emits_marker(self) -> None:
@@ -733,5 +850,10 @@ class TestDatabaseRow:
         assert "Mystery: <!-- unsupported property: future_kind -->" in out
 
     def test_non_mapping_property_skipped(self) -> None:
-        out = render_database_row({"Bad": "not a mapping", "Title": {"type": "title", "title": [text_element("ok")]}})
+        out = render_database_row(
+            {
+                "Bad": "not a mapping",
+                "Title": {"type": "title", "title": [text_element("ok")]},
+            }
+        )
         assert out == "Title: ok"

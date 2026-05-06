@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import AsyncIterator, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
@@ -94,18 +94,14 @@ class PostmanConnector:
         self._config = config
         self.id = config.resolved_id()
         if client is None:
-            self._client = httpx.AsyncClient(
-                base_url=_API_BASE, timeout=30.0
-            )
+            self._client = httpx.AsyncClient(base_url=_API_BASE, timeout=30.0)
             self._owns_client = True
         else:
             self._client = client
             self._owns_client = False
         self._headers = {"X-Api-Key": config.api_key}
         # Pre-compiled patterns so we don't re-build per finding.
-        self._interlock = [
-            re.compile(p) for p in config.interlock_patterns
-        ]
+        self._interlock = [re.compile(p) for p in config.interlock_patterns]
         # Cache for fetch(): map of ref.path → pre-rendered text.
         self._documents: dict[str, str] = {}
 
@@ -159,9 +155,7 @@ class PostmanConnector:
                     env_obj = env.get("environment", {})
                     env_name = env_obj.get("name", env_id)
                     full = f"{ws_name}/__env__/{env_name}"
-                    if filter.include and not _matches_any(
-                        full, filter.include
-                    ):
+                    if filter.include and not _matches_any(full, filter.include):
                         continue
                     if filter.exclude and _matches_any(full, filter.exclude):
                         continue
@@ -380,9 +374,7 @@ def _serialise_request(
         if isinstance(exec_lines, str):
             exec_lines = [exec_lines]
         for line in exec_lines:
-            parts.append(
-                f"script.{listen}={_resolve_vars(str(line), variables)}"
-            )
+            parts.append(f"script.{listen}={_resolve_vars(str(line), variables)}")
     for resp in responses:
         if not isinstance(resp, Mapping):
             continue
@@ -395,9 +387,7 @@ def _serialise_request(
     return "\n".join(parts)
 
 
-def _serialise_url(
-    url: Any, variables: Mapping[str, str]
-) -> str:
+def _serialise_url(url: Any, variables: Mapping[str, str]) -> str:
     if isinstance(url, str):
         return _resolve_vars(url, variables)
     if not isinstance(url, Mapping):
@@ -441,9 +431,7 @@ def _factory(config: Mapping[str, Any]) -> SourceConnector:
         PostmanConfig(
             api_key=str(config["api_key"]),
             workspaces=tuple(str(w) for w in config.get("workspaces", ())),
-            include_environments=bool(
-                config.get("include_environments", True)
-            ),
+            include_environments=bool(config.get("include_environments", True)),
             include_examples=bool(config.get("include_examples", True)),
             interlock_patterns=tuple(
                 str(p) for p in config.get("interlock_patterns", ())

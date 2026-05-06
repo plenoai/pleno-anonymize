@@ -50,9 +50,7 @@ class TestConfig:
 
     def test_rejects_multiple_auth_modes(self) -> None:
         with pytest.raises(ValueError, match="at most one"):
-            ElasticsearchConfig(
-                hosts=("https://x",), api_key="k", bearer_token="b"
-            )
+            ElasticsearchConfig(hosts=("https://x",), api_key="k", bearer_token="b")
 
     def test_basic_user_requires_password(self) -> None:
         with pytest.raises(ValueError, match="basic_password"):
@@ -73,20 +71,14 @@ class TestConfig:
         assert cfg.resolved_id() == "explicit"
 
     def test_default_id_no_secret_leak(self) -> None:
-        cfg = ElasticsearchConfig(
-            hosts=("https://x",), api_key="VERY-SECRET"
-        )
+        cfg = ElasticsearchConfig(hosts=("https://x",), api_key="VERY-SECRET")
         rid = cfg.resolved_id()
         assert "VERY-SECRET" not in rid
         assert rid.startswith("elasticsearch:")
 
     def test_default_id_order_independent(self) -> None:
-        a = ElasticsearchConfig(
-            hosts=("https://a", "https://b"), indices=("x", "y")
-        )
-        b = ElasticsearchConfig(
-            hosts=("https://b", "https://a"), indices=("y", "x")
-        )
+        a = ElasticsearchConfig(hosts=("https://a", "https://b"), indices=("x", "y"))
+        b = ElasticsearchConfig(hosts=("https://b", "https://a"), indices=("y", "x"))
         assert a.resolved_id() == b.resolved_id()
 
 
@@ -175,9 +167,7 @@ class TestDiscover:
             assert request.headers.get("Authorization") == "ApiKey k"
             url = request.url
             if url.path.startswith("/_resolve/index/"):
-                return httpx.Response(
-                    200, json=_resolve_response("logs-2026.05")
-                )
+                return httpx.Response(200, json=_resolve_response("logs-2026.05"))
             if url.path.endswith("/_pit") and request.method == "DELETE":
                 closed_pit["yes"] = True
                 return httpx.Response(200, json={"succeeded": True})
@@ -243,8 +233,18 @@ class TestDiscover:
                         json={
                             "hits": {
                                 "hits": [
-                                    {"_index": "idx", "_id": "1", "_source": {}, "sort": [10]},
-                                    {"_index": "idx", "_id": "2", "_source": {}, "sort": [20]},
+                                    {
+                                        "_index": "idx",
+                                        "_id": "1",
+                                        "_source": {},
+                                        "sort": [10],
+                                    },
+                                    {
+                                        "_index": "idx",
+                                        "_id": "2",
+                                        "_source": {},
+                                        "sort": [20],
+                                    },
                                 ]
                             }
                         },
@@ -255,8 +255,18 @@ class TestDiscover:
                         json={
                             "hits": {
                                 "hits": [
-                                    {"_index": "idx", "_id": "3", "_source": {}, "sort": [30]},
-                                    {"_index": "idx", "_id": "4", "_source": {}, "sort": [40]},
+                                    {
+                                        "_index": "idx",
+                                        "_id": "3",
+                                        "_source": {},
+                                        "sort": [30],
+                                    },
+                                    {
+                                        "_index": "idx",
+                                        "_id": "4",
+                                        "_source": {},
+                                        "sort": [40],
+                                    },
                                 ]
                             }
                         },
@@ -303,7 +313,12 @@ class TestDiscover:
                     json={
                         "hits": {
                             "hits": [
-                                {"_index": "idx", "_id": "1", "_source": {}, "sort": [1]},
+                                {
+                                    "_index": "idx",
+                                    "_id": "1",
+                                    "_source": {},
+                                    "sort": [1],
+                                },
                             ]
                         }
                     },
@@ -349,15 +364,11 @@ class TestDiscover:
 
         async with _client(handler) as client:
             c = ElasticsearchConnector(
-                ElasticsearchConfig(
-                    hosts=("https://es.example.com",), api_key="k"
-                ),
+                ElasticsearchConfig(hosts=("https://es.example.com",), api_key="k"),
                 client=client,
             )
             try:
-                cursor = json.dumps(
-                    {"pit_id": "PIT-RESUMED", "search_after": [99]}
-                )
+                cursor = json.dumps({"pit_id": "PIT-RESUMED", "search_after": [99]})
                 refs = [r async for r in c.discover(SourceFilter(), cursor)]
                 assert refs == []
                 # Did not open a fresh PIT when one was supplied.
@@ -422,20 +433,14 @@ class TestDiscover:
                 return httpx.Response(
                     200,
                     json={
-                        "hits": {
-                            "hits": [
-                                {"_index": "idx", "_id": "x", "_source": {}}
-                            ]
-                        }
+                        "hits": {"hits": [{"_index": "idx", "_id": "x", "_source": {}}]}
                     },
                 )
             return httpx.Response(404)
 
         async with _client(handler) as client:
             c = ElasticsearchConnector(
-                ElasticsearchConfig(
-                    hosts=("https://x",), api_key="k", page_size=100
-                ),
+                ElasticsearchConfig(hosts=("https://x",), api_key="k", page_size=100),
                 client=client,
             )
             try:
@@ -560,8 +565,18 @@ class TestFilter:
                     json={
                         "hits": {
                             "hits": [
-                                {"_index": "logs", "_id": "1", "_source": {}, "sort": [1]},
-                                {"_index": "audit", "_id": "2", "_source": {}, "sort": [2]},
+                                {
+                                    "_index": "logs",
+                                    "_id": "1",
+                                    "_source": {},
+                                    "sort": [1],
+                                },
+                                {
+                                    "_index": "audit",
+                                    "_id": "2",
+                                    "_source": {},
+                                    "sort": [2],
+                                },
                             ]
                         }
                     },
@@ -570,34 +585,25 @@ class TestFilter:
 
         async with _client(handler) as client:
             c = ElasticsearchConnector(
-                ElasticsearchConfig(
-                    hosts=("https://x",), api_key="k", page_size=10
-                ),
+                ElasticsearchConfig(hosts=("https://x",), api_key="k", page_size=10),
                 client=client,
             )
             try:
                 refs = [
-                    r
-                    async for r in c.discover(
-                        SourceFilter(include=("logs/*",)), None
-                    )
+                    r async for r in c.discover(SourceFilter(include=("logs/*",)), None)
                 ]
                 assert [r.path for r in refs] == ["logs/1"]
             finally:
                 await c.close()
         async with _client(handler) as client2:
             c2 = ElasticsearchConnector(
-                ElasticsearchConfig(
-                    hosts=("https://x",), api_key="k", page_size=10
-                ),
+                ElasticsearchConfig(hosts=("https://x",), api_key="k", page_size=10),
                 client=client2,
             )
             try:
                 refs2 = [
                     r
-                    async for r in c2.discover(
-                        SourceFilter(exclude=("audit/*",)), None
-                    )
+                    async for r in c2.discover(SourceFilter(exclude=("audit/*",)), None)
                 ]
                 assert [r.path for r in refs2] == ["logs/1"]
             finally:
@@ -640,9 +646,7 @@ class TestRenderSource:
 
         async with _client(handler) as client:
             c = ElasticsearchConnector(
-                ElasticsearchConfig(
-                    hosts=("https://x",), api_key="k", page_size=10
-                ),
+                ElasticsearchConfig(hosts=("https://x",), api_key="k", page_size=10),
                 client=client,
             )
             try:
@@ -724,9 +728,7 @@ class TestFetchEdges:
                 client=client,
             )
             try:
-                ref = DocumentRef(
-                    source_id=c.id, source_kind=c.kind, path="missing"
-                )
+                ref = DocumentRef(source_id=c.id, source_kind=c.kind, path="missing")
                 docs = [d async for d in c.fetch(ref)]
                 assert docs == []
             finally:

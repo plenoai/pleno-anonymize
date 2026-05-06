@@ -103,9 +103,7 @@ class TestBombGuard:
 
     @pytest.mark.asyncio
     async def test_oversized_member_skipped_with_warning(self) -> None:
-        ex = ArchiveExtractor(
-            BombGuardConfig(max_member_size=10, max_expansion=1000)
-        )
+        ex = ArchiveExtractor(BombGuardConfig(max_member_size=10, max_expansion=1000))
         blob = make_zip(
             {
                 "small.txt": b"ok",
@@ -153,9 +151,7 @@ class TestTarExtraction:
 
     @pytest.mark.asyncio
     async def test_tar_oversized_member_skipped(self) -> None:
-        ex = ArchiveExtractor(
-            BombGuardConfig(max_member_size=4, max_expansion=10000)
-        )
+        ex = ArchiveExtractor(BombGuardConfig(max_member_size=4, max_expansion=10000))
         blob = make_tar({"big.txt": b"x" * 50, "small.txt": b"hi"})
         with pytest.warns(ExtractionWarning, match="big.txt"):
             frags = await collect(ex, _doc(blob))
@@ -271,7 +267,6 @@ class TestEdgeCases:
 
         ex = ArchiveExtractor()
         blob = make_tar({"a.txt": b"hello"})
-        original = tarfile.TarFile.extractfile
 
         def fake_extractfile(self, member):  # noqa: ANN001, ANN201
             return None

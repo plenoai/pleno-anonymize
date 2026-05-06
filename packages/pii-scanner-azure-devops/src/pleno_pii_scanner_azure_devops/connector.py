@@ -26,7 +26,7 @@ import shutil
 import subprocess
 import tempfile
 from collections.abc import AsyncIterator, Callable, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -123,8 +123,7 @@ class AzureDevOpsConfig:
             # not possible (collection path varies per install).
             if not self.base_url:
                 raise ValueError(
-                    "flavor='server' requires explicit `base_url` "
-                    "(collection URL)"
+                    "flavor='server' requires explicit `base_url` (collection URL)"
                 )
 
     def resolved_base_url(self) -> str:
@@ -206,9 +205,7 @@ class AzureDevOpsConnector:
                 continue
             slug = f"{project}/{repo_name}"
             repo_path = await self._ensure_clone(slug, clone_url)
-            inner = DirConnector(
-                DirConfig(root=repo_path, id=f"azure-devops:{slug}")
-            )
+            inner = DirConnector(DirConfig(root=repo_path, id=f"azure-devops:{slug}"))
             try:
                 async for inner_ref in inner.discover(filter, None):
                     yield self._wrap_ref(inner_ref, project, repo_name)
@@ -226,9 +223,7 @@ class AzureDevOpsConnector:
             # connector. Same idiom as GitHub builtin: yield nothing.
             return
         repo_path = self._clones[slug]
-        inner = DirConnector(
-            DirConfig(root=repo_path, id=f"azure-devops:{slug}")
-        )
+        inner = DirConnector(DirConfig(root=repo_path, id=f"azure-devops:{slug}"))
         try:
             inner_ref = self._unwrap_ref(ref, slug, inner_path)
             async for doc in inner.fetch(inner_ref):
@@ -255,9 +250,7 @@ class AzureDevOpsConnector:
         """
         async with self._lock:
             for path in self._tempdirs:
-                await asyncio.to_thread(
-                    shutil.rmtree, path, ignore_errors=True
-                )
+                await asyncio.to_thread(shutil.rmtree, path, ignore_errors=True)
             self._tempdirs.clear()
             self._clones.clear()
         await self._api.aclose()
@@ -301,9 +294,7 @@ class AzureDevOpsConnector:
         params: dict[str, Any] = {}
         if start_cursor:
             params["continuationToken"] = start_cursor
-        async for response in self._api.get_paginated(
-            "/_apis/projects", params=params
-        ):
+        async for response in self._api.get_paginated("/_apis/projects", params=params):
             payload = response.json()
             next_cursor = response.headers.get("x-ms-continuationtoken") or None
             for project in payload.get("value", []):
@@ -322,9 +313,7 @@ class AzureDevOpsConnector:
         self, project: str
     ) -> AsyncIterator[tuple[str, str, str, bool]]:
         """Yield repos for one project as ``(project, repo, clone_url, disabled)``."""
-        response = await self._api.get(
-            f"/{project}/_apis/git/repositories"
-        )
+        response = await self._api.get(f"/{project}/_apis/git/repositories")
         if response.status_code == 404:
             # Project was deleted between projects-list and repos-list
             # (race) or the credential cannot see it. Either way, skip
@@ -373,17 +362,13 @@ class AzureDevOpsConnector:
                 # Lost the race; the loser cleans up its own tempdir
                 # and uses the cached one. Avoids two clones of the
                 # same repo when discover is invoked concurrently.
-                await asyncio.to_thread(
-                    shutil.rmtree, path, ignore_errors=True
-                )
+                await asyncio.to_thread(shutil.rmtree, path, ignore_errors=True)
                 return existing
             self._clones[slug] = path
             self._tempdirs.append(path)
         return path
 
-    def _wrap_ref(
-        self, inner: DocumentRef, project: str, repo: str
-    ) -> DocumentRef:
+    def _wrap_ref(self, inner: DocumentRef, project: str, repo: str) -> DocumentRef:
         slug = f"{project}/{repo}"
         return DocumentRef(
             source_id=self.id,
@@ -407,9 +392,7 @@ class AzureDevOpsConnector:
             },
         )
 
-    def _unwrap_ref(
-        self, ref: DocumentRef, slug: str, inner_path: str
-    ) -> DocumentRef:
+    def _unwrap_ref(self, ref: DocumentRef, slug: str, inner_path: str) -> DocumentRef:
         return DocumentRef(
             source_id=f"azure-devops:{slug}",
             source_kind="dir",
@@ -486,9 +469,7 @@ def _build_auth(payload: Mapping[str, Any]) -> AzureDevOpsAuth:
     if mode == "oauth":
         access_token = payload.get("access_token")
         if not isinstance(access_token, str):
-            raise ValueError(
-                "credential mode='oauth' requires `access_token` string"
-            )
+            raise ValueError("credential mode='oauth' requires `access_token` string")
         return AzureDevOpsAuth.oauth(access_token)
     if mode == "federated":
         oidc_token_path = payload.get("oidc_token_path")
@@ -539,14 +520,10 @@ def _factory(config: Mapping[str, Any]) -> SourceConnector:
                 else None
             ),
             base_url=(
-                str(config["base_url"])
-                if config.get("base_url") is not None
-                else None
+                str(config["base_url"]) if config.get("base_url") is not None else None
             ),
             project=(
-                str(config["project"])
-                if config.get("project") is not None
-                else None
+                str(config["project"]) if config.get("project") is not None else None
             ),
             include_disabled=bool(config.get("include_disabled", False)),
             include_private=bool(config.get("include_private", True)),

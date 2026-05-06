@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from pleno_pii_scanner_oci.reference import ImageReference, parse_reference
+from pleno_pii_scanner_oci.reference import parse_reference
 
 
 class TestParseReference:
@@ -68,18 +68,12 @@ class TestParseReference:
 
     def test_manifest_url(self) -> None:
         ref = parse_reference("ghcr.io/acme/api:v1")
-        assert (
-            ref.manifest_url()
-            == "https://ghcr.io/v2/acme/api/manifests/v1"
-        )
+        assert ref.manifest_url() == "https://ghcr.io/v2/acme/api/manifests/v1"
 
     def test_blob_url(self) -> None:
         ref = parse_reference("ghcr.io/acme/api:v1")
         digest = "sha256:" + "d" * 64
-        assert (
-            ref.blob_url(digest)
-            == f"https://ghcr.io/v2/acme/api/blobs/{digest}"
-        )
+        assert ref.blob_url(digest) == f"https://ghcr.io/v2/acme/api/blobs/{digest}"
 
     def test_blob_url_invalid_digest(self) -> None:
         ref = parse_reference("ghcr.io/acme/api:v1")

@@ -310,9 +310,7 @@ class TestCABundle:
         from datetime import UTC, datetime, timedelta
 
         key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-        subject = x509.Name(
-            [x509.NameAttribute(x509.NameOID.COMMON_NAME, "test-ca")]
-        )
+        subject = x509.Name([x509.NameAttribute(x509.NameOID.COMMON_NAME, "test-ca")])
         cert = (
             x509.CertificateBuilder()
             .subject_name(subject)

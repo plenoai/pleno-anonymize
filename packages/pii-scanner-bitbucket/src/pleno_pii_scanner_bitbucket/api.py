@@ -256,7 +256,11 @@ class BitbucketApi:
                 )
             request_params = next_params
             if self._flavor == "server" and next_start is not None and next_start > 0:
-                request_params = {**(params or {}), "limit": page_size, "start": next_start}
+                request_params = {
+                    **(params or {}),
+                    "limit": page_size,
+                    "start": next_start,
+                }
             response = await self.get(next_url, params=request_params)
             if response.status_code != 200:
                 # 401/403/404 on a paginated endpoint: yield nothing.

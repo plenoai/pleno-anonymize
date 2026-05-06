@@ -16,7 +16,10 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+if TYPE_CHECKING:
+    from pleno_pii_scanner.credentials.profile import CredentialProfile
 
 # Keys whose values must be redacted in repr / str. Any Mapping key that
 # matches one of these substrings (case-insensitive) is rendered as
@@ -182,7 +185,7 @@ class CredentialBroker:
             f"tried resolvers={attempted}"
         )
 
-    async def get_for_profile(self, profile: "CredentialProfile") -> Credential:
+    async def get_for_profile(self, profile: CredentialProfile) -> Credential:
         """Resolve the base of `profile`, then apply the assume-role chain.
 
         Imported lazily to avoid the broker module depending on profile

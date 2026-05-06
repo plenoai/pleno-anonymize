@@ -66,9 +66,7 @@ from pleno_pii_scanner.sources.registry import ConnectorSpec
 _SYSTEM_DATABASES: frozenset[str] = frozenset({"admin", "config", "local"})
 
 
-def reservoir_sample_size(
-    *, confidence: float = 0.95, prevalence: float = 0.01
-) -> int:
+def reservoir_sample_size(*, confidence: float = 0.95, prevalence: float = 0.01) -> int:
     """Minimum sample size for `confidence` PII detection at `prevalence`.
 
     Reproduces ADR §16: P(no PII in n rows) = (1-p)^n; we want this ≤ α.
@@ -111,9 +109,7 @@ class MongoConfig:
     collections: tuple[str, ...] = ()
     excluded_collections: tuple[str, ...] = ()
     sample_rows: int = field(
-        default_factory=lambda: reservoir_sample_size(
-            confidence=0.95, prevalence=0.01
-        )
+        default_factory=lambda: reservoir_sample_size(confidence=0.95, prevalence=0.01)
     )
     max_time_ms: int = 30_000
     max_pool_size: int = 2
@@ -132,8 +128,7 @@ class MongoConfig:
         # use based on the scheme suffix.
         if scheme not in {"mongodb", "mongodb+srv"}:
             raise ValueError(
-                "uri must be mongodb:// or mongodb+srv:// "
-                f"(got {scheme!r})"
+                f"uri must be mongodb:// or mongodb+srv:// (got {scheme!r})"
             )
         if self.sample_rows <= 0:
             raise ValueError("sample_rows must be > 0")
@@ -222,16 +217,11 @@ class MongoConnector:
             collections = await self._list_collections(db_name)
             for coll_name in collections:
                 full = f"{db_name}.{coll_name}"
-                if (
-                    self._config.collections
-                    and full not in self._config.collections
-                ):
+                if self._config.collections and full not in self._config.collections:
                     continue
                 if full in self._config.excluded_collections:
                     continue
-                if filter.include and not _matches_any(
-                    full, filter.include
-                ):
+                if filter.include and not _matches_any(full, filter.include):
                     continue
                 if filter.exclude and _matches_any(full, filter.exclude):
                     continue
@@ -318,10 +308,7 @@ class MongoConnector:
                 self._config.databases and name in self._config.databases
             ):
                 continue
-            if (
-                self._config.databases
-                and name not in self._config.databases
-            ):
+            if self._config.databases and name not in self._config.databases:
                 continue
             if name in self._config.excluded_databases:
                 continue
@@ -342,9 +329,7 @@ class MongoConnector:
         meta: _CollectionMeta,
     ) -> AsyncIterator[Document]:
         pipeline = [{"$sample": {"size": self._config.sample_rows}}]
-        cursor = coll.aggregate(
-            pipeline, maxTimeMS=self._config.max_time_ms
-        )
+        cursor = coll.aggregate(pipeline, maxTimeMS=self._config.max_time_ms)
         i = 0
         async for doc in cursor:
             text = json_util.dumps(doc)
@@ -354,8 +339,7 @@ class MongoConnector:
                     source_kind=ref.source_kind,
                     path=f"{meta.full}#doc-{i}",
                     content_type="application/json",
-                    metadata=dict(ref.metadata)
-                    | {"document_index": str(i)},
+                    metadata=dict(ref.metadata) | {"document_index": str(i)},
                 ),
                 text=text,
                 fetched_at=datetime.now(UTC),
@@ -411,9 +395,7 @@ class MongoConnector:
         finally:
             # Motor's change stream supports both `close()` and
             # `aclose()` across versions; prefer the modern spelling.
-            close = getattr(stream, "aclose", None) or getattr(
-                stream, "close", None
-            )
+            close = getattr(stream, "aclose", None) or getattr(stream, "close", None)
             if close is not None:
                 result = close()
                 if hasattr(result, "__await__"):
@@ -459,32 +441,22 @@ def _factory(config: Mapping[str, Any]) -> SourceConnector:
             databases=tuple(config.get("databases") or ()),
             excluded_databases=tuple(config.get("excluded_databases") or ()),
             collections=tuple(config.get("collections") or ()),
-            excluded_collections=tuple(
-                config.get("excluded_collections") or ()
-            ),
+            excluded_collections=tuple(config.get("excluded_collections") or ()),
             sample_rows=int(
                 config.get(
                     "sample_rows",
-                    reservoir_sample_size(
-                        confidence=0.95, prevalence=0.01
-                    ),
+                    reservoir_sample_size(confidence=0.95, prevalence=0.01),
                 )
             ),
             max_time_ms=int(config.get("max_time_ms", 30_000)),
             max_pool_size=int(config.get("max_pool_size", 2)),
-            require_secondary=bool(
-                config.get("require_secondary", True)
-            ),
+            require_secondary=bool(config.get("require_secondary", True)),
             incremental=bool(config.get("incremental", False)),
             username=(
-                str(config["username"])
-                if config.get("username") is not None
-                else None
+                str(config["username"]) if config.get("username") is not None else None
             ),
             password=(
-                str(config["password"])
-                if config.get("password") is not None
-                else None
+                str(config["password"]) if config.get("password") is not None else None
             ),
             id=str(config["id"]) if config.get("id") is not None else None,
         )

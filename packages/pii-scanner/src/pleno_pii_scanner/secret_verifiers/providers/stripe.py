@@ -26,9 +26,7 @@ class StripeVerifier:
         }
     )
 
-    async def verify(
-        self, value: str, *, ctx: VerifyContext
-    ) -> VerificationResult:
+    async def verify(self, value: str, *, ctx: VerifyContext) -> VerificationResult:
         headers = {
             "Authorization": f"Bearer {value}",
             "User-Agent": "pleno-pii-scanner",

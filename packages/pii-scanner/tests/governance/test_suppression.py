@@ -67,9 +67,7 @@ def test_rule_matches_by_fingerprint() -> None:
 
 
 def test_rule_combined_criteria_must_all_match() -> None:
-    r = SuppressionRule(
-        scope="repo", entity="PHONE_NUMBER", path_glob="src/**"
-    )
+    r = SuppressionRule(scope="repo", entity="PHONE_NUMBER", path_glob="src/**")
     assert r.matches(_f(entity="PHONE_NUMBER", file="src/app.py")) is True
     assert r.matches(_f(entity="EMAIL", file="src/app.py")) is False
     assert r.matches(_f(entity="PHONE_NUMBER", file="tests/x.py")) is False
@@ -195,9 +193,7 @@ def test_engine_fingerprint_does_not_apply_to_other_findings() -> None:
     a = _f(matched="090-1111-2222")
     b = _f(matched="090-3333-4444")
     rule = SuppressionRule(scope="repo", fingerprint=a.fingerprint())
-    e = SuppressionEngine(
-        [SuppressionPolicy(scope="repo", name="r", rules=(rule,))]
-    )
+    e = SuppressionEngine([SuppressionPolicy(scope="repo", name="r", rules=(rule,))])
     sa, _ = e.is_suppressed(a, now=NOW)
     sb, _ = e.is_suppressed(b, now=NOW)
     assert sa is True

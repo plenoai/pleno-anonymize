@@ -38,8 +38,7 @@ class ImageReference:
 
     def manifest_url(self) -> str:
         return (
-            f"https://{self.registry}/v2/{self.repository}/manifests/"
-            f"{self.reference}"
+            f"https://{self.registry}/v2/{self.repository}/manifests/{self.reference}"
         )
 
     def blob_url(self, digest: str) -> str:

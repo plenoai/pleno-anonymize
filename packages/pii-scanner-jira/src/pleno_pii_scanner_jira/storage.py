@@ -78,9 +78,7 @@ class _StorageStripper(HTMLParser):
         self._skip_depth = 0
         self._parts: list[str] = []
 
-    def handle_starttag(
-        self, tag: str, attrs: list[tuple[str, str | None]]
-    ) -> None:
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         del attrs
         if tag in _SKIP_TAGS:
             self._skip_depth += 1
@@ -97,9 +95,7 @@ class _StorageStripper(HTMLParser):
         if tag in _BLOCK_TAGS:
             self._parts.append("\n")
 
-    def handle_startendtag(
-        self, tag: str, attrs: list[tuple[str, str | None]]
-    ) -> None:
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         # Self-closing tags (`<br/>`, `<hr/>`) — treat as a block break.
         del attrs
         if tag in _BLOCK_TAGS:

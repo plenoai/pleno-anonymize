@@ -65,9 +65,7 @@ def raise_from_slack_api_error(exc: SlackApiError) -> None:
     if status == 429 or error_str == "ratelimited":
         headers = getattr(response, "headers", {}) or {}
         retry_after = _retry_after_seconds(headers)
-        raise RateLimited(
-            _format_message("slack rate limited", retry_after)
-        ) from exc
+        raise RateLimited(_format_message("slack rate limited", retry_after)) from exc
 
 
 @contextlib.asynccontextmanager

@@ -48,7 +48,9 @@ def schedule_group(ctx: click.Context, registry_path: Path | None) -> None:
 
 @schedule_group.command(name="add")
 @click.option("--id", "schedule_id", required=True, help="Stable identifier.")
-@click.option("--cron", "cron_expr", required=True, help="5-field cron or @hourly/@daily/...")
+@click.option(
+    "--cron", "cron_expr", required=True, help="5-field cron or @hourly/@daily/..."
+)
 @click.option("--plan-ref", required=True, help="Opaque reference passed to RunFn.")
 @click.option(
     "--jitter-seconds",

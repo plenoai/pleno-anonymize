@@ -270,9 +270,7 @@ class HopRunner:
 class _RealHopRunner(HopRunner):
     """Production HopRunner: uses STS via aioboto3."""
 
-    async def start(
-        self, session: aioboto3.Session, region: str
-    ) -> AwsCredentials:
+    async def start(self, session: aioboto3.Session, region: str) -> AwsCredentials:
         # Materialize the base session into AwsCredentials so the chain
         # walker can treat the seed and hop results uniformly. For the
         # default chain (no explicit keys) aioboto3 may resolve creds
@@ -345,9 +343,7 @@ class StubHopRunner(HopRunner):
     hops: list[AwsCredentials] = field(default_factory=list)
     calls: list[tuple[AssumeRoleHop, str]] = field(default_factory=list)
 
-    async def start(
-        self, session: aioboto3.Session, region: str
-    ) -> AwsCredentials:
+    async def start(self, session: aioboto3.Session, region: str) -> AwsCredentials:
         del session, region
         return self.seed
 

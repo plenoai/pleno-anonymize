@@ -289,9 +289,7 @@ class IncrementalRunner:
             stats=stats,
         )
 
-        result = await self._scheduler.run_one(
-            plan, scan_id=scan_id, scan_fn=scan_fn
-        )
+        result = await self._scheduler.run_one(plan, scan_id=scan_id, scan_fn=scan_fn)
 
         # On clean completion, persist per-sub-source rollups so the
         # next run hits at tier 1. Errored plans skip this — partial
@@ -305,9 +303,7 @@ class IncrementalRunner:
                 skipped=skipped,
             )
 
-        return IncrementalResult(
-            source_result=result, cache_stats=stats.freeze()
-        )
+        return IncrementalResult(source_result=result, cache_stats=stats.freeze())
 
     async def _apply_subsource_skip(
         self,
@@ -364,9 +360,7 @@ class IncrementalRunner:
             blob = hits.get(lk.key)
             if blob is None:
                 stats.subsource_misses += 1
-                sub_buffers[sub.sub_id] = _SubsourceBuffer(
-                    fingerprint=sub.fingerprint
-                )
+                sub_buffers[sub.sub_id] = _SubsourceBuffer(fingerprint=sub.fingerprint)
                 continue
             count, payload = _decode(blob)
             stats.subsource_hits += 1
@@ -392,9 +386,7 @@ class IncrementalRunner:
         cache = self._cache
         schema_version = self._schema_version
 
-        async def scan_fn(
-            ref: DocumentRef, doc: Document | DocumentChunk
-        ) -> int:
+        async def scan_fn(ref: DocumentRef, doc: Document | DocumentChunk) -> int:
             stats.document_total += 1
             sub_id = ref.metadata.get(SUBSOURCE_METADATA_KEY)
 

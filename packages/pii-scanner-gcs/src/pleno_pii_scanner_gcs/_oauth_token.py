@@ -34,7 +34,6 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
-import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -56,9 +55,7 @@ _GCE_METADATA_TOKEN_URL = (
 )
 # Default OAuth scope for read-only GCS + Cloud Asset Inventory access.
 # Callers can override per `TokenSource` via `scopes=`.
-DEFAULT_SCOPES = (
-    "https://www.googleapis.com/auth/cloud-platform.read-only",
-)
+DEFAULT_SCOPES = ("https://www.googleapis.com/auth/cloud-platform.read-only",)
 # Refresh tokens this many seconds before the upstream `expires_at` so
 # in-flight paginates do not 401 mid-walk. 30 s mirrors the AWS S3
 # connector's safety margin.
@@ -171,25 +168,17 @@ class WorkloadIdentityTokenSource(TokenSource):
             _GOOGLE_STS_TOKEN_URL,
             json={
                 "audience": self.audience,
-                "grantType": (
-                    "urn:ietf:params:oauth:grant-type:token-exchange"
-                ),
-                "requestedTokenType": (
-                    "urn:ietf:params:oauth:token-type:access_token"
-                ),
+                "grantType": ("urn:ietf:params:oauth:grant-type:token-exchange"),
+                "requestedTokenType": ("urn:ietf:params:oauth:token-type:access_token"),
                 "scope": " ".join(self.scopes),
-                "subjectTokenType": (
-                    "urn:ietf:params:oauth:token-type:jwt"
-                ),
+                "subjectTokenType": ("urn:ietf:params:oauth:token-type:jwt"),
                 "subjectToken": external,
             },
         )
         sts_resp.raise_for_status()
         federated = sts_resp.json().get("access_token")
         if not federated:
-            raise ValueError(
-                "STS token exchange returned no access_token"
-            )
+            raise ValueError("STS token exchange returned no access_token")
         if self.service_account_email is None:
             # Operator opted out of impersonation; trust them. Expiry
             # comes from STS `expires_in`.
@@ -250,9 +239,7 @@ class ApplicationDefaultTokenSource(TokenSource):
     env_get: Callable[[str], str | None] = field(
         default_factory=lambda: _default_env_get
     )
-    file_reader: Callable[[str], str] = field(
-        default_factory=lambda: _read_text_file
-    )
+    file_reader: Callable[[str], str] = field(default_factory=lambda: _read_text_file)
     now: Callable[[], datetime] = field(
         default_factory=lambda: lambda: datetime.now(UTC)
     )
@@ -281,9 +268,7 @@ class ApplicationDefaultTokenSource(TokenSource):
         ttl = int(body.get("expires_in", 3600))
         token = body.get("access_token")
         if not token:
-            raise ValueError(
-                "GCE metadata server returned no access_token"
-            )
+            raise ValueError("GCE metadata server returned no access_token")
         return AccessToken(
             value=token,
             expires_at=self.now() + timedelta(seconds=ttl),
@@ -311,9 +296,7 @@ class TokenCache:
 
     async def get(self, client: httpx.AsyncClient) -> AccessToken:
         async with self._lock:
-            if self._cached is not None and not self._cached.is_expired(
-                self.now()
-            ):
+            if self._cached is not None and not self._cached.is_expired(self.now()):
                 return self._cached
             self._cached = await self.source.acquire(client)
             return self._cached
@@ -366,9 +349,7 @@ def _sign_service_account_jwt(
     header: dict[str, Any] = {"alg": "RS256", "typ": "JWT"}
     if key_id:
         header["kid"] = key_id
-    signing_input = (
-        _b64url_json(header) + b"." + _b64url_json(payload)
-    )
+    signing_input = _b64url_json(header) + b"." + _b64url_json(payload)
     signature = _rs256_sign(private_key_pem, signing_input)
     return (signing_input + b"." + _b64url(signature)).decode("ascii")
 
@@ -389,9 +370,7 @@ def _rs256_sign(private_key_pem: str, data: bytes) -> bytes:
     return private_key.sign(data, padding.PKCS1v15(), hashes.SHA256())
 
 
-def _parse_token_response(
-    resp: httpx.Response, now: datetime
-) -> AccessToken:
+def _parse_token_response(resp: httpx.Response, now: datetime) -> AccessToken:
     """Convert a Google OAuth2 token response into our AccessToken.
 
     Google returns `access_token` + `expires_in` (seconds). We compute
@@ -410,9 +389,7 @@ def _parse_token_response(
     body = resp.json()
     token = body.get("access_token")
     if not token:
-        raise ValueError(
-            "OAuth token response missing access_token"
-        )
+        raise ValueError("OAuth token response missing access_token")
     ttl = int(body.get("expires_in", 3600))
     return AccessToken(value=token, expires_at=now + timedelta(seconds=ttl))
 
@@ -423,9 +400,7 @@ def _b64url(data: bytes) -> bytes:
 
 
 def _b64url_json(obj: Any) -> bytes:
-    return _b64url(
-        json.dumps(obj, separators=(",", ":")).encode("utf-8")
-    )
+    return _b64url(json.dumps(obj, separators=(",", ":")).encode("utf-8"))
 
 
 def _parse_iso_utc(value: str) -> datetime:

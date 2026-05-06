@@ -44,7 +44,15 @@ class TestDefaultStatePath:
         monkeypatch.delenv("XDG_STATE_HOME", raising=False)
         monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
         path = default_state_path("scan-xyz")
-        assert path == tmp_path / ".local" / "state" / "pleno" / "scan-xyz" / "checkpoint.sqlite"
+        assert (
+            path
+            == tmp_path
+            / ".local"
+            / "state"
+            / "pleno"
+            / "scan-xyz"
+            / "checkpoint.sqlite"
+        )
 
     def test_empty_xdg_state_home_falls_back(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -53,7 +61,15 @@ class TestDefaultStatePath:
         monkeypatch.setenv("XDG_STATE_HOME", "")
         monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
         path = default_state_path("scan-xyz")
-        assert path == tmp_path / ".local" / "state" / "pleno" / "scan-xyz" / "checkpoint.sqlite"
+        assert (
+            path
+            == tmp_path
+            / ".local"
+            / "state"
+            / "pleno"
+            / "scan-xyz"
+            / "checkpoint.sqlite"
+        )
 
 
 class TestSqliteOpen:
@@ -75,7 +91,9 @@ class TestSqliteOpen:
         monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path))
         store = await SqliteCheckpointStore.open("scan-default")
         try:
-            assert store.path == tmp_path / "pleno" / "scan-default" / "checkpoint.sqlite"
+            assert (
+                store.path == tmp_path / "pleno" / "scan-default" / "checkpoint.sqlite"
+            )
             assert store.path.exists()
         finally:
             await store.close()
@@ -158,13 +176,9 @@ class TestSqliteDurability:
 
         reopened = await SqliteCheckpointStore.open("scan-1", path=target)
         try:
-            collected = [
-                cp async for cp in reopened.list_for_scan("scan-1")
-            ]
+            collected = [cp async for cp in reopened.list_for_scan("scan-1")]
             assert len(collected) == 5
-            assert {cp.cursor for cp in collected} == {
-                f"v{i}" for i in range(5)
-            }
+            assert {cp.cursor for cp in collected} == {f"v{i}" for i in range(5)}
         finally:
             await reopened.close()
 
@@ -190,43 +204,31 @@ class TestSqliteDurability:
 class TestSqliteEdgeCases:
     @pytest.mark.asyncio
     async def test_close_is_idempotent(self, tmp_path: Path) -> None:
-        store = await SqliteCheckpointStore.open(
-            "scan-1", path=tmp_path / "ck.sqlite"
-        )
+        store = await SqliteCheckpointStore.open("scan-1", path=tmp_path / "ck.sqlite")
         await store.close()
         await store.close()
 
     @pytest.mark.asyncio
     async def test_async_context_manager(self, tmp_path: Path) -> None:
         target = tmp_path / "ck.sqlite"
-        async with await SqliteCheckpointStore.open(
-            "scan-1", path=target
-        ) as store:
+        async with await SqliteCheckpointStore.open("scan-1", path=target) as store:
             await store.save(_cp())
             assert await store.load("scan-1", "src-a") is not None
         # WHY: file remains on disk even after close, so a fresh open
         # can still read prior state.
-        async with await SqliteCheckpointStore.open(
-            "scan-1", path=target
-        ) as store2:
+        async with await SqliteCheckpointStore.open("scan-1", path=target) as store2:
             assert await store2.load("scan-1", "src-a") is not None
 
     @pytest.mark.asyncio
-    async def test_save_many_empty_short_circuits(
-        self, tmp_path: Path
-    ) -> None:
-        store = await SqliteCheckpointStore.open(
-            "scan-1", path=tmp_path / "ck.sqlite"
-        )
+    async def test_save_many_empty_short_circuits(self, tmp_path: Path) -> None:
+        store = await SqliteCheckpointStore.open("scan-1", path=tmp_path / "ck.sqlite")
         try:
             await store.save_many([])
         finally:
             await store.close()
 
     @pytest.mark.asyncio
-    async def test_naive_datetime_in_db_is_assumed_utc(
-        self, tmp_path: Path
-    ) -> None:
+    async def test_naive_datetime_in_db_is_assumed_utc(self, tmp_path: Path) -> None:
         # WHY: covers the naive-datetime branch of _parse_iso. We can't
         # easily get a naive timestamp through save() (Checkpoint takes a
         # datetime; we always serialize via .isoformat()), so we manually
@@ -253,9 +255,7 @@ class TestSqliteEdgeCases:
     async def test_concurrent_distinct_keys_do_not_deadlock(
         self, tmp_path: Path
     ) -> None:
-        store = await SqliteCheckpointStore.open(
-            "scan-1", path=tmp_path / "ck.sqlite"
-        )
+        store = await SqliteCheckpointStore.open("scan-1", path=tmp_path / "ck.sqlite")
         try:
 
             async def write_and_read(i: int) -> None:
@@ -272,12 +272,8 @@ class TestSqliteEdgeCases:
             await store.close()
 
     @pytest.mark.asyncio
-    async def test_use_after_close_for_each_method(
-        self, tmp_path: Path
-    ) -> None:
-        store = await SqliteCheckpointStore.open(
-            "scan-1", path=tmp_path / "ck.sqlite"
-        )
+    async def test_use_after_close_for_each_method(self, tmp_path: Path) -> None:
+        store = await SqliteCheckpointStore.open("scan-1", path=tmp_path / "ck.sqlite")
         await store.close()
         with pytest.raises(RuntimeError, match="closed"):
             await store.save(_cp())
@@ -296,9 +292,7 @@ class TestSqliteEdgeCases:
             await store.list_shards("scan-1", "src-a")
 
     @pytest.mark.asyncio
-    async def test_path_property_matches_constructor(
-        self, tmp_path: Path
-    ) -> None:
+    async def test_path_property_matches_constructor(self, tmp_path: Path) -> None:
         target = tmp_path / "ck.sqlite"
         store = await SqliteCheckpointStore.open("scan-1", path=target)
         try:
@@ -307,9 +301,7 @@ class TestSqliteEdgeCases:
             await store.close()
 
     @pytest.mark.asyncio
-    async def test_parent_directory_permission_700(
-        self, tmp_path: Path
-    ) -> None:
+    async def test_parent_directory_permission_700(self, tmp_path: Path) -> None:
         # WHY: cursor strings can leak access patterns (Slack channel IDs,
         # Confluence space keys). On a multi-user host, the parent dir
         # must not be world-readable.

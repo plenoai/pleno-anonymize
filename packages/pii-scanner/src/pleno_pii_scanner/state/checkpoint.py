@@ -109,9 +109,7 @@ class CheckpointStore(Protocol):
         """
         ...
 
-    async def load(
-        self, scan_id: str, source_id: str
-    ) -> Checkpoint | None:
+    async def load(self, scan_id: str, source_id: str) -> Checkpoint | None:
         """Return the latest checkpoint for the pair, or None if absent."""
         ...
 
@@ -133,9 +131,7 @@ class CheckpointStore(Protocol):
         """Record that a findings shard was successfully written."""
         ...
 
-    async def list_shards(
-        self, scan_id: str, source_id: str
-    ) -> list[ShardRecord]:
+    async def list_shards(self, scan_id: str, source_id: str) -> list[ShardRecord]:
         """Return all shard receipts for a (scan_id, source_id) pair."""
         ...
 

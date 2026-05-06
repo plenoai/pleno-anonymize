@@ -79,14 +79,10 @@ def parse_manifest(media_type: str, body: dict[str, Any]) -> ImageManifest:
         )
         for layer in body.get("layers", [])
     )
-    return ImageManifest(
-        media_type=media_type, config=config, layers=layers
-    )
+    return ImageManifest(media_type=media_type, config=config, layers=layers)
 
 
-def select_platform(
-    body: dict[str, Any], *, default_platform: str
-) -> Descriptor:
+def select_platform(body: dict[str, Any], *, default_platform: str) -> Descriptor:
     """Pick a single-platform descriptor from an Image Index body.
 
     `default_platform` is `os/arch[/variant]` (e.g. `linux/amd64`).

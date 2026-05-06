@@ -22,9 +22,7 @@ from .encryption import EncryptedPayload, EncryptionError
 #   ~/.local/state/pleno/<scan_id>/findings/<source_id>/<shard_index>.jsonl
 # A separate path component for source_id means concurrent connectors
 # never share a writer — no asyncio.Lock contention across sources.
-def shard_path(
-    base: Path, scan_id: str, source_id: str, shard_index: int
-) -> Path:
+def shard_path(base: Path, scan_id: str, source_id: str, shard_index: int) -> Path:
     """Resolve the on-disk path for a single shard file."""
     return base / scan_id / "findings" / source_id / f"{shard_index}.jsonl"
 
@@ -77,9 +75,7 @@ class JsonlShardWriter:
         if not finding_ids:
             return 0
         lines: list[bytes] = []
-        for fid, fp, payload in zip(
-            finding_ids, fingerprints, payloads, strict=True
-        ):
+        for fid, fp, payload in zip(finding_ids, fingerprints, payloads, strict=True):
             obj: dict[str, object] = {
                 "finding_id": fid,
                 "fingerprint": fp,
@@ -132,9 +128,7 @@ def read_shard(path: Path) -> list[tuple[str, str, EncryptedPayload]]:
             try:
                 obj = json.loads(raw.decode("utf-8"))
             except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-                raise EncryptionError(
-                    f"corrupt shard line in {path}: {exc}"
-                ) from exc
+                raise EncryptionError(f"corrupt shard line in {path}: {exc}") from exc
             if not isinstance(obj, dict):
                 raise EncryptionError(f"non-object shard line in {path}")
             payload = EncryptedPayload.from_jsonl(obj)

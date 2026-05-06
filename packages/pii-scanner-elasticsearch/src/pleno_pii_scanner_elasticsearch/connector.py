@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import base64
 import json
-from collections.abc import AsyncIterator, Mapping, Sequence
+from collections.abc import AsyncIterator, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, Literal
@@ -121,9 +121,7 @@ class ElasticsearchConnector:
         self._config = config
         self.id = config.resolved_id()
         if client is None:
-            self._client = httpx.AsyncClient(
-                base_url=config.hosts[0], timeout=60.0
-            )
+            self._client = httpx.AsyncClient(base_url=config.hosts[0], timeout=60.0)
             self._owns_client = True
         else:
             self._client = client
@@ -174,9 +172,7 @@ class ElasticsearchConnector:
                     idx = hit.get("_index", "")
                     doc_id = hit.get("_id", "")
                     full = f"{idx}/{doc_id}"
-                    if filter.include and not _matches_any(
-                        full, filter.include
-                    ):
+                    if filter.include and not _matches_any(full, filter.include):
                         continue
                     if filter.exclude and _matches_any(full, filter.exclude):
                         continue
@@ -278,9 +274,7 @@ class ElasticsearchConnector:
         else:
             url = f"/{index_csv}/_pit"
             params = {"keep_alive": self._config.keep_alive}
-        resp = await self._client.post(
-            url, params=params, headers=self._headers
-        )
+        resp = await self._client.post(url, params=params, headers=self._headers)
         if resp.status_code == 404:
             # OpenSearch <2 has no PIT. We can't transparently recover here
             # without a scroll fallback; surface a clear error rather than
@@ -303,9 +297,7 @@ class ElasticsearchConnector:
             url = "/_pit"
             payload = {"id": pit_id}
         # httpx requires DELETE to use `request("DELETE", ...)` for body.
-        await self._client.request(
-            "DELETE", url, json=payload, headers=self._headers
-        )
+        await self._client.request("DELETE", url, json=payload, headers=self._headers)
 
     def _build_search_body(
         self,
@@ -347,9 +339,7 @@ class ElasticsearchConnector:
         body: dict[str, Any],
     ) -> list[dict[str, Any]]:
         del pit_id  # PIT pins the indices, so the URL is just `/_search`
-        resp = await self._client.post(
-            "/_search", json=body, headers=self._headers
-        )
+        resp = await self._client.post("/_search", json=body, headers=self._headers)
         resp.raise_for_status()
         return resp.json().get("hits", {}).get("hits", []) or []
 

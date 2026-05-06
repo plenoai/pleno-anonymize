@@ -38,9 +38,7 @@ class GenericBearerVerifier:
         if name is not None:
             self.name = name
 
-    async def verify(
-        self, value: str, *, ctx: VerifyContext
-    ) -> VerificationResult:
+    async def verify(self, value: str, *, ctx: VerifyContext) -> VerificationResult:
         if not self._url:
             raise RuntimeError(
                 "GenericBearerVerifier.url is unset; configure via TOML before use"

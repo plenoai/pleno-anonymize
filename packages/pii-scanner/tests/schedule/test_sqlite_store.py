@@ -54,9 +54,7 @@ class TestSqliteScheduleStore:
         loaded = await store.load("s1")
         assert loaded == s
 
-    async def test_load_missing_returns_none(
-        self, store: SqliteScheduleStore
-    ) -> None:
+    async def test_load_missing_returns_none(self, store: SqliteScheduleStore) -> None:
         assert await store.load("missing") is None
 
     async def test_save_upserts(self, store: SqliteScheduleStore) -> None:
@@ -103,31 +101,23 @@ class TestSqliteScheduleStore:
         with pytest.raises(RuntimeError, match="closed"):
             await store.save(_sched())
 
-    async def test_list_after_close_raises(
-        self, store: SqliteScheduleStore
-    ) -> None:
+    async def test_list_after_close_raises(self, store: SqliteScheduleStore) -> None:
         await store.save(_sched())
         await store.close()
         with pytest.raises(RuntimeError, match="closed"):
             await store.list()
 
-    async def test_delete_after_close_raises(
-        self, store: SqliteScheduleStore
-    ) -> None:
+    async def test_delete_after_close_raises(self, store: SqliteScheduleStore) -> None:
         await store.close()
         with pytest.raises(RuntimeError, match="closed"):
             await store.delete("x")
 
-    async def test_load_after_close_raises(
-        self, store: SqliteScheduleStore
-    ) -> None:
+    async def test_load_after_close_raises(self, store: SqliteScheduleStore) -> None:
         await store.close()
         with pytest.raises(RuntimeError, match="closed"):
             await store.load("x")
 
-    async def test_due_after_close_raises(
-        self, store: SqliteScheduleStore
-    ) -> None:
+    async def test_due_after_close_raises(self, store: SqliteScheduleStore) -> None:
         await store.close()
         with pytest.raises(RuntimeError, match="closed"):
             await store.due(datetime(2026, 5, 4, tzinfo=UTC))

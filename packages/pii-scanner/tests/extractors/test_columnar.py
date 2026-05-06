@@ -56,9 +56,7 @@ class TestCsvExtractor:
     @pytest.mark.asyncio
     async def test_binary_input_decoded(self) -> None:
         ex = CsvExtractor()
-        frags = await collect(
-            ex, Document(ref=_ref(), binary=b"name\nfoo\nbar\n")
-        )
+        frags = await collect(ex, Document(ref=_ref(), binary=b"name\nfoo\nbar\n"))
         texts = [f.text for f in frags]
         assert "foo" in texts
         assert "bar" in texts
@@ -82,8 +80,7 @@ class TestJsonlExtractor:
         text = '{"user":{"contact":{"email":"a@b.c"}}}\n'
         frags = await collect(ex, Document(ref=_ref(), text=text))
         assert any(
-            f.text == "a@b.c" and "/user/contact/email" in f.path_hint
-            for f in frags
+            f.text == "a@b.c" and "/user/contact/email" in f.path_hint for f in frags
         )
 
     @pytest.mark.asyncio

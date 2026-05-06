@@ -11,8 +11,14 @@ from pleno_pii_scanner.models import Finding
 
 def _f(entity, file, line=1, matched="x", verification="unverified", score=0.5):
     return Finding(
-        entity=entity, file=file, line=line, col=1, score=score,
-        snippet=matched, matched=matched, pattern_name="p",
+        entity=entity,
+        file=file,
+        line=line,
+        col=1,
+        score=score,
+        snippet=matched,
+        matched=matched,
+        pattern_name="p",
         verification=verification,
     )
 
@@ -39,10 +45,7 @@ def test_drops_same_email_repeated_in_one_file():
     """Six mentions of one support contact = one identifiable individual,
     not a DB. Distinct-value gating must drop this."""
     same = "support@example-corp.jp"
-    fs = [
-        _f("EMAIL_ADDRESS", "faq.md", line=i, matched=same)
-        for i in range(1, 7)
-    ]
+    fs = [_f("EMAIL_ADDRESS", "faq.md", line=i, matched=same) for i in range(1, 7)]
     assert keep_db_clusters(fs) == []
 
 
@@ -153,12 +156,27 @@ def test_failed_findings_do_not_count_toward_cluster():
     folder to DB-shaped. Otherwise an awesome-list of book links would
     look like a leaked DB."""
     fs = [
-        _f("MY_NUMBER_CORPORATE", "books.md", line=1, matched="9784911384039",
-           verification="failed"),
-        _f("MY_NUMBER_CORPORATE", "books.md", line=2, matched="9784000000000",
-           verification="failed"),
-        _f("MY_NUMBER_CORPORATE", "books.md", line=3, matched="9784912345678",
-           verification="failed"),
+        _f(
+            "MY_NUMBER_CORPORATE",
+            "books.md",
+            line=1,
+            matched="9784911384039",
+            verification="failed",
+        ),
+        _f(
+            "MY_NUMBER_CORPORATE",
+            "books.md",
+            line=2,
+            matched="9784000000000",
+            verification="failed",
+        ),
+        _f(
+            "MY_NUMBER_CORPORATE",
+            "books.md",
+            line=3,
+            matched="9784912345678",
+            verification="failed",
+        ),
     ]
     # No real PII finding → cluster computation excludes the failed ones,
     # nothing qualifies, all dropped.

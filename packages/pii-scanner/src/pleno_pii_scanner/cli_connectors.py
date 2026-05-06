@@ -82,9 +82,7 @@ def cmd_describe(kind: str) -> None:
                     "streaming": spec.capabilities.streaming,
                 },
                 "config_schema": (
-                    dict(spec.config_schema)
-                    if spec.config_schema is not None
-                    else None
+                    dict(spec.config_schema) if spec.config_schema is not None else None
                 ),
             },
             indent=2,

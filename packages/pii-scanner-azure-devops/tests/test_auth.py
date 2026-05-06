@@ -121,13 +121,9 @@ def _build_federated_auth(
 
 
 class TestFederatedMode:
-    async def test_token_exchange_posts_oidc_assertion(
-        self, tmp_path: Path
-    ) -> None:
+    async def test_token_exchange_posts_oidc_assertion(self, tmp_path: Path) -> None:
         captured: dict = {}
-        client, auth = _build_federated_auth(
-            tmp_path, _federated_handler_ok(captured)
-        )
+        client, auth = _build_federated_auth(tmp_path, _federated_handler_ok(captured))
         try:
             header = await auth.authorization_header()
             assert header == "Bearer aad-bearer-1"
@@ -266,9 +262,7 @@ class TestFederatedMode:
             await auth.aclose()
             await client.aclose()
 
-    async def test_aad_missing_expires_in_uses_1h_default(
-        self, tmp_path: Path
-    ) -> None:
+    async def test_aad_missing_expires_in_uses_1h_default(self, tmp_path: Path) -> None:
         # No `expires_in` -> must NOT cache forever; the connector
         # treats absence as a 1h TTL (documented default).
         clock = {"t": 0.0}

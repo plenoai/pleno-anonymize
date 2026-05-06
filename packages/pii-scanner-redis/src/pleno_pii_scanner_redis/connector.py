@@ -52,9 +52,7 @@ from pleno_pii_scanner.sources.registry import ConnectorSpec
 
 # Redis "categories" that the scanner is allowed to use. Anything
 # beyond these is a sign the credential is over-scoped — refuse.
-_ALLOWED_CATEGORIES: frozenset[str] = frozenset(
-    {"@read", "@connection", "@keyspace"}
-)
+_ALLOWED_CATEGORIES: frozenset[str] = frozenset({"@read", "@connection", "@keyspace"})
 # Categories that, if granted, indicate an over-privileged role.
 _FORBIDDEN_CATEGORIES: frozenset[str] = frozenset(
     {"@write", "@admin", "@dangerous", "@scripting", "@all"}
@@ -244,14 +242,10 @@ class RedisConnector:
             return b"\n".join(members)
         if value_type == "hash":
             data = await self._client.hgetall(key)
-            return b"\n".join(
-                _b(f) + b"=" + _b(v) for f, v in data.items()
-            )
+            return b"\n".join(_b(f) + b"=" + _b(v) for f, v in data.items())
         if value_type == "zset":
             entries = await self._client.zrange(key, 0, -1, withscores=True)
-            return b"\n".join(
-                _b(m) + b"=" + str(s).encode() for m, s in entries
-            )
+            return b"\n".join(_b(m) + b"=" + str(s).encode() for m, s in entries)
         if value_type == "stream":
             entries = await self._client.xrange(
                 key, count=self._config.stream_max_entries
@@ -291,18 +285,13 @@ def _normalise_acl(info: Any) -> dict[str, Any]:
         return {_to_str(k): v for k, v in info.items()}
     if isinstance(info, list):
         # Redis returns flat alternating list in RESP2. Pair them.
-        return {
-            _to_str(info[i]): info[i + 1]
-            for i in range(0, len(info) - 1, 2)
-        }
+        return {_to_str(info[i]): info[i + 1] for i in range(0, len(info) - 1, 2)}
     return {}
 
 
 def _format_stream_entry(entry: tuple[Any, dict[Any, Any]]) -> bytes:
     msg_id, fields = entry
-    body = b" ".join(
-        _b(f) + b"=" + _b(v) for f, v in fields.items()
-    )
+    body = b" ".join(_b(f) + b"=" + _b(v) for f, v in fields.items())
     return _b(msg_id) + b"  " + body
 
 

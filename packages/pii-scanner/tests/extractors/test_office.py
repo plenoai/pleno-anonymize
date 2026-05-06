@@ -10,13 +10,13 @@ docx_mod = pytest.importorskip("docx")
 openpyxl = pytest.importorskip("openpyxl")
 pptx_mod = pytest.importorskip("pptx")
 
-from pleno_pii_scanner.extractors import collect
-from pleno_pii_scanner.extractors.office import (
+from pleno_pii_scanner.extractors import collect  # noqa: E402
+from pleno_pii_scanner.extractors.office import (  # noqa: E402
     DocxExtractor,
     PptxExtractor,
     XlsxExtractor,
 )
-from pleno_pii_scanner.sources.base import Document, DocumentRef
+from pleno_pii_scanner.sources.base import Document, DocumentRef  # noqa: E402
 
 
 def _ref() -> DocumentRef:

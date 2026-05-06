@@ -96,7 +96,9 @@ score = 0.6
         recognizers, _ = load_custom_recognizers(p)
         assert [r.entity for r in recognizers] == ["A", "B"]
 
-    def test_path_is_expanded(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_path_is_expanded(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         # `~/.config/pleno/custom.toml` style paths must work.
         monkeypatch.setenv("HOME", str(tmp_path))
         target = tmp_path / "custom.toml"

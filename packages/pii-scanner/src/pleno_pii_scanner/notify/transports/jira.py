@@ -102,8 +102,8 @@ class JiraNotifier:
     async def _find_existing(self, finding: Finding) -> str | None:
         fp = finding.fingerprint()
         jql = (
-            f'project = {self._project_key} '
-            f'AND status in {OPEN_STATUS_JQL} '
+            f"project = {self._project_key} "
+            f"AND status in {OPEN_STATUS_JQL} "
             f'AND summary ~ "{fp}"'
         )
 

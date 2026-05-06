@@ -14,7 +14,6 @@ from pleno_pii_scanner_bitbucket.api import (
     BitbucketApiError,
     _retry_after_seconds,
 )
-from tests.conftest import make_handler
 
 
 # ---------------------------------------------------------------------
@@ -147,9 +146,7 @@ class TestCloudPagination:
             transport=httpx.MockTransport(handler),
         )
         try:
-            slugs = [
-                r["slug"] async for r in api.paginate("/repositories/acme")
-            ]
+            slugs = [r["slug"] async for r in api.paginate("/repositories/acme")]
             assert slugs == ["r1", "r2", "r3"]
         finally:
             await api.aclose()
@@ -208,9 +205,7 @@ class TestServerPagination:
             transport=httpx.MockTransport(handler),
         )
         try:
-            slugs = [
-                r["slug"] async for r in api.paginate("/projects/PROD/repos")
-            ]
+            slugs = [r["slug"] async for r in api.paginate("/projects/PROD/repos")]
             assert slugs == ["p1", "p2", "p3"]
             # First request must not include `start=`; second must.
             assert "start=" not in seen_starts[0]
@@ -234,9 +229,7 @@ class TestServerPagination:
             transport=httpx.MockTransport(handler),
         )
         try:
-            slugs = [
-                r["slug"] async for r in api.paginate("/projects/PROD/repos")
-            ]
+            slugs = [r["slug"] async for r in api.paginate("/projects/PROD/repos")]
             assert slugs == ["x"]
         finally:
             await api.aclose()
@@ -254,9 +247,7 @@ class TestServerPagination:
             transport=httpx.MockTransport(handler),
         )
         try:
-            slugs = [
-                r["slug"] async for r in api.paginate("/projects/PROD/repos")
-            ]
+            slugs = [r["slug"] async for r in api.paginate("/projects/PROD/repos")]
             assert slugs == ["y"]
         finally:
             await api.aclose()
@@ -272,9 +263,7 @@ class TestServerPagination:
             transport=httpx.MockTransport(handler),
         )
         try:
-            slugs = [
-                r async for r in api.paginate("/projects/MISSING/repos")
-            ]
+            slugs = [r async for r in api.paginate("/projects/MISSING/repos")]
             assert slugs == []
         finally:
             await api.aclose()

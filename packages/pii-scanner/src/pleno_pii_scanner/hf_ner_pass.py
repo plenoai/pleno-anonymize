@@ -48,7 +48,9 @@ _NER_CHUNK_CHAR_LIMIT = 12_000  # mirror ner_pass.py for parity with the spaCy p
 
 # Per-(model, revision) cache so `auto` mode keeps both pipelines warm
 # across files within one scan.
-_pipeline_cache: dict[tuple[str, str | None], tuple[object, object, dict[int, str]]] = {}
+_pipeline_cache: dict[
+    tuple[str, str | None], tuple[object, object, dict[int, str]]
+] = {}
 
 
 def _parse_thresholds(env_value: str | None) -> dict[str, float]:
@@ -168,7 +170,9 @@ def _decode_spans(
         cur_end = None
         cur_min_score = 1.0
 
-    for (tok_start, tok_end), label_id, score in zip(offsets, pred_label_ids, token_scores):
+    for (tok_start, tok_end), label_id, score in zip(
+        offsets, pred_label_ids, token_scores
+    ):
         if tok_start == 0 and tok_end == 0:
             _flush()
             continue

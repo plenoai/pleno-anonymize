@@ -107,6 +107,7 @@ class TestSniffMagic:
         # ODF: a zip whose first member is "mimetype" carrying an
         # opendocument MIME string, stored uncompressed at offset 30.
         import zipfile
+
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, "w") as zf:
             zi = zipfile.ZipInfo("mimetype")

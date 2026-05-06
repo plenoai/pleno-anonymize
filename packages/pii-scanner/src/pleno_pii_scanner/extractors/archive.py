@@ -97,9 +97,7 @@ class ArchiveExtractor:
         if isinstance(payload, str):
             # An archive served as text/* is almost certainly a connector
             # bug; refuse rather than silently mojibake-decode.
-            raise BombGuardError(
-                "ArchiveExtractor requires binary payload, got text"
-            )
+            raise BombGuardError("ArchiveExtractor requires binary payload, got text")
         mime = sniff(payload)
         for fragment in _walk(
             payload,
@@ -129,33 +127,41 @@ def _walk(
     Document — important for line-number recovery in `regex_pass`.
     """
     if depth >= cfg.max_depth:
-        raise BombGuardError(
-            f"archive depth {depth} >= max_depth={cfg.max_depth}"
-        )
+        raise BombGuardError(f"archive depth {depth} >= max_depth={cfg.max_depth}")
 
     if mime == "application/gzip":
         yield from _walk_gzip(
-            data, depth=depth, base_offset=base_offset, base_path=base_path,
+            data,
+            depth=depth,
+            base_offset=base_offset,
+            base_path=base_path,
             cfg=cfg,
         )
         return
     if mime == "application/zstd":
         yield from _walk_zstd(
-            data, depth=depth, base_offset=base_offset, base_path=base_path,
+            data,
+            depth=depth,
+            base_offset=base_offset,
+            base_path=base_path,
             cfg=cfg,
         )
         return
     if mime == "application/x-tar":
         yield from _walk_tar(
-            data, depth=depth, base_offset=base_offset, base_path=base_path,
+            data,
+            depth=depth,
+            base_offset=base_offset,
+            base_path=base_path,
             cfg=cfg,
         )
         return
-    if mime == "application/zip" or mime.startswith(
-        "application/vnd.openxmlformats"
-    ):
+    if mime == "application/zip" or mime.startswith("application/vnd.openxmlformats"):
         yield from _walk_zip(
-            data, depth=depth, base_offset=base_offset, base_path=base_path,
+            data,
+            depth=depth,
+            base_offset=base_offset,
+            base_path=base_path,
             cfg=cfg,
         )
         return
@@ -337,7 +343,7 @@ def _walk_zstd(
     # decompress loop from the core 100% gate.
     compressed_total = len(data)  # pragma: no cover
     dctx = _zstd.ZstdDecompressor(  # pragma: no cover
-        max_window_size=2 ** 31,
+        max_window_size=2**31,
     )
     out = bytearray()  # pragma: no cover
     with dctx.stream_reader(io.BytesIO(data)) as reader:  # pragma: no cover

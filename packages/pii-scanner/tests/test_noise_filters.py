@@ -10,7 +10,9 @@ from pleno_pii_scanner.models import Finding
 from pleno_pii_scanner.noise_filters import filter_noise
 
 
-def _f(entity, matched, snippet, *, line=1, col=1, score=0.4, verification="unverified"):
+def _f(
+    entity, matched, snippet, *, line=1, col=1, score=0.4, verification="unverified"
+):
     return Finding(
         entity=entity,
         file="a.txt",
@@ -113,8 +115,11 @@ def test_drops_private_rfc1918():
 
 
 def test_drops_ipv4_in_v8_version_chatter():
-    f = _f("IP_ADDRESS", "4.2.77.18",
-           "* **V8**: upgrade V8 from 4.2.77.18 to 4.2.77.20 with minor fixes")
+    f = _f(
+        "IP_ADDRESS",
+        "4.2.77.18",
+        "* **V8**: upgrade V8 from 4.2.77.18 to 4.2.77.20 with minor fixes",
+    )
     assert _kept([f], f.snippet) == []
 
 
@@ -228,8 +233,12 @@ def test_drops_email_with_cli_prefix():
 
 def test_drops_email_with_url_path_prefix():
     line = "pip install git+https://github.com/suisya-systems/core-harness@v0.x.y"
-    f = _f("EMAIL_ADDRESS", "github.com/suisya-systems/core-harness@v0.x.y",
-           line, score=0.95)
+    f = _f(
+        "EMAIL_ADDRESS",
+        "github.com/suisya-systems/core-harness@v0.x.y",
+        line,
+        score=0.95,
+    )
     assert _kept([f], line) == []
 
 
@@ -260,8 +269,9 @@ def test_keeps_real_user_email():
 
 def test_drops_isbn13_my_number_corporate():
     line = "- [Textbook](https://www.books.or.jp/book-details/9784911384039)"
-    f = _f("MY_NUMBER_CORPORATE", "9784911384039", line, score=0.3,
-           verification="failed")
+    f = _f(
+        "MY_NUMBER_CORPORATE", "9784911384039", line, score=0.3, verification="failed"
+    )
     assert _kept([f], line) == []
 
 
@@ -330,7 +340,9 @@ def test_drops_organization_when_match_extends_into_url():
     # When the NER span keeps going past "](" into the URL itself, the match
     # contains an OPENING bracket "(" mid-span — drop, the boundary is wrong.
     line = "- [株式会社 LabBase ](https://labbase.co.jp/)"
-    f = _f("ORGANIZATION", "株式会社 LabBase ](https://labbase.co.jp/)", line, score=0.85)
+    f = _f(
+        "ORGANIZATION", "株式会社 LabBase ](https://labbase.co.jp/)", line, score=0.85
+    )
     assert _kept([f], line) == []
 
 

@@ -171,9 +171,7 @@ async def test_slack_close_does_not_close_external_client():
         return httpx.Response(200)
 
     client = _client(handler)
-    n = SlackWebhookNotifier(
-        webhook_url="https://hooks.slack.com/x", client=client
-    )
+    n = SlackWebhookNotifier(webhook_url="https://hooks.slack.com/x", client=client)
     await n.close()
     # External client survived (still usable).
     captured["alive"] = not client.is_closed

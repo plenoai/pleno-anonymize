@@ -301,7 +301,10 @@ class TestCloud:
                             "is_private": True,
                             "links": {
                                 "clone": [
-                                    {"name": "https", "href": "https://bitbucket.org/acme/r1.git"}
+                                    {
+                                        "name": "https",
+                                        "href": "https://bitbucket.org/acme/r1.git",
+                                    }
                                 ]
                             },
                         }
@@ -326,9 +329,7 @@ class TestCloud:
         )
         try:
             await _drain(c.discover(SourceFilter(), None))
-            assert clones == [
-                "https://alice:ATBB-abc123@bitbucket.org/acme/r1.git"
-            ]
+            assert clones == ["https://alice:ATBB-abc123@bitbucket.org/acme/r1.git"]
         finally:
             await c.close()
 
@@ -347,7 +348,10 @@ class TestCloud:
                             "is_private": True,
                             "links": {
                                 "clone": [
-                                    {"name": "https", "href": "https://bitbucket.org/acme/r1.git"}
+                                    {
+                                        "name": "https",
+                                        "href": "https://bitbucket.org/acme/r1.git",
+                                    }
                                 ]
                             },
                         }
@@ -362,9 +366,7 @@ class TestCloud:
             make_handler([("/repositories/acme", repos_handler)])
         )
         c = BitbucketConnector(
-            BitbucketConfig(
-                flavor="cloud", workspace="acme", include_archived=True
-            ),
+            BitbucketConfig(flavor="cloud", workspace="acme", include_archived=True),
             credential=cloud_token_credential,
             transport=transport,
             clone_fn=fake_clone,
@@ -390,7 +392,10 @@ class TestCloud:
                             "is_private": True,
                             "links": {
                                 "clone": [
-                                    {"name": "https", "href": "https://bitbucket.org/acme/private.git"}
+                                    {
+                                        "name": "https",
+                                        "href": "https://bitbucket.org/acme/private.git",
+                                    }
                                 ]
                             },
                         },
@@ -401,7 +406,10 @@ class TestCloud:
                             "is_private": False,
                             "links": {
                                 "clone": [
-                                    {"name": "https", "href": "https://bitbucket.org/acme/public.git"}
+                                    {
+                                        "name": "https",
+                                        "href": "https://bitbucket.org/acme/public.git",
+                                    }
                                 ]
                             },
                         },
@@ -416,9 +424,7 @@ class TestCloud:
             make_handler([("/repositories/acme", repos_handler)])
         )
         c = BitbucketConnector(
-            BitbucketConfig(
-                flavor="cloud", workspace="acme", include_public=False
-            ),
+            BitbucketConfig(flavor="cloud", workspace="acme", include_public=False),
             credential=cloud_token_credential,
             transport=transport,
             clone_fn=fake_clone,
@@ -472,7 +478,10 @@ class TestCloud:
                             "is_private": True,
                             "links": {
                                 "clone": [
-                                    {"name": "https", "href": "https://bitbucket.org/acme/r1.git"}
+                                    {
+                                        "name": "https",
+                                        "href": "https://bitbucket.org/acme/r1.git",
+                                    }
                                 ]
                             },
                         }
@@ -540,7 +549,10 @@ class TestCloud:
                             "is_private": True,
                             "links": {
                                 "clone": [
-                                    {"name": "https", "href": "https://bitbucket.org/acme/ok.git"}
+                                    {
+                                        "name": "https",
+                                        "href": "https://bitbucket.org/acme/ok.git",
+                                    }
                                 ]
                             },
                         },
@@ -586,7 +598,10 @@ class TestServer:
                             "public": False,
                             "links": {
                                 "clone": [
-                                    {"name": "http", "href": "https://bb.acme/scm/prod/alpha.git"}
+                                    {
+                                        "name": "http",
+                                        "href": "https://bb.acme/scm/prod/alpha.git",
+                                    }
                                 ]
                             },
                         },
@@ -602,7 +617,10 @@ class TestServer:
                             "public": False,
                             "links": {
                                 "clone": [
-                                    {"name": "http", "href": "https://bb.acme/scm/prod/beta.git"}
+                                    {
+                                        "name": "http",
+                                        "href": "https://bb.acme/scm/prod/beta.git",
+                                    }
                                 ]
                             },
                         },
@@ -612,7 +630,10 @@ class TestServer:
                             "public": False,
                             "links": {
                                 "clone": [
-                                    {"name": "http", "href": "https://bb.acme/scm/prod/gamma.git"}
+                                    {
+                                        "name": "http",
+                                        "href": "https://bb.acme/scm/prod/gamma.git",
+                                    }
                                 ]
                             },
                         },
@@ -648,9 +669,7 @@ class TestServer:
             for r in refs:
                 assert r.metadata["flavor"] == "server"
                 assert r.native_url is not None
-                assert (
-                    "bb.acme/projects/PROD/repos/" in r.native_url
-                )
+                assert "bb.acme/projects/PROD/repos/" in r.native_url
         finally:
             await c.close()
 
@@ -703,9 +722,7 @@ class TestServer:
             await _drain(c.discover(SourceFilter(), None))
             # Pre-existing `bitbucket-server@` userinfo is stripped and
             # replaced with the configured basic auth.
-            assert clones == [
-                "https://svc:p%4055@bb.acme/scm/prod/alpha.git"
-            ]
+            assert clones == ["https://svc:p%4055@bb.acme/scm/prod/alpha.git"]
         finally:
             await c.close()
 
@@ -723,7 +740,10 @@ class TestServer:
                             "public": False,
                             "links": {
                                 "clone": [
-                                    {"name": "https", "href": "https://bb.acme/scm/prod/private.git"}
+                                    {
+                                        "name": "https",
+                                        "href": "https://bb.acme/scm/prod/private.git",
+                                    }
                                 ]
                             },
                         },
@@ -733,7 +753,10 @@ class TestServer:
                             "public": True,
                             "links": {
                                 "clone": [
-                                    {"name": "https", "href": "https://bb.acme/scm/prod/public.git"}
+                                    {
+                                        "name": "https",
+                                        "href": "https://bb.acme/scm/prod/public.git",
+                                    }
                                 ]
                             },
                         },
@@ -781,7 +804,10 @@ class TestServer:
                             "public": False,
                             "links": {
                                 "clone": [
-                                    {"name": "https", "href": "https://bb.acme/scm/prod/ok.git"}
+                                    {
+                                        "name": "https",
+                                        "href": "https://bb.acme/scm/prod/ok.git",
+                                    }
                                 ]
                             },
                         },
@@ -826,9 +852,7 @@ class TestServer:
         c = BitbucketConnector(
             BitbucketConfig(flavor="cloud", repo_slug="acme/r"),
             credential=cloud_token_credential,
-            transport=httpx.MockTransport(
-                lambda _: httpx.Response(404)
-            ),
+            transport=httpx.MockTransport(lambda _: httpx.Response(404)),
             clone_fn=fake_clone,
         )
         try:
@@ -895,7 +919,10 @@ class TestRateLimitDuringDiscover:
                                 "is_private": True,
                                 "links": {
                                     "clone": [
-                                        {"name": "https", "href": "https://bitbucket.org/acme/r1.git"}
+                                        {
+                                            "name": "https",
+                                            "href": "https://bitbucket.org/acme/r1.git",
+                                        }
                                     ]
                                 },
                             }
@@ -953,7 +980,10 @@ class TestLifecycle:
                             "is_private": True,
                             "links": {
                                 "clone": [
-                                    {"name": "https", "href": "https://bitbucket.org/acme/r1.git"}
+                                    {
+                                        "name": "https",
+                                        "href": "https://bitbucket.org/acme/r1.git",
+                                    }
                                 ]
                             },
                         }
@@ -1059,26 +1089,33 @@ class TestUrlHelpers:
     def test_pick_cloud_clone_url_missing_returns_none(self) -> None:
         assert _pick_cloud_clone_url({}) is None
         assert _pick_cloud_clone_url({"links": {"clone": []}}) is None
-        assert _pick_cloud_clone_url(
-            {"links": {"clone": [{"name": "ssh", "href": "x"}]}}
-        ) is None
+        assert (
+            _pick_cloud_clone_url({"links": {"clone": [{"name": "ssh", "href": "x"}]}})
+            is None
+        )
 
     def test_pick_server_clone_url_accepts_http_or_https(self) -> None:
-        assert _pick_server_clone_url(
-            {"links": {"clone": [{"name": "http", "href": "https://bb/scm/p/r.git"}]}}
-        ) == "https://bb/scm/p/r.git"
+        assert (
+            _pick_server_clone_url(
+                {
+                    "links": {
+                        "clone": [{"name": "http", "href": "https://bb/scm/p/r.git"}]
+                    }
+                }
+            )
+            == "https://bb/scm/p/r.git"
+        )
 
     def test_pick_server_clone_url_missing_returns_none(self) -> None:
         assert _pick_server_clone_url({}) is None
-        assert _pick_server_clone_url(
-            {"links": {"clone": [{"name": "ssh", "href": "x"}]}}
-        ) is None
+        assert (
+            _pick_server_clone_url({"links": {"clone": [{"name": "ssh", "href": "x"}]}})
+            is None
+        )
 
     def test_single_repo_clone_url_cloud(self) -> None:
         c = BitbucketConfig(flavor="cloud", repo_slug="acme/r")
-        assert (
-            _single_repo_clone_url(c) == "https://bitbucket.org/acme/r.git"
-        )
+        assert _single_repo_clone_url(c) == "https://bitbucket.org/acme/r.git"
 
     def test_single_repo_clone_url_server(self) -> None:
         c = BitbucketConfig(
@@ -1107,13 +1144,9 @@ class TestUrlHelpers:
         assert url == "https://bitbucket.org/acme/r1/src/HEAD/src/main.py"
 
     def test_browse_url_server(self) -> None:
-        c = BitbucketConfig(
-            flavor="server", project="PROD", base_url="https://bb.acme"
-        )
+        c = BitbucketConfig(flavor="server", project="PROD", base_url="https://bb.acme")
         url = _browse_url(c, "PROD/alpha", "src/main.py")
-        assert (
-            url == "https://bb.acme/projects/PROD/repos/alpha/browse/src/main.py"
-        )
+        assert url == "https://bb.acme/projects/PROD/repos/alpha/browse/src/main.py"
 
     def test_normalise_base_url_cloud_idempotent(self) -> None:
         assert (
@@ -1143,18 +1176,12 @@ class TestUrlHelpers:
         assert _pick_cloud_clone_url(repo_cloud) == "https://h"
         # And the case where the matching name is found but href is not
         # a string (defensive against schema drift).
-        assert _pick_cloud_clone_url(
-            {"links": {"clone": [{"name": "https"}]}}
-        ) is None
-        assert _pick_server_clone_url(
-            {"links": {"clone": [{"name": "https"}]}}
-        ) is None
+        assert _pick_cloud_clone_url({"links": {"clone": [{"name": "https"}]}}) is None
+        assert _pick_server_clone_url({"links": {"clone": [{"name": "https"}]}}) is None
 
     def test_normalise_base_url_server_idempotent(self) -> None:
         assert (
-            _normalise_base_url(
-                "server", "https://bb.acme/rest/api/1.0"
-            )
+            _normalise_base_url("server", "https://bb.acme/rest/api/1.0")
             == "https://bb.acme/rest/api/1.0"
         )
 
@@ -1177,9 +1204,7 @@ class TestSpec:
         assert SPEC.required_scopes == ("repository:read",)
         assert SPEC.capabilities.incremental is False
 
-    def test_factory_cloud_workspace(
-        self, cloud_token_credential: Credential
-    ) -> None:
+    def test_factory_cloud_workspace(self, cloud_token_credential: Credential) -> None:
         c = SPEC.factory(
             {
                 "flavor": "cloud",
@@ -1190,9 +1215,7 @@ class TestSpec:
         assert isinstance(c, BitbucketConnector)
         assert c.id == "bitbucket-cloud:acme"
 
-    def test_factory_server_project(
-        self, server_token_credential: Credential
-    ) -> None:
+    def test_factory_server_project(self, server_token_credential: Credential) -> None:
         c = SPEC.factory(
             {
                 "flavor": "server",
@@ -1209,9 +1232,7 @@ class TestSpec:
         assert isinstance(c, BitbucketConnector)
         assert c.id == "my-source"
 
-    def test_factory_repo_slug_only(
-        self, cloud_token_credential: Credential
-    ) -> None:
+    def test_factory_repo_slug_only(self, cloud_token_credential: Credential) -> None:
         c = SPEC.factory(
             {
                 "flavor": "cloud",

@@ -43,24 +43,18 @@ class MemoryCheckpointStore:
             self._raise_if_closed()
             self._checkpoints.update(staged)
 
-    async def load(
-        self, scan_id: str, source_id: str
-    ) -> Checkpoint | None:
+    async def load(self, scan_id: str, source_id: str) -> Checkpoint | None:
         async with self._lock:
             self._raise_if_closed()
             return self._checkpoints.get((scan_id, source_id))
 
-    async def list_for_scan(
-        self, scan_id: str
-    ) -> AsyncIterator[Checkpoint]:
+    async def list_for_scan(self, scan_id: str) -> AsyncIterator[Checkpoint]:
         async with self._lock:
             self._raise_if_closed()
             # WHY: snapshot under the lock so the caller can iterate
             # without racing concurrent saves.
             snapshot = [
-                cp
-                for (sid, _), cp in self._checkpoints.items()
-                if sid == scan_id
+                cp for (sid, _), cp in self._checkpoints.items() if sid == scan_id
             ]
         for cp in snapshot:
             yield cp
@@ -91,9 +85,7 @@ class MemoryCheckpointStore:
                 written_at=datetime.now(UTC),
             )
 
-    async def list_shards(
-        self, scan_id: str, source_id: str
-    ) -> list[ShardRecord]:
+    async def list_shards(self, scan_id: str, source_id: str) -> list[ShardRecord]:
         async with self._lock:
             self._raise_if_closed()
             bucket = self._shards.get((scan_id, source_id), {})

@@ -29,9 +29,7 @@ class GitHubVerifier:
         }
     )
 
-    async def verify(
-        self, value: str, *, ctx: VerifyContext
-    ) -> VerificationResult:
+    async def verify(self, value: str, *, ctx: VerifyContext) -> VerificationResult:
         headers = {
             "Authorization": f"Bearer {value}",
             "Accept": "application/vnd.github+json",

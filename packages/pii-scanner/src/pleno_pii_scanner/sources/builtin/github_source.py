@@ -83,9 +83,7 @@ class GithubConfig:
 
     def __post_init__(self) -> None:
         if (self.repo is None) == (self.org is None):
-            raise ValueError(
-                "GithubConfig must set exactly one of `repo` or `org`"
-            )
+            raise ValueError("GithubConfig must set exactly one of `repo` or `org`")
         if self.depth < 1:
             raise ValueError("depth must be >= 1")
 
@@ -181,9 +179,7 @@ class GithubConnector:
                 # repo's findings; we must not clone or yield refs for it.
                 continue
             repo_path = await self._ensure_clone(slug)
-            inner = DirConnector(
-                DirConfig(root=repo_path, id=f"github:{slug}")
-            )
+            inner = DirConnector(DirConfig(root=repo_path, id=f"github:{slug}"))
             try:
                 async for inner_ref in inner.discover(filter, None):
                     yield self._wrap_ref(inner_ref, slug)
@@ -322,11 +318,7 @@ def _default_head_sha(slug: str) -> str | None:
     no working tree on disk. Returns None on any failure so the runner
     can fall back to a full clone instead of risking a stale-cache hit.
     """
-    url = (
-        slug
-        if "://" in slug or "@" in slug
-        else f"https://github.com/{slug}.git"
-    )
+    url = slug if "://" in slug or "@" in slug else f"https://github.com/{slug}.git"
     try:
         proc = subprocess.run(
             ["git", "ls-remote", url, "HEAD"],
@@ -363,11 +355,7 @@ def _clone_into_tempdir(slug: str, config: GithubConfig) -> Path:
         # call instead of using its contextmanager — the contextmanager
         # auto-rmtree's on exit and we want the connector's `close()` to
         # own that lifecycle. Duplication is intentional and tiny.
-        url = (
-            slug
-            if "://" in slug or "@" in slug
-            else f"https://github.com/{slug}.git"
-        )
+        url = slug if "://" in slug or "@" in slug else f"https://github.com/{slug}.git"
         cmd: list[str] = ["git", "clone", "--quiet"]
         if not config.full:
             cmd += [f"--depth={config.depth}"]

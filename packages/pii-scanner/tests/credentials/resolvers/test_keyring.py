@@ -12,7 +12,11 @@ from pleno_pii_scanner.credentials.resolvers.keyring import SERVICE_NAME
 
 
 class FakeBackend:
-    def __init__(self, store: dict[tuple[str, str], str] | None = None, raises: Exception | None = None) -> None:
+    def __init__(
+        self,
+        store: dict[tuple[str, str], str] | None = None,
+        raises: Exception | None = None,
+    ) -> None:
         self.store = store or {}
         self.raises = raises
         self.calls: list[tuple[str, str]] = []
@@ -40,7 +44,9 @@ class TestKeyringResolverNoOp:
 
 class TestKeyringResolverWithBackend:
     async def test_bare_token(self) -> None:
-        backend = FakeBackend(store={(SERVICE_NAME, "github-pat:default"): "ghp_secret"})
+        backend = FakeBackend(
+            store={(SERVICE_NAME, "github-pat:default"): "ghp_secret"}
+        )
         r = KeyringCredentialResolver(backend=backend)
         cred = await r.resolve("github-pat", "default")
         assert cred is not None
@@ -52,7 +58,10 @@ class TestKeyringResolverWithBackend:
     async def test_json_payload(self) -> None:
         backend = FakeBackend(
             store={
-                (SERVICE_NAME, "aws-iam:prod"): '{"access_key_id":"AKIA","secret_access_key":"wJa","region":"us-east-1"}'
+                (
+                    SERVICE_NAME,
+                    "aws-iam:prod",
+                ): '{"access_key_id":"AKIA","secret_access_key":"wJa","region":"us-east-1"}'
             }
         )
         r = KeyringCredentialResolver(backend=backend)
@@ -77,7 +86,9 @@ class TestKeyringResolverWithBackend:
     async def test_json_root_must_be_object(self) -> None:
         backend = FakeBackend(store={(SERVICE_NAME, "x:default"): "[1,2,3]"})
         r = KeyringCredentialResolver(backend=backend)
-        with pytest.raises(CredentialMisconfiguredError, match="JSON root must be an object"):
+        with pytest.raises(
+            CredentialMisconfiguredError, match="JSON root must be an object"
+        ):
             await r.resolve("x", "default")
 
     async def test_backend_exception_wraps(self) -> None:
@@ -87,7 +98,9 @@ class TestKeyringResolverWithBackend:
             await r.resolve("github-pat", "default")
 
     async def test_whitespace_around_bare_token(self) -> None:
-        backend = FakeBackend(store={(SERVICE_NAME, "github-pat:default"): "  ghp_xxx  \n"})
+        backend = FakeBackend(
+            store={(SERVICE_NAME, "github-pat:default"): "  ghp_xxx  \n"}
+        )
         r = KeyringCredentialResolver(backend=backend)
         cred = await r.resolve("github-pat", "default")
         assert cred is not None
@@ -124,7 +137,9 @@ class TestKeyringLibraryImport:
         result = _try_import_keyring()
         assert result is None or hasattr(result, "get_password")
 
-    def test_loader_returns_module_when_present(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_loader_returns_module_when_present(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         # Inject a fake `keyring` module so the import-success branch
         # is exercised even when the real library is not installed.
         import sys

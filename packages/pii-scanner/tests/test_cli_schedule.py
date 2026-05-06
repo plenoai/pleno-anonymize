@@ -136,9 +136,7 @@ class TestRunOnce:
         import sqlite3
 
         with sqlite3.connect(reg_path) as conn:
-            conn.execute(
-                "UPDATE schedules SET next_run_at='2000-01-01T00:00:00+00:00'"
-            )
+            conn.execute("UPDATE schedules SET next_run_at='2000-01-01T00:00:00+00:00'")
             conn.commit()
 
         result = runner.invoke(

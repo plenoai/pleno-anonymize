@@ -233,9 +233,7 @@ class TestLinkParser:
             '<https://api.buildkite.com/v2/p?page=2>; rel="next", '
             '<https://api.buildkite.com/v2/p?page=10>; rel="last"'
         )
-        assert (
-            _link_next(header) == "https://api.buildkite.com/v2/p?page=2"
-        )
+        assert _link_next(header) == "https://api.buildkite.com/v2/p?page=2"
 
     def test_returns_none_when_no_next(self) -> None:
         assert _link_next('<https://x>; rel="last"') is None
@@ -281,9 +279,7 @@ class TestGithubActionsPagination:
         try:
             ids = [
                 e["id"]
-                async for e in api.paginate(
-                    "/repos/o/r/actions/runs", page_size=2
-                )
+                async for e in api.paginate("/repos/o/r/actions/runs", page_size=2)
             ]
             assert ids == [0, 1, 2]
             assert "page=1" in seen_pages[0]
@@ -359,10 +355,7 @@ class TestCircleCiPagination:
             transport=httpx.MockTransport(handler),
         )
         try:
-            jobs = [
-                j["job_number"]
-                async for j in api.paginate("/project/gh/o/r/job")
-            ]
+            jobs = [j["job_number"] async for j in api.paginate("/project/gh/o/r/job")]
             assert jobs == [1, 2, 3]
             assert "page-token" not in seen_qs[0]
             assert "page-token=tok-2" in seen_qs[1]
@@ -384,8 +377,8 @@ class TestBuildkitePagination:
                     json=[{"number": 1}, {"number": 2}],
                     headers={
                         "Link": (
-                            '<https://api.buildkite.com/v2/'
-                            'organizations/o/pipelines/p/builds?page=2>; '
+                            "<https://api.buildkite.com/v2/"
+                            "organizations/o/pipelines/p/builds?page=2>; "
                             'rel="next"'
                         )
                     },
@@ -408,9 +401,7 @@ class TestBuildkitePagination:
         try:
             builds = [
                 e["number"]
-                async for e in api.paginate(
-                    "/organizations/o/pipelines/p/builds"
-                )
+                async for e in api.paginate("/organizations/o/pipelines/p/builds")
             ]
             assert builds == [1, 2, 3]
             # Second URL must be the absolute one from Link rel=next.
@@ -435,10 +426,7 @@ class TestBuildkitePagination:
         )
         try:
             entries = [
-                e
-                async for e in api.paginate(
-                    "/organizations/o/pipelines/p/builds"
-                )
+                e async for e in api.paginate("/organizations/o/pipelines/p/builds")
             ]
             assert entries == []
         finally:
@@ -456,12 +444,12 @@ class TestPaginationGuards:
             flavor="jenkins",
             base_url="https://j.local",
             auth=BasicAuth(username="u", password="p"),
-            transport=httpx.MockTransport(
-                lambda _: httpx.Response(200, json={})
-            ),
+            transport=httpx.MockTransport(lambda _: httpx.Response(200, json={})),
         )
         try:
-            with pytest.raises(CiLogsApiError, match="jenkins flavor does not paginate"):
+            with pytest.raises(
+                CiLogsApiError, match="jenkins flavor does not paginate"
+            ):
                 async for _ in api.paginate("/api/json"):
                     pass
         finally:

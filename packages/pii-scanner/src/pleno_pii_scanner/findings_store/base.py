@@ -259,9 +259,7 @@ class FindingsStore(Protocol):
         """Return one record by primary key, or None."""
         ...
 
-    async def reveal_value(
-        self, finding_id: str, *, audit_principal: str
-    ) -> str:
+    async def reveal_value(self, finding_id: str, *, audit_principal: str) -> str:
         """Decrypt and return the raw `matched` value.
 
         Implementations MUST emit an audit-log event (via the hook

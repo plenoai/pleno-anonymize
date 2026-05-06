@@ -88,15 +88,11 @@ class TestConfig:
 
     def test_rejects_non_http_base_url(self) -> None:
         with pytest.raises(ValueError, match="http"):
-            JiraConfig(
-                flavor="cloud", base_url="ftp://x", access_token="t"
-            )
+            JiraConfig(flavor="cloud", base_url="ftp://x", access_token="t")
 
     def test_rejects_no_auth(self) -> None:
         with pytest.raises(ValueError, match="one of"):
-            JiraConfig(
-                flavor="cloud", base_url="https://acme.atlassian.net"
-            )
+            JiraConfig(flavor="cloud", base_url="https://acme.atlassian.net")
 
     def test_rejects_two_auth_modes(self) -> None:
         with pytest.raises(ValueError, match="exactly one"):
@@ -203,9 +199,9 @@ class TestCloud:
             _ = [r async for r in c.discover(SourceFilter(), None)]
             assert seen_headers
             assert seen_headers[0].startswith("Basic ")
-            expected = "Basic " + base64.b64encode(
-                b"alice@acme.com:api-token-xyz"
-            ).decode()
+            expected = (
+                "Basic " + base64.b64encode(b"alice@acme.com:api-token-xyz").decode()
+            )
             assert seen_headers[0] == expected
         finally:
             await c.close()
@@ -250,9 +246,7 @@ class TestCloud:
                             "isLast": False,
                         }
                     )
-                return json_response(
-                    {"values": [{"key": "C"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "C"}], "isLast": True})
             if path.endswith("/search"):
                 return json_response({"issues": [], "total": 0})
             return json_response({})
@@ -329,10 +323,7 @@ class TestCloud:
             transport=httpx.MockTransport(handler),
         )
         try:
-            _ = [
-                r
-                async for r in c.discover(SourceFilter(include=("A",)), None)
-            ]
+            _ = [r async for r in c.discover(SourceFilter(include=("A",)), None)]
             assert any('project = "A"' in j for j in seen_jql)
             assert not any('project = "B"' in j for j in seen_jql)
         finally:
@@ -345,10 +336,7 @@ class TestCloud:
             transport=httpx.MockTransport(handler),
         )
         try:
-            _ = [
-                r
-                async for r in c2.discover(SourceFilter(exclude=("A",)), None)
-            ]
+            _ = [r async for r in c2.discover(SourceFilter(exclude=("A",)), None)]
             assert not any('project = "A"' in j for j in seen_jql)
             assert any('project = "B"' in j for j in seen_jql)
         finally:
@@ -360,9 +348,7 @@ class TestCloud:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 start = request.url.params.get("startAt", "0")
                 seen_starts.append(start)
@@ -374,9 +360,7 @@ class TestCloud:
                         )
                         for i in range(100)
                     ]
-                    return json_response(
-                        {"issues": issues, "total": 101, "startAt": 0}
-                    )
+                    return json_response({"issues": issues, "total": 101, "startAt": 0})
                 return json_response(
                     {
                         "issues": [
@@ -411,9 +395,7 @@ class TestCloud:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 start = request.url.params.get("startAt", "0")
                 seen_starts.append(start)
@@ -442,9 +424,7 @@ class TestCloud:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 issue = cloud_issue(
                     description=adf_doc(
@@ -485,13 +465,9 @@ class TestCloud:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
-                return json_response(
-                    {"issues": [cloud_issue()], "total": 1}
-                )
+                return json_response({"issues": [cloud_issue()], "total": 1})
             if "/comment" in path:
                 start = request.url.params.get("startAt", "0")
                 seen_starts.append(start)
@@ -509,9 +485,7 @@ class TestCloud:
                         }
                         for i in range(100)
                     ]
-                    return json_response(
-                        {"comments": comments, "total": 101}
-                    )
+                    return json_response({"comments": comments, "total": 101})
                 return json_response(
                     {
                         "comments": [
@@ -551,9 +525,7 @@ class TestCloud:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 issue = cloud_issue(
                     attachments=[
@@ -590,13 +562,9 @@ class TestCloud:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
-                issue = cloud_issue(
-                    attachments=[{"filename": "x", "content": "u"}]
-                )
+                issue = cloud_issue(attachments=[{"filename": "x", "content": "u"}])
                 return json_response({"issues": [issue], "total": 1})
             if "/comment" in path:
                 return json_response({"comments": [], "total": 0})
@@ -620,13 +588,9 @@ class TestCloud:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
-                return json_response(
-                    {"issues": [cloud_issue()], "total": 1}
-                )
+                return json_response({"issues": [cloud_issue()], "total": 1})
             if "/comment" in path:
                 called["comment"] = True
                 return json_response({"comments": [], "total": 0})
@@ -646,9 +610,7 @@ class TestCloud:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 issues = [
                     cloud_issue(
@@ -684,17 +646,13 @@ class TestCloud:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 seen_jql.append(request.url.params.get("jql", ""))
                 return json_response({"issues": [], "total": 0})
             return json_response({})
 
-        prior = json.dumps(
-            {"highest_updated": "2026-05-01T00:00:00.000+0000"}
-        )
+        prior = json.dumps({"highest_updated": "2026-05-01T00:00:00.000+0000"})
         c = JiraConnector(
             _cloud_config(),
             transport=httpx.MockTransport(handler),
@@ -702,8 +660,7 @@ class TestCloud:
         try:
             _ = [r async for r in c.discover(SourceFilter(), prior)]
             assert any(
-                'updated >= "2026-05-01T00:00:00.000+0000"' in j
-                for j in seen_jql
+                'updated >= "2026-05-01T00:00:00.000+0000"' in j for j in seen_jql
             )
         finally:
             await c.close()
@@ -714,9 +671,7 @@ class TestCloud:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 seen_jql.append(request.url.params.get("jql", ""))
                 return json_response({"issues": [], "total": 0})
@@ -750,29 +705,20 @@ class TestCloud:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 seen_jql.append(request.url.params.get("jql", ""))
                 return json_response({"issues": [], "total": 0})
             return json_response({})
 
-        prior = json.dumps(
-            {"highest_updated": "2026-05-01T00:00:00.000+0000"}
-        )
+        prior = json.dumps({"highest_updated": "2026-05-01T00:00:00.000+0000"})
         c = JiraConnector(
             _cloud_config(),
             transport=httpx.MockTransport(handler),
         )
         try:
             since_dt = datetime(2026, 5, 3, tzinfo=timezone.utc)
-            _ = [
-                r
-                async for r in c.discover(
-                    SourceFilter(since=since_dt), prior
-                )
-            ]
+            _ = [r async for r in c.discover(SourceFilter(since=since_dt), prior)]
             assert any("2026-05-03" in j for j in seen_jql)
             assert not any("2026-05-01" in j for j in seen_jql)
         finally:
@@ -806,9 +752,7 @@ class TestCloud:
             if path.endswith("/project/search"):
                 attempts["n"] += 1
                 if attempts["n"] == 1:
-                    return httpx.Response(
-                        429, headers={"Retry-After": "0.01"}
-                    )
+                    return httpx.Response(429, headers={"Retry-After": "0.01"})
                 return json_response({"values": [], "isLast": True})
             return json_response({})
 
@@ -827,9 +771,7 @@ class TestCloud:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 # Missing `key` — third-party Jira-compatible servers
                 # have been seen to omit it.
@@ -986,9 +928,7 @@ class TestDatacenter:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 issue = dc_issue(
                     description=(
@@ -1019,9 +959,7 @@ class TestDatacenter:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 return json_response({"issues": [dc_issue()], "total": 1})
             if "/comment" in path:
@@ -1062,9 +1000,7 @@ class TestDatacenter:
             if path.endswith("/project/search"):
                 attempts["n"] += 1
                 if attempts["n"] == 1:
-                    return httpx.Response(
-                        503, headers={"Retry-After": "0.01"}
-                    )
+                    return httpx.Response(503, headers={"Retry-After": "0.01"})
                 return json_response({"values": [], "isLast": True})
             return json_response({})
 
@@ -1225,9 +1161,7 @@ class TestSerialiserEdges:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 return json_response(
                     {
@@ -1255,9 +1189,7 @@ class TestSerialiserEdges:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 # Missing summary, status, assignee, reporter.
                 return json_response(
@@ -1266,9 +1198,7 @@ class TestSerialiserEdges:
                             {
                                 "id": "1",
                                 "key": "P-1",
-                                "fields": {
-                                    "updated": "2026-05-04T00:00:00.000+0000"
-                                },
+                                "fields": {"updated": "2026-05-04T00:00:00.000+0000"},
                             }
                         ],
                         "total": 1,
@@ -1294,13 +1224,9 @@ class TestSerialiserEdges:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
-                return json_response(
-                    {"issues": [cloud_issue()], "total": 1}
-                )
+                return json_response({"issues": [cloud_issue()], "total": 1})
             if "/comment" in path:
                 return json_response(
                     {
@@ -1337,13 +1263,9 @@ class TestSerialiserEdges:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
-                return json_response(
-                    {"issues": [cloud_issue()], "total": 1}
-                )
+                return json_response({"issues": [cloud_issue()], "total": 1})
             if "/comment" in path:
                 return json_response(
                     {
@@ -1378,13 +1300,9 @@ class TestSerialiserEdges:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
-                return json_response(
-                    {"issues": [cloud_issue()], "total": 1}
-                )
+                return json_response({"issues": [cloud_issue()], "total": 1})
             if "/comment" in path:
                 return json_response(
                     {
@@ -1414,9 +1332,7 @@ class TestSerialiserEdges:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 issue = cloud_issue(
                     attachments=["bad", {"filename": "x", "content": "u"}]
@@ -1443,9 +1359,7 @@ class TestSerialiserEdges:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 # Skip an entry with neither name nor url.
                 issue = cloud_issue(
@@ -1540,13 +1454,9 @@ class TestSerialiserEdges:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
-                return json_response(
-                    {"issues": [cloud_issue()], "total": 1}
-                )
+                return json_response({"issues": [cloud_issue()], "total": 1})
             if "/comment" in path:
                 request_count["n"] += 1
                 if request_count["n"] == 1:
@@ -1693,9 +1603,7 @@ class TestSerialiserEdges:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 return httpx.Response(404)
             return json_response({})
@@ -1715,9 +1623,7 @@ class TestSerialiserEdges:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 return json_response(
                     {
@@ -1743,13 +1649,9 @@ class TestSerialiserEdges:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
-                return json_response(
-                    {"issues": [cloud_issue()], "total": 1}
-                )
+                return json_response({"issues": [cloud_issue()], "total": 1})
             if "/comment" in path:
                 return httpx.Response(404)
             return json_response({})
@@ -1769,13 +1671,9 @@ class TestSerialiserEdges:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
-                return json_response(
-                    {"issues": [cloud_issue()], "total": 1}
-                )
+                return json_response({"issues": [cloud_issue()], "total": 1})
             if "/comment" in path:
                 return json_response(
                     {
@@ -1813,9 +1711,7 @@ class TestSerialiserEdges:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": ["bad", {"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": ["bad", {"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 return json_response({"issues": [], "total": 0})
             return json_response({})
@@ -1837,9 +1733,7 @@ class TestSerialiserEdges:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 return json_response(
                     {
@@ -1872,9 +1766,7 @@ class TestSerialiserEdges:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/project/search"):
-                return json_response(
-                    {"values": [{"key": "P"}], "isLast": True}
-                )
+                return json_response({"values": [{"key": "P"}], "isLast": True})
             if path.endswith("/search"):
                 return json_response(
                     {
@@ -1882,9 +1774,7 @@ class TestSerialiserEdges:
                             {
                                 "id": "1",
                                 "key": "P-1",
-                                "fields": {
-                                    "updated": "2026-05-04T00:00:00.000+0000"
-                                },
+                                "fields": {"updated": "2026-05-04T00:00:00.000+0000"},
                             }
                         ],
                         "total": 1,

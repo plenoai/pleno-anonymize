@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import contextlib
 from collections.abc import AsyncIterator, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
@@ -297,9 +297,7 @@ class SlackConnector:
             )
         except httpx.HTTPStatusError as exc:
             if exc.response.status_code == 429:
-                raise RateLimited(
-                    "slack file download rate limited"
-                ) from exc
+                raise RateLimited("slack file download rate limited") from exc
             raise
         principal = await self._principal_for(client, file_obj.get("user"))
         yield Document(
@@ -342,7 +340,11 @@ class SlackConnector:
             display_name = (
                 user_obj.get("real_name")
                 or user_obj.get("name")
-                or (profile.get("display_name") if isinstance(profile, Mapping) else None)
+                or (
+                    profile.get("display_name")
+                    if isinstance(profile, Mapping)
+                    else None
+                )
             )
             email = profile.get("email") if isinstance(profile, Mapping) else None
             principal = Principal(
@@ -402,7 +404,9 @@ def _factory(config: Mapping[str, Any]) -> SourceConnector:
         SlackConfig(
             token=token,
             id=str(config["id"]) if config.get("id") is not None else None,
-            team_id=str(config["team_id"]) if config.get("team_id") is not None else None,
+            team_id=str(config["team_id"])
+            if config.get("team_id") is not None
+            else None,
             enterprise_id=(
                 str(config["enterprise_id"])
                 if config.get("enterprise_id") is not None

@@ -144,6 +144,7 @@ async def _scan_files_cloud_async(
     findings: list[Finding] = []
 
     async with httpx.AsyncClient(timeout=timeout) as client:
+
         async def _task(rel_str: str) -> list[Finding]:
             async with sem:
                 return await _scan_one(client, cfg, rel_str, file_text[rel_str])

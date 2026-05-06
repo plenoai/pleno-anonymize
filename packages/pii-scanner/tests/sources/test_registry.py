@@ -40,9 +40,7 @@ class _StubConnector:
     ) -> AsyncIterator[DocumentRef]:
         yield DocumentRef(source_id=self.id, source_kind=self.kind, path="x")
 
-    async def fetch(
-        self, ref: DocumentRef
-    ) -> AsyncIterator[Document | DocumentChunk]:
+    async def fetch(self, ref: DocumentRef) -> AsyncIterator[Document | DocumentChunk]:
         yield Document(ref=ref, text="ok")
 
     def capabilities(self) -> Capabilities:
@@ -94,9 +92,7 @@ class TestRegistration:
     def test_duplicate_registration_raises(self) -> None:
         register(ConnectorSpec(kind="stub", version="0.0.1", factory=_stub_factory))
         with pytest.raises(DuplicateConnectorError) as exc:
-            register(
-                ConnectorSpec(kind="stub", version="0.0.2", factory=_stub_factory)
-            )
+            register(ConnectorSpec(kind="stub", version="0.0.2", factory=_stub_factory))
         assert "0.0.1" in str(exc.value)
         assert "0.0.2" in str(exc.value)
 
@@ -150,7 +146,9 @@ class TestFactory:
 
 
 class TestEntryPointsDiscovery:
-    def test_discover_loads_valid_entry_point(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_discover_loads_valid_entry_point(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         spec = ConnectorSpec(kind="ep-stub", version="0.0.1", factory=_stub_factory)
         ep = _make_ep("ep-stub", spec)
         _patch_entry_points(monkeypatch, [ep])
@@ -279,9 +277,7 @@ def _make_broken_ep(name: str) -> EntryPoint:
     return _BrokenEntryPoint()  # type: ignore[return-value]
 
 
-def _patch_entry_points(
-    monkeypatch: pytest.MonkeyPatch, eps: list[EntryPoint]
-) -> None:
+def _patch_entry_points(monkeypatch: pytest.MonkeyPatch, eps: list[EntryPoint]) -> None:
     def fake(group: str | None = None, **_kwargs: Any) -> list[EntryPoint]:
         if group != _registry_mod.ENTRY_POINT_GROUP:
             return []

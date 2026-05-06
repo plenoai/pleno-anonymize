@@ -110,9 +110,7 @@ class AzureDevOpsApi:
             # Build the SSLContext ourselves so a missing bundle file
             # surfaces immediately as FileNotFoundError instead of as a
             # cryptic httpx ConnectError on first request.
-            ctx = ssl.create_default_context(
-                cafile=str(self._ca_bundle_path)
-            )
+            ctx = ssl.create_default_context(cafile=str(self._ca_bundle_path))
             kwargs["verify"] = ctx
         self._client = httpx.AsyncClient(**kwargs)
         return self._client
@@ -199,9 +197,7 @@ def _raise_for_rate_limit(response: httpx.Response) -> None:
     """
     if response.status_code == 429:
         retry_after = response.headers.get("Retry-After")
-        raise RateLimited(
-            f"azure-devops 429; retry_after={retry_after!r}"
-        )
+        raise RateLimited(f"azure-devops 429; retry_after={retry_after!r}")
 
 
 __all__ = [

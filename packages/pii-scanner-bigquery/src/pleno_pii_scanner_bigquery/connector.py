@@ -117,11 +117,7 @@ class BigQueryConfig:
         if not self.project:
             raise ValueError("project must be non-empty")
         # Exactly-one auth mode — both is ambiguous, neither is unauthenticated.
-        modes = sum(
-            1
-            for v in (self.service_account_json, self.federated_token)
-            if v
-        )
+        modes = sum(1 for v in (self.service_account_json, self.federated_token) if v)
         if modes == 0:
             raise ValueError(
                 "exactly one of service_account_json or federated_token "
@@ -251,10 +247,7 @@ class BigQueryConnector:
         return out
 
     async def _list_tables(self, token: str, dataset: str) -> list[str]:
-        url = (
-            f"{_API_BASE}/projects/{self._config.project}"
-            f"/datasets/{dataset}/tables"
-        )
+        url = f"{_API_BASE}/projects/{self._config.project}/datasets/{dataset}/tables"
         out: list[str] = []
         page_token: str | None = None
         while True:
@@ -329,10 +322,7 @@ class BigQueryConnector:
             page_token = page.get("pageToken")
             if not page_token or not job_id:
                 return
-            page_url = (
-                f"{_API_BASE}/projects/{self._config.project}"
-                f"/queries/{job_id}"
-            )
+            page_url = f"{_API_BASE}/projects/{self._config.project}/queries/{job_id}"
             params: dict[str, str] = {
                 "pageToken": page_token,
                 "maxResults": str(self._config.page_size),
@@ -340,9 +330,7 @@ class BigQueryConnector:
             location = job_ref.get("location") or self._config.location
             if location:
                 params["location"] = location
-            page = await self._authed_get_json(
-                token, page_url, params=params
-            )
+            page = await self._authed_get_json(token, page_url, params=params)
 
     @staticmethod
     def _page_row_count(page: Mapping[str, Any]) -> int:
@@ -390,9 +378,7 @@ class BigQueryConnector:
             )
 
     async def _dry_run_or_raise(self, token: str, sql: str) -> None:
-        url = (
-            f"{_API_BASE}/projects/{self._config.project}/jobs?dryRun=true"
-        )
+        url = f"{_API_BASE}/projects/{self._config.project}/jobs?dryRun=true"
         # `jobs.insert` (not jobs.query) is the dry-run-supporting endpoint.
         body = await self._authed_post_json(
             token,
@@ -508,9 +494,7 @@ def _matches_any(s: str, patterns: tuple[str, ...]) -> bool:
     return any(fnmatch(s, p) for p in patterns)
 
 
-def _project_row(
-    row: Mapping[str, Any], column_names: list[str]
-) -> dict[str, Any]:
+def _project_row(row: Mapping[str, Any], column_names: list[str]) -> dict[str, Any]:
     """Project a BigQuery row (`{"f": [{"v": ...}, ...]}`) to a dict.
 
     BigQuery's REST API returns rows in a column-positional shape; we
@@ -531,9 +515,7 @@ def _project_row(
     return out
 
 
-def _sign_sa_jwt(
-    sa_data: Mapping[str, Any], *, scope: str, lifetime_secs: int
-) -> str:
+def _sign_sa_jwt(sa_data: Mapping[str, Any], *, scope: str, lifetime_secs: int) -> str:
     """Sign a Google service-account JWT (RS256).
 
     Keeps the dependency surface to stdlib + cryptography (which httpx
@@ -560,12 +542,8 @@ def _sign_sa_jwt(
     seg_p = _b64url(json.dumps(payload, separators=(",", ":")).encode())
     signing_input = f"{seg_h}.{seg_p}".encode()
     private_key_pem = sa_data["private_key"].encode()
-    private_key = serialization.load_pem_private_key(
-        private_key_pem, password=None
-    )
-    signature = private_key.sign(
-        signing_input, padding.PKCS1v15(), hashes.SHA256()
-    )
+    private_key = serialization.load_pem_private_key(private_key_pem, password=None)
+    signature = private_key.sign(signing_input, padding.PKCS1v15(), hashes.SHA256())
     return f"{seg_h}.{seg_p}.{_b64url(signature)}"
 
 
@@ -586,9 +564,7 @@ def _factory(config: Mapping[str, Any]) -> SourceConnector:
             service_account_json=_opt_str(config, "service_account_json"),
             federated_token=_opt_str(config, "federated_token"),
             sample_percent=float(config.get("sample_percent", 1.0)),
-            max_bytes_billed=int(
-                config.get("max_bytes_billed", _DEFAULT_MAX_BYTES)
-            ),
+            max_bytes_billed=int(config.get("max_bytes_billed", _DEFAULT_MAX_BYTES)),
             page_size=int(config.get("page_size", 1000)),
             location=str(config.get("location", "US")),
             id=_opt_str(config, "id"),

@@ -89,7 +89,8 @@ class TestWriterReader:
         await writer.close()
         with pytest.raises(RuntimeError, match="closed"):
             await writer.write_batch(
-                ["a"], ["b"],
+                ["a"],
+                ["b"],
                 [encrypt_payload(dek, "t", {"matched": "x"})],
             )
 
@@ -109,11 +110,13 @@ class TestWriterReader:
         dek = generate_dek()
         try:
             await writer.write_batch(
-                ["a"], ["fp-a"],
+                ["a"],
+                ["fp-a"],
                 [encrypt_payload(dek, "t", {"matched": "1"})],
             )
             await writer.write_batch(
-                ["b"], ["fp-b"],
+                ["b"],
+                ["fp-b"],
                 [encrypt_payload(dek, "t", {"matched": "2"})],
             )
         finally:

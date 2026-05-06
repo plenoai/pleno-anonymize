@@ -34,7 +34,7 @@ import fnmatch
 import json
 import logging
 from collections.abc import AsyncIterator, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
@@ -280,9 +280,7 @@ class GcsConnector:
                 continue
             page_token = decoded.page_token if idx == decoded.bucket_index else None
             try:
-                async for ref in self._discover_bucket(
-                    bucket, idx, page_token, filter
-                ):
+                async for ref in self._discover_bucket(bucket, idx, page_token, filter):
                     yield ref
             except _AccessDenied as denied:
                 # Per requirement #8: surface as a single warning ref
@@ -316,9 +314,7 @@ class GcsConnector:
         assert project is not None
         return await self._cloud_asset_inventory_buckets(project)
 
-    async def _cloud_asset_inventory_buckets(
-        self, project: str
-    ) -> tuple[str, ...]:
+    async def _cloud_asset_inventory_buckets(self, project: str) -> tuple[str, ...]:
         """Enumerate `storage.googleapis.com/Bucket` assets for a project.
 
         Cloud Asset Inventory returns a paginated list of `Asset`s
@@ -459,20 +455,15 @@ class GcsConnector:
             source_id=self.id,
             source_kind=self.kind,
             path=f"gs://{bucket}/{name}",
-            native_url=(
-                f"https://storage.cloud.google.com/{bucket}/{name}"
-            ),
-            content_type=item.get("contentType")
-            or "application/octet-stream",
+            native_url=(f"https://storage.cloud.google.com/{bucket}/{name}"),
+            content_type=item.get("contentType") or "application/octet-stream",
             size=size,
             etag=item.get("etag"),
             last_modified=last_modified,
             metadata=metadata,
         )
 
-    async def fetch(
-        self, ref: DocumentRef
-    ) -> AsyncIterator[Document | DocumentChunk]:
+    async def fetch(self, ref: DocumentRef) -> AsyncIterator[Document | DocumentChunk]:
         """Stream the object body via `objects.get?alt=media`.
 
         Bounded by `_fetch_semaphore` so the per-connector concurrency
@@ -481,9 +472,7 @@ class GcsConnector:
         bucket = ref.metadata.get("gcs_bucket")
         name = ref.metadata.get("gcs_name")
         if not bucket or not name:
-            raise ValueError(
-                "DocumentRef metadata missing gcs_bucket / gcs_name"
-            )
+            raise ValueError("DocumentRef metadata missing gcs_bucket / gcs_name")
         url = f"{_GCS_BASE}/b/{bucket}/o/{_url_quote(name)}"
         params: dict[str, str] = {"alt": "media"}
         gen = ref.metadata.get("gcs_generation")
@@ -628,9 +617,7 @@ def _build_token_source(auth: GcsAuthConfig) -> TokenSource:
     if auth.credentials_path is not None:
         with open(auth.credentials_path, encoding="utf-8") as handle:
             key_data = json.load(handle)
-        return ServiceAccountKeyTokenSource(
-            key_data=key_data, scopes=auth.scopes
-        )
+        return ServiceAccountKeyTokenSource(key_data=key_data, scopes=auth.scopes)
     if auth.audience is not None and auth.token_path is not None:
         return WorkloadIdentityTokenSource(
             audience=auth.audience,

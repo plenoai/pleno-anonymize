@@ -129,9 +129,7 @@ class TestCallable:
                 {"module": "_pleno_test_no_attr", "function": "nonexistent"},
             ).check("x")
 
-    def test_non_callable_target_raises(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_non_callable_target_raises(self, monkeypatch: pytest.MonkeyPatch) -> None:
         mod = types.ModuleType("_pleno_test_not_callable")
         mod.verify = "not a function"  # type: ignore[attr-defined]
         monkeypatch.setitem(sys.modules, "_pleno_test_not_callable", mod)

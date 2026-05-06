@@ -17,7 +17,9 @@ from pleno_recognizers.validators import validate
 from pleno_pii_scanner.models import Finding
 
 
-def _context_keywords(recognizers: Iterable[PiiRecognizer]) -> dict[str, tuple[str, ...]]:
+def _context_keywords(
+    recognizers: Iterable[PiiRecognizer],
+) -> dict[str, tuple[str, ...]]:
     # Multiple recognizers may share an entity (e.g. PERSON regex layers);
     # union their context keyword tuples instead of clobbering.
     keywords: dict[str, tuple[str, ...]] = {}
@@ -50,14 +52,13 @@ def _keyword_in_window(window: str, keyword: str) -> bool:
     pattern = r"(?<!\w)" + re.escape(keyword) + r"(?!\w)"
     return bool(re.search(pattern, window, re.IGNORECASE))
 
+
 # Latin-script PERSON candidates (issue #102) gain a stronger boost when an
 # email pattern is in the immediate context, since "Name <email>" is the
 # strongest possible attribution signal. Wider window than the keyword path
 # because PEP-style author lists put email on a continuation line.
 _PERSON_EMAIL_WINDOW = 96
-_EMAIL_NEAR_NAME_RE = re.compile(
-    r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}"
-)
+_EMAIL_NEAR_NAME_RE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
 
 
 def verify(
@@ -73,7 +74,9 @@ def verify(
         # 1. Checksum.
         checksum = validate(f.entity, f.matched)
         if checksum is False:
-            out.append(replace(f, verification="failed", score=max(0.05, f.score - 0.4)))
+            out.append(
+                replace(f, verification="failed", score=max(0.05, f.score - 0.4))
+            )
             continue
 
         # 2. Context proximity boost.
@@ -97,7 +100,7 @@ def verify(
                     keyword_haystack = (
                         window[:match_in_window]
                         + " "
-                        + window[match_in_window + len(f.matched):]
+                        + window[match_in_window + len(f.matched) :]
                     )
                 else:
                     keyword_haystack = window
@@ -112,9 +115,7 @@ def verify(
                 # doesn't get filtered as low-confidence noise.
                 if f.entity == "PERSON":
                     wide_start = max(0, offset - _PERSON_EMAIL_WINDOW)
-                    wide_end = (
-                        wide_start + _PERSON_EMAIL_WINDOW * 2 + len(f.matched)
-                    )
+                    wide_end = wide_start + _PERSON_EMAIL_WINDOW * 2 + len(f.matched)
                     if _EMAIL_NEAR_NAME_RE.search(text[wide_start:wide_end]):
                         score = min(0.99, max(score, 0.4) + 0.4)
                         verification = "passed"

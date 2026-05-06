@@ -240,7 +240,9 @@ class TestAwsSessionFactory:
         from botocore.exceptions import ProfileNotFound
 
         f = AwsSessionFactory(
-            base=AwsBaseIdentity(profile_name="__nonexistent_profile__", region="us-west-2")
+            base=AwsBaseIdentity(
+                profile_name="__nonexistent_profile__", region="us-west-2"
+            )
         )
         try:
             session = f.base_session()
@@ -344,7 +346,10 @@ class TestRealHopRunnerAssume:
 
         runner = auth_mod._RealHopRunner()
         prev = AwsCredentials(
-            access_key_id="P", secret_access_key="P", session_token="t", region="us-east-1"
+            access_key_id="P",
+            secret_access_key="P",
+            session_token="t",
+            region="us-east-1",
         )
         hop = AssumeRoleHop(
             provider="aws",

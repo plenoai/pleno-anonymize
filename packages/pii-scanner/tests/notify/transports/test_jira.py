@@ -244,9 +244,7 @@ def test_adf_empty_metadata_renders_dash():
         severity_summary={"low": 1},
         metadata={},
     )
-    paragraphs = [
-        node for node in doc["content"] if node["type"] == "paragraph"
-    ]
+    paragraphs = [node for node in doc["content"] if node["type"] == "paragraph"]
     texts = [p["content"][0]["text"] for p in paragraphs]
     assert any("Metadata: -" in t for t in texts)
 
@@ -265,8 +263,6 @@ def test_adf_empty_severity_summary_renders_no_findings():
         severity_summary={},
         metadata={},
     )
-    paragraphs = [
-        node for node in doc["content"] if node["type"] == "paragraph"
-    ]
+    paragraphs = [node for node in doc["content"] if node["type"] == "paragraph"]
     texts = [p["content"][0]["text"] for p in paragraphs]
     assert any("no findings" in t for t in texts)

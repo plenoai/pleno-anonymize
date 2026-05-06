@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import AsyncIterator, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -102,12 +102,8 @@ class DirConnector:
             if filter.max_size is not None
             else self._config.max_file_size
         )
-        include = (
-            list(filter.include) if filter.include else list(self._config.include)
-        )
-        exclude = (
-            list(filter.exclude) if filter.exclude else list(self._config.exclude)
-        )
+        include = list(filter.include) if filter.include else list(self._config.include)
+        exclude = list(filter.exclude) if filter.exclude else list(self._config.exclude)
 
         files = await asyncio.to_thread(
             _collect_walk,

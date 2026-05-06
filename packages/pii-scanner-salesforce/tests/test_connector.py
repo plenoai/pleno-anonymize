@@ -73,9 +73,7 @@ def _stub_token(c: SalesforceConnector) -> None:
 
 
 def _describe_response(*field_names: str) -> dict[str, object]:
-    return {
-        "fields": [{"name": n, "type": "string"} for n in field_names]
-    }
+    return {"fields": [{"name": n, "type": "string"} for n in field_names]}
 
 
 # --- config --------------------------------------------------------
@@ -159,16 +157,12 @@ def _sobject_handler(
             seen_authorisations.append(request.headers.get("Authorization", ""))
         path_with_query = request.url.path
         if request.url.query:
-            path_with_query = (
-                f"{request.url.path}?{request.url.query.decode()}"
-            )
+            path_with_query = f"{request.url.path}?{request.url.query.decode()}"
         if seen_paths is not None:
             seen_paths.append(path_with_query)
         # describe
         for sobject, fields in fields_by_sobject.items():
-            if request.url.path.endswith(
-                f"/sobjects/{sobject}/describe"
-            ):
+            if request.url.path.endswith(f"/sobjects/{sobject}/describe"):
                 return httpx.Response(200, json=_describe_response(*fields))
         # initial query — match by sobject name in the q= param
         if request.url.path.endswith("/query"):
@@ -222,9 +216,7 @@ class TestDiscover:
             },
         )
         async with _client(handler) as client:
-            c = SalesforceConnector(
-                _make_config(sobjects=("Case",)), client=client
-            )
+            c = SalesforceConnector(_make_config(sobjects=("Case",)), client=client)
             _stub_token(c)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
@@ -244,15 +236,11 @@ class TestDiscover:
         seen: list[str] = []
         handler = _sobject_handler(
             fields_by_sobject={"Case": ("Subject",)},
-            pages_by_sobject={
-                "Case": [{"done": True, "totalSize": 0, "records": []}]
-            },
+            pages_by_sobject={"Case": [{"done": True, "totalSize": 0, "records": []}]},
             seen_authorisations=seen,
         )
         async with _client(handler) as client:
-            c = SalesforceConnector(
-                _make_config(sobjects=("Case",)), client=client
-            )
+            c = SalesforceConnector(_make_config(sobjects=("Case",)), client=client)
             _stub_token(c)
             try:
                 _ = [r async for r in c.discover(SourceFilter(), None)]
@@ -267,15 +255,11 @@ class TestDiscover:
             fields_by_sobject={
                 "Case": ("Subject", "Description", "OwnerId"),
             },
-            pages_by_sobject={
-                "Case": [{"done": True, "totalSize": 0, "records": []}]
-            },
+            pages_by_sobject={"Case": [{"done": True, "totalSize": 0, "records": []}]},
             seen_paths=seen_paths,
         )
         async with _client(handler) as client:
-            c = SalesforceConnector(
-                _make_config(sobjects=("Case",)), client=client
-            )
+            c = SalesforceConnector(_make_config(sobjects=("Case",)), client=client)
             _stub_token(c)
             try:
                 _ = [r async for r in c.discover(SourceFilter(), None)]
@@ -322,9 +306,7 @@ class TestDiscover:
             pages_by_sobject={"Case": [page_one, page_two]},
         )
         async with _client(handler) as client:
-            c = SalesforceConnector(
-                _make_config(sobjects=("Case",)), client=client
-            )
+            c = SalesforceConnector(_make_config(sobjects=("Case",)), client=client)
             _stub_token(c)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
@@ -357,9 +339,7 @@ class TestDiscover:
             pages_by_sobject={"Case": [page_one, {"done": True, "records": []}]},
         )
         async with _client(handler) as client:
-            c = SalesforceConnector(
-                _make_config(sobjects=("Case",)), client=client
-            )
+            c = SalesforceConnector(_make_config(sobjects=("Case",)), client=client)
             _stub_token(c)
             try:
                 gen = c.discover(SourceFilter(), None)
@@ -397,9 +377,7 @@ class TestDiscover:
             )
 
         async with _client(handler) as client:
-            c = SalesforceConnector(
-                _make_config(sobjects=("Case",)), client=client
-            )
+            c = SalesforceConnector(_make_config(sobjects=("Case",)), client=client)
             _stub_token(c)
             cursor = json.dumps({"Case": resume_path}, sort_keys=True)
             try:
@@ -430,9 +408,7 @@ class TestDiscover:
             },
         )
         async with _client(handler) as client:
-            c = SalesforceConnector(
-                _make_config(sobjects=("Case",)), client=client
-            )
+            c = SalesforceConnector(_make_config(sobjects=("Case",)), client=client)
             _stub_token(c)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
@@ -469,9 +445,7 @@ class TestDiscover:
             },
         )
         async with _client(handler) as client:
-            c = SalesforceConnector(
-                _make_config(sobjects=("Case",)), client=client
-            )
+            c = SalesforceConnector(_make_config(sobjects=("Case",)), client=client)
             _stub_token(c)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
@@ -490,9 +464,6 @@ class TestMultiSObject:
         def handler(request: httpx.Request) -> httpx.Response:
             if "/describe" in request.url.path:
                 described.append(request.url.path)
-                # Extract sobject name between /sobjects/ and /describe
-                segs = request.url.path.split("/sobjects/")
-                sobj = segs[1].split("/", 1)[0]
                 return httpx.Response(200, json=_describe_response("Id"))
             if request.url.path.endswith("/query"):
                 return httpx.Response(
@@ -525,15 +496,11 @@ class TestFilter:
         handler = _sobject_handler(
             fields_by_sobject={"Case": ("Subject",)},
             pages_by_sobject={
-                "Case": [
-                    {"done": True, "totalSize": 2, "records": records}
-                ]
+                "Case": [{"done": True, "totalSize": 2, "records": records}]
             },
         )
         async with _client(handler) as client:
-            c = SalesforceConnector(
-                _make_config(sobjects=("Case",)), client=client
-            )
+            c = SalesforceConnector(_make_config(sobjects=("Case",)), client=client)
             _stub_token(c)
             try:
                 refs = [
@@ -554,15 +521,11 @@ class TestFilter:
         handler = _sobject_handler(
             fields_by_sobject={"Case": ("Subject",)},
             pages_by_sobject={
-                "Case": [
-                    {"done": True, "totalSize": 2, "records": records}
-                ]
+                "Case": [{"done": True, "totalSize": 2, "records": records}]
             },
         )
         async with _client(handler) as client:
-            c = SalesforceConnector(
-                _make_config(sobjects=("Case",)), client=client
-            )
+            c = SalesforceConnector(_make_config(sobjects=("Case",)), client=client)
             _stub_token(c)
             try:
                 refs = [
@@ -620,7 +583,9 @@ class TestJwtBearerFlow:
                 await c.close()
         body = captured["body"]
         assert isinstance(body, str)
-        assert "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer" in body
+        assert (
+            "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer" in body
+        )
         assert "assertion=" in body
         assertion = body.split("assertion=", 1)[1].split("&", 1)[0]
         # Three parts: header.payload.signature
@@ -687,9 +652,7 @@ def _b64url_decode(s: str) -> bytes:
 
 class TestSoql:
     def test_id_always_first_and_deduplicated(self) -> None:
-        sql = _connector_mod._build_soql(
-            "Case", ("Id", "Subject", "id", "Description")
-        )
+        sql = _connector_mod._build_soql("Case", ("Id", "Subject", "id", "Description"))
         # Id appears once, first, regardless of describe casing.
         assert sql.startswith("SELECT Id, ")
         # 'id' duplicate suppressed; other fields preserved in order.
@@ -746,8 +709,6 @@ class TestHelpers:
     def test_describe_skips_non_mapping_field_entries(self) -> None:
         # Defensive: malformed describe payload must not crash.
         async def run() -> tuple[str, ...]:
-            seen: list[str] = []
-
             def handler(request: httpx.Request) -> httpx.Response:
                 if "/describe" in request.url.path:
                     return httpx.Response(
@@ -764,9 +725,7 @@ class TestHelpers:
                 return httpx.Response(404)
 
             async with _client(handler) as client:
-                c = SalesforceConnector(
-                    _make_config(sobjects=("Case",)), client=client
-                )
+                c = SalesforceConnector(_make_config(sobjects=("Case",)), client=client)
                 _stub_token(c)
                 try:
                     return await c._describe_fields("Case")
@@ -889,9 +848,7 @@ class TestRsaSigning:
         ).decode("utf-8")
         sig = _connector_mod._rs256_sign(pem, b"hello")
         # Verify with the matching public key.
-        private.public_key().verify(
-            sig, b"hello", padding.PKCS1v15(), hashes.SHA256()
-        )
+        private.public_key().verify(sig, b"hello", padding.PKCS1v15(), hashes.SHA256())
 
     def test_assertion_layout(self) -> None:
         from cryptography.hazmat.primitives import serialization
@@ -919,8 +876,4 @@ class TestRsaSigning:
         assert payload["aud"] == "https://login.salesforce.com"
         # `exp` exactly 180 s after `iat` (Salesforce 5-min cap, our 3-min
         # safety margin).
-        assert (
-            payload["exp"]
-            == int(datetime(2026, 1, 1, tzinfo=UTC).timestamp())
-            + 180
-        )
+        assert payload["exp"] == int(datetime(2026, 1, 1, tzinfo=UTC).timestamp()) + 180

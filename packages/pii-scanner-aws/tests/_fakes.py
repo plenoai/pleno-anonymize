@@ -74,7 +74,10 @@ class FakeS3Client:
         if len(self.calls) > self._throttle_after:
             raise _ClientError(
                 {
-                    "Error": {"Code": "SlowDown", "Message": "Reduce your request rate"},
+                    "Error": {
+                        "Code": "SlowDown",
+                        "Message": "Reduce your request rate",
+                    },
                     "ResponseMetadata": {"HTTPStatusCode": 503},
                 }
             )
@@ -100,7 +103,9 @@ class FakeS3Client:
             start = int(ContinuationToken)
         page = items[start : start + self._page_size]
         next_token = (
-            str(start + self._page_size) if start + self._page_size < len(items) else None
+            str(start + self._page_size)
+            if start + self._page_size < len(items)
+            else None
         )
         return {
             "Contents": [
@@ -140,7 +145,9 @@ class FakeS3Client:
             start = int(KeyMarker)
         page = items[start : start + self._page_size]
         next_marker = (
-            str(start + self._page_size) if start + self._page_size < len(items) else None
+            str(start + self._page_size)
+            if start + self._page_size < len(items)
+            else None
         )
         return {
             "Versions": [
@@ -168,7 +175,10 @@ class FakeS3Client:
         **_: Any,
     ) -> dict[str, Any]:
         self.calls.append(
-            ("get_object", {"Bucket": Bucket, "Key": Key, "Range": Range, "VersionId": VersionId})
+            (
+                "get_object",
+                {"Bucket": Bucket, "Key": Key, "Range": Range, "VersionId": VersionId},
+            )
         )
         self._maybe_throttle()
         for o in self._objects.get(Bucket, []):

@@ -29,12 +29,56 @@ import httpx
 # path at the connector boundary.
 _TEXT_LIKE_EXTENSIONS: frozenset[str] = frozenset(
     {
-        "py", "pyi", "js", "ts", "tsx", "jsx", "rb", "go", "rs", "java",
-        "kt", "swift", "c", "cc", "cpp", "h", "hpp", "cs", "php", "scala",
-        "sh", "bash", "zsh", "ps1", "lua", "r", "sql", "yaml", "yml",
-        "toml", "ini", "cfg", "conf", "json", "ndjson", "jsonl", "xml",
-        "html", "htm", "css", "scss", "less", "md", "rst", "tex", "csv",
-        "tsv", "log", "env", "dockerfile",
+        "py",
+        "pyi",
+        "js",
+        "ts",
+        "tsx",
+        "jsx",
+        "rb",
+        "go",
+        "rs",
+        "java",
+        "kt",
+        "swift",
+        "c",
+        "cc",
+        "cpp",
+        "h",
+        "hpp",
+        "cs",
+        "php",
+        "scala",
+        "sh",
+        "bash",
+        "zsh",
+        "ps1",
+        "lua",
+        "r",
+        "sql",
+        "yaml",
+        "yml",
+        "toml",
+        "ini",
+        "cfg",
+        "conf",
+        "json",
+        "ndjson",
+        "jsonl",
+        "xml",
+        "html",
+        "htm",
+        "css",
+        "scss",
+        "less",
+        "md",
+        "rst",
+        "tex",
+        "csv",
+        "tsv",
+        "log",
+        "env",
+        "dockerfile",
     }
 )
 
@@ -49,9 +93,7 @@ class FileBody:
 
     def __post_init__(self) -> None:
         if (self.text is None) == (self.binary is None):
-            raise ValueError(
-                "FileBody must populate exactly one of text or binary"
-            )
+            raise ValueError("FileBody must populate exactly one of text or binary")
 
 
 def is_text_like(mimetype: str | None, name: str | None) -> bool:
@@ -110,8 +152,8 @@ async def download_file(
         follow_redirects=True,
     )
     response.raise_for_status()
-    content_type = (
-        response.headers.get("Content-Type", mimetype or "application/octet-stream")
+    content_type = response.headers.get(
+        "Content-Type", mimetype or "application/octet-stream"
     )
     raw = response.content
     if is_text_like(mimetype, name) or content_type.lower().startswith("text/"):

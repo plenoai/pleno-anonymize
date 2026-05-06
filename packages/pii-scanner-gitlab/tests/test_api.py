@@ -126,9 +126,7 @@ class TestProperties:
 
 class TestRateLimited:
     async def test_429_raises(self) -> None:
-        api = _api(
-            lambda _: httpx.Response(429, headers={"Retry-After": "30"})
-        )
+        api = _api(lambda _: httpx.Response(429, headers={"Retry-After": "30"}))
         try:
             with pytest.raises(RateLimited, match="429"):
                 await api.get("/projects")
@@ -173,9 +171,7 @@ class TestRateLimited:
         # A 403 without a rate-limit signal is a permission failure;
         # surfacing it as RateLimited would lock the scheduler in a
         # retry loop against an auth problem that needs a human.
-        api = _api(
-            lambda _: httpx.Response(403, json={"message": "forbidden"})
-        )
+        api = _api(lambda _: httpx.Response(403, json={"message": "forbidden"}))
         try:
             response = await api.get("/projects")
             assert response.status_code == 403
@@ -222,7 +218,7 @@ class TestParseNextLink:
             200,
             headers={
                 "Link": (
-                    'garbage_no_brackets, '
+                    "garbage_no_brackets, "
                     '<https://gitlab.com/api/v4/projects?page=2>; rel="next"'
                 )
             },
@@ -243,9 +239,7 @@ class TestParseNextLink:
         # Only a `rel="prev"` entry — no `next`, return None.
         response = httpx.Response(
             200,
-            headers={
-                "Link": '<https://gitlab.com/api/v4/projects?page=1>; rel="prev"'
-            },
+            headers={"Link": '<https://gitlab.com/api/v4/projects?page=1>; rel="prev"'},
         )
         assert GitlabApi.parse_next_link(response) is None
 
@@ -253,9 +247,7 @@ class TestParseNextLink:
         # A URL without `<>` brackets is not RFC 5988 compliant; bail.
         response = httpx.Response(
             200,
-            headers={
-                "Link": 'https://gitlab.com/api/v4/projects?page=2; rel="next"'
-            },
+            headers={"Link": 'https://gitlab.com/api/v4/projects?page=2; rel="next"'},
         )
         assert GitlabApi.parse_next_link(response) is None
 

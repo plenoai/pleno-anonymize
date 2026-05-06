@@ -41,9 +41,7 @@ class TestConnectorsList:
         assert "github" in result.output
 
     def test_json_format(self) -> None:
-        result = CliRunner().invoke(
-            main, ["connectors", "list", "--format", "json"]
-        )
+        result = CliRunner().invoke(main, ["connectors", "list", "--format", "json"])
         assert result.exit_code == 0
         payload = json.loads(result.output)
         kinds = {entry["kind"] for entry in payload}
@@ -69,8 +67,6 @@ class TestConnectorsDescribe:
         assert payload["config_schema"] is None
 
     def test_describe_unknown(self) -> None:
-        result = CliRunner().invoke(
-            main, ["connectors", "describe", "no-such-kind"]
-        )
+        result = CliRunner().invoke(main, ["connectors", "describe", "no-such-kind"])
         assert result.exit_code != 0
         assert "unknown connector" in result.output.lower()

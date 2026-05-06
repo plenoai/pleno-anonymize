@@ -43,6 +43,7 @@ def _isolated_registry(monkeypatch: pytest.MonkeyPatch):
 @pytest.fixture(autouse=True)
 def _patch_token(monkeypatch: pytest.MonkeyPatch):
     """Bypass real RS256 signing — tests don't ship key material."""
+
     async def _fixed(self):  # noqa: ARG001
         return _FAKE_JWT
 
@@ -66,7 +67,9 @@ def _config(**overrides) -> SnowflakeConfig:
     return SnowflakeConfig(**base)
 
 
-def _ok(rows: list[list], columns: list[str], *, partitions: int = 1, handle: str = "h") -> dict:
+def _ok(
+    rows: list[list], columns: list[str], *, partitions: int = 1, handle: str = "h"
+) -> dict:
     return {
         "statementHandle": handle,
         "resultSetMetaData": {
@@ -101,9 +104,7 @@ class TestConfig:
 
     def test_rejects_empty_role(self) -> None:
         with pytest.raises(ValueError, match="role"):
-            SnowflakeConfig(
-                account="a", user="u", private_key_pem=_FAKE_KEY, role=""
-            )
+            SnowflakeConfig(account="a", user="u", private_key_pem=_FAKE_KEY, role="")
 
     def test_rejects_zero_statement_timeout(self) -> None:
         with pytest.raises(ValueError, match="statement_timeout_seconds"):
@@ -236,9 +237,7 @@ class TestEndToEnd:
             captured_bodies=bodies,
         )
         async with _client(handler) as client:
-            c = SnowflakeConnector(
-                _config(databases=("PROD",)), client=client
-            )
+            c = SnowflakeConnector(_config(databases=("PROD",)), client=client)
             try:
                 _ = [r async for r in c.discover(SourceFilter(), None)]
             finally:
@@ -258,9 +257,7 @@ class TestEndToEnd:
                 _ = [r async for r in c.discover(SourceFilter(), None)]
             finally:
                 await c.close()
-        assert not any(
-            b["statement"].startswith("SHOW SCHEMAS") for b in bodies
-        )
+        assert not any(b["statement"].startswith("SHOW SCHEMAS") for b in bodies)
 
     async def test_session_parameters_present(self) -> None:
         bodies: list[dict] = []
@@ -356,16 +353,12 @@ class TestPagination:
                 if sql.startswith("SHOW TABLES"):
                     return httpx.Response(200, json=_ok([["T"]], ["name"]))
                 if sql.startswith("SELECT"):
-                    payload = _ok(
-                        [["a"]], ["NAME"], partitions=2, handle="HX"
-                    )
+                    payload = _ok([["a"]], ["NAME"], partitions=2, handle="HX")
                     return httpx.Response(200, json=payload)
             if request.method == "GET":
                 assert "/api/v2/statements/HX" in str(request.url)
                 assert request.url.params["partition"] == "1"
-                return httpx.Response(
-                    200, json={"data": [["b"], ["c"]]}
-                )
+                return httpx.Response(200, json={"data": [["b"], ["c"]]})
             return httpx.Response(404)
 
         async with _client(handler) as client:
@@ -400,9 +393,7 @@ class TestFilter:
             try:
                 refs = [
                     r
-                    async for r in c.discover(
-                        SourceFilter(include=("DB/S/T/0",)), None
-                    )
+                    async for r in c.discover(SourceFilter(include=("DB/S/T/0",)), None)
                 ]
                 assert [r.path for r in refs] == ["DB/S/T/0"]
             finally:
@@ -420,9 +411,7 @@ class TestFilter:
             try:
                 refs = [
                     r
-                    async for r in c.discover(
-                        SourceFilter(exclude=("DB/S/T/0",)), None
-                    )
+                    async for r in c.discover(SourceFilter(exclude=("DB/S/T/0",)), None)
                 ]
                 assert [r.path for r in refs] == ["DB/S/T/1"]
             finally:

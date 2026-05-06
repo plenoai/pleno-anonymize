@@ -9,8 +9,7 @@ its own classes.
 
 from __future__ import annotations
 
-import json
-from collections.abc import AsyncIterator, Mapping
+from collections.abc import AsyncIterator
 from datetime import UTC, datetime
 from typing import Any
 
@@ -86,7 +85,9 @@ def _comment_payload(body: str) -> dict[str, Any]:
     return {"body": {"storage": {"value": body}}}
 
 
-def _attachment_payload(title: str, *, download: str = "/download/x.pdf") -> dict[str, Any]:
+def _attachment_payload(
+    title: str, *, download: str = "/download/x.pdf"
+) -> dict[str, Any]:
     return {"title": title, "_links": {"download": download}}
 
 
@@ -105,9 +106,7 @@ class TestConfig:
         assert cfg.resolved_id() == "confluence-cloud:acme.atlassian.net"
 
     def test_resolved_id_explicit_wins(self) -> None:
-        cfg = ConfluenceConfig(
-            flavor="cloud", base_url=_CLOUD_BASE, id="custom"
-        )
+        cfg = ConfluenceConfig(flavor="cloud", base_url=_CLOUD_BASE, id="custom")
         assert cfg.resolved_id() == "custom"
 
     def test_resolved_tenant_id_falls_back_to_resolved_id(self) -> None:
@@ -115,9 +114,7 @@ class TestConfig:
         assert cfg.resolved_tenant_id() == cfg.resolved_id()
 
     def test_resolved_tenant_id_explicit_wins(self) -> None:
-        cfg = ConfluenceConfig(
-            flavor="cloud", base_url=_CLOUD_BASE, tenant_id="acme"
-        )
+        cfg = ConfluenceConfig(flavor="cloud", base_url=_CLOUD_BASE, tenant_id="acme")
         assert cfg.resolved_tenant_id() == "acme"
 
     def test_invalid_flavor_rejected(self) -> None:
@@ -132,15 +129,11 @@ class TestConfig:
         with pytest.raises(ValueError, match="page_size"):
             ConfluenceConfig(flavor="cloud", base_url=_CLOUD_BASE, page_size=0)
         with pytest.raises(ValueError, match="page_size"):
-            ConfluenceConfig(
-                flavor="cloud", base_url=_CLOUD_BASE, page_size=10_000
-            )
+            ConfluenceConfig(flavor="cloud", base_url=_CLOUD_BASE, page_size=10_000)
 
     def test_invalid_timeout_rejected(self) -> None:
         with pytest.raises(ValueError, match="request_timeout"):
-            ConfluenceConfig(
-                flavor="cloud", base_url=_CLOUD_BASE, request_timeout=0
-            )
+            ConfluenceConfig(flavor="cloud", base_url=_CLOUD_BASE, request_timeout=0)
 
 
 class TestConstruction:
@@ -168,12 +161,12 @@ class TestConstruction:
 
     def test_bucket_key(self) -> None:
         c = ConfluenceConnector(
-            ConfluenceConfig(
-                flavor="cloud", base_url=_CLOUD_BASE, tenant_id="acme"
-            ),
+            ConfluenceConfig(flavor="cloud", base_url=_CLOUD_BASE, tenant_id="acme"),
             credential=_bearer_credential(),
         )
-        assert c.bucket_key() == BucketKey(connector_kind="confluence", tenant_id="acme")
+        assert c.bucket_key() == BucketKey(
+            connector_kind="confluence", tenant_id="acme"
+        )
 
     def test_api_and_config_properties(self) -> None:
         # Both accessors are how the default-enumerate path reaches
@@ -200,9 +193,7 @@ class TestCloud:
 
         def page_handler(request: httpx.Request) -> httpx.Response:
             seen_auth.append(request.headers.get("authorization", ""))
-            return json_response(
-                {"results": [_page_payload("p1")], "_links": {}}
-            )
+            return json_response({"results": [_page_payload("p1")], "_links": {}})
 
         def comment_handler(_: httpx.Request) -> httpx.Response:
             return json_response({"results": [], "_links": {}})
@@ -254,9 +245,7 @@ class TestCloud:
             payload={"email": "alice@x.test", "api_token": "atl-secret"},
         )
         c = ConfluenceConnector(
-            ConfluenceConfig(
-                flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)
-            ),
+            ConfluenceConfig(flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)),
             credential=cred,
             transport=transport,
         )
@@ -300,9 +289,7 @@ class TestCloud:
             )
         )
         c = ConfluenceConnector(
-            ConfluenceConfig(
-                flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)
-            ),
+            ConfluenceConfig(flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)),
             credential=_bearer_credential(),
             transport=transport,
         )
@@ -334,9 +321,7 @@ class TestCloud:
             )
         )
         c = ConfluenceConnector(
-            ConfluenceConfig(
-                flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)
-            ),
+            ConfluenceConfig(flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)),
             credential=_bearer_credential(),
             transport=transport,
         )
@@ -367,9 +352,7 @@ class TestCloud:
             )
         )
         c = ConfluenceConnector(
-            ConfluenceConfig(
-                flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)
-            ),
+            ConfluenceConfig(flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)),
             credential=_bearer_credential(),
             transport=transport,
         )
@@ -385,13 +368,9 @@ class TestCloud:
         def page_handler(_: httpx.Request) -> httpx.Response:
             return json_response({"results": [bad], "_links": {}})
 
-        transport = httpx.MockTransport(
-            make_handler([("/content/page", page_handler)])
-        )
+        transport = httpx.MockTransport(make_handler([("/content/page", page_handler)]))
         c = ConfluenceConnector(
-            ConfluenceConfig(
-                flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)
-            ),
+            ConfluenceConfig(flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)),
             credential=_bearer_credential(),
             transport=transport,
         )
@@ -425,9 +404,7 @@ class TestCloud:
             )
         )
         c = ConfluenceConnector(
-            ConfluenceConfig(
-                flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)
-            ),
+            ConfluenceConfig(flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)),
             credential=_bearer_credential(),
             transport=transport,
         )
@@ -527,9 +504,7 @@ class TestCloud:
             )
         )
         c = ConfluenceConnector(
-            ConfluenceConfig(
-                flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)
-            ),
+            ConfluenceConfig(flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)),
             credential=_bearer_credential(),
             transport=transport,
         )
@@ -593,9 +568,7 @@ class TestCloud:
 
         transport = httpx.MockTransport(handler)
         c = ConfluenceConnector(
-            ConfluenceConfig(
-                flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)
-            ),
+            ConfluenceConfig(flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)),
             credential=_bearer_credential(),
             transport=transport,
             sleep=fake_sleep,
@@ -707,9 +680,7 @@ class TestDatacenter:
 
         transport = httpx.MockTransport(handler)
         c = ConfluenceConnector(
-            ConfluenceConfig(
-                flavor="datacenter", base_url=_DC_BASE, spaces=("ENG",)
-            ),
+            ConfluenceConfig(flavor="datacenter", base_url=_DC_BASE, spaces=("ENG",)),
             credential=_bearer_credential("dc-pat"),
             transport=transport,
         )
@@ -732,9 +703,7 @@ class TestDatacenter:
             payload={"username": "alice", "password": "dc-secret"},
         )
         c = ConfluenceConnector(
-            ConfluenceConfig(
-                flavor="datacenter", base_url=_DC_BASE, spaces=("ENG",)
-            ),
+            ConfluenceConfig(flavor="datacenter", base_url=_DC_BASE, spaces=("ENG",)),
             credential=cred,
             transport=transport,
         )
@@ -757,9 +726,7 @@ class TestDatacenter:
 
         transport = httpx.MockTransport(handler)
         c = ConfluenceConnector(
-            ConfluenceConfig(
-                flavor="datacenter", base_url=_DC_BASE, spaces=("ENG",)
-            ),
+            ConfluenceConfig(flavor="datacenter", base_url=_DC_BASE, spaces=("ENG",)),
             credential=_bearer_credential(),
             transport=transport,
             sleep=fake_sleep,
@@ -803,9 +770,7 @@ class TestDatacenter:
             )
         )
         c = ConfluenceConnector(
-            ConfluenceConfig(
-                flavor="datacenter", base_url=_DC_BASE, spaces=("ENG",)
-            ),
+            ConfluenceConfig(flavor="datacenter", base_url=_DC_BASE, spaces=("ENG",)),
             credential=_bearer_credential(),
             transport=transport,
         )
@@ -861,9 +826,7 @@ class TestDatacenter:
             )
         )
         c = ConfluenceConnector(
-            ConfluenceConfig(
-                flavor="datacenter", base_url=_DC_BASE, spaces=("ENG",)
-            ),
+            ConfluenceConfig(flavor="datacenter", base_url=_DC_BASE, spaces=("ENG",)),
             credential=_bearer_credential(),
             transport=transport,
         )
@@ -963,9 +926,7 @@ class TestCursor:
             )
         )
         c = ConfluenceConnector(
-            ConfluenceConfig(
-                flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)
-            ),
+            ConfluenceConfig(flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)),
             credential=_bearer_credential(),
             transport=transport,
         )
@@ -1087,7 +1048,10 @@ class TestHelpers:
         assert _is_archived({"status": 42}) is False  # type: ignore[dict-item]
 
     def test_host_from_base_url_strips_scheme_and_path(self) -> None:
-        assert _host_from_base_url("https://acme.atlassian.net/wiki") == "acme.atlassian.net"
+        assert (
+            _host_from_base_url("https://acme.atlassian.net/wiki")
+            == "acme.atlassian.net"
+        )
         assert _host_from_base_url("http://host/") == "host"
         assert _host_from_base_url("https://host/sub/path") == "host"
 
@@ -1174,7 +1138,9 @@ class TestFactoryAndSpec:
 
     def test_factory_minimal_cloud(self) -> None:
         cred = _bearer_credential()
-        c = SPEC.factory({"flavor": "cloud", "base_url": _CLOUD_BASE, "_credential": cred})
+        c = SPEC.factory(
+            {"flavor": "cloud", "base_url": _CLOUD_BASE, "_credential": cred}
+        )
         assert isinstance(c, ConfluenceConnector)
         assert c.config.flavor == "cloud"
 
@@ -1186,7 +1152,6 @@ class TestFactoryAndSpec:
         # stub that out with a no-op so the test does not need a real
         # PEM (which would otherwise require either checked-in fixture
         # data or a `cryptography` test-only dependency).
-        import ssl as _ssl
 
         from pleno_pii_scanner_confluence import api as api_mod
 
@@ -1272,9 +1237,7 @@ class TestPackageInit:
 class TestLifecycle:
     async def test_close_clears_cache(self) -> None:
         def page_handler(_: httpx.Request) -> httpx.Response:
-            return json_response(
-                {"results": [_page_payload("p1")], "_links": {}}
-            )
+            return json_response({"results": [_page_payload("p1")], "_links": {}})
 
         def empty(_: httpx.Request) -> httpx.Response:
             return json_response({"results": [], "_links": {}})
@@ -1289,9 +1252,7 @@ class TestLifecycle:
             )
         )
         c = ConfluenceConnector(
-            ConfluenceConfig(
-                flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)
-            ),
+            ConfluenceConfig(flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)),
             credential=_bearer_credential(),
             transport=transport,
         )
@@ -1334,18 +1295,14 @@ class TestNoLeakedTokens:
         secret_password = "very-secret-pwd-xyz"
         # Cover both auth shapes by switching connectors mid-test.
         for cred in (
-            Credential(
-                kind="confluence", payload={"access_token": secret_token}
-            ),
+            Credential(kind="confluence", payload={"access_token": secret_token}),
             Credential(
                 kind="confluence",
                 payload={"email": "a@x.test", "api_token": secret_password},
             ),
         ):
             c = ConfluenceConnector(
-                ConfluenceConfig(
-                    flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)
-                ),
+                ConfluenceConfig(flavor="cloud", base_url=_CLOUD_BASE, spaces=("ENG",)),
                 credential=cred,
                 transport=transport,
             )

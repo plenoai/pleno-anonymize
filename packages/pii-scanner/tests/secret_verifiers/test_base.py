@@ -70,9 +70,7 @@ def test_liveness_verifier_protocol_is_runtime_checkable() -> None:
         name = "stub"
         entities = frozenset({"X"})
 
-        async def verify(
-            self, value: str, *, ctx: VerifyContext
-        ) -> VerificationResult:
+        async def verify(self, value: str, *, ctx: VerifyContext) -> VerificationResult:
             return VerificationResult(state="unknown")
 
     assert isinstance(_Stub(), LivenessVerifier)

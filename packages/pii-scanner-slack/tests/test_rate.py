@@ -13,7 +13,9 @@ from .conftest import FakeResponse
 
 def _make_429(retry_after: str | None = "12") -> SlackApiError:
     headers = {"Retry-After": retry_after} if retry_after is not None else {}
-    response = FakeResponse({"ok": False, "error": "ratelimited"}, status_code=429, headers=headers)
+    response = FakeResponse(
+        {"ok": False, "error": "ratelimited"}, status_code=429, headers=headers
+    )
     return SlackApiError("rate", response)
 
 
@@ -25,9 +27,7 @@ class TestRaiseFromSlackApiError:
     def test_translates_ratelimited_string(self) -> None:
         # Older Slack APIs return 200 + body error="ratelimited" instead
         # of 429. Both must surface as RateLimited.
-        response = FakeResponse(
-            {"ok": False, "error": "ratelimited"}, status_code=200
-        )
+        response = FakeResponse({"ok": False, "error": "ratelimited"}, status_code=200)
         exc = SlackApiError("rate", response)
         with pytest.raises(RateLimited):
             _rate.raise_from_slack_api_error(exc)

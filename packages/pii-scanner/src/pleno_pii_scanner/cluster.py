@@ -67,7 +67,12 @@ def _is_high_impact(f: Finding) -> bool:
     """
     if f.verification != "passed":
         return False
-    return f.entity in {"MY_NUMBER", "MY_NUMBER_CORPORATE", "CREDIT_CARD", "BANK_ACCOUNT"}
+    return f.entity in {
+        "MY_NUMBER",
+        "MY_NUMBER_CORPORATE",
+        "CREDIT_CARD",
+        "BANK_ACCOUNT",
+    }
 
 
 def keep_db_clusters(

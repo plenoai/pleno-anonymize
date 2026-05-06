@@ -53,7 +53,7 @@ async def _paginate(
             page = await method(**kwargs)
         yield dict(page.data) if hasattr(page, "data") else dict(page)
         next_cursor = ""
-        meta = (page.get("response_metadata") if hasattr(page, "get") else None)
+        meta = page.get("response_metadata") if hasattr(page, "get") else None
         if meta:
             next_cursor = meta.get("next_cursor", "") or ""
         if not next_cursor:
@@ -197,10 +197,7 @@ async def discover_via_discovery(
                     )
                     if include_files:
                         for file_obj in message.get("files") or ():
-                            if (
-                                isinstance(file_obj, Mapping)
-                                and file_obj.get("id")
-                            ):
+                            if isinstance(file_obj, Mapping) and file_obj.get("id"):
                                 yield _build_discovery_file_ref(
                                     source_id=source_id,
                                     team_id=team_id,

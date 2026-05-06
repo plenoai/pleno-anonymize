@@ -92,9 +92,7 @@ class TestConfig:
             )
 
     def test_explicit_id(self) -> None:
-        cfg = MsTeamsConfig(
-            tenant_id="t", client_id="c", client_secret="s", id="x"
-        )
+        cfg = MsTeamsConfig(tenant_id="t", client_id="c", client_secret="s", id="x")
         assert cfg.resolved_id() == "x"
 
     def test_default_id_no_secret_leak(self) -> None:
@@ -151,8 +149,7 @@ class TestToken:
         def handler(request: httpx.Request) -> httpx.Response:
             if request.url.host == "login.microsoftonline.com":
                 form = dict(
-                    item.split("=", 1)
-                    for item in request.content.decode().split("&")
+                    item.split("=", 1) for item in request.content.decode().split("&")
                 )
                 seen.append(form)
                 return _token_response()
@@ -162,9 +159,7 @@ class TestToken:
 
         async with _client(handler) as client:
             c = MsTeamsConnector(
-                MsTeamsConfig(
-                    tenant_id="tid", client_id="cid", client_secret="csec"
-                ),
+                MsTeamsConfig(tenant_id="tid", client_id="cid", client_secret="csec"),
                 client=client,
             )
             try:
@@ -183,8 +178,7 @@ class TestToken:
         def handler(request: httpx.Request) -> httpx.Response:
             if request.url.host == "login.microsoftonline.com":
                 form = dict(
-                    item.split("=", 1)
-                    for item in request.content.decode().split("&")
+                    item.split("=", 1) for item in request.content.decode().split("&")
                 )
                 seen.append(form)
                 return _token_response()
@@ -224,9 +218,7 @@ class TestToken:
 
         async with _client(handler) as client:
             c = MsTeamsConnector(
-                MsTeamsConfig(
-                    tenant_id="tid", client_id="cid", client_secret="csec"
-                ),
+                MsTeamsConfig(tenant_id="tid", client_id="cid", client_secret="csec"),
                 client=client,
             )
             try:
@@ -253,9 +245,9 @@ def _make_handler(
     """Build a Graph mock. `delta_pages[channel_id]` is a flat list of
     messages returned in one shot (single page with deltaLink)."""
     teams = teams if teams is not None else [{"id": "T1", "displayName": "team"}]
-    channels = channels if channels is not None else [
-        {"id": "C1", "displayName": "general"}
-    ]
+    channels = (
+        channels if channels is not None else [{"id": "C1", "displayName": "general"}]
+    )
     delta_pages = delta_pages or {}
     replies = replies or {}
     seen: dict[str, list[str]] = {"paths": []}
@@ -276,10 +268,7 @@ def _make_handler(
                 200,
                 json={"value": msgs, "@odata.deltaLink": deltalink},
             )
-        if (
-            resume_link_match is not None
-            and resume_link_match in str(request.url)
-        ):
+        if resume_link_match is not None and resume_link_match in str(request.url):
             chan = "C1"
             return httpx.Response(
                 200,
@@ -290,9 +279,7 @@ def _make_handler(
             )
         if path.endswith("/replies"):
             msg_id = path.split("/messages/")[1].split("/")[0]
-            return httpx.Response(
-                200, json={"value": replies.get(msg_id, [])}
-            )
+            return httpx.Response(200, json={"value": replies.get(msg_id, [])})
         return httpx.Response(404, content=str(request.url).encode())
 
     return handler, seen
@@ -343,9 +330,7 @@ class TestDelta:
             if path.endswith("/channels") and "/teams/" in path:
                 return httpx.Response(
                     200,
-                    json={
-                        "value": [{"id": "C1", "displayName": "general"}]
-                    },
+                    json={"value": [{"id": "C1", "displayName": "general"}]},
                 )
             if str(request.url) == resume_url:
                 return httpx.Response(
@@ -535,9 +520,7 @@ class TestReplies:
                 await c.close()
 
     async def test_replies_paginate(self) -> None:
-        next_url = (
-            "https://graph.microsoft.com/v1.0/replies-page-2"
-        )
+        next_url = "https://graph.microsoft.com/v1.0/replies-page-2"
 
         def handler(request: httpx.Request) -> httpx.Response:
             if request.url.host == "login.microsoftonline.com":
@@ -561,9 +544,7 @@ class TestReplies:
                     },
                 )
             if str(request.url) == next_url:
-                return httpx.Response(
-                    200, json={"value": [_msg("r2")]}
-                )
+                return httpx.Response(200, json={"value": [_msg("r2")]})
             if path.endswith("/replies"):
                 return httpx.Response(
                     200,
@@ -576,9 +557,7 @@ class TestReplies:
 
         async with _client(handler) as client:
             c = MsTeamsConnector(
-                MsTeamsConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                MsTeamsConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -627,11 +606,7 @@ class TestAllowlist:
 
 class TestFilter:
     async def test_include_exclude_filters_message_paths(self) -> None:
-        handler, _ = _make_handler(
-            delta_pages={
-                "C1": [_msg("keep"), _msg("drop")]
-            }
-        )
+        handler, _ = _make_handler(delta_pages={"C1": [_msg("keep"), _msg("drop")]})
         async with _client(handler) as client:
             c = MsTeamsConnector(
                 MsTeamsConfig(
@@ -644,10 +619,7 @@ class TestFilter:
             )
             try:
                 refs = [
-                    r
-                    async for r in c.discover(
-                        SourceFilter(include=("*/keep",)), None
-                    )
+                    r async for r in c.discover(SourceFilter(include=("*/keep",)), None)
                 ]
                 assert {r.metadata["message_id"] for r in refs} == {"keep"}
             finally:
@@ -665,9 +637,7 @@ class TestFilter:
             try:
                 refs = [
                     r
-                    async for r in c2.discover(
-                        SourceFilter(exclude=("*/drop",)), None
-                    )
+                    async for r in c2.discover(SourceFilter(exclude=("*/drop",)), None)
                 ]
                 assert {r.metadata["message_id"] for r in refs} == {"keep"}
             finally:
@@ -690,10 +660,7 @@ class TestFilter:
             try:
                 # Include matches m1 but not the reply path.
                 refs = [
-                    r
-                    async for r in c.discover(
-                        SourceFilter(include=("*/m1",)), None
-                    )
+                    r async for r in c.discover(SourceFilter(include=("*/m1",)), None)
                 ]
                 ids = {r.metadata["message_id"] for r in refs}
                 assert ids == {"m1"}
@@ -766,9 +733,7 @@ class TestRender:
 
         async with _client(lambda _r: httpx.Response(404)) as client:
             c = MsTeamsConnector(
-                MsTeamsConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                MsTeamsConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -877,9 +842,7 @@ class TestMalformed:
         )
         async with _client(handler) as client:
             c = MsTeamsConnector(
-                MsTeamsConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                MsTeamsConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -911,9 +874,7 @@ class TestCursor:
 
         async with _client(handler2) as client:
             c = MsTeamsConnector(
-                MsTeamsConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                MsTeamsConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -938,9 +899,7 @@ class TestCursor:
             )
             try:
                 # Not JSON → decoder returns {} → fresh delta walk.
-                refs = [
-                    r async for r in c.discover(SourceFilter(), "not-json{")
-                ]
+                refs = [r async for r in c.discover(SourceFilter(), "not-json{")]
                 assert refs
             finally:
                 await c.close()
@@ -958,9 +917,7 @@ class TestCursor:
                 client=client,
             )
             try:
-                refs = [
-                    r async for r in c.discover(SourceFilter(), '["a","b"]')
-                ]
+                refs = [r async for r in c.discover(SourceFilter(), '["a","b"]')]
                 assert refs
             finally:
                 await c.close()

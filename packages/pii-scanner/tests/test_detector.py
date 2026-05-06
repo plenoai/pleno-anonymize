@@ -148,9 +148,7 @@ class TestRecognizerPackFingerprint:
         from pleno_recognizers.ja import ALL_JA_RECOGNIZERS
 
         normal = recognizer_pack_fingerprint(ALL_JA_RECOGNIZERS)
-        reversed_ = recognizer_pack_fingerprint(
-            tuple(reversed(ALL_JA_RECOGNIZERS))
-        )
+        reversed_ = recognizer_pack_fingerprint(tuple(reversed(ALL_JA_RECOGNIZERS)))
         assert normal == reversed_
 
     def test_dropping_one_recognizer_changes_hash(self) -> None:
@@ -176,16 +174,14 @@ class TestRecognizerPackFingerprint:
                 entity="EMAIL",
                 language="en",
                 patterns=(
-                    PiiPattern(
-                        name="basic", regex=r"[A-Za-z0-9]+@\w+", score=0.5
-                    ),
+                    PiiPattern(name="basic", regex=r"[A-Za-z0-9]+@\w+", score=0.5),
                 ),
                 context=("email",),
             ),
         )
-        assert recognizer_pack_fingerprint(
-            original
-        ) != recognizer_pack_fingerprint(edited)
+        assert recognizer_pack_fingerprint(original) != recognizer_pack_fingerprint(
+            edited
+        )
 
 
 class TestSchemaComponents:
@@ -268,9 +264,7 @@ class TestMakeDetector:
     async def test_skip_verify_keeps_findings_unverified(self) -> None:
         from pleno_recognizers.ja import ALL_JA_RECOGNIZERS
 
-        detector = make_detector(
-            ALL_JA_RECOGNIZERS, skip_ner=True, skip_verify=True
-        )
+        detector = make_detector(ALL_JA_RECOGNIZERS, skip_ner=True, skip_verify=True)
         text = 'EMAIL = "alice@example.com"\n'
         _, payload = await detector(_ref("e.py"), _doc(text))
         findings = decode_findings(payload)
@@ -352,7 +346,9 @@ class TestRunnerReplay:
                 self, _filter: SourceFilter, _cursor: str | None
             ) -> AsyncIterator[DocumentRef]:
                 for path in ("a.py", "b.py"):
-                    yield DocumentRef(source_id=self.id, source_kind=self.kind, path=path)
+                    yield DocumentRef(
+                        source_id=self.id, source_kind=self.kind, path=path
+                    )
 
             async def fetch(
                 self, ref: DocumentRef

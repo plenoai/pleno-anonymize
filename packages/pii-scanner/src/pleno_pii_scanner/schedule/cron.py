@@ -70,9 +70,7 @@ def _parse_field(spec: str, lo: int, hi: int) -> frozenset[int]:
             except ValueError as exc:
                 raise ValueError(f"non-integer value in {part!r}") from exc
         if start < lo or end > hi or start > end:
-            raise ValueError(
-                f"value(s) out of range [{lo}, {hi}] in {part!r}"
-            )
+            raise ValueError(f"value(s) out of range [{lo}, {hi}] in {part!r}")
         out.update(range(start, end + 1, step))
     return frozenset(out)
 
@@ -143,9 +141,8 @@ class CronExpression:
         """
         if after.tzinfo is None:
             raise ValueError("naive datetime not allowed; pass tz-aware UTC")
-        candidate = (
-            after.astimezone(UTC).replace(second=0, microsecond=0)
-            + timedelta(minutes=1)
+        candidate = after.astimezone(UTC).replace(second=0, microsecond=0) + timedelta(
+            minutes=1
         )
         deadline = candidate + timedelta(days=_MAX_LOOKAHEAD_DAYS)
         while candidate <= deadline:
@@ -153,9 +150,7 @@ class CronExpression:
                 candidate = _first_of_next_month(candidate)
                 continue
             if not self._matches_day(candidate):
-                candidate = (candidate + timedelta(days=1)).replace(
-                    hour=0, minute=0
-                )
+                candidate = (candidate + timedelta(days=1)).replace(hour=0, minute=0)
                 continue
             if candidate.hour not in self.hours:
                 candidate = candidate.replace(minute=0) + timedelta(hours=1)

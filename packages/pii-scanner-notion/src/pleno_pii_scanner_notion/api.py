@@ -151,9 +151,7 @@ def _raise_for_rate_limit(response: httpx.Response) -> None:
     """
     if response.status_code == 429:
         retry_after = response.headers.get("Retry-After")
-        raise RateLimited(
-            f"notion 429; retry_after={retry_after!r}"
-        )
+        raise RateLimited(f"notion 429; retry_after={retry_after!r}")
 
 
 __all__ = [

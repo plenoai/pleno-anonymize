@@ -21,9 +21,10 @@ def build_issue_adf(
     metadata: Mapping[str, str],
 ) -> dict:
     """Return an ADF document describing the batch."""
-    summary_text = ", ".join(
-        f"{sev}: {n}" for sev, n in sorted(severity_summary.items())
-    ) or "no findings"
+    summary_text = (
+        ", ".join(f"{sev}: {n}" for sev, n in sorted(severity_summary.items()))
+        or "no findings"
+    )
     metadata_pairs = ", ".join(f"{k}={v}" for k, v in sorted(metadata.items()))
 
     rows: list[dict] = [_table_row_header()]
@@ -46,7 +47,9 @@ def build_issue_adf(
         "content": [
             _heading(f"PII scan {scan_id}"),
             _paragraph(f"Severity summary: {summary_text}."),
-            _paragraph(f"Metadata: {metadata_pairs}" if metadata_pairs else "Metadata: -"),
+            _paragraph(
+                f"Metadata: {metadata_pairs}" if metadata_pairs else "Metadata: -"
+            ),
             {"type": "table", "content": rows},
         ],
     }

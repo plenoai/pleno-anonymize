@@ -60,12 +60,23 @@ def database_object(database_id: str) -> dict[str, Any]:
     }
 
 
-def block_payload(text: str, *, block_type: str = "paragraph", block_id: str = "b") -> dict[str, Any]:
+def block_payload(
+    text: str, *, block_type: str = "paragraph", block_id: str = "b"
+) -> dict[str, Any]:
     return {
         "id": block_id,
         "object": "block",
         "type": block_type,
-        block_type: {"rich_text": [{"type": "text", "text": {"content": text, "link": None}, "annotations": {}, "plain_text": text}]},
+        block_type: {
+            "rich_text": [
+                {
+                    "type": "text",
+                    "text": {"content": text, "link": None},
+                    "annotations": {},
+                    "plain_text": text,
+                }
+            ]
+        },
         "archived": False,
         "has_children": False,
     }
@@ -116,7 +127,9 @@ class TestConstruction:
 
     def test_bucket_key_falls_back_to_id(self) -> None:
         c = NotionConnector(NotionConfig(token="t"))
-        assert c.bucket_key() == BucketKey(connector_kind="notion", tenant_id="notion:default")
+        assert c.bucket_key() == BucketKey(
+            connector_kind="notion", tenant_id="notion:default"
+        )
 
 
 # ---------------------------------------------------------------------
@@ -288,10 +301,18 @@ class TestDiscoverSearch:
             return json_response(
                 {
                     "results": [
-                        page_object("p1", parent={"type": "page_id", "page_id": "parent-1"}),
-                        page_object("p2", parent={"type": "database_id", "database_id": "db-1"}),
-                        page_object("p3", parent={"type": "block_id", "block_id": "b-1"}),
-                        page_object("p4", parent={"type": "workspace", "workspace": True}),
+                        page_object(
+                            "p1", parent={"type": "page_id", "page_id": "parent-1"}
+                        ),
+                        page_object(
+                            "p2", parent={"type": "database_id", "database_id": "db-1"}
+                        ),
+                        page_object(
+                            "p3", parent={"type": "block_id", "block_id": "b-1"}
+                        ),
+                        page_object(
+                            "p4", parent={"type": "workspace", "workspace": True}
+                        ),
                         page_object("p5", parent={"type": "unknown_kind"}),
                     ],
                     "has_more": False,
@@ -302,7 +323,10 @@ class TestDiscoverSearch:
         transport = httpx.MockTransport(make_handler([("/search", search)]))
         c = NotionConnector(NotionConfig(token="t"), transport=transport)
         try:
-            refs = {r.metadata["object_id"]: r for r in await drain(c.discover(SourceFilter(), None))}
+            refs = {
+                r.metadata["object_id"]: r
+                for r in await drain(c.discover(SourceFilter(), None))
+            }
             assert refs["p1"].parent_chain == ("notion://page/parent-1",)
             assert refs["p2"].parent_chain == ("notion://database/db-1",)
             assert refs["p3"].parent_chain == ("notion://block/b-1",)
@@ -352,8 +376,12 @@ class TestDiscoverExplicitPages:
             await c.close()
 
     async def test_404_page_yields_nothing(self) -> None:
-        transport = httpx.MockTransport(make_handler([("/pages/", lambda _: httpx.Response(404))]))
-        c = NotionConnector(NotionConfig(token="t", pages=("missing",)), transport=transport)
+        transport = httpx.MockTransport(
+            make_handler([("/pages/", lambda _: httpx.Response(404))])
+        )
+        c = NotionConnector(
+            NotionConfig(token="t", pages=("missing",)), transport=transport
+        )
         try:
             assert await drain(c.discover(SourceFilter(), None)) == []
         finally:
@@ -411,7 +439,9 @@ class TestDiscoverDatabase:
                 {"results": [page_object("r1")], "has_more": True, "next_cursor": None}
             )
 
-        transport = httpx.MockTransport(make_handler([("/databases/db-1/query", query)]))
+        transport = httpx.MockTransport(
+            make_handler([("/databases/db-1/query", query)])
+        )
         c = NotionConnector(
             NotionConfig(token="t", databases=("db-1",)), transport=transport
         )
@@ -435,7 +465,11 @@ class TestDiscoverCombined:
 
         def query(_: httpx.Request) -> httpx.Response:
             return json_response(
-                {"results": [page_object("row1")], "has_more": False, "next_cursor": None}
+                {
+                    "results": [page_object("row1")],
+                    "has_more": False,
+                    "next_cursor": None,
+                }
             )
 
         transport = httpx.MockTransport(
@@ -463,7 +497,9 @@ class TestDiscoverCombined:
 # ---------------------------------------------------------------------
 
 
-def _children_route(children_by_block: dict[str, list[dict[str, Any]]]) -> Callable[[httpx.Request], httpx.Response]:
+def _children_route(
+    children_by_block: dict[str, list[dict[str, Any]]],
+) -> Callable[[httpx.Request], httpx.Response]:
     def handler(request: httpx.Request) -> httpx.Response:
         # URL: /v1/blocks/<id>/children
         path = request.url.path
@@ -516,7 +552,12 @@ class TestFetch:
             "Name": {
                 "type": "title",
                 "title": [
-                    {"type": "text", "text": {"content": "alice", "link": None}, "annotations": {}, "plain_text": "alice"}
+                    {
+                        "type": "text",
+                        "text": {"content": "alice", "link": None},
+                        "annotations": {},
+                        "plain_text": "alice",
+                    }
                 ],
             },
             "Email": {"type": "email", "email": "alice@x.test"},
@@ -537,7 +578,11 @@ class TestFetch:
                 source_id=c.id,
                 source_kind=c.kind,
                 path="notion://database-row/row1",
-                metadata={"object_id": "row1", "object_type": "page", "database_id": "db1"},
+                metadata={
+                    "object_id": "row1",
+                    "object_type": "page",
+                    "database_id": "db1",
+                },
             )
             docs = [d async for d in c.fetch(ref)]
             assert len(docs) == 1
@@ -576,7 +621,9 @@ class TestFetch:
         transport = httpx.MockTransport(make_handler([]))
         c = NotionConnector(NotionConfig(token="t"), transport=transport)
         try:
-            ghost = DocumentRef(source_id=c.id, source_kind=c.kind, path="notion://page/x")
+            ghost = DocumentRef(
+                source_id=c.id, source_kind=c.kind, path="notion://page/x"
+            )
             assert [d async for d in c.fetch(ghost)] == []
         finally:
             await c.close()
@@ -713,7 +760,9 @@ class TestFetch:
         finally:
             await c.close()
 
-    async def test_block_children_pagination_stops_when_next_cursor_missing(self) -> None:
+    async def test_block_children_pagination_stops_when_next_cursor_missing(
+        self,
+    ) -> None:
         # has_more=True without next_cursor must terminate (defense in depth).
         def children(_: httpx.Request) -> httpx.Response:
             return json_response(
@@ -824,7 +873,12 @@ class TestRateLimit:
     async def test_429_during_search_surfaces_rate_limited(self) -> None:
         transport = httpx.MockTransport(
             make_handler(
-                [("/search", lambda _: httpx.Response(429, headers={"Retry-After": "1"}))]
+                [
+                    (
+                        "/search",
+                        lambda _: httpx.Response(429, headers={"Retry-After": "1"}),
+                    )
+                ]
             )
         )
         c = NotionConnector(NotionConfig(token="t"), transport=transport)
@@ -839,7 +893,10 @@ class TestRateLimit:
             make_handler(
                 [
                     ("/pages/p1", lambda _: json_response(page_object("p1"))),
-                    ("/blocks/", lambda _: httpx.Response(429, headers={"Retry-After": "2"})),
+                    (
+                        "/blocks/",
+                        lambda _: httpx.Response(429, headers={"Retry-After": "2"}),
+                    ),
                 ]
             )
         )

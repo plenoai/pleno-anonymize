@@ -20,25 +20,30 @@ _VERIFICATION_BADGE = {
 
 def _badge(v: str, color: bool) -> str:
     if not color:
-        return {"passed": "verified", "failed": "checksum failed", "unverified": "unverified"}[v]
+        return {
+            "passed": "verified",
+            "failed": "checksum failed",
+            "unverified": "unverified",
+        }[v]
     return _VERIFICATION_BADGE[v]
 
 
-def render_human(stats: ScanStats, out: TextIO = sys.stdout, *, color: bool = True) -> None:
+def render_human(
+    stats: ScanStats, out: TextIO = sys.stdout, *, color: bool = True
+) -> None:
     findings = stats.findings
     if not findings:
         out.write(
             f"pleno-pii-scanner v{__version__}: scanned {stats.files_scanned} files "
             f"({stats.bytes_scanned:,} bytes) in {stats.duration_ms} ms — "
-            f"\033[32mno findings\033[0m\n" if color
+            f"\033[32mno findings\033[0m\n"
+            if color
             else f"pleno-pii-scanner v{__version__}: scanned {stats.files_scanned} files in {stats.duration_ms} ms — no findings\n"
         )
         return
 
     out.write(f"pleno-pii-scanner v{__version__}\n")
-    out.write(
-        f"Scanned {stats.files_scanned} files ({stats.bytes_scanned:,} bytes)"
-    )
+    out.write(f"Scanned {stats.files_scanned} files ({stats.bytes_scanned:,} bytes)")
     if stats.commits_scanned:
         out.write(f", {stats.commits_scanned} commits")
     out.write(f" in {stats.duration_ms} ms\n\n")

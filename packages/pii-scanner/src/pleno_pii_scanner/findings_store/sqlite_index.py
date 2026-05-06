@@ -154,8 +154,8 @@ class SqliteFindingsStore:
         severity_classifier: SeverityClassifier | None = None,
     ) -> SqliteFindingsStore:
         """Open (or create) the index DB and prepare the shard directory."""
-        index_target = index_path if index_path is not None else default_index_path(
-            scan_id
+        index_target = (
+            index_path if index_path is not None else default_index_path(scan_id)
         )
         shard_target = shard_base if shard_base is not None else default_shard_base()
         index_target.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -224,9 +224,7 @@ class SqliteFindingsStore:
                 )
                 await self._conn.commit()
             else:
-                dek = await self._kek.unwrap_dek(
-                    self._tenant_id, bytes(row[0])
-                )
+                dek = await self._kek.unwrap_dek(self._tenant_id, bytes(row[0]))
         self._dek_cache[self._tenant_id] = dek
         return dek
 
@@ -398,9 +396,7 @@ class SqliteFindingsStore:
                 await cur.close()
         return _row_to_record(row) if row is not None else None
 
-    async def reveal_value(
-        self, finding_id: str, *, audit_principal: str
-    ) -> str:
+    async def reveal_value(self, finding_id: str, *, audit_principal: str) -> str:
         """Decrypt the raw matched value for one finding.
 
         Every call — success or failure — fires the audit hook so the
@@ -419,9 +415,7 @@ class SqliteFindingsStore:
         if row is None:
             raise KeyError(f"finding_id not found: {finding_id}")
         scan_id, source_id, shard_index, fingerprint, tenant_id = row
-        path = shard_path(
-            self._shard_base, scan_id, source_id, int(shard_index)
-        )
+        path = shard_path(self._shard_base, scan_id, source_id, int(shard_index))
         entries = await asyncio.to_thread(read_shard, path)
         for fid, fp, payload in entries:
             if fid == finding_id and fp == fingerprint:
@@ -433,9 +427,7 @@ class SqliteFindingsStore:
                 obj = decrypt_payload(dek, payload)
                 matched = obj.get("matched")
                 if not isinstance(matched, str):
-                    raise EncryptionError(
-                        "decrypted payload missing 'matched' string"
-                    )
+                    raise EncryptionError("decrypted payload missing 'matched' string")
                 return matched
         raise EncryptionError(
             f"finding {finding_id} indexed but absent from shard {path}"
@@ -458,9 +450,7 @@ class SqliteFindingsStore:
         self._dek_cache[tenant_id] = dek
         return dek
 
-    async def _emit_audit(
-        self, finding_id: str, audit_principal: str
-    ) -> None:
+    async def _emit_audit(self, finding_id: str, audit_principal: str) -> None:
         if self._audit_hook is None:
             return
         result = self._audit_hook(finding_id, audit_principal)

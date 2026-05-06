@@ -37,9 +37,7 @@ def _make(**overrides):
 
 def test_smtp_requires_recipients():
     with pytest.raises(ValueError):
-        SMTPNotifier(
-            host="x", sender="a@b", recipients=[], sender_factory=FakeSender()
-        )
+        SMTPNotifier(host="x", sender="a@b", recipients=[], sender_factory=FakeSender())
 
 
 def test_smtp_requires_tls():

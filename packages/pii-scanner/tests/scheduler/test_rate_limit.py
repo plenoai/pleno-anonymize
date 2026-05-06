@@ -34,7 +34,7 @@ class TestBucketConstruction:
 
     def test_acquire_zero_cost_immediate(self) -> None:
         # not really sensible but should not deadlock.
-        b = AdaptiveTokenBucket(capacity=10, rate=5)
+        AdaptiveTokenBucket(capacity=10, rate=5)
         # we still consume zero tokens, so acquire returns immediately.
         # No assertion needed beyond "doesn't hang".
 

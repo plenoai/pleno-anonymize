@@ -100,8 +100,12 @@ class TestPagination:
         client = FakeAsyncWebClient()
         client.script("conversations_list", _channels("C01", "more"))
         client.script("conversations_list", _channels("C02", ""))
-        client.script("conversations_history", _history([{"ts": "1.0", "user": "U", "text": "a"}]))
-        client.script("conversations_history", _history([{"ts": "2.0", "user": "U", "text": "b"}]))
+        client.script(
+            "conversations_history", _history([{"ts": "1.0", "user": "U", "text": "a"}])
+        )
+        client.script(
+            "conversations_history", _history([{"ts": "2.0", "user": "U", "text": "b"}])
+        )
         cursor_state: dict[str, str] = {}
         refs = [
             r
@@ -202,9 +206,10 @@ class TestThreadReplies:
             )
         ]
         assert len(refs) == 1
-        assert ("conversations_replies", {"channel": "C01", "ts": "1.0", "limit": 200}) not in [
-            (m, k) for m, k in client.calls
-        ]
+        assert (
+            "conversations_replies",
+            {"channel": "C01", "ts": "1.0", "limit": 200},
+        ) not in [(m, k) for m, k in client.calls]
 
     async def test_replies_disabled_via_flag(self) -> None:
         client = FakeAsyncWebClient()

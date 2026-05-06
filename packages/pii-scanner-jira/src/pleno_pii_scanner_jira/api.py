@@ -201,9 +201,7 @@ class JiraApi:
         """
         url = self._absolute(path_or_url)
         clean_params = (
-            {k: v for k, v in params.items() if v is not None}
-            if params
-            else None
+            {k: v for k, v in params.items() if v is not None} if params else None
         )
         for attempt in (1, 2):
             response = await self._client.get(

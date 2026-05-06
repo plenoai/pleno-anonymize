@@ -69,12 +69,14 @@ def make_handler(
     requests cause an explicit AssertionError so we never silently
     return 200 for a path the test forgot to mock.
     """
+
     def handler(request: httpx.Request) -> httpx.Response:
         url = str(request.url)
         for suffix, fn in routes:
             if suffix in url:
                 return fn(request)
         raise AssertionError(f"no route matches {url}")
+
     return handler
 
 
@@ -155,9 +157,7 @@ class TestConstruction:
     def test_credential_missing_keys_rejected(self) -> None:
         cred = Credential(kind="github-app", payload={"app_id": "1"})
         with pytest.raises(ValueError, match="requires keys"):
-            GithubAppConnector(
-                GithubAppConfig(repo="a/b"), credential=cred
-            )
+            GithubAppConnector(GithubAppConfig(repo="a/b"), credential=cred)
 
     def test_credential_non_string_pk_rejected(self, rsa_pem: str) -> None:
         cred = Credential(
@@ -220,10 +220,14 @@ class TestDiscoverSingleRepo:
                 },
             )
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", access_token),
-            ("/git/trees/HEAD", trees),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", access_token),
+                    ("/git/trees/HEAD", trees),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(repo="acme/widgets"),
             credential=make_credential(rsa_pem),
@@ -256,10 +260,14 @@ class TestDiscoverSingleRepo:
                 },
             )
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/git/trees/HEAD", trees),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/git/trees/HEAD", trees),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(repo="a/b"),
             credential=make_credential(rsa_pem),
@@ -285,10 +293,14 @@ class TestDiscoverSingleRepo:
                 },
             )
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/git/trees/HEAD", trees),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/git/trees/HEAD", trees),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(repo="a/b"),
             credential=make_credential(rsa_pem),
@@ -312,10 +324,14 @@ class TestDiscoverSingleRepo:
             await c.close()
 
     async def test_404_repo_yields_nothing(self, rsa_pem: str) -> None:
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/git/trees/HEAD", lambda _: httpx.Response(404)),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/git/trees/HEAD", lambda _: httpx.Response(404)),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(repo="a/b"),
             credential=make_credential(rsa_pem),
@@ -336,48 +352,50 @@ class TestDiscoverSingleRepo:
 class TestDiscoverOrg:
     async def test_paginated_org_repos_yielded(self, rsa_pem: str) -> None:
         # Two GraphQL pages, two repos each, then a tree fetch per repo.
-        graphql_pages = iter([
-            {
-                "data": {
-                    "organization": {
-                        "repositories": {
-                            "pageInfo": {"endCursor": "c1", "hasNextPage": True},
-                            "nodes": [
-                                {
-                                    "name": "r1",
-                                    "owner": {"login": "acme"},
-                                    "isArchived": False,
-                                    "pushedAt": "2024-01-01T00:00:00Z",
-                                },
-                                {
-                                    "name": "r2",
-                                    "owner": {"login": "acme"},
-                                    "isArchived": True,  # filtered out
-                                    "pushedAt": "2024-01-01T00:00:00Z",
-                                },
-                            ],
+        graphql_pages = iter(
+            [
+                {
+                    "data": {
+                        "organization": {
+                            "repositories": {
+                                "pageInfo": {"endCursor": "c1", "hasNextPage": True},
+                                "nodes": [
+                                    {
+                                        "name": "r1",
+                                        "owner": {"login": "acme"},
+                                        "isArchived": False,
+                                        "pushedAt": "2024-01-01T00:00:00Z",
+                                    },
+                                    {
+                                        "name": "r2",
+                                        "owner": {"login": "acme"},
+                                        "isArchived": True,  # filtered out
+                                        "pushedAt": "2024-01-01T00:00:00Z",
+                                    },
+                                ],
+                            }
                         }
                     }
-                }
-            },
-            {
-                "data": {
-                    "organization": {
-                        "repositories": {
-                            "pageInfo": {"endCursor": "c2", "hasNextPage": False},
-                            "nodes": [
-                                {
-                                    "name": "r3",
-                                    "owner": {"login": "acme"},
-                                    "isArchived": False,
-                                    "pushedAt": "2024-01-01T00:00:00Z",
-                                },
-                            ],
+                },
+                {
+                    "data": {
+                        "organization": {
+                            "repositories": {
+                                "pageInfo": {"endCursor": "c2", "hasNextPage": False},
+                                "nodes": [
+                                    {
+                                        "name": "r3",
+                                        "owner": {"login": "acme"},
+                                        "isArchived": False,
+                                        "pushedAt": "2024-01-01T00:00:00Z",
+                                    },
+                                ],
+                            }
                         }
                     }
-                }
-            },
-        ])
+                },
+            ]
+        )
 
         def graphql(_: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=next(graphql_pages))
@@ -398,11 +416,15 @@ class TestDiscoverOrg:
                 },
             )
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/graphql", graphql),
-            ("/git/trees/HEAD", trees),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/graphql", graphql),
+                    ("/git/trees/HEAD", trees),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(org="acme", include_archived=False),
             credential=make_credential(rsa_pem),
@@ -418,9 +440,7 @@ class TestDiscoverOrg:
         finally:
             await c.close()
 
-    async def test_include_archived_keeps_archived_repos(
-        self, rsa_pem: str
-    ) -> None:
+    async def test_include_archived_keeps_archived_repos(self, rsa_pem: str) -> None:
         def graphql(_: httpx.Request) -> httpx.Response:
             return httpx.Response(
                 200,
@@ -448,14 +468,19 @@ class TestDiscoverOrg:
 
         def trees(_: httpx.Request) -> httpx.Response:
             return httpx.Response(
-                200, json={"tree": [{"type": "blob", "path": "f", "sha": "s", "size": 1}]}
+                200,
+                json={"tree": [{"type": "blob", "path": "f", "sha": "s", "size": 1}]},
             )
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/graphql", graphql),
-            ("/git/trees/HEAD", trees),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/graphql", graphql),
+                    ("/git/trees/HEAD", trees),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(org="acme", include_archived=True),
             credential=make_credential(rsa_pem),
@@ -509,11 +534,15 @@ class TestDiscoverOrg:
                 json={"tree": [{"type": "blob", "path": "f", "sha": "s", "size": 1}]},
             )
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/graphql", graphql),
-            ("/git/trees/HEAD", trees),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/graphql", graphql),
+                    ("/git/trees/HEAD", trees),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(org="acme"),
             credential=make_credential(rsa_pem),
@@ -541,55 +570,57 @@ class TestDiscoverEnterprise:
     async def test_walks_each_org_in_enterprise(self, rsa_pem: str) -> None:
         # First GraphQL call is enterprise.organizations; subsequent
         # calls are organization.repositories per org.
-        responses = iter([
-            # enterprise.organizations
-            {
-                "data": {
-                    "enterprise": {
-                        "organizations": {
-                            "pageInfo": {"endCursor": None, "hasNextPage": False},
-                            "nodes": [{"login": "acme"}, {"login": "globex"}],
+        responses = iter(
+            [
+                # enterprise.organizations
+                {
+                    "data": {
+                        "enterprise": {
+                            "organizations": {
+                                "pageInfo": {"endCursor": None, "hasNextPage": False},
+                                "nodes": [{"login": "acme"}, {"login": "globex"}],
+                            }
                         }
                     }
-                }
-            },
-            # organization.repositories (acme)
-            {
-                "data": {
-                    "organization": {
-                        "repositories": {
-                            "pageInfo": {"endCursor": None, "hasNextPage": False},
-                            "nodes": [
-                                {
-                                    "name": "r1",
-                                    "owner": {"login": "acme"},
-                                    "isArchived": False,
-                                    "pushedAt": "2024-01-01T00:00:00Z",
-                                }
-                            ],
+                },
+                # organization.repositories (acme)
+                {
+                    "data": {
+                        "organization": {
+                            "repositories": {
+                                "pageInfo": {"endCursor": None, "hasNextPage": False},
+                                "nodes": [
+                                    {
+                                        "name": "r1",
+                                        "owner": {"login": "acme"},
+                                        "isArchived": False,
+                                        "pushedAt": "2024-01-01T00:00:00Z",
+                                    }
+                                ],
+                            }
                         }
                     }
-                }
-            },
-            # organization.repositories (globex)
-            {
-                "data": {
-                    "organization": {
-                        "repositories": {
-                            "pageInfo": {"endCursor": None, "hasNextPage": False},
-                            "nodes": [
-                                {
-                                    "name": "r2",
-                                    "owner": {"login": "globex"},
-                                    "isArchived": False,
-                                    "pushedAt": "2024-01-01T00:00:00Z",
-                                }
-                            ],
+                },
+                # organization.repositories (globex)
+                {
+                    "data": {
+                        "organization": {
+                            "repositories": {
+                                "pageInfo": {"endCursor": None, "hasNextPage": False},
+                                "nodes": [
+                                    {
+                                        "name": "r2",
+                                        "owner": {"login": "globex"},
+                                        "isArchived": False,
+                                        "pushedAt": "2024-01-01T00:00:00Z",
+                                    }
+                                ],
+                            }
                         }
                     }
-                }
-            },
-        ])
+                },
+            ]
+        )
 
         def graphql(_: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=next(responses))
@@ -600,11 +631,15 @@ class TestDiscoverEnterprise:
                 json={"tree": [{"type": "blob", "path": "f", "sha": "s", "size": 1}]},
             )
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/graphql", graphql),
-            ("/git/trees/HEAD", trees),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/graphql", graphql),
+                    ("/git/trees/HEAD", trees),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(enterprise="acme-inc"),
             credential=make_credential(rsa_pem),
@@ -619,56 +654,62 @@ class TestDiscoverEnterprise:
 
     async def test_enterprise_pagination(self, rsa_pem: str) -> None:
         # Two enterprise pages of orgs.
-        responses = iter([
-            {
-                "data": {
-                    "enterprise": {
-                        "organizations": {
-                            "pageInfo": {"endCursor": "p1", "hasNextPage": True},
-                            "nodes": [{"login": "a"}],
+        responses = iter(
+            [
+                {
+                    "data": {
+                        "enterprise": {
+                            "organizations": {
+                                "pageInfo": {"endCursor": "p1", "hasNextPage": True},
+                                "nodes": [{"login": "a"}],
+                            }
                         }
                     }
-                }
-            },
-            {
-                "data": {
-                    "organization": {
-                        "repositories": {
-                            "pageInfo": {"endCursor": None, "hasNextPage": False},
-                            "nodes": [],
+                },
+                {
+                    "data": {
+                        "organization": {
+                            "repositories": {
+                                "pageInfo": {"endCursor": None, "hasNextPage": False},
+                                "nodes": [],
+                            }
                         }
                     }
-                }
-            },
-            {
-                "data": {
-                    "enterprise": {
-                        "organizations": {
-                            "pageInfo": {"endCursor": None, "hasNextPage": False},
-                            "nodes": [{"login": "b"}],
+                },
+                {
+                    "data": {
+                        "enterprise": {
+                            "organizations": {
+                                "pageInfo": {"endCursor": None, "hasNextPage": False},
+                                "nodes": [{"login": "b"}],
+                            }
                         }
                     }
-                }
-            },
-            {
-                "data": {
-                    "organization": {
-                        "repositories": {
-                            "pageInfo": {"endCursor": None, "hasNextPage": False},
-                            "nodes": [],
+                },
+                {
+                    "data": {
+                        "organization": {
+                            "repositories": {
+                                "pageInfo": {"endCursor": None, "hasNextPage": False},
+                                "nodes": [],
+                            }
                         }
                     }
-                }
-            },
-        ])
+                },
+            ]
+        )
 
         def graphql(_: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=next(responses))
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/graphql", graphql),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/graphql", graphql),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(enterprise="acme-inc"),
             credential=make_credential(rsa_pem),
@@ -694,10 +735,14 @@ class TestFetch:
                 json={"content": _b64("password=hunter2\n"), "encoding": "base64"},
             )
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/git/blobs/", blob),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/git/blobs/", blob),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(repo="a/b"),
             credential=make_credential(rsa_pem),
@@ -718,17 +763,19 @@ class TestFetch:
         finally:
             await c.close()
 
-    async def test_fetch_missing_metadata_returns_empty(
-        self, rsa_pem: str
-    ) -> None:
+    async def test_fetch_missing_metadata_returns_empty(self, rsa_pem: str) -> None:
         # Connector still needs to mint a token (eager refresh) before
         # bailing out; the mock transport must answer that one call.
         def access_token(_: httpx.Request) -> httpx.Response:
             return _access_token_response()
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", access_token),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", access_token),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(repo="a/b"),
             credential=make_credential(rsa_pem),
@@ -746,10 +793,14 @@ class TestFetch:
             await c.close()
 
     async def test_fetch_404_blob_returns_empty(self, rsa_pem: str) -> None:
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/git/blobs/", lambda _: httpx.Response(404)),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/git/blobs/", lambda _: httpx.Response(404)),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(repo="a/b"),
             credential=make_credential(rsa_pem),
@@ -766,16 +817,18 @@ class TestFetch:
         finally:
             await c.close()
 
-    async def test_fetch_undecodable_base64_returns_empty(
-        self, rsa_pem: str
-    ) -> None:
+    async def test_fetch_undecodable_base64_returns_empty(self, rsa_pem: str) -> None:
         def blob(_: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json={"content": "!!!not_base64!!!"})
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/git/blobs/", blob),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/git/blobs/", blob),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(repo="a/b"),
             credential=make_credential(rsa_pem),
@@ -805,10 +858,14 @@ class TestFetchTarball:
         def tarball(_: httpx.Request) -> httpx.Response:
             return httpx.Response(200, content=body)
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/tarball", tarball),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/tarball", tarball),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(repo="a/b"),
             credential=make_credential(rsa_pem),
@@ -826,10 +883,14 @@ class TestFetchTarball:
         def tarball(_: httpx.Request) -> httpx.Response:
             return httpx.Response(200, content=body)
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/tarball", tarball),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/tarball", tarball),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(repo="a/b"),
             credential=make_credential(rsa_pem),
@@ -841,10 +902,14 @@ class TestFetchTarball:
             await c.close()
 
     async def test_returns_none_on_404(self, rsa_pem: str) -> None:
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/tarball", lambda _: httpx.Response(404)),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/tarball", lambda _: httpx.Response(404)),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(repo="a/b"),
             credential=make_credential(rsa_pem),
@@ -865,10 +930,17 @@ class TestRateLimitPropagation:
     async def test_secondary_429_during_discover_surfaces_rate_limited(
         self, rsa_pem: str
     ) -> None:
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/git/trees/HEAD", lambda _: httpx.Response(429, headers={"Retry-After": "5"})),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    (
+                        "/git/trees/HEAD",
+                        lambda _: httpx.Response(429, headers={"Retry-After": "5"}),
+                    ),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(repo="a/b"),
             credential=make_credential(rsa_pem),
@@ -933,9 +1005,7 @@ class TestSpec:
         assert SPEC.capabilities.incremental is True
         assert SPEC.capabilities.content_hash_delta is True
 
-    def test_factory_builds_connector_with_credential(
-        self, rsa_pem: str
-    ) -> None:
+    def test_factory_builds_connector_with_credential(self, rsa_pem: str) -> None:
         cred = make_credential(rsa_pem)
         c = SPEC.factory(
             {
@@ -984,9 +1054,7 @@ class TestIncrementalSubsources:
         )
         assert isinstance(c, IncrementalSourceConnector)
 
-    async def test_list_subsources_single_repo_uses_rest(
-        self, rsa_pem: str
-    ) -> None:
+    async def test_list_subsources_single_repo_uses_rest(self, rsa_pem: str) -> None:
         def repo_meta(_: httpx.Request) -> httpx.Response:
             return httpx.Response(
                 200,
@@ -996,11 +1064,15 @@ class TestIncrementalSubsources:
         def commit_for_branch(_: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json={"sha": "0" * 40})
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/commits/trunk", commit_for_branch),
-            ("/repos/acme/widgets", repo_meta),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/commits/trunk", commit_for_branch),
+                    ("/repos/acme/widgets", repo_meta),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(repo="acme/widgets"),
             credential=make_credential(rsa_pem),
@@ -1014,9 +1086,7 @@ class TestIncrementalSubsources:
         finally:
             await c.close()
 
-    async def test_list_subsources_org_uses_graphql_oid(
-        self, rsa_pem: str
-    ) -> None:
+    async def test_list_subsources_org_uses_graphql_oid(self, rsa_pem: str) -> None:
         # GraphQL `_ORG_REPOS_QUERY` now includes
         # `defaultBranchRef.target.oid`. We assert the connector
         # extracts it without an extra REST round-trip.
@@ -1057,10 +1127,14 @@ class TestIncrementalSubsources:
                 },
             )
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/graphql", graphql),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/graphql", graphql),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(org="acme"),
             credential=make_credential(rsa_pem),
@@ -1076,9 +1150,7 @@ class TestIncrementalSubsources:
         finally:
             await c.close()
 
-    async def test_list_subsources_archived_filter(
-        self, rsa_pem: str
-    ) -> None:
+    async def test_list_subsources_archived_filter(self, rsa_pem: str) -> None:
         def graphql(_: httpx.Request) -> httpx.Response:
             return httpx.Response(
                 200,
@@ -1116,10 +1188,14 @@ class TestIncrementalSubsources:
                 },
             )
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/graphql", graphql),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/graphql", graphql),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(org="acme", include_archived=False),
             credential=make_credential(rsa_pem),
@@ -1163,10 +1239,14 @@ class TestIncrementalSubsources:
                 },
             )
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/graphql", graphql),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/graphql", graphql),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(org="acme"),
             credential=make_credential(rsa_pem),
@@ -1227,11 +1307,15 @@ class TestIncrementalSubsources:
             tree_calls.append(str(request.url))
             return httpx.Response(200, json={"tree": []})
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/graphql", graphql),
-            ("/git/trees/HEAD", trees),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/graphql", graphql),
+                    ("/git/trees/HEAD", trees),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(org="acme"),
             credential=make_credential(rsa_pem),
@@ -1247,9 +1331,7 @@ class TestIncrementalSubsources:
         finally:
             await c.close()
 
-    async def test_discover_refs_carry_subsource_metadata(
-        self, rsa_pem: str
-    ) -> None:
+    async def test_discover_refs_carry_subsource_metadata(self, rsa_pem: str) -> None:
         def trees(_: httpx.Request) -> httpx.Response:
             return httpx.Response(
                 200,
@@ -1260,10 +1342,14 @@ class TestIncrementalSubsources:
                 },
             )
 
-        transport = httpx.MockTransport(make_handler([
-            ("/access_tokens", lambda _: _access_token_response()),
-            ("/git/trees/HEAD", trees),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/access_tokens", lambda _: _access_token_response()),
+                    ("/git/trees/HEAD", trees),
+                ]
+            )
+        )
         c = GithubAppConnector(
             GithubAppConfig(repo="acme/widgets"),
             credential=make_credential(rsa_pem),

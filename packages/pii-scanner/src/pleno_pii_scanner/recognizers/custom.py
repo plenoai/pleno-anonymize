@@ -79,9 +79,7 @@ def load_custom_recognizers(
         with p.open("rb") as f:
             raw = tomllib.load(f)
     except tomllib.TOMLDecodeError as exc:
-        raise CustomRecognizerLoadError(
-            f"could not parse {p} as TOML: {exc}"
-        ) from exc
+        raise CustomRecognizerLoadError(f"could not parse {p} as TOML: {exc}") from exc
     except OSError as exc:
         raise CustomRecognizerLoadError(f"could not read {p}: {exc}") from exc
 
@@ -109,8 +107,7 @@ def load_custom_recognizers(
     for idx, item in enumerate(recognizers_raw):
         if not isinstance(item, dict):
             raise CustomRecognizerSchemaError(
-                f"{p}: recognizer[{idx}] must be a table, "
-                f"got {type(item).__name__}"
+                f"{p}: recognizer[{idx}] must be a table, got {type(item).__name__}"
             )
         recognizer, verifier = _parse_recognizer(p, idx, item)
         if recognizer.entity in seen_entities:
@@ -183,9 +180,7 @@ def _parse_recognizer(
     )
 
 
-def _parse_patterns(
-    p: Path, idx: int, raw: Iterable[Any]
-) -> tuple[PiiPattern, ...]:
+def _parse_patterns(p: Path, idx: int, raw: Iterable[Any]) -> tuple[PiiPattern, ...]:
     if not isinstance(raw, list) or not raw:
         raise CustomRecognizerSchemaError(
             f"{p}: recognizer[{idx}].patterns must be a non-empty array"
@@ -207,8 +202,7 @@ def _parse_patterns(
         extra = keys - _ALLOWED_PATTERN_KEYS
         if extra:
             raise CustomRecognizerSchemaError(
-                f"{p}: recognizer[{idx}].patterns[{pidx}] unknown keys: "
-                f"{sorted(extra)}"
+                f"{p}: recognizer[{idx}].patterns[{pidx}] unknown keys: {sorted(extra)}"
             )
         name = item["name"]
         regex_str = item["regex"]
@@ -248,9 +242,7 @@ def _parse_patterns(
     return tuple(patterns)
 
 
-def _parse_verifier(
-    p: Path, idx: int, raw: Any
-) -> Verifier:
+def _parse_verifier(p: Path, idx: int, raw: Any) -> Verifier:
     if not isinstance(raw, dict):
         raise CustomRecognizerSchemaError(
             f"{p}: recognizer[{idx}].verifier must be a table"

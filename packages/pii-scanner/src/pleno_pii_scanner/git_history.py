@@ -53,7 +53,13 @@ def iter_history(
     if max_commits is not None:
         cmd.insert(4, f"-n{max_commits}")
 
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, errors="replace")
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        text=True,
+        errors="replace",
+    )
     assert proc.stdout is not None
 
     commit: CommitMeta | None = None

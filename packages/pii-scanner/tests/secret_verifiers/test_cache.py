@@ -8,7 +8,9 @@ from pleno_pii_scanner.secret_verifiers.base import VerificationResult
 from pleno_pii_scanner.secret_verifiers.cache import VerificationCache
 
 
-def _result(*, ttl: int = 3600, state: str = "live", at: datetime | None = None) -> VerificationResult:
+def _result(
+    *, ttl: int = 3600, state: str = "live", at: datetime | None = None
+) -> VerificationResult:
     return VerificationResult(
         state=state,  # type: ignore[arg-type]
         detail="",

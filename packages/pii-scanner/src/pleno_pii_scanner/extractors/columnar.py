@@ -75,9 +75,7 @@ class AvroExtractor:
         try:
             import fastavro
         except ImportError as exc:
-            raise ExtractorError(
-                "AvroExtractor requires the [columnar] extra"
-            ) from exc
+            raise ExtractorError("AvroExtractor requires the [columnar] extra") from exc
         self._fastavro = fastavro
 
     async def extract(

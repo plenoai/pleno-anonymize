@@ -143,14 +143,10 @@ class SqliteCheckpointStore:
             await self._conn.executemany(_UPSERT_CP, [_cp_row(cp) for cp in cps])
             await self._conn.commit()
 
-    async def load(
-        self, scan_id: str, source_id: str
-    ) -> Checkpoint | None:
+    async def load(self, scan_id: str, source_id: str) -> Checkpoint | None:
         async with self._lock:
             self._raise_if_closed()
-            cur = await self._conn.execute(
-                _SELECT_CP, (scan_id, source_id)
-            )
+            cur = await self._conn.execute(_SELECT_CP, (scan_id, source_id))
             try:
                 row = await cur.fetchone()
             finally:
@@ -159,9 +155,7 @@ class SqliteCheckpointStore:
             return None
         return _row_to_cp(row)
 
-    async def list_for_scan(
-        self, scan_id: str
-    ) -> AsyncIterator[Checkpoint]:
+    async def list_for_scan(self, scan_id: str) -> AsyncIterator[Checkpoint]:
         async with self._lock:
             self._raise_if_closed()
             cur = await self._conn.execute(_SELECT_BY_SCAN, (scan_id,))
@@ -180,8 +174,7 @@ class SqliteCheckpointStore:
                 (scan_id, source_id),
             )
             await self._conn.execute(
-                "DELETE FROM scan_findings_shard "
-                "WHERE scan_id=? AND source_id=?",
+                "DELETE FROM scan_findings_shard WHERE scan_id=? AND source_id=?",
                 (scan_id, source_id),
             )
             await self._conn.commit()
@@ -207,14 +200,10 @@ class SqliteCheckpointStore:
             )
             await self._conn.commit()
 
-    async def list_shards(
-        self, scan_id: str, source_id: str
-    ) -> list[ShardRecord]:
+    async def list_shards(self, scan_id: str, source_id: str) -> list[ShardRecord]:
         async with self._lock:
             self._raise_if_closed()
-            cur = await self._conn.execute(
-                _SELECT_SHARDS, (scan_id, source_id)
-            )
+            cur = await self._conn.execute(_SELECT_SHARDS, (scan_id, source_id))
             try:
                 rows = await cur.fetchall()
             finally:

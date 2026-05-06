@@ -36,7 +36,6 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
-import httpx
 
 from pleno_pii_scanner.credentials.broker import Credential
 from pleno_pii_scanner.sources.base import (
@@ -336,11 +335,11 @@ class CiLogsConnector:
                 native_url=str(entry.get("html_url"))
                 if entry.get("html_url")
                 else None,
-                parent_chain=(f"github_actions://{self._config.owner}/{self._config.repo}",),
+                parent_chain=(
+                    f"github_actions://{self._config.owner}/{self._config.repo}",
+                ),
                 content_type="application/zip",
-                etag=str(entry.get("head_sha"))
-                if entry.get("head_sha")
-                else None,
+                etag=str(entry.get("head_sha")) if entry.get("head_sha") else None,
                 last_modified=created_at,
                 metadata={
                     "flavor": "github_actions",
@@ -390,9 +389,7 @@ class CiLogsConnector:
                 source_id=self.id,
                 source_kind=self.kind,
                 path=f"{self._config.owner}/{self._config.repo}/jobs/{job_number}",
-                native_url=str(entry.get("web_url"))
-                if entry.get("web_url")
-                else None,
+                native_url=str(entry.get("web_url")) if entry.get("web_url") else None,
                 parent_chain=(f"circleci://{self._config.owner}/{self._config.repo}",),
                 content_type="text/plain",
                 last_modified=started_at,
@@ -459,11 +456,7 @@ class CiLogsConnector:
                     ),
                     native_url=str(job.get("web_url"))
                     if job.get("web_url")
-                    else (
-                        str(entry.get("web_url"))
-                        if entry.get("web_url")
-                        else None
-                    ),
+                    else (str(entry.get("web_url")) if entry.get("web_url") else None),
                     parent_chain=(
                         f"buildkite://{self._config.org}/{self._config.pipeline}",
                     ),
@@ -491,9 +484,7 @@ class CiLogsConnector:
         # `lastBuild=null` is the documented "no builds yet" response;
         # we filter that downstream.
         params = {
-            "tree": (
-                "jobs[name,builds[number,url,timestamp,result]]"
-            ),
+            "tree": ("jobs[name,builds[number,url,timestamp,result]]"),
         }
         response = await self._api.get("/api/json", params=params)
         if response.status_code != 200:
@@ -523,7 +514,11 @@ class CiLogsConnector:
                     if isinstance(ts, (int, float))
                     else None
                 )
-                if since is not None and last_modified is not None and last_modified < since:
+                if (
+                    since is not None
+                    and last_modified is not None
+                    and last_modified < since
+                ):
                     # Jenkins returns newest-first; stop early.
                     return
                 result = str(build.get("result") or "")
@@ -584,9 +579,7 @@ class CiLogsConnector:
         else:
             return
 
-    async def _fetch_github_actions(
-        self, ref: DocumentRef
-    ) -> AsyncIterator[Document]:
+    async def _fetch_github_actions(self, ref: DocumentRef) -> AsyncIterator[Document]:
         owner = ref.metadata.get("owner")
         repo = ref.metadata.get("repo")
         run_id = ref.metadata.get("run_id")
@@ -636,9 +629,7 @@ class CiLogsConnector:
                 extra={"member": info.filename},
             )
 
-    async def _fetch_circleci(
-        self, ref: DocumentRef
-    ) -> AsyncIterator[Document]:
+    async def _fetch_circleci(self, ref: DocumentRef) -> AsyncIterator[Document]:
         owner = ref.metadata.get("owner")
         repo = ref.metadata.get("repo")
         vcs = ref.metadata.get("vcs_type") or "gh"
@@ -667,9 +658,7 @@ class CiLogsConnector:
             fetched_at=datetime.now(UTC),
         )
 
-    async def _fetch_buildkite(
-        self, ref: DocumentRef
-    ) -> AsyncIterator[Document]:
+    async def _fetch_buildkite(self, ref: DocumentRef) -> AsyncIterator[Document]:
         org = ref.metadata.get("org")
         pipeline = ref.metadata.get("pipeline")
         build_number = ref.metadata.get("build_number")
@@ -699,9 +688,7 @@ class CiLogsConnector:
             fetched_at=datetime.now(UTC),
         )
 
-    async def _fetch_jenkins(
-        self, ref: DocumentRef
-    ) -> AsyncIterator[Document]:
+    async def _fetch_jenkins(self, ref: DocumentRef) -> AsyncIterator[Document]:
         build_url = ref.metadata.get("build_url")
         if not build_url:
             return
@@ -745,7 +732,12 @@ def _build_auth(flavor: Flavor, credential: Credential) -> AuthMode:
     if flavor == "jenkins":
         username = payload.get("username")
         password = payload.get("password") or payload.get("api_token")
-        if isinstance(username, str) and isinstance(password, str) and username and password:
+        if (
+            isinstance(username, str)
+            and isinstance(password, str)
+            and username
+            and password
+        ):
             return BasicAuth(username=username, password=password)
         raise ValueError(
             "ci_logs[jenkins] credential.payload requires "
@@ -754,8 +746,7 @@ def _build_auth(flavor: Flavor, credential: Credential) -> AuthMode:
     token = payload.get("token") or payload.get("access_token")
     if not isinstance(token, str) or not token:
         raise ValueError(
-            f"ci_logs[{flavor}] credential.payload requires `token` "
-            f"(or `access_token`)"
+            f"ci_logs[{flavor}] credential.payload requires `token` (or `access_token`)"
         )
     if flavor == "circleci":
         return CircleTokenAuth(token=token)
@@ -885,21 +876,15 @@ def _factory(config: Mapping[str, Any]) -> SourceConnector:
             vcs_type=str(config.get("vcs_type", "gh")),
             org=str(config["org"]) if config.get("org") is not None else None,
             pipeline=(
-                str(config["pipeline"])
-                if config.get("pipeline") is not None
-                else None
+                str(config["pipeline"]) if config.get("pipeline") is not None else None
             ),
             base_url=(
-                str(config["base_url"])
-                if config.get("base_url") is not None
-                else None
+                str(config["base_url"]) if config.get("base_url") is not None else None
             ),
             since=since,
             max_builds=int(config.get("max_builds", DEFAULT_MAX_BUILDS)),
             failed_only=bool(config.get("failed_only", False)),
-            max_log_bytes=int(
-                config.get("max_log_bytes", DEFAULT_MAX_LOG_BYTES)
-            ),
+            max_log_bytes=int(config.get("max_log_bytes", DEFAULT_MAX_LOG_BYTES)),
             id=str(config["id"]) if config.get("id") is not None else None,
         ),
         credential=cred_obj,

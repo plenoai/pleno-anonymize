@@ -77,15 +77,11 @@ class TestConfig:
 
     def test_rejects_oversized_sample(self) -> None:
         with pytest.raises(ValueError, match="sample_percent"):
-            BigQueryConfig(
-                project="p", federated_token="t", sample_percent=200
-            )
+            BigQueryConfig(project="p", federated_token="t", sample_percent=200)
 
     def test_rejects_zero_max_bytes(self) -> None:
         with pytest.raises(ValueError, match="max_bytes_billed"):
-            BigQueryConfig(
-                project="p", federated_token="t", max_bytes_billed=0
-            )
+            BigQueryConfig(project="p", federated_token="t", max_bytes_billed=0)
 
     def test_rejects_zero_page_size(self) -> None:
         with pytest.raises(ValueError, match="page_size"):
@@ -106,12 +102,8 @@ class TestConfig:
         assert rid.startswith("bigquery:")
 
     def test_default_id_dataset_order_independent(self) -> None:
-        a = BigQueryConfig(
-            project="p", federated_token="t", datasets=("a", "b")
-        )
-        b = BigQueryConfig(
-            project="p", federated_token="t", datasets=("b", "a")
-        )
+        a = BigQueryConfig(project="p", federated_token="t", datasets=("a", "b"))
+        b = BigQueryConfig(project="p", federated_token="t", datasets=("b", "a"))
         assert a.resolved_id() == b.resolved_id()
 
 
@@ -120,15 +112,11 @@ class TestConfig:
 
 class TestProtocol:
     def test_runtime_isinstance(self) -> None:
-        c = BigQueryConnector(
-            BigQueryConfig(project="p", federated_token="t")
-        )
+        c = BigQueryConnector(BigQueryConfig(project="p", federated_token="t"))
         assert isinstance(c, SourceConnector)
 
     def test_capabilities(self) -> None:
-        c = BigQueryConnector(
-            BigQueryConfig(project="p", federated_token="t")
-        )
+        c = BigQueryConnector(BigQueryConfig(project="p", federated_token="t"))
         assert c.capabilities() == Capabilities(
             incremental=False,
             binary=False,
@@ -201,9 +189,7 @@ class TestTokenAcquisition:
     async def test_service_account_token_endpoint_missing_token(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.setattr(
-            _conn_mod, "_sign_sa_jwt", lambda *_a, **_kw: "fake.jwt"
-        )
+        monkeypatch.setattr(_conn_mod, "_sign_sa_jwt", lambda *_a, **_kw: "fake.jwt")
 
         def handler(request: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json={})  # no access_token field
@@ -361,11 +347,7 @@ class TestDiscoverDatasets:
                 if "pageToken=tnext" in url:
                     return httpx.Response(
                         200,
-                        json={
-                            "tables": [
-                                {"tableReference": {"tableId": "t2"}}
-                            ]
-                        },
+                        json={"tables": [{"tableReference": {"tableId": "t2"}}]},
                     )
                 return httpx.Response(
                     200,
@@ -425,9 +407,7 @@ class TestDiscoverDatasets:
 class TestTableSampleClause:
     def test_omitted_at_100_percent(self) -> None:
         c = BigQueryConnector(
-            BigQueryConfig(
-                project="p", federated_token="t", sample_percent=100.0
-            )
+            BigQueryConfig(project="p", federated_token="t", sample_percent=100.0)
         )
         sql = c._build_sql("d", "t")
         assert "TABLESAMPLE" not in sql
@@ -435,9 +415,7 @@ class TestTableSampleClause:
 
     def test_included_below_100(self) -> None:
         c = BigQueryConnector(
-            BigQueryConfig(
-                project="p", federated_token="t", sample_percent=5.0
-            )
+            BigQueryConfig(project="p", federated_token="t", sample_percent=5.0)
         )
         sql = c._build_sql("d", "t")
         assert "TABLESAMPLE SYSTEM (5.0 PERCENT)" in sql
@@ -453,26 +431,16 @@ class TestDryRunCostCap:
             if url.endswith("/datasets"):
                 return httpx.Response(
                     200,
-                    json={
-                        "datasets": [
-                            {"datasetReference": {"datasetId": "d1"}}
-                        ]
-                    },
+                    json={"datasets": [{"datasetReference": {"datasetId": "d1"}}]},
                 )
             if url.endswith("/datasets/d1/tables"):
                 return httpx.Response(
                     200,
-                    json={
-                        "tables": [
-                            {"tableReference": {"tableId": "huge"}}
-                        ]
-                    },
+                    json={"tables": [{"tableReference": {"tableId": "huge"}}]},
                 )
             if "dryRun=true" in url:
                 # 10 GB estimate vs 1 KB cap.
-                return httpx.Response(
-                    200, json=_dry_run_response(10 * 1024**3)
-                )
+                return httpx.Response(200, json=_dry_run_response(10 * 1024**3))
             return httpx.Response(404)
 
         async with _client(handler) as client:
@@ -501,18 +469,12 @@ class TestDryRunCostCap:
             if url.endswith("/datasets"):
                 return httpx.Response(
                     200,
-                    json={
-                        "datasets": [
-                            {"datasetReference": {"datasetId": "d1"}}
-                        ]
-                    },
+                    json={"datasets": [{"datasetReference": {"datasetId": "d1"}}]},
                 )
             if url.endswith("/datasets/d1/tables"):
                 return httpx.Response(
                     200,
-                    json={
-                        "tables": [{"tableReference": {"tableId": "t1"}}]
-                    },
+                    json={"tables": [{"tableReference": {"tableId": "t1"}}]},
                 )
             if "dryRun=true" in url:
                 # Garbage value → falls through to 0, well under cap.
@@ -548,20 +510,12 @@ class TestPagination:
             if url.endswith("/datasets"):
                 return httpx.Response(
                     200,
-                    json={
-                        "datasets": [
-                            {"datasetReference": {"datasetId": "d1"}}
-                        ]
-                    },
+                    json={"datasets": [{"datasetReference": {"datasetId": "d1"}}]},
                 )
             if url.endswith("/datasets/d1/tables"):
                 return httpx.Response(
                     200,
-                    json={
-                        "tables": [
-                            {"tableReference": {"tableId": "t1"}}
-                        ]
-                    },
+                    json={"tables": [{"tableReference": {"tableId": "t1"}}]},
                 )
             if "dryRun=true" in url:
                 return httpx.Response(200, json=_dry_run_response(1))
@@ -625,20 +579,12 @@ class TestPagination:
             if url.endswith("/datasets"):
                 return httpx.Response(
                     200,
-                    json={
-                        "datasets": [
-                            {"datasetReference": {"datasetId": "d1"}}
-                        ]
-                    },
+                    json={"datasets": [{"datasetReference": {"datasetId": "d1"}}]},
                 )
             if url.endswith("/datasets/d1/tables"):
                 return httpx.Response(
                     200,
-                    json={
-                        "tables": [
-                            {"tableReference": {"tableId": "t1"}}
-                        ]
-                    },
+                    json={"tables": [{"tableReference": {"tableId": "t1"}}]},
                 )
             if "dryRun=true" in url:
                 return httpx.Response(200, json=_dry_run_response(1))
@@ -678,20 +624,12 @@ class TestFetchDocument:
             if url.endswith("/datasets"):
                 return httpx.Response(
                     200,
-                    json={
-                        "datasets": [
-                            {"datasetReference": {"datasetId": "d1"}}
-                        ]
-                    },
+                    json={"datasets": [{"datasetReference": {"datasetId": "d1"}}]},
                 )
             if url.endswith("/datasets/d1/tables"):
                 return httpx.Response(
                     200,
-                    json={
-                        "tables": [
-                            {"tableReference": {"tableId": "users"}}
-                        ]
-                    },
+                    json={"tables": [{"tableReference": {"tableId": "users"}}]},
                 )
             if "dryRun=true" in url:
                 return httpx.Response(200, json=_dry_run_response(1))
@@ -755,13 +693,12 @@ class TestFetchDocument:
         from pleno_pii_scanner_bigquery.connector import _project_row
 
         # Non-mapping cell falls back to None.
-        assert _project_row(
-            {"f": [{"v": "x"}, "garbage"]}, ["a", "b"]
-        ) == {"a": "x", "b": None}
+        assert _project_row({"f": [{"v": "x"}, "garbage"]}, ["a", "b"]) == {
+            "a": "x",
+            "b": None,
+        }
         # Cell list longer than schema is truncated.
-        assert _project_row(
-            {"f": [{"v": 1}, {"v": 2}]}, ["a"]
-        ) == {"a": 1}
+        assert _project_row({"f": [{"v": 1}, {"v": 2}]}, ["a"]) == {"a": 1}
         # Missing 'f' returns empty dict.
         assert _project_row({"x": 1}, ["a"]) == {}
         # Non-mapping row returns empty dict.
@@ -778,11 +715,7 @@ class TestFilter:
             if url.endswith("/datasets"):
                 return httpx.Response(
                     200,
-                    json={
-                        "datasets": [
-                            {"datasetReference": {"datasetId": "d1"}}
-                        ]
-                    },
+                    json={"datasets": [{"datasetReference": {"datasetId": "d1"}}]},
                 )
             if url.endswith("/datasets/d1/tables"):
                 return httpx.Response(
@@ -820,9 +753,7 @@ class TestFilter:
                     )
                 ]
                 assert all(r.path.startswith("d1/users/") for r in refs)
-                assert all(
-                    r.metadata["bq_table"] == "users" for r in refs
-                )
+                assert all(r.metadata["bq_table"] == "users" for r in refs)
             finally:
                 await c.close()
 
@@ -893,9 +824,7 @@ class TestSpec:
 
 class TestClose:
     async def test_close_owns_client(self) -> None:
-        c = BigQueryConnector(
-            BigQueryConfig(project="p", federated_token="t")
-        )
+        c = BigQueryConnector(BigQueryConfig(project="p", federated_token="t"))
         await c.close()
 
     async def test_close_external_client_not_closed(self) -> None:

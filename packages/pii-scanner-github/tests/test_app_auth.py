@@ -54,9 +54,7 @@ class TestMintAppJwt:
             rsa_pem.encode(), password=None
         ).public_key()
         # No exception => signature valid.
-        public_key.verify(
-            signature, signing_input, padding.PKCS1v15(), hashes.SHA256()
-        )
+        public_key.verify(signature, signing_input, padding.PKCS1v15(), hashes.SHA256())
 
     def test_uses_default_clock_when_now_omitted(self, rsa_pem: str) -> None:
         # Just smoke — mint_app_jwt(now=None) must not crash.
@@ -64,9 +62,7 @@ class TestMintAppJwt:
         assert token.count(".") == 2
 
     def test_accepts_bytes_pem(self, rsa_pem: str) -> None:
-        token = mint_app_jwt(
-            app_id="1", private_key_pem=rsa_pem.encode(), now=1000.0
-        )
+        token = mint_app_jwt(app_id="1", private_key_pem=rsa_pem.encode(), now=1000.0)
         assert token.count(".") == 2
 
     def test_rejects_non_rsa_key(self) -> None:
@@ -99,9 +95,7 @@ class TestParseExpiry:
         assert ts == 1704067200.0
 
     def test_iso_8601_with_offset(self) -> None:
-        ts = _parse_expiry(
-            {"expires_at": "2024-01-01T00:00:00+00:00"}, now=0.0
-        )
+        ts = _parse_expiry({"expires_at": "2024-01-01T00:00:00+00:00"}, now=0.0)
         assert ts == 1704067200.0
 
     def test_relative_expires_in_fallback(self) -> None:
@@ -238,9 +232,7 @@ class TestAppAuthCache:
         finally:
             await api.aclose()
 
-    async def test_failure_response_raises_permission_error(
-        self, rsa_pem: str
-    ) -> None:
+    async def test_failure_response_raises_permission_error(self, rsa_pem: str) -> None:
         def handler(_: httpx.Request) -> httpx.Response:
             return httpx.Response(404, text="installation not found")
 
@@ -258,9 +250,7 @@ class TestAppAuthCache:
         finally:
             await api.aclose()
 
-    async def test_concurrent_first_call_only_mints_once(
-        self, rsa_pem: str
-    ) -> None:
+    async def test_concurrent_first_call_only_mints_once(self, rsa_pem: str) -> None:
         # Two coroutines race past the unlocked check at the same time.
         # The asyncio.Lock + double-checked re-read of `self._cached`
         # must collapse them onto a single mint. We assert by counting
@@ -300,9 +290,7 @@ class TestAppAuthCache:
         finally:
             await api.aclose()
 
-    async def test_install_token_seam_pre_seeds_cache(
-        self, rsa_pem: str
-    ) -> None:
+    async def test_install_token_seam_pre_seeds_cache(self, rsa_pem: str) -> None:
         # If the cache is pre-populated with a still-valid token, no
         # network call should happen at all.
         def handler(_: httpx.Request) -> httpx.Response:

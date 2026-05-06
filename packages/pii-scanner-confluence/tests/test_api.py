@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 
 import httpx
 import pytest
@@ -15,7 +14,7 @@ from pleno_pii_scanner_confluence.api import (
     ConfluenceApiError,
 )
 
-from .conftest import json_response, make_handler, queued
+from .conftest import json_response
 
 
 # Cloud + DC base URLs we use across the suite. Cloud is a fake
@@ -445,9 +444,7 @@ class TestAbsolutePassThrough:
         )
         try:
             await api.get("https://api.atlassian.com/ex/confluence/CID/pages")
-            assert seen_urls == [
-                "https://api.atlassian.com/ex/confluence/CID/pages"
-            ]
+            assert seen_urls == ["https://api.atlassian.com/ex/confluence/CID/pages"]
         finally:
             await api.aclose()
 

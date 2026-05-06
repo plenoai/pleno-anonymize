@@ -140,9 +140,7 @@ def _latin_ratio(chunk: str) -> float:
     return latin / len(chunk)
 
 
-def _spans_overlap(
-    a_start: int, a_end: int, b_start: int, b_end: int
-) -> bool:
+def _spans_overlap(a_start: int, a_end: int, b_start: int, b_end: int) -> bool:
     return a_start < b_end and b_start < a_end
 
 
@@ -181,8 +179,10 @@ def scan_text(
     en_secondary_enabled = (
         language == "ja"
         and "en" in getattr(analyzer, "supported_languages", [])
-        and (entity_filter is None
-             or any(e in _EN_SECONDARY_ENTITIES for e in entity_filter))
+        and (
+            entity_filter is None
+            or any(e in _EN_SECONDARY_ENTITIES for e in entity_filter)
+        )
     )
     en_entity_filter = (
         [e for e in entity_filter if e in _EN_SECONDARY_ENTITIES]
@@ -200,7 +200,11 @@ def scan_text(
         # Japanese-mixed text. Run the English NER on chunks whose Latin
         # ratio crosses the threshold and merge non-overlapping PERSON
         # detections. Scoped to PERSON to keep precision losses bounded.
-        if en_secondary_enabled and en_entity_filter and _latin_ratio(chunk) >= _LATIN_PASS_THRESHOLD:
+        if (
+            en_secondary_enabled
+            and en_entity_filter
+            and _latin_ratio(chunk) >= _LATIN_PASS_THRESHOLD
+        ):
             try:
                 en_results = analyzer.analyze(
                     text=chunk,
@@ -270,7 +274,5 @@ def scan_files(
     for rel, _ in files:
         rel_str = rel.as_posix()
         text = file_text.get(rel_str, "")
-        findings.extend(
-            scan_text(text, rel_str, language=language, entities=entities)
-        )
+        findings.extend(scan_text(text, rel_str, language=language, entities=entities))
     return findings

@@ -248,9 +248,7 @@ class ScheduleRegistry:
             delay = self._jitter_fn(0.0, float(sched.jitter_seconds))
             await asyncio.sleep(delay)
 
-    async def _invoke_run(
-        self, sched: Schedule
-    ) -> tuple[ScheduleOutcome, str | None]:
+    async def _invoke_run(self, sched: Schedule) -> tuple[ScheduleOutcome, str | None]:
         try:
             outcome = await self._run_fn(sched)
             return outcome, None

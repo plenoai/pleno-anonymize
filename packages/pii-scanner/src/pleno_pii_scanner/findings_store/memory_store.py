@@ -183,9 +183,7 @@ class MemoryFindingsStore:
             self._raise_if_closed()
             return self._records.get(finding_id)
 
-    async def reveal_value(
-        self, finding_id: str, *, audit_principal: str
-    ) -> str:
+    async def reveal_value(self, finding_id: str, *, audit_principal: str) -> str:
         async with self._lock:
             self._raise_if_closed()
             payload = self._payloads.get(finding_id)
@@ -199,9 +197,7 @@ class MemoryFindingsStore:
             raise EncryptionError("decrypted payload missing 'matched' string")
         return matched
 
-    async def _emit_audit(
-        self, finding_id: str, audit_principal: str
-    ) -> None:
+    async def _emit_audit(self, finding_id: str, audit_principal: str) -> None:
         if self._audit_hook is None:
             return
         result = self._audit_hook(finding_id, audit_principal)

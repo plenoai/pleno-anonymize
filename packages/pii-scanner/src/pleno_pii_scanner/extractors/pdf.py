@@ -42,9 +42,7 @@ class PdfExtractor:
     ) -> AsyncIterator[ExtractedFragment]:
         payload = doc_payload(doc)
         if isinstance(payload, str):
-            raise ExtractorError(
-                "PdfExtractor requires binary payload, got text"
-            )
+            raise ExtractorError("PdfExtractor requires binary payload, got text")
         pdf = self._pdfium.PdfDocument(payload)
         try:
             for page_idx in range(len(pdf)):

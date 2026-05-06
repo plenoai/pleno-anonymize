@@ -164,6 +164,7 @@ class TestNextAfter:
 
     def test_non_utc_input_normalised(self) -> None:
         from datetime import timezone
+
         c = CronExpression.parse("@hourly")
         jst = timezone(timedelta(hours=9))
         # 21:30 JST = 12:30 UTC; next hourly = 13:00 UTC.

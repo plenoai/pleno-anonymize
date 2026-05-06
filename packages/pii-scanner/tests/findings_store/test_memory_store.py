@@ -53,9 +53,7 @@ class TestSaveAndQuery:
 
     @pytest.mark.asyncio
     async def test_query_filters(self, kek: InMemoryKekProvider) -> None:
-        async with MemoryFindingsStore(
-            kek=kek, source_kind="dir"
-        ) as store:
+        async with MemoryFindingsStore(kek=kek, source_kind="dir") as store:
             await store.save_findings(
                 "scan-1",
                 "src-a",
@@ -114,9 +112,7 @@ class TestSaveAndQuery:
 
 class TestRevealValueAudit:
     @pytest.mark.asyncio
-    async def test_reveal_round_trip(
-        self, kek: InMemoryKekProvider
-    ) -> None:
+    async def test_reveal_round_trip(self, kek: InMemoryKekProvider) -> None:
         spy: list[tuple[str, str]] = []
 
         def hook(fid: str, who: str) -> None:
@@ -148,9 +144,7 @@ class TestRevealValueAudit:
             )
             assert ref.finding_count == 1
             recs = await store.query(scan_id="scan-1")
-            await store.reveal_value(
-                recs[0].finding_id, audit_principal="bob@ops"
-            )
+            await store.reveal_value(recs[0].finding_id, audit_principal="bob@ops")
             assert spy == ["bob@ops"]
 
     @pytest.mark.asyncio
@@ -175,9 +169,7 @@ class TestRevealValueAudit:
             )
             recs = await store.query()
             assert ref.finding_count == 1
-            value = await store.reveal_value(
-                recs[0].finding_id, audit_principal="ops"
-            )
+            value = await store.reveal_value(recs[0].finding_id, audit_principal="ops")
             assert value == "y@z"
 
 
@@ -208,9 +200,7 @@ class TestSecretHygiene:
         assert "sneaky-pw-321" not in caplog.text
 
     @pytest.mark.asyncio
-    async def test_exception_message_no_raw(
-        self, kek: InMemoryKekProvider
-    ) -> None:
+    async def test_exception_message_no_raw(self, kek: InMemoryKekProvider) -> None:
         async with MemoryFindingsStore(kek=kek) as store:
             await store.save_findings(
                 "scan-1", "src-a", [_finding(matched="trace-leak-999")]
@@ -224,9 +214,7 @@ class TestSecretHygiene:
 
 class TestLifecycle:
     @pytest.mark.asyncio
-    async def test_use_after_close_raises(
-        self, kek: InMemoryKekProvider
-    ) -> None:
+    async def test_use_after_close_raises(self, kek: InMemoryKekProvider) -> None:
         store = MemoryFindingsStore(kek=kek)
         await store.close()
         with pytest.raises(RuntimeError, match="closed"):
@@ -239,9 +227,7 @@ class TestLifecycle:
             await store.reveal_value("x", audit_principal="ops")
 
     @pytest.mark.asyncio
-    async def test_close_idempotent(
-        self, kek: InMemoryKekProvider
-    ) -> None:
+    async def test_close_idempotent(self, kek: InMemoryKekProvider) -> None:
         store = MemoryFindingsStore(kek=kek)
         await store.close()
         await store.close()
@@ -249,14 +235,13 @@ class TestLifecycle:
 
 class TestCustomSeverityClassifier:
     @pytest.mark.asyncio
-    async def test_classifier_overrides_default(
-        self, kek: InMemoryKekProvider
-    ) -> None:
+    async def test_classifier_overrides_default(self, kek: InMemoryKekProvider) -> None:
         def always_low(_: Finding) -> str:
             return "low"
 
         async with MemoryFindingsStore(
-            kek=kek, severity_classifier=always_low  # type: ignore[arg-type]
+            kek=kek,
+            severity_classifier=always_low,  # type: ignore[arg-type]
         ) as store:
             await store.save_findings(
                 "scan-1",
@@ -287,17 +272,13 @@ class TestCustomSeverityClassifier:
                 ],
             )
             recs = await store.query()
-            f = _finding(
-                entity="AWS_SECRET_ACCESS_KEY", verification="passed"
-            )
+            f = _finding(entity="AWS_SECRET_ACCESS_KEY", verification="passed")
             assert recs[0].severity == default_severity(f)
 
 
 class TestEmptySaves:
     @pytest.mark.asyncio
-    async def test_empty_findings_returns_zero(
-        self, kek: InMemoryKekProvider
-    ) -> None:
+    async def test_empty_findings_returns_zero(self, kek: InMemoryKekProvider) -> None:
         async with MemoryFindingsStore(kek=kek) as store:
             ref = await store.save_findings("scan-1", "src-a", [])
             assert ref.finding_count == 0
@@ -324,9 +305,7 @@ class TestDekRehydration:
 
 class TestDecryptedPayloadShape:
     @pytest.mark.asyncio
-    async def test_missing_matched_field_raises(
-        self, kek: InMemoryKekProvider
-    ) -> None:
+    async def test_missing_matched_field_raises(self, kek: InMemoryKekProvider) -> None:
         from pleno_pii_scanner.findings_store.encryption import (
             EncryptionError,
             encrypt_payload,
@@ -336,9 +315,7 @@ class TestDecryptedPayloadShape:
         try:
             dek = await store._ensure_dek()
             # Hand-craft a payload whose plaintext lacks "matched".
-            payload = encrypt_payload(
-                dek, store._tenant_id, {"snippet": "..."}
-            )
+            payload = encrypt_payload(dek, store._tenant_id, {"snippet": "..."})
             store._payloads["forged"] = payload
             from datetime import UTC, datetime
 
@@ -380,15 +357,10 @@ class TestParallelSources:
                 await store.save_findings(
                     "scan-1",
                     src,
-                    [
-                        _finding(matched=f"v-{src}-{i}")
-                        for i in range(5)
-                    ],
+                    [_finding(matched=f"v-{src}-{i}") for i in range(5)],
                 )
 
-            await asyncio.gather(
-                *(save(f"src-{i:02d}") for i in range(8))
-            )
+            await asyncio.gather(*(save(f"src-{i:02d}") for i in range(8)))
             recs = await store.query(scan_id="scan-1", limit=1000)
             ids = [r.finding_id for r in recs]
             assert len(ids) == 8 * 5

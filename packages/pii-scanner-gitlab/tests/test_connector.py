@@ -41,12 +41,14 @@ def make_handler(
     routes: list[tuple[str, Callable[[httpx.Request], httpx.Response]]],
 ) -> Callable[[httpx.Request], httpx.Response]:
     """Match-by-suffix router; first match wins; unmatched -> AssertionError."""
+
     def handler(request: httpx.Request) -> httpx.Response:
         url = str(request.url)
         for suffix, fn in routes:
             if suffix in url:
                 return fn(request)
         raise AssertionError(f"no route matches {url}")
+
     return handler
 
 
@@ -56,10 +58,12 @@ def stub_clone(
     record: list[tuple[str, str]] | None = None,
 ) -> Callable[[GitlabConnector, Mapping[str, Any]], Path]:
     """Build a clone_fn that returns `return_path` and (optionally) records calls."""
+
     def fn(connector: GitlabConnector, project: Mapping[str, Any]) -> Path:
         if record is not None:
             record.append((connector.token, str(project.get("path_with_namespace"))))
         return return_path
+
     return fn
 
 
@@ -200,9 +204,7 @@ class TestConstruction:
 
 
 class TestDiscoverSingleProject:
-    async def test_single_project_yields_clone_files(
-        self, clone_dir: Path
-    ) -> None:
+    async def test_single_project_yields_clone_files(self, clone_dir: Path) -> None:
         def project(_: httpx.Request) -> httpx.Response:
             return httpx.Response(
                 200,
@@ -215,9 +217,13 @@ class TestDiscoverSingleProject:
                 },
             )
 
-        transport = httpx.MockTransport(make_handler([
-            ("/projects/", project),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/projects/", project),
+                ]
+            )
+        )
         c = GitlabConnector(
             GitlabConfig(project="ns/repo"),
             credential=make_credential(),
@@ -244,9 +250,13 @@ class TestDiscoverSingleProject:
             await c.close()
 
     async def test_single_project_404_yields_nothing(self) -> None:
-        transport = httpx.MockTransport(make_handler([
-            ("/projects/", lambda _: httpx.Response(404)),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/projects/", lambda _: httpx.Response(404)),
+                ]
+            )
+        )
         c = GitlabConnector(
             GitlabConfig(project="ns/missing"),
             credential=make_credential(),
@@ -302,9 +312,13 @@ class TestDiscoverSingleProject:
                 },
             )
 
-        transport = httpx.MockTransport(make_handler([
-            ("/projects/", project),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/projects/", project),
+                ]
+            )
+        )
         c = GitlabConnector(
             GitlabConfig(project="ns/old", include_archived=False),
             credential=make_credential(),
@@ -330,9 +344,13 @@ class TestDiscoverSingleProject:
                 },
             )
 
-        transport = httpx.MockTransport(make_handler([
-            ("/projects/", project),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/projects/", project),
+                ]
+            )
+        )
         c = GitlabConnector(
             GitlabConfig(project="ns/old", include_archived=True),
             credential=make_credential(),
@@ -352,46 +370,46 @@ class TestDiscoverSingleProject:
 
 
 class TestDiscoverGroup:
-    async def test_paginated_group_projects_yielded(
-        self, clone_dir: Path
-    ) -> None:
+    async def test_paginated_group_projects_yielded(self, clone_dir: Path) -> None:
         # Page 1 -> Link points to page 2; page 2 -> no Link header.
         page1_url = "https://gitlab.com/api/v4/groups/acme/projects?page=2"
-        responses = iter([
-            httpx.Response(
-                200,
-                headers={"Link": f'<{page1_url}>; rel="next"'},
-                json=[
-                    {
-                        "id": 1,
-                        "path_with_namespace": "acme/r1",
-                        "default_branch": "main",
-                        "archived": False,
-                    },
-                    {
-                        # Defensive guard: API page entry not a dict — skip.
-                        "not_a_dict": True,
-                    },
-                ],
-            ),
-            httpx.Response(
-                200,
-                json=[
-                    {
-                        "id": 2,
-                        "path_with_namespace": "acme/sub/r2",
-                        "default_branch": "main",
-                        "archived": True,  # filtered out
-                    },
-                    {
-                        "id": 3,
-                        "path_with_namespace": "acme/r3",
-                        "default_branch": "main",
-                        "archived": False,
-                    },
-                ],
-            ),
-        ])
+        responses = iter(
+            [
+                httpx.Response(
+                    200,
+                    headers={"Link": f'<{page1_url}>; rel="next"'},
+                    json=[
+                        {
+                            "id": 1,
+                            "path_with_namespace": "acme/r1",
+                            "default_branch": "main",
+                            "archived": False,
+                        },
+                        {
+                            # Defensive guard: API page entry not a dict — skip.
+                            "not_a_dict": True,
+                        },
+                    ],
+                ),
+                httpx.Response(
+                    200,
+                    json=[
+                        {
+                            "id": 2,
+                            "path_with_namespace": "acme/sub/r2",
+                            "default_branch": "main",
+                            "archived": True,  # filtered out
+                        },
+                        {
+                            "id": 3,
+                            "path_with_namespace": "acme/r3",
+                            "default_branch": "main",
+                            "archived": False,
+                        },
+                    ],
+                ),
+            ]
+        )
         # The list itself contains one non-dict entry to exercise the
         # malformed-page-entry skip.
         responses_list = list(responses)
@@ -405,52 +423,59 @@ class TestDiscoverGroup:
         responses_list[0].json()  # ensure body is decoded
         # Override the middle entry by editing the underlying body in
         # the iterator — easier: mutate via fresh httpx.Response.
-        responses_iter = iter([
-            httpx.Response(
-                200,
-                headers={"Link": f'<{page1_url}>; rel="next"'},
-                json=[
-                    {
-                        "id": 1,
-                        "path_with_namespace": "acme/r1",
-                        "default_branch": "main",
-                        "archived": False,
-                    },
-                    "not-a-dict",
-                ],
-            ),
-            httpx.Response(
-                200,
-                json=[
-                    {
-                        "id": 2,
-                        "path_with_namespace": "acme/sub/r2",
-                        "default_branch": "main",
-                        "archived": True,
-                    },
-                    {
-                        "id": 3,
-                        "path_with_namespace": "acme/r3",
-                        "default_branch": "main",
-                        "archived": False,
-                    },
-                ],
-            ),
-        ])
+        responses_iter = iter(
+            [
+                httpx.Response(
+                    200,
+                    headers={"Link": f'<{page1_url}>; rel="next"'},
+                    json=[
+                        {
+                            "id": 1,
+                            "path_with_namespace": "acme/r1",
+                            "default_branch": "main",
+                            "archived": False,
+                        },
+                        "not-a-dict",
+                    ],
+                ),
+                httpx.Response(
+                    200,
+                    json=[
+                        {
+                            "id": 2,
+                            "path_with_namespace": "acme/sub/r2",
+                            "default_branch": "main",
+                            "archived": True,
+                        },
+                        {
+                            "id": 3,
+                            "path_with_namespace": "acme/r3",
+                            "default_branch": "main",
+                            "archived": False,
+                        },
+                    ],
+                ),
+            ]
+        )
         clones: dict[str, Path] = {}
 
         def clone_fn(_: GitlabConnector, project: Mapping[str, Any]) -> Path:
             # Each project must get its own clone dir to avoid the
             # double-add path. We materialise a unique tmpdir per call.
             import tempfile
+
             d = Path(tempfile.mkdtemp(prefix="pleno-glt-"))
             (d / "f.txt").write_text(f"x={project['path_with_namespace']}\n")
             clones[project["path_with_namespace"]] = d
             return d
 
-        transport = httpx.MockTransport(make_handler([
-            ("/groups/", groups),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/groups/", groups),
+                ]
+            )
+        )
         c = GitlabConnector(
             GitlabConfig(group="acme"),
             credential=make_credential(),
@@ -483,9 +508,13 @@ class TestDiscoverGroup:
                 ],
             )
 
-        transport = httpx.MockTransport(make_handler([
-            ("/groups/", groups),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/groups/", groups),
+                ]
+            )
+        )
         c = GitlabConnector(
             GitlabConfig(group="acme", visibility="private"),
             credential=make_credential(),
@@ -503,9 +532,13 @@ class TestDiscoverGroup:
             await c.close()
 
     async def test_group_404_yields_nothing(self) -> None:
-        transport = httpx.MockTransport(make_handler([
-            ("/groups/", lambda _: httpx.Response(404)),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/groups/", lambda _: httpx.Response(404)),
+                ]
+            )
+        )
         c = GitlabConnector(
             GitlabConfig(group="missing"),
             credential=make_credential(),
@@ -519,9 +552,13 @@ class TestDiscoverGroup:
     async def test_group_malformed_response_yields_nothing(self) -> None:
         # GitLab returned a JSON object instead of a list (e.g. a
         # `{"message": "no token"}` 200 from a misconfigured proxy).
-        transport = httpx.MockTransport(make_handler([
-            ("/groups/", lambda _: httpx.Response(200, json={"oops": True})),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/groups/", lambda _: httpx.Response(200, json={"oops": True})),
+                ]
+            )
+        )
         c = GitlabConnector(
             GitlabConfig(group="acme"),
             credential=make_credential(),
@@ -554,9 +591,13 @@ class TestDiscoverGroup:
                 ],
             )
 
-        transport = httpx.MockTransport(make_handler([
-            ("/groups/", groups),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/groups/", groups),
+                ]
+            )
+        )
         c = GitlabConnector(
             GitlabConfig(group="acme"),
             credential=make_credential(),
@@ -604,9 +645,13 @@ class TestCloneFailure:
                 raise subprocess.CalledProcessError(1, ["git", "clone"])
             return clone_dir
 
-        transport = httpx.MockTransport(make_handler([
-            ("/groups/", groups),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    ("/groups/", groups),
+                ]
+            )
+        )
         c = GitlabConnector(
             GitlabConfig(group="acme"),
             credential=make_credential(),
@@ -627,15 +672,15 @@ class TestCloneFailure:
 
 
 class TestEnumerateFn:
-    async def test_enumerate_fn_overrides_api_walk(
-        self, clone_dir: Path
-    ) -> None:
+    async def test_enumerate_fn_overrides_api_walk(self, clone_dir: Path) -> None:
         # The injected enumerator returns one project; the API
         # transport asserts on access — proving we never hit the wire.
         def boom(_: httpx.Request) -> httpx.Response:
             raise AssertionError("API should not be called")
 
-        async def fake_enumerate(_: GitlabConnector) -> AsyncIterator[Mapping[str, Any]]:
+        async def fake_enumerate(
+            _: GitlabConnector,
+        ) -> AsyncIterator[Mapping[str, Any]]:
             yield {
                 "id": 99,
                 "path_with_namespace": "fake/proj",
@@ -659,7 +704,9 @@ class TestEnumerateFn:
 
     async def test_enumerate_fn_skips_malformed_entry(self) -> None:
         # path_with_namespace missing: defensive `continue`.
-        async def fake_enumerate(_: GitlabConnector) -> AsyncIterator[Mapping[str, Any]]:
+        async def fake_enumerate(
+            _: GitlabConnector,
+        ) -> AsyncIterator[Mapping[str, Any]]:
             yield {"id": 1}  # no path_with_namespace
             yield {"path_with_namespace": 123}  # non-string
 
@@ -681,9 +728,7 @@ class TestEnumerateFn:
 
 
 class TestFetch:
-    async def test_returns_decoded_text_from_clone(
-        self, clone_dir: Path
-    ) -> None:
+    async def test_returns_decoded_text_from_clone(self, clone_dir: Path) -> None:
         def project(_: httpx.Request) -> httpx.Response:
             return httpx.Response(
                 200,
@@ -760,9 +805,7 @@ class TestFetch:
 
 
 class TestCloneReuse:
-    async def test_second_call_returns_cached_clone(
-        self, clone_dir: Path
-    ) -> None:
+    async def test_second_call_returns_cached_clone(self, clone_dir: Path) -> None:
         # A project that appears twice in the enumeration must only be
         # cloned once; the second discover() pass returns the cached path.
         calls = {"n": 0}
@@ -771,7 +814,9 @@ class TestCloneReuse:
             calls["n"] += 1
             return clone_dir
 
-        async def fake_enumerate(_: GitlabConnector) -> AsyncIterator[Mapping[str, Any]]:
+        async def fake_enumerate(
+            _: GitlabConnector,
+        ) -> AsyncIterator[Mapping[str, Any]]:
             yield {
                 "id": 1,
                 "path_with_namespace": "ns/dup",
@@ -799,9 +844,7 @@ class TestCloneReuse:
         finally:
             await c.close()
 
-    async def test_concurrent_clone_race_rmtrees_loser(
-        self, tmp_path: Path
-    ) -> None:
+    async def test_concurrent_clone_race_rmtrees_loser(self, tmp_path: Path) -> None:
         # Force the race window: two clones of the same project run
         # concurrently. The loser must rmtree its tempdir.
         import asyncio as _asyncio
@@ -819,6 +862,7 @@ class TestCloneReuse:
             # Block both threads on the gate so they both pass the
             # cache-miss check before either populates the dict.
             import time
+
             for _ in range(100):
                 if gate.is_set():
                     break
@@ -856,9 +900,7 @@ class TestCloneReuse:
 
 
 class TestFetchDefensive:
-    async def test_non_document_yield_skipped(
-        self, clone_dir: Path
-    ) -> None:
+    async def test_non_document_yield_skipped(self, clone_dir: Path) -> None:
         # Patch DirConnector.fetch to yield a DocumentChunk-like object
         # mid-stream; the connector must skip it without crashing.
         import pleno_pii_scanner_gitlab.connector as connector_mod
@@ -869,6 +911,7 @@ class TestFetchDefensive:
             async def fetch(self, ref):  # type: ignore[override]
                 # Yield a non-Document (DocumentChunk) and one Document.
                 from pleno_pii_scanner.sources.base import DocumentChunk
+
                 yield DocumentChunk(
                     ref=ref,
                     byte_range=(0, 1),
@@ -880,6 +923,7 @@ class TestFetchDefensive:
 
         # Inject the fake into the connector module.
         from unittest.mock import patch
+
         def project(_: httpx.Request) -> httpx.Response:
             return httpx.Response(
                 200,
@@ -917,9 +961,16 @@ class TestFetchDefensive:
 
 class TestRateLimitPropagation:
     async def test_429_during_group_walk_surfaces_rate_limited(self) -> None:
-        transport = httpx.MockTransport(make_handler([
-            ("/groups/", lambda _: httpx.Response(429, headers={"Retry-After": "5"})),
-        ]))
+        transport = httpx.MockTransport(
+            make_handler(
+                [
+                    (
+                        "/groups/",
+                        lambda _: httpx.Response(429, headers={"Retry-After": "5"}),
+                    ),
+                ]
+            )
+        )
         c = GitlabConnector(
             GitlabConfig(group="acme"),
             credential=make_credential(),
@@ -942,6 +993,7 @@ class TestClose:
         clone = tmp_path / "clone"
         clone.mkdir()
         (clone / "f.txt").write_text("x")
+
         # Single-project + injected clone_fn returning `clone`.
         def project(_: httpx.Request) -> httpx.Response:
             return httpx.Response(
@@ -1005,6 +1057,7 @@ class TestClose:
         await _drain(c.discover(SourceFilter(), None))
         # Vanish the dir behind the connector's back.
         import shutil
+
         shutil.rmtree(clone)
         # close() must not raise.
         await c.close()
@@ -1044,6 +1097,7 @@ class TestCloneIntoTempdir:
             assert path.exists()
         finally:
             import shutil
+
             shutil.rmtree(path, ignore_errors=True)
             await c.close()
 
@@ -1093,9 +1147,7 @@ class TestCABundle:
         cfg = GitlabConfig(project="ns/p", ca_bundle_path="/etc/ssl/ca.pem")
         assert cfg.ca_bundle_path == "/etc/ssl/ca.pem"
 
-    def test_ca_bundle_path_forwarded_to_api(
-        self, tmp_path: Path, monkeypatch
-    ) -> None:
+    def test_ca_bundle_path_forwarded_to_api(self, tmp_path: Path, monkeypatch) -> None:
         # Wire-test: when the connector is built with `ca_bundle_path`,
         # the GitlabApi constructor must receive `verify=<path>`.
         captured: dict[str, Any] = {}

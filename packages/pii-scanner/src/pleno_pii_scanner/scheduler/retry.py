@@ -111,7 +111,7 @@ def _compute_delay(
     attempt: int,
     rand: Callable[[float, float], float],
 ) -> float:
-    raw = cfg.initial_backoff * (cfg.base ** attempt)
+    raw = cfg.initial_backoff * (cfg.base**attempt)
     capped = min(raw, cfg.max_backoff)
     lo, hi = cfg.jitter
     return capped * rand(lo, hi)
@@ -130,9 +130,7 @@ def collect_retryable(*types: type[BaseException]) -> tuple[type[BaseException],
     return tuple(seen)
 
 
-def merge_configs(
-    base: RetryConfig, **overrides: object
-) -> RetryConfig:
+def merge_configs(base: RetryConfig, **overrides: object) -> RetryConfig:
     """Return a new RetryConfig with selected fields overridden.
 
     Used by per-connector `RetryConfig` overrides ("Slack uses 8 attempts
@@ -153,6 +151,8 @@ def merge_configs(
     return RetryConfig(**fields)  # type: ignore[arg-type]
 
 
-def retryable_sequence(seq: Sequence[type[BaseException]]) -> tuple[type[BaseException], ...]:
+def retryable_sequence(
+    seq: Sequence[type[BaseException]],
+) -> tuple[type[BaseException], ...]:
     """Materialize an iterable of exception types as a frozen tuple."""
     return tuple(seq)

@@ -83,25 +83,33 @@ class TestCredentialProfile:
 
 class TestApplyChain:
     async def test_no_chain_returns_base(self) -> None:
-        base = Credential(kind="aws-iam", payload={"access_key_id": "x", "secret_access_key": "y"})
+        base = Credential(
+            kind="aws-iam", payload={"access_key_id": "x", "secret_access_key": "y"}
+        )
         broker = CredentialBroker([StaticResolver("aws-iam", "default", base)])
         profile = CredentialProfile(name="p", base="aws-iam:default")
         got = await apply_chain(broker, profile)
         assert got is base
 
     async def test_missing_plugin_raises(self) -> None:
-        base = Credential(kind="aws-iam", payload={"access_key_id": "x", "secret_access_key": "y"})
+        base = Credential(
+            kind="aws-iam", payload={"access_key_id": "x", "secret_access_key": "y"}
+        )
         broker = CredentialBroker([StaticResolver("aws-iam", "default", base)])
         profile = CredentialProfile(
             name="p",
             base="aws-iam:default",
-            chain=(AssumeRoleHop(provider="aws", role_arn_or_id="arn:aws:iam::1:role/x"),),
+            chain=(
+                AssumeRoleHop(provider="aws", role_arn_or_id="arn:aws:iam::1:role/x"),
+            ),
         )
         with pytest.raises(NotImplementedError, match="pleno-pii-scanner-aws"):
             await apply_chain(broker, profile)
 
     async def test_plugin_invocation(self) -> None:
-        base = Credential(kind="aws-iam", payload={"access_key_id": "x", "secret_access_key": "y"})
+        base = Credential(
+            kind="aws-iam", payload={"access_key_id": "x", "secret_access_key": "y"}
+        )
         broker = CredentialBroker([StaticResolver("aws-iam", "default", base)])
         captured: list[tuple[Credential, AssumeRoleHop]] = []
 
@@ -114,7 +122,9 @@ class TestApplyChain:
             )
 
         register_hop_plugin("aws", fake_aws)
-        hop = AssumeRoleHop(provider="aws", role_arn_or_id="arn:aws:iam::1:role/x", external_id="ext")
+        hop = AssumeRoleHop(
+            provider="aws", role_arn_or_id="arn:aws:iam::1:role/x", external_id="ext"
+        )
         profile = CredentialProfile(name="p", base="aws-iam:default", chain=(hop,))
         result = await apply_chain(broker, profile)
         assert result.payload["access_key_id"] == "STS-id"
@@ -122,7 +132,10 @@ class TestApplyChain:
         assert captured == [(base, hop)]
 
     async def test_plugin_chain_walks_in_order(self) -> None:
-        base = Credential(kind="aws-iam", payload={"access_key_id": "base", "secret_access_key": "base"})
+        base = Credential(
+            kind="aws-iam",
+            payload={"access_key_id": "base", "secret_access_key": "base"},
+        )
         broker = CredentialBroker([StaticResolver("aws-iam", "default", base)])
 
         async def aws(cred: Credential, hop: AssumeRoleHop) -> Credential:
@@ -148,14 +161,22 @@ class TestApplyChain:
         assert result.payload["access_key_id"] == "base->role-A->role-B"
 
     async def test_register_hop_plugin_replaces(self) -> None:
-        base = Credential(kind="aws-iam", payload={"access_key_id": "x", "secret_access_key": "y"})
+        base = Credential(
+            kind="aws-iam", payload={"access_key_id": "x", "secret_access_key": "y"}
+        )
         broker = CredentialBroker([StaticResolver("aws-iam", "default", base)])
 
         async def first(cred: Credential, hop: AssumeRoleHop) -> Credential:
-            return Credential(kind="aws-iam", payload={"access_key_id": "first", "secret_access_key": "x"})
+            return Credential(
+                kind="aws-iam",
+                payload={"access_key_id": "first", "secret_access_key": "x"},
+            )
 
         async def second(cred: Credential, hop: AssumeRoleHop) -> Credential:
-            return Credential(kind="aws-iam", payload={"access_key_id": "second", "secret_access_key": "x"})
+            return Credential(
+                kind="aws-iam",
+                payload={"access_key_id": "second", "secret_access_key": "x"},
+            )
 
         register_hop_plugin("aws", first)
         register_hop_plugin("aws", second)
@@ -173,11 +194,16 @@ class TestApplyChain:
         assert registered_hop_providers() == ()
 
     async def test_broker_get_for_profile_uses_apply_chain(self) -> None:
-        base = Credential(kind="aws-iam", payload={"access_key_id": "x", "secret_access_key": "y"})
+        base = Credential(
+            kind="aws-iam", payload={"access_key_id": "x", "secret_access_key": "y"}
+        )
         broker = CredentialBroker([StaticResolver("aws-iam", "default", base)])
 
         async def aws(cred: Credential, hop: AssumeRoleHop) -> Credential:
-            return Credential(kind="aws-iam", payload={"access_key_id": "STS", "secret_access_key": "STS"})
+            return Credential(
+                kind="aws-iam",
+                payload={"access_key_id": "STS", "secret_access_key": "STS"},
+            )
 
         register_hop_plugin("aws", aws)
         profile = CredentialProfile(

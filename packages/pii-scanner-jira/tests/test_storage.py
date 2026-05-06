@@ -54,9 +54,7 @@ class TestRendering:
         assert "tom&jerry <3" in out
 
     def test_script_content_dropped(self) -> None:
-        out = storage_to_text(
-            "<p>visible</p><script>password = 'leak'</script>"
-        )
+        out = storage_to_text("<p>visible</p><script>password = 'leak'</script>")
         assert "visible" in out
         assert "password" not in out
 
@@ -90,15 +88,11 @@ class TestRendering:
         assert "x" in out
 
     def test_nested_skip_tag(self) -> None:
-        out = storage_to_text(
-            "<style><style>x</style></style><p>visible</p>"
-        )
+        out = storage_to_text("<style><style>x</style></style><p>visible</p>")
         assert "visible" in out
         assert "x" not in out
 
-    def test_parser_exception_falls_back_to_unescape(
-        self, monkeypatch
-    ) -> None:
+    def test_parser_exception_falls_back_to_unescape(self, monkeypatch) -> None:
         # Force the parser to raise on `feed`; the fallback unescape()
         # branch should still surface the raw body.
         from pleno_pii_scanner_jira import storage as storage_mod
