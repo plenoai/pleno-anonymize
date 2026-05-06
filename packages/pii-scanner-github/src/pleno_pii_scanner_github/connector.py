@@ -27,7 +27,6 @@ Exactly one of the three is required.
 
 from __future__ import annotations
 
-import asyncio
 import base64
 from collections.abc import AsyncIterator, Mapping
 from dataclasses import dataclass
@@ -39,12 +38,14 @@ import httpx
 from pleno_pii_scanner.credentials.broker import Credential
 from pleno_pii_scanner.scheduler.rate_limit import RateLimited
 from pleno_pii_scanner.sources.base import (
+    SUBSOURCE_METADATA_KEY,
     Capabilities,
     Cursor,
     Document,
     DocumentChunk,
     DocumentRef,
     SourceFilter,
+    Subsource,
 )
 from pleno_pii_scanner_github.api import DEFAULT_BASE_URL, GithubApi
 from pleno_pii_scanner_github.app_auth import AppAuth
@@ -115,6 +116,12 @@ class GithubAppConnector:
         self.id = config.resolved_id()
         self._credential = credential
         self._api = GithubApi(base_url=config.base_url, transport=transport)
+        # IncrementalSourceConnector state. Sub-source ids are slugs
+        # (`owner/name`); fingerprints are the default-branch HEAD SHA we
+        # collect during `list_subsources` (folded into the same GraphQL
+        # query that already enumerates the org). `set_subsource_skip`
+        # tells `discover` to drop those slugs.
+        self._skip_subsources: frozenset[str] = frozenset()
         payload = credential.payload
         # Validate creds at construction so a misconfigured profile
         # surfaces before the first network call rather than hiding in
@@ -153,6 +160,135 @@ class GithubAppConnector:
 
     async def close(self) -> None:
         await self._api.aclose()
+
+    # ------------------------------------------------------------------
+    # IncrementalSourceConnector — sub-source level cache short-circuit
+    # ------------------------------------------------------------------
+
+    async def list_subsources(self) -> tuple[Subsource, ...]:
+        """Cheaply enumerate `(slug, head_sha)` for every target repo.
+
+        Org / enterprise targets fold the SHA collection into the same
+        GraphQL `repositories` paginator that `discover()` already uses
+        (one query per 100 repos), so an org with 1000 repos resolves
+        in ~10 round-trips instead of 1000 individual `git ls-remote`
+        subprocess forks. Single-repo targets resolve via one extra
+        REST GET against `/repos/{owner}/{name}` for the
+        `default_branch`'s commit SHA.
+
+        Repos whose HEAD cannot be resolved are returned with the
+        sentinel fingerprint `unknown:<slug>` so the
+        IncrementalRunner treats them as guaranteed cache misses.
+        """
+        await self._refresh_bearer()
+
+        if self._config.repo is not None:
+            owner, name = _split_slug(self._config.repo)
+            sha = await self._resolve_repo_head_sha(owner, name)
+            slug = f"{owner}/{name}"
+            fingerprint = sha if sha is not None else f"unknown:{slug}"
+            return (Subsource(sub_id=slug, fingerprint=fingerprint),)
+
+        out: list[Subsource] = []
+        if self._config.org is not None:
+            async for slug, sha in self._iter_org_subsources(
+                self._config.org,
+                include_archived=self._config.include_archived,
+            ):
+                out.append(
+                    Subsource(
+                        sub_id=slug,
+                        fingerprint=sha if sha is not None else f"unknown:{slug}",
+                    )
+                )
+            return tuple(out)
+
+        assert self._config.enterprise is not None
+        async for org_name in self._iter_enterprise_orgs(
+            self._config.enterprise
+        ):
+            async for slug, sha in self._iter_org_subsources(
+                org_name,
+                include_archived=self._config.include_archived,
+            ):
+                out.append(
+                    Subsource(
+                        sub_id=slug,
+                        fingerprint=sha if sha is not None else f"unknown:{slug}",
+                    )
+                )
+        return tuple(out)
+
+    def set_subsource_skip(self, skip: frozenset[str]) -> None:
+        self._skip_subsources = skip
+
+    async def _resolve_repo_head_sha(
+        self, owner: str, name: str
+    ) -> str | None:
+        """Single-repo HEAD SHA via REST. Returns None on any error so
+        the runner falls back to a normal walk instead of caching a
+        stale entry."""
+        try:
+            response = await self._api.get(f"/repos/{owner}/{name}")
+        except RateLimited:
+            raise
+        except Exception:
+            return None
+        if response.status_code != 200:
+            return None
+        body = response.json()
+        default_branch = body.get("default_branch")
+        if not default_branch:
+            return None
+        try:
+            commit = await self._api.get(
+                f"/repos/{owner}/{name}/commits/{default_branch}"
+            )
+        except RateLimited:
+            raise
+        except Exception:
+            return None
+        if commit.status_code != 200:
+            return None
+        sha = commit.json().get("sha")
+        if not isinstance(sha, str):
+            return None
+        return sha
+
+    async def _iter_org_subsources(
+        self,
+        org: str,
+        *,
+        include_archived: bool,
+    ) -> AsyncIterator[tuple[str, str | None]]:
+        """Pages through `_ORG_REPOS_QUERY` and yields `(slug, sha)`.
+
+        Uses the same paginator as `_iter_org_repos` but extracts
+        `defaultBranchRef.target.oid` directly. Repos with no default
+        branch (empty repo) yield `(slug, None)`; the caller turns that
+        into a sentinel fingerprint.
+        """
+        cursor: str | None = None
+        while True:
+            data = await self._api.graphql(
+                _ORG_REPOS_QUERY, variables={"org": org, "after": cursor}
+            )
+            org_data = data.get("organization") or {}
+            connection = org_data.get("repositories") or {}
+            for node in connection.get("nodes", []):
+                if not include_archived and node.get("isArchived"):
+                    continue
+                owner_login = (node.get("owner") or {}).get("login")
+                name = node.get("name")
+                if not owner_login or not name:
+                    continue
+                target = (node.get("defaultBranchRef") or {}).get("target") or {}
+                sha = target.get("oid")
+                yield f"{owner_login}/{name}", sha if isinstance(sha, str) else None
+            page_info = connection.get("pageInfo", {})
+            if not page_info.get("hasNextPage"):
+                return
+            cursor = page_info.get("endCursor")
 
     # ------------------------------------------------------------------
     # discover
@@ -223,6 +359,10 @@ class GithubAppConnector:
     ) -> AsyncIterator[DocumentRef]:
         """Walk a single repo's Git tree and yield blob refs."""
         slug = f"{owner}/{name}"
+        if slug in self._skip_subsources:
+            # Tier-1 cache hit — IncrementalRunner already replayed
+            # this repo's findings; skip the tree walk entirely.
+            return
         # `git/trees/HEAD?recursive=1` returns up to 100k entries with a
         # `truncated:true` flag if the tree is larger. For trees beyond
         # the limit we'd switch to per-directory recursion, but no scan
@@ -268,6 +408,9 @@ class GithubAppConnector:
                     "repo": name,
                     "blob_sha": sha,
                     "inner_path": path,
+                    # Subsource attribution lets the IncrementalRunner
+                    # store per-repo rollups on the next clean scan.
+                    SUBSOURCE_METADATA_KEY: slug,
                     # Round-trip the org-level cursor so the scheduler
                     # can resume; ADR §5 specifies this lives on the ref.
                     **({"_cursor": outer_cursor} if outer_cursor else {}),
@@ -469,6 +612,7 @@ query($org: String!, $after: String) {
         owner { login }
         isArchived
         pushedAt
+        defaultBranchRef { target { ... on Commit { oid } } }
       }
     }
   }

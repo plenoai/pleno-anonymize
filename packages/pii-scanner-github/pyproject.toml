@@ -1,6 +1,6 @@
 [project]
 name = "pleno-pii-scanner-github"
-version = "0.1.0"
+version = "0.2.0"
 description = "Enterprise GitHub connector for pleno-pii-scanner: GitHub App auth + GHES + org / enterprise enumeration via REST/GraphQL (no gh-CLI, no PyGithub)"
 readme = "README.md"
 license = { text = "AGPL-3.0-or-later" }
@@ -20,7 +20,9 @@ dependencies = [
     # Core protocol + RateLimited / retry_async live in pleno-pii-scanner.
     # `cryptography` is already a transitive core dep (envelope encryption
     # for FindingsStore §11) so JWT signing here adds no new wheel.
-    "pleno-pii-scanner",
+    # >=0.3.0 pins the IncrementalSourceConnector / Subsource symbols this
+    # connector now imports from `pleno_pii_scanner.sources.base`.
+    "pleno-pii-scanner>=0.3.0",
     "httpx>=0.27",
 ]
 

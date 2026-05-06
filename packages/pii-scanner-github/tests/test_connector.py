@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import base64
-import json
 from collections.abc import AsyncIterator, Callable
 from datetime import UTC, datetime
 
@@ -13,9 +12,11 @@ import pytest
 from pleno_pii_scanner.credentials.broker import Credential
 from pleno_pii_scanner.scheduler.rate_limit import RateLimited
 from pleno_pii_scanner.sources.base import (
+    SUBSOURCE_METADATA_KEY,
     Capabilities,
     Document,
     DocumentRef,
+    IncrementalSourceConnector,
     SourceConnector,
     SourceFilter,
 )
@@ -970,6 +971,313 @@ class TestSpec:
 # ---------------------------------------------------------------------
 
 
+class TestIncrementalSubsources:
+    """The `IncrementalSourceConnector` extension lets the runner skip
+    repos whose default-branch HEAD SHA matches the cache, replaying
+    findings without ever walking the tree.
+    """
+
+    def test_runtime_protocol_isinstance(self, rsa_pem: str) -> None:
+        c = GithubAppConnector(
+            GithubAppConfig(repo="a/b"),
+            credential=make_credential(rsa_pem),
+        )
+        assert isinstance(c, IncrementalSourceConnector)
+
+    async def test_list_subsources_single_repo_uses_rest(
+        self, rsa_pem: str
+    ) -> None:
+        def repo_meta(_: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={"name": "widgets", "default_branch": "trunk"},
+            )
+
+        def commit_for_branch(_: httpx.Request) -> httpx.Response:
+            return httpx.Response(200, json={"sha": "0" * 40})
+
+        transport = httpx.MockTransport(make_handler([
+            ("/access_tokens", lambda _: _access_token_response()),
+            ("/commits/trunk", commit_for_branch),
+            ("/repos/acme/widgets", repo_meta),
+        ]))
+        c = GithubAppConnector(
+            GithubAppConfig(repo="acme/widgets"),
+            credential=make_credential(rsa_pem),
+            transport=transport,
+        )
+        try:
+            subs = await c.list_subsources()
+            assert len(subs) == 1
+            assert subs[0].sub_id == "acme/widgets"
+            assert subs[0].fingerprint == "0" * 40
+        finally:
+            await c.close()
+
+    async def test_list_subsources_org_uses_graphql_oid(
+        self, rsa_pem: str
+    ) -> None:
+        # GraphQL `_ORG_REPOS_QUERY` now includes
+        # `defaultBranchRef.target.oid`. We assert the connector
+        # extracts it without an extra REST round-trip.
+        def graphql(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={
+                    "data": {
+                        "organization": {
+                            "repositories": {
+                                "pageInfo": {
+                                    "endCursor": None,
+                                    "hasNextPage": False,
+                                },
+                                "nodes": [
+                                    {
+                                        "name": "one",
+                                        "owner": {"login": "acme"},
+                                        "isArchived": False,
+                                        "pushedAt": "2026-05-01T00:00:00Z",
+                                        "defaultBranchRef": {
+                                            "target": {"oid": "a" * 40}
+                                        },
+                                    },
+                                    {
+                                        "name": "two",
+                                        "owner": {"login": "acme"},
+                                        "isArchived": False,
+                                        "pushedAt": "2026-04-01T00:00:00Z",
+                                        "defaultBranchRef": {
+                                            "target": {"oid": "b" * 40}
+                                        },
+                                    },
+                                ],
+                            }
+                        }
+                    }
+                },
+            )
+
+        transport = httpx.MockTransport(make_handler([
+            ("/access_tokens", lambda _: _access_token_response()),
+            ("/graphql", graphql),
+        ]))
+        c = GithubAppConnector(
+            GithubAppConfig(org="acme"),
+            credential=make_credential(rsa_pem),
+            transport=transport,
+        )
+        try:
+            subs = await c.list_subsources()
+            slugs = {s.sub_id for s in subs}
+            assert slugs == {"acme/one", "acme/two"}
+            fps = {s.sub_id: s.fingerprint for s in subs}
+            assert fps["acme/one"] == "a" * 40
+            assert fps["acme/two"] == "b" * 40
+        finally:
+            await c.close()
+
+    async def test_list_subsources_archived_filter(
+        self, rsa_pem: str
+    ) -> None:
+        def graphql(_: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={
+                    "data": {
+                        "organization": {
+                            "repositories": {
+                                "pageInfo": {
+                                    "endCursor": None,
+                                    "hasNextPage": False,
+                                },
+                                "nodes": [
+                                    {
+                                        "name": "live",
+                                        "owner": {"login": "acme"},
+                                        "isArchived": False,
+                                        "pushedAt": "2026-05-01T00:00:00Z",
+                                        "defaultBranchRef": {
+                                            "target": {"oid": "1" * 40}
+                                        },
+                                    },
+                                    {
+                                        "name": "dead",
+                                        "owner": {"login": "acme"},
+                                        "isArchived": True,
+                                        "pushedAt": "2024-01-01T00:00:00Z",
+                                        "defaultBranchRef": {
+                                            "target": {"oid": "2" * 40}
+                                        },
+                                    },
+                                ],
+                            }
+                        }
+                    }
+                },
+            )
+
+        transport = httpx.MockTransport(make_handler([
+            ("/access_tokens", lambda _: _access_token_response()),
+            ("/graphql", graphql),
+        ]))
+        c = GithubAppConnector(
+            GithubAppConfig(org="acme", include_archived=False),
+            credential=make_credential(rsa_pem),
+            transport=transport,
+        )
+        try:
+            subs = await c.list_subsources()
+            assert {s.sub_id for s in subs} == {"acme/live"}
+        finally:
+            await c.close()
+
+    async def test_list_subsources_missing_oid_yields_sentinel(
+        self, rsa_pem: str
+    ) -> None:
+        # An empty repo has no defaultBranchRef → no oid. The runner
+        # must see a sentinel fingerprint so it never accidentally hits
+        # a stale cache.
+        def graphql(_: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={
+                    "data": {
+                        "organization": {
+                            "repositories": {
+                                "pageInfo": {
+                                    "endCursor": None,
+                                    "hasNextPage": False,
+                                },
+                                "nodes": [
+                                    {
+                                        "name": "empty",
+                                        "owner": {"login": "acme"},
+                                        "isArchived": False,
+                                        "pushedAt": "2026-01-01T00:00:00Z",
+                                        "defaultBranchRef": None,
+                                    }
+                                ],
+                            }
+                        }
+                    }
+                },
+            )
+
+        transport = httpx.MockTransport(make_handler([
+            ("/access_tokens", lambda _: _access_token_response()),
+            ("/graphql", graphql),
+        ]))
+        c = GithubAppConnector(
+            GithubAppConfig(org="acme"),
+            credential=make_credential(rsa_pem),
+            transport=transport,
+        )
+        try:
+            subs = await c.list_subsources()
+            assert len(subs) == 1
+            assert subs[0].fingerprint == "unknown:acme/empty"
+        finally:
+            await c.close()
+
+    async def test_set_subsource_skip_omits_those_slugs_from_discover(
+        self, rsa_pem: str
+    ) -> None:
+        # Simulate an org with two repos; tell the connector to skip one.
+        # discover() should never request a tree for the skipped slug.
+        tree_calls: list[str] = []
+
+        def graphql(_: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={
+                    "data": {
+                        "organization": {
+                            "repositories": {
+                                "pageInfo": {
+                                    "endCursor": None,
+                                    "hasNextPage": False,
+                                },
+                                "nodes": [
+                                    {
+                                        "name": "one",
+                                        "owner": {"login": "acme"},
+                                        "isArchived": False,
+                                        "pushedAt": "2026-05-01T00:00:00Z",
+                                        "defaultBranchRef": {
+                                            "target": {"oid": "a" * 40}
+                                        },
+                                    },
+                                    {
+                                        "name": "two",
+                                        "owner": {"login": "acme"},
+                                        "isArchived": False,
+                                        "pushedAt": "2026-04-01T00:00:00Z",
+                                        "defaultBranchRef": {
+                                            "target": {"oid": "b" * 40}
+                                        },
+                                    },
+                                ],
+                            }
+                        }
+                    }
+                },
+            )
+
+        def trees(request: httpx.Request) -> httpx.Response:
+            tree_calls.append(str(request.url))
+            return httpx.Response(200, json={"tree": []})
+
+        transport = httpx.MockTransport(make_handler([
+            ("/access_tokens", lambda _: _access_token_response()),
+            ("/graphql", graphql),
+            ("/git/trees/HEAD", trees),
+        ]))
+        c = GithubAppConnector(
+            GithubAppConfig(org="acme"),
+            credential=make_credential(rsa_pem),
+            transport=transport,
+        )
+        c.set_subsource_skip(frozenset({"acme/one"}))
+        try:
+            await _drain(c.discover(SourceFilter(), None))
+            # acme/one's tree was never requested.
+            assert all("/repos/acme/one/" not in url for url in tree_calls)
+            # acme/two's tree was requested.
+            assert any("/repos/acme/two/git/trees/HEAD" in url for url in tree_calls)
+        finally:
+            await c.close()
+
+    async def test_discover_refs_carry_subsource_metadata(
+        self, rsa_pem: str
+    ) -> None:
+        def trees(_: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={
+                    "tree": [
+                        {"type": "blob", "path": "a.py", "sha": "x", "size": 10},
+                    ]
+                },
+            )
+
+        transport = httpx.MockTransport(make_handler([
+            ("/access_tokens", lambda _: _access_token_response()),
+            ("/git/trees/HEAD", trees),
+        ]))
+        c = GithubAppConnector(
+            GithubAppConfig(repo="acme/widgets"),
+            credential=make_credential(rsa_pem),
+            transport=transport,
+        )
+        try:
+            refs = await _drain(c.discover(SourceFilter(), None))
+            assert refs
+            for r in refs:
+                assert r.metadata[SUBSOURCE_METADATA_KEY] == "acme/widgets"
+        finally:
+            await c.close()
+
+
 class TestPackageInit:
     def test_top_level_exports(self) -> None:
         import pleno_pii_scanner_github as pkg
@@ -980,4 +1288,4 @@ class TestPackageInit:
         assert pkg.GithubAppConnector is GithubAppConnector
         assert hasattr(pkg, "AppAuth")
         assert hasattr(pkg, "mint_app_jwt")
-        assert pkg.__version__ == "0.1.0"
+        assert pkg.__version__ == "0.2.0"
