@@ -30,5 +30,5 @@ members = [
     "packages/pii-scanner-sharepoint",
     "packages/pii-scanner-snowflake",
     "packages/pii-scanner-slack",
-    "packages/pii-scanner-saas-scraper",
+    "packages/pii-scanner-saas-retriever",
 ]
