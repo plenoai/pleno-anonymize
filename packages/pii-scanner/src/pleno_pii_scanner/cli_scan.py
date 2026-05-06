@@ -1,16 +1,16 @@
 """`pleno-pii-scanner scan` — unified single-source scan via the registry.
 
-`scan <kind>` looks up `kind` in the connector registry, builds the
+`scan run <kind>` looks up `kind` in the connector registry, builds the
 connector via the registered factory, and drives it through the
-Scheduler. The result is a count of refs seen / docs fetched —
-findings are printed to stdout when `--scan-fn=print-paths` (the
-default) or piped to a real detector pipeline when wired in.
+IncrementalRunner. The detector pipeline (regex + NER + verify) lives
+behind the runner so unchanged sub-sources / documents replay cached
+findings instead of re-detecting.
 
-The full multi-source orchestration (`scan --plan plan.toml`) is
-deliberately deferred to a follow-up PR — that path needs the
-FindingsStore wiring + at least one enterprise connector landed before
-it earns its complexity. For now `scan <kind>` is enough surface to
-exercise every newly registered connector end-to-end.
+Findings stream to stdout (one JSON object per finding) — the legacy
+`pleno-pii-scanner dir / git-history / github` paths still own the
+ScanStats + render_human / render_sarif emitters; piping the new CLI's
+JSON through `jq` is the recommended bridge until those reporters
+adopt the SourceConnector flow.
 """
 
 from __future__ import annotations
@@ -24,6 +24,12 @@ from typing import Any
 
 import click
 
+from pleno_pii_scanner.detector import (
+    DETECTOR_WIRE_VERSION,
+    DetectorFn,
+    decode_findings,
+    make_detector,
+)
 from pleno_pii_scanner.scheduler import (
     GlobalRateLimiter,
     IncrementalRunner,
@@ -96,6 +102,7 @@ def scan_group() -> None:
     type=click.Choice(["text", "json"]),
     default="text",
     show_default=True,
+    help="Format of the per-scan summary printed to stdout.",
 )
 @click.option(
     "--cache/--no-cache",
@@ -121,6 +128,41 @@ def scan_group() -> None:
         "across scan_ids."
     ),
 )
+@click.option(
+    "--language",
+    default="ja",
+    show_default=True,
+    help="NER language code passed to ner_pass.scan_text.",
+)
+@click.option(
+    "--entities",
+    "entities_csv",
+    default=None,
+    help=(
+        "Comma-separated entity filter (e.g. 'PHONE_NUMBER,EMAIL'). "
+        "Defaults to the full ja recognizer pack minus noisy entities."
+    ),
+)
+@click.option(
+    "--no-ner/--ner",
+    "skip_ner",
+    default=False,
+    show_default=True,
+    help=(
+        "Skip the NER pass. ~50× faster on text-heavy scans but loses "
+        "PERSON / ADDRESS detections that have no regex form."
+    ),
+)
+@click.option(
+    "--findings-out",
+    "findings_out",
+    type=click.Path(dir_okay=False, path_type=Path),
+    default=None,
+    help=(
+        "Write findings to this file as one JSON object per line "
+        "(JSONL). Defaults to stdout when omitted."
+    ),
+)
 def cmd_run(
     kind: str,
     config_path: Path | None,
@@ -132,13 +174,16 @@ def cmd_run(
     report_format: str,
     use_cache: bool,
     cache_path: Path | None,
+    language: str,
+    entities_csv: str | None,
+    skip_ner: bool,
+    findings_out: Path | None,
 ) -> None:
     """Run a single-source scan via the registered connector for KIND.
 
-    Today emits per-document path/size summaries; the detector pipeline
-    integration arrives in a follow-up PR. Verifies the connector
-    contract (discover → fetch → close) end-to-end and lets operators
-    confirm a config change still enumerates the expected refs.
+    Default behaviour: regex + NER + verify pipeline, sub-source +
+    document level cache, findings streamed as JSONL to stdout (or
+    `--findings-out`).
     """
     config = _load_config(config_path, config_json)
     try:
@@ -151,7 +196,17 @@ def cmd_run(
         max_size=max_size,
     )
     summary = asyncio.run(
-        _drive_scan(connector, sf, scan_id, use_cache, cache_path)
+        _drive_scan(
+            connector=connector,
+            sf=sf,
+            scan_id=scan_id,
+            use_cache=use_cache,
+            cache_path=cache_path,
+            language=language,
+            entities_csv=entities_csv,
+            skip_ner=skip_ner,
+            findings_out=findings_out,
+        )
     )
     if report_format == "json":
         click.echo(json.dumps(summary, indent=2))
@@ -211,61 +266,189 @@ def _load_config(path: Path | None, inline_json: str | None) -> dict[str, Any]:
             raise click.ClickException(f"{path} is not valid TOML: {exc}") from None
 
 
+def _resolve_recognizers(entities_csv: str | None) -> tuple[Any, tuple[str, ...] | None]:
+    """Mirror cli._select_recognizers without inheriting its flags.
+
+    Returns `(recognizers, ner_entity_filter)`. The NER filter is None
+    when the operator did not constrain entities — that lets ner_pass
+    return everything its model knows about. Heavy import is local so
+    `--help` and `kinds` stay fast.
+    """
+    from pleno_recognizers.ja import ALL_JA_RECOGNIZERS
+
+    # Mirror cli._NOISY_ENTITIES; defined here to avoid pulling in the
+    # legacy CLI module (which has a heavier import graph).
+    noisy = {"DATE_OF_BIRTH"}
+    if not entities_csv:
+        return (
+            tuple(r for r in ALL_JA_RECOGNIZERS if r.entity not in noisy),
+            None,
+        )
+    if entities_csv.strip().upper() == "ALL":
+        return (ALL_JA_RECOGNIZERS, None)
+    wanted = tuple(e.strip() for e in entities_csv.split(",") if e.strip())
+    selected = tuple(r for r in ALL_JA_RECOGNIZERS if r.entity in wanted)
+    if not selected:
+        # NER-only entity selection (PERSON / ADDRESS / ...): give the
+        # verifier the full pack so it can attach context-keyword
+        # boosts even though the regex pass has no patterns to fire.
+        return (ALL_JA_RECOGNIZERS, wanted)
+    return (selected, wanted)
+
+
+def _open_findings_writer(path: Path | None):
+    """Return (writer-callable, close-callable) for JSONL emission."""
+    if path is None:
+        out = sys.stdout
+
+        def write(line: str) -> None:
+            out.write(line)
+            out.write("\n")
+
+        def close() -> None:
+            out.flush()
+
+        return write, close
+
+    fh = path.open("w", encoding="utf-8")
+
+    def write(line: str) -> None:
+        fh.write(line)
+        fh.write("\n")
+
+    def close() -> None:
+        fh.close()
+
+    return write, close
+
+
 async def _drive_scan(
+    *,
     connector: Any,
     sf: SourceFilter,
     scan_id: str,
     use_cache: bool,
     cache_path: Path | None,
+    language: str,
+    entities_csv: str | None,
+    skip_ner: bool,
+    findings_out: Path | None,
 ) -> dict[str, Any]:
-    """Run one SourcePlan through the Scheduler and return its summary.
+    """Wire the detector + runner + cache for one SourcePlan."""
+    recognizers, entity_filter = _resolve_recognizers(entities_csv)
+    detector: DetectorFn = make_detector(
+        recognizers,
+        language=language,
+        entities=entity_filter,
+        skip_ner=skip_ner,
+    )
 
-    With `use_cache=True` the scan is layered behind an
-    `IncrementalRunner` so unchanged sub-sources / documents replay
-    cached findings instead of re-detecting. The detector wiring is
-    still the stub `_count_only_detector` until the regex_pass /
-    ner_pass / verify pipeline is bridged through this CLI — bringing
-    the cache up first means the bridge will land *with* incremental
-    semantics already in place rather than as a follow-up.
-    """
+    write_finding, close_findings = _open_findings_writer(findings_out)
+
+    async def emit_findings(
+        source_id: str,
+        sub_id: str | None,
+        count: int,
+        payload: bytes,
+        replayed: bool,
+    ) -> None:
+        if count == 0:
+            return
+        for f in decode_findings(payload):
+            write_finding(
+                json.dumps(
+                    {
+                        "source_id": source_id,
+                        "sub_id": sub_id,
+                        "replayed": replayed,
+                        "entity": f.entity,
+                        "file": f.file,
+                        "line": f.line,
+                        "col": f.col,
+                        "score": f.score,
+                        "snippet": f.snippet,
+                        "matched": f.matched,
+                        "pattern_name": f.pattern_name,
+                        "verification": f.verification,
+                        "fingerprint": f.fingerprint(),
+                    },
+                    ensure_ascii=False,
+                )
+            )
+
     plan = SourcePlan(connector=connector, filter=sf)
     rl = GlobalRateLimiter()
     sch = Scheduler(config=SchedulerConfig(), rate_limiter=rl)
-    if not use_cache:
-        try:
+
+    try:
+        if not use_cache:
             results = await sch.run(
-                [plan], scan_id=scan_id, scan_fn=_count_only_scan_fn
+                [plan],
+                scan_id=scan_id,
+                scan_fn=_make_uncached_scan_fn(detector, emit_findings),
+            )
+            return _summary_from_result(results[0])
+
+        cache = await SqliteScanCache.open(path=cache_path)
+        try:
+            runner = IncrementalRunner(
+                sch,
+                cache,
+                # Detector wire-format version flips this when the JSON
+                # shape changes; cache hits then auto-fall-through.
+                schema_version=schema_version(
+                    f"detector-wire/{DETECTOR_WIRE_VERSION}",
+                    f"skip_ner/{int(skip_ner)}",
+                    f"lang/{language}",
+                    f"entities/{entities_csv or '*'}",
+                ),
+            )
+            inc_results = await runner.run(
+                [plan],
+                scan_id=scan_id,
+                detector=detector,
+                on_findings=emit_findings,
             )
         finally:
-            await sch.close()
-        return _summary_from_result(results[0])
-
-    cache = await SqliteScanCache.open(path=cache_path)
-    try:
-        runner = IncrementalRunner(
-            sch, cache, schema_version=schema_version()
-        )
-        inc_results = await runner.run(
-            [plan],
-            scan_id=scan_id,
-            detector=_count_only_detector,
-            on_findings=_swallow_findings,
-        )
+            await cache.close()
+        inc = inc_results[0]
+        summary = _summary_from_result(inc.source_result)
+        summary["cache"] = {
+            "subsource_total": inc.cache_stats.subsource_total,
+            "subsource_hits": inc.cache_stats.subsource_hits,
+            "subsource_misses": inc.cache_stats.subsource_misses,
+            "document_total": inc.cache_stats.document_total,
+            "document_hits": inc.cache_stats.document_hits,
+            "document_misses": inc.cache_stats.document_misses,
+            "path": str(cache_path or default_cache_path()),
+        }
+        return summary
     finally:
         await sch.close()
-        await cache.close()
-    inc = inc_results[0]
-    summary = _summary_from_result(inc.source_result)
-    summary["cache"] = {
-        "subsource_total": inc.cache_stats.subsource_total,
-        "subsource_hits": inc.cache_stats.subsource_hits,
-        "subsource_misses": inc.cache_stats.subsource_misses,
-        "document_total": inc.cache_stats.document_total,
-        "document_hits": inc.cache_stats.document_hits,
-        "document_misses": inc.cache_stats.document_misses,
-        "path": str(cache_path or default_cache_path()),
-    }
-    return summary
+        close_findings()
+
+
+def _make_uncached_scan_fn(detector: DetectorFn, emit_findings):
+    """Adapt a `DetectorFn` to the Scheduler's plain `scan_fn` signature
+    when caching is disabled. Findings still flow through `emit_findings`
+    so `--no-cache` and the cached path produce byte-identical output
+    streams.
+    """
+
+    async def scan_fn(
+        ref: DocumentRef, doc: Document | DocumentChunk
+    ) -> int:
+        count, payload = await detector(ref, doc)
+        await emit_findings(ref.source_id, _sub_id(ref), count, payload, False)
+        return count
+
+    return scan_fn
+
+
+def _sub_id(ref: DocumentRef) -> str | None:
+    from pleno_pii_scanner.sources.base import SUBSOURCE_METADATA_KEY
+
+    return ref.metadata.get(SUBSOURCE_METADATA_KEY)
 
 
 def _summary_from_result(r: Any) -> dict[str, Any]:
@@ -279,45 +462,6 @@ def _summary_from_result(r: Any) -> dict[str, Any]:
         "completed_at": r.completed_at.isoformat(),
         "error": r.error,
     }
-
-
-async def _count_only_scan_fn(
-    _ref: DocumentRef, _doc: Document | DocumentChunk
-) -> int:
-    """Stub scan_fn: count zero findings.
-
-    The real wiring (regex_pass + ner_pass + verify) lives in the
-    legacy `scan_directory` path. Bridging it through the unified scan
-    is a follow-up — the abstraction is correct, just not connected
-    yet, and a bridge that emits findings without going through the
-    FindingsStore (which the legacy CLI does not use either) would be
-    a transient hack we'd then have to undo.
-    """
-    return 0
-
-
-async def _count_only_detector(
-    _ref: DocumentRef, _doc: Document | DocumentChunk
-) -> tuple[int, bytes]:
-    """Stub `DetectorFn` paired with `_count_only_scan_fn`.
-
-    Returns `(0, b"")` — same observable behaviour as the no-cache
-    path. Once the detector pipeline lands on this CLI it returns
-    `(len(findings), serialize(findings))` and cache hits start
-    skipping real work.
-    """
-    return (0, b"")
-
-
-async def _swallow_findings(
-    _source_id: str,
-    _sub_id: str | None,
-    _count: int,
-    _payload: bytes,
-    _replayed: bool,
-) -> None:
-    """No-op `OnFindingsFn`. Replaced when the detector pipeline lands."""
-    return None
 
 
 __all__ = ["scan_group"]
