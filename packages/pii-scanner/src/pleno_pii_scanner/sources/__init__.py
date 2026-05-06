@@ -14,14 +14,17 @@ can be streamed as `DocumentChunk` slices rather than buffered whole.
 """
 
 from pleno_pii_scanner.sources.base import (
+    SUBSOURCE_METADATA_KEY,
     Capabilities,
     Cursor,
     Document,
     DocumentChunk,
     DocumentRef,
+    IncrementalSourceConnector,
     Principal,
     SourceConnector,
     SourceFilter,
+    Subsource,
 )
 from pleno_pii_scanner.sources.registry import (
     ConnectorError,
@@ -38,6 +41,7 @@ from pleno_pii_scanner.sources.registry import (
 )
 
 __all__ = [
+    "SUBSOURCE_METADATA_KEY",
     "Capabilities",
     "ConnectorError",
     "ConnectorFactory",
@@ -47,9 +51,11 @@ __all__ = [
     "DocumentChunk",
     "DocumentRef",
     "DuplicateConnectorError",
+    "IncrementalSourceConnector",
     "Principal",
     "SourceConnector",
     "SourceFilter",
+    "Subsource",
     "UnknownConnectorError",
     "create",
     "get",

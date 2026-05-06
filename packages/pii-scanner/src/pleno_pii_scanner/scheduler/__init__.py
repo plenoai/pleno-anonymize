@@ -12,6 +12,14 @@ from pleno_pii_scanner.scheduler.core import (
     Scheduler,
     SchedulerConfig,
     SourcePlan,
+    SourceResult,
+)
+from pleno_pii_scanner.scheduler.incremental import (
+    DetectorFn,
+    IncrementalResult,
+    IncrementalRunner,
+    IncrementalStats,
+    OnFindingsFn,
 )
 from pleno_pii_scanner.scheduler.rate_limit import (
     AdaptiveTokenBucket,
@@ -28,12 +36,18 @@ from pleno_pii_scanner.scheduler.retry import (
 __all__ = [
     "AdaptiveTokenBucket",
     "BucketKey",
+    "DetectorFn",
     "GlobalRateLimiter",
+    "IncrementalResult",
+    "IncrementalRunner",
+    "IncrementalStats",
+    "OnFindingsFn",
     "RateLimited",
     "RetryConfig",
     "RetryError",
     "Scheduler",
     "SchedulerConfig",
     "SourcePlan",
+    "SourceResult",
     "retry_async",
 ]

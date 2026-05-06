@@ -30,6 +30,7 @@ the pre-multi-source CLI behavior available with zero new dependencies.
 from __future__ import annotations
 
 import asyncio
+import subprocess
 from collections.abc import AsyncIterator, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -38,6 +39,7 @@ from typing import Any
 
 from pleno_pii_scanner.git_history import CommitMeta, iter_history
 from pleno_pii_scanner.sources.base import (
+    SUBSOURCE_METADATA_KEY,
     Capabilities,
     Cursor,
     Document,
@@ -46,6 +48,7 @@ from pleno_pii_scanner.sources.base import (
     Principal,
     SourceConnector,
     SourceFilter,
+    Subsource,
 )
 from pleno_pii_scanner.sources.registry import ConnectorSpec
 
@@ -102,15 +105,38 @@ class GitConnector:
         # can find what discover yielded. Bounded by the size of the
         # repo's history; for monorepos the operator caps via max_commits.
         self._slices: dict[str, _CommitFile] = {}
+        # IncrementalSourceConnector state. The "sub-source" for a single
+        # local repo is the repo itself; its fingerprint is HEAD's SHA so
+        # a follow-up scan can short-circuit when no new commits landed.
+        self._skip_subsources: frozenset[str] = frozenset()
 
     def capabilities(self) -> Capabilities:
         return Capabilities(
-            incremental=False,
+            # `incremental` advertises sub-source level skip via
+            # IncrementalSourceConnector; per-commit history is not
+            # itself resumable mid-stream.
+            incremental=True,
             binary=False,
-            content_hash_delta=False,
+            content_hash_delta=True,
             max_concurrent_fetches=4,
             streaming=False,
         )
+
+    async def list_subsources(self) -> tuple[Subsource, ...]:
+        """Treat the whole repo as one sub-source; fingerprint is HEAD SHA.
+
+        For a local git repo, "the same content" means "the same commit
+        graph rooted at HEAD" — which is exactly what `git rev-parse HEAD`
+        captures. When HEAD cannot be resolved (empty repo, broken
+        worktree) we return a sentinel fingerprint so the runner treats
+        it as a guaranteed miss rather than a silent hit.
+        """
+        sha = await asyncio.to_thread(_resolve_head_sha, self._config.repo)
+        fingerprint = sha if sha is not None else f"unknown:{self.id}"
+        return (Subsource(sub_id=self.id, fingerprint=fingerprint),)
+
+    def set_subsource_skip(self, skip: frozenset[str]) -> None:
+        self._skip_subsources = skip
 
     async def discover(
         self,
@@ -119,10 +145,13 @@ class GitConnector:
     ) -> AsyncIterator[DocumentRef]:
         # WHY: iter_history is sync (subprocess pipe). Materialising on a
         # worker thread keeps the event loop free for parallel connectors.
-        # Cursor unused: we report incremental=False because resuming
-        # mid-`git log` requires shelling out with --since=<sha>, which the
-        # enterprise GitHub connector handles with the SaaS API instead.
+        # Cursor unused: resuming mid-`git log` would need --since=<sha>,
+        # which the SaaS GitHub connector handles via API instead.
         del cursor
+        if self.id in self._skip_subsources:
+            # Cache hit at the sub-source level — the IncrementalRunner
+            # already replayed our findings. Yield nothing.
+            return
         slices = await asyncio.to_thread(
             _aggregate, self._config.repo, self._config.max_commits
         )
@@ -186,6 +215,7 @@ class GitConnector:
                 "commit_author": slice_.commit.author,
                 "commit_email": slice_.commit.email,
                 "file": slice_.file,
+                SUBSOURCE_METADATA_KEY: self.id,
             },
         )
 
@@ -245,6 +275,29 @@ def _matches_any(path: str, patterns: tuple[str, ...]) -> bool:
     from fnmatch import fnmatch
 
     return any(fnmatch(path, pat) for pat in patterns)
+
+
+def _resolve_head_sha(repo: Path) -> str | None:
+    """Return `git rev-parse HEAD` for `repo`, or None on any failure.
+
+    Mirrors `_default_head_sha` in github_source.py but reads the local
+    repo instead of shelling out to the network. None falls back to a
+    full re-scan rather than risking a stale cache replay.
+    """
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(repo), "rev-parse", "HEAD"],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=10,
+        )
+    except (subprocess.SubprocessError, FileNotFoundError):
+        return None
+    sha = proc.stdout.decode("utf-8", errors="replace").strip()
+    if len(sha) not in (40, 64) or not all(c in "0123456789abcdef" for c in sha):
+        return None
+    return sha
 
 
 def _parse_iso(value: str) -> datetime | None:
