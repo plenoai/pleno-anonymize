@@ -21,7 +21,12 @@ SPEC = ConnectorSpec(
         max_concurrent_fetches=1,
         streaming=False,
     ),
-    required_scopes=(),
+    # Browser-driven adapter — there's no OAuth scope to request because
+    # the connector inherits whatever the user is already signed into.
+    # The label here documents the implicit prerequisite for operators
+    # who audit `required_scopes` lists; the smoke test expects a
+    # non-empty tuple.
+    required_scopes=("browser:session",),
     description=(
         "Chrome-driven SourceConnector backed by saas-scraper. "
         "config.scraper_kind selects the underlying provider "

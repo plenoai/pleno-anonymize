@@ -49,14 +49,18 @@ class _StubScraper:
     id = "stub-id"
     kind = "stub"
 
-    def __init__(self, refs: list[ScraperDocumentRef], docs_by_path: dict[str, ScraperDocument]) -> None:
+    def __init__(
+        self, refs: list[ScraperDocumentRef], docs_by_path: dict[str, ScraperDocument]
+    ) -> None:
         self._refs = refs
         self._docs = docs_by_path
         self.received_filter: ScraperFilter | None = None
         self.received_fetch: list[ScraperDocumentRef] = []
         self.closed = False
 
-    async def discover(self, filter: ScraperFilter) -> AsyncIterator[ScraperDocumentRef]:
+    async def discover(
+        self, filter: ScraperFilter
+    ) -> AsyncIterator[ScraperDocumentRef]:
         self.received_filter = filter
         for ref in self._refs:
             yield ref
@@ -69,7 +73,9 @@ class _StubScraper:
         self.closed = True
 
 
-def _adapter_with_stub(stub: _StubScraper, *, scraper_kind: str = "slack") -> SaasScraperAdapter:
+def _adapter_with_stub(
+    stub: _StubScraper, *, scraper_kind: str = "slack"
+) -> SaasScraperAdapter:
     """Build an adapter that skips BrowserSession startup."""
     adapter = SaasScraperAdapter(
         SaasScraperConfig(
@@ -128,12 +134,14 @@ def test_resolved_id_falls_back_to_distinctive_kwarg() -> None:
 
 def test_build_connector_strips_owner_keys() -> None:
     """build_connector pops keys this wheel owns; rest goes to scraper kwargs."""
-    adapter = build_connector({
-        "scraper_kind": "slack",
-        "workspace": "acme",
-        "headless": False,
-        "id": "my-id",
-    })
+    adapter = build_connector(
+        {
+            "scraper_kind": "slack",
+            "workspace": "acme",
+            "headless": False,
+            "id": "my-id",
+        }
+    )
     assert isinstance(adapter, SaasScraperAdapter)
     assert adapter.id == "my-id"
     assert adapter._config.headless is False
@@ -163,7 +171,9 @@ async def test_discover_yields_translated_refs() -> None:
     adapter = _adapter_with_stub(stub)
 
     out: list[DocumentRef] = []
-    async for ref in adapter.discover(SourceFilter(include=("*.txt",), exclude=()), cursor=None):
+    async for ref in adapter.discover(
+        SourceFilter(include=("*.txt",), exclude=()), cursor=None
+    ):
         out.append(ref)
 
     assert len(out) == 1
@@ -185,7 +195,9 @@ async def test_fetch_yields_translated_documents() -> None:
         text="leaked secret AKIAIOSFODNN7EXAMPLE",
         fetched_at=datetime(2026, 5, 6, tzinfo=UTC),
         content_hash="sha256:abc",
-        created_by=ScraperPrincipal(id="u1", display_name="Alice", email="a@example.com"),
+        created_by=ScraperPrincipal(
+            id="u1", display_name="Alice", email="a@example.com"
+        ),
         extra={"thread_ts": "1"},
     )
     stub = _StubScraper(refs=[ref], docs_by_path={"issues/1": doc})
@@ -200,7 +212,9 @@ async def test_fetch_yields_translated_documents() -> None:
     assert out[0].text == doc.text
     assert out[0].fetched_at == doc.fetched_at
     assert out[0].content_hash == doc.content_hash
-    assert out[0].created_by == Principal(id="u1", display_name="Alice", email="a@example.com")
+    assert out[0].created_by == Principal(
+        id="u1", display_name="Alice", email="a@example.com"
+    )
     assert dict(out[0].extra) == {"thread_ts": "1"}
     # Stub saw a saas-scraper-shaped ref, not a pleno one.
     assert isinstance(stub.received_fetch[0], ScraperDocumentRef)
