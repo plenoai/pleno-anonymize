@@ -12,6 +12,7 @@ members = [
     "packages/pii-scanner-ci-logs",
     "packages/pii-scanner-confluence",
     "packages/pii-scanner-discord",
+    "packages/pii-scanner-elasticsearch",
     "packages/pii-scanner-gcs",
     "packages/pii-scanner-gdrive",
     "packages/pii-scanner-github",
