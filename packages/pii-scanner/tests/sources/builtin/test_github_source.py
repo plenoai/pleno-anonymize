@@ -14,9 +14,11 @@ from pathlib import Path
 import pytest
 
 from pleno_pii_scanner.sources import (
+    SUBSOURCE_METADATA_KEY,
     Capabilities,
     Document,
     DocumentRef,
+    IncrementalSourceConnector,
     SourceConnector,
     SourceFilter,
     create,
@@ -105,9 +107,13 @@ class TestProtocol:
     def test_capabilities(self) -> None:
         c = GithubConnector(GithubConfig(repo="a/b"))
         assert c.capabilities() == Capabilities(
-            incremental=False,
+            # `incremental=True` advertises the IncrementalSourceConnector
+            # protocol — sub-source level skip via list_subsources +
+            # set_subsource_skip. Per-document iteration is still a full
+            # walk inside an unchanged repo.
+            incremental=True,
             binary=False,
-            content_hash_delta=False,
+            content_hash_delta=True,
             max_concurrent_fetches=4,
             streaming=False,
         )
@@ -404,3 +410,112 @@ class TestProductionHelpers:
         result = mod._default_enumerate("acme", True)
         assert result == ["a/x"]
         assert called["args"] == ("acme", True)
+
+
+# --- IncrementalSourceConnector ---------------------------------------
+
+
+class TestIncrementalSubsources:
+    def test_runtime_isinstance(self) -> None:
+        c = GithubConnector(GithubConfig(repo="a/b"))
+        assert isinstance(c, IncrementalSourceConnector)
+
+    async def test_list_subsources_for_single_repo(self) -> None:
+        # One slug → one Subsource, fingerprint = the stub HEAD SHA.
+        c = GithubConnector(
+            GithubConfig(repo="acme/widgets"),
+            head_sha_fn=lambda slug: "deadbeefcafebabe1234567890abcdef12345678",
+        )
+        subs = await c.list_subsources()
+        assert len(subs) == 1
+        assert subs[0].sub_id == "acme/widgets"
+        assert subs[0].fingerprint == (
+            "deadbeefcafebabe1234567890abcdef12345678"
+        )
+
+    async def test_list_subsources_for_org(self) -> None:
+        c = GithubConnector(
+            GithubConfig(org="acme"),
+            enumerate_fn=lambda org, archived: ["acme/one", "acme/two"],
+            head_sha_fn=lambda slug: f"sha-{slug.split('/')[-1]}-pad-pad-pad-pad-pad-pad-pad",
+        )
+        subs = await c.list_subsources()
+        slug_set = {s.sub_id for s in subs}
+        assert slug_set == {"acme/one", "acme/two"}
+
+    async def test_unknown_sha_yields_sentinel_fingerprint(self) -> None:
+        c = GithubConnector(
+            GithubConfig(repo="acme/widgets"),
+            head_sha_fn=lambda slug: None,
+        )
+        subs = await c.list_subsources()
+        # Sentinel makes the runner treat this as a guaranteed miss.
+        assert subs[0].fingerprint == "unknown:acme/widgets"
+
+    async def test_set_subsource_skip_omits_those_slugs_from_discover(
+        self, fake_repo: Path, tmp_path: Path
+    ) -> None:
+        # Stage the fake repo content under tmp_path so _stub_clone copies it.
+        for f in fake_repo.iterdir():
+            if f.is_file():
+                (tmp_path / f.name).write_text(f.read_text())
+        c = GithubConnector(
+            GithubConfig(org="acme"),
+            clone_fn=_stub_clone(tmp_path),
+            enumerate_fn=lambda org, archived: ["acme/one", "acme/two"],
+            head_sha_fn=lambda slug: "0" * 40,
+        )
+        c.set_subsource_skip(frozenset({"acme/one"}))
+        try:
+            refs = await _drain_refs(c.discover(SourceFilter(), None))
+            slugs = {r.metadata["slug"] for r in refs}
+            # acme/one was told to skip; only acme/two surfaces.
+            assert slugs == {"acme/two"}
+            for r in refs:
+                # Subsource attribution is wired through metadata.
+                assert r.metadata[SUBSOURCE_METADATA_KEY] == "acme/two"
+        finally:
+            await c.close()
+
+    def test_default_head_sha_parses_ls_remote_output(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from pleno_pii_scanner.sources.builtin import github_source as mod
+
+        sample = (
+            b"abcdef0123456789abcdef0123456789abcdef01\tHEAD\n"
+        )
+        monkeypatch.setattr(
+            mod.subprocess,
+            "run",
+            lambda cmd, **kw: type("R", (), {"stdout": sample})(),
+        )
+        assert mod._default_head_sha("acme/widgets") == (
+            "abcdef0123456789abcdef0123456789abcdef01"
+        )
+
+    def test_default_head_sha_returns_none_on_failure(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from pleno_pii_scanner.sources.builtin import github_source as mod
+
+        def boom(cmd, **kw):
+            raise mod.subprocess.SubprocessError("network down")
+
+        monkeypatch.setattr(mod.subprocess, "run", boom)
+        assert mod._default_head_sha("acme/widgets") is None
+
+    def test_default_head_sha_rejects_garbage(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from pleno_pii_scanner.sources.builtin import github_source as mod
+
+        # HTML error page from a captive portal: not a SHA.
+        monkeypatch.setattr(
+            mod.subprocess,
+            "run",
+            lambda cmd, **kw: type(
+                "R", (), {"stdout": b"<html>nope</html>\n"}
+            )(),
+        )
+        assert mod._default_head_sha("acme/widgets") is None

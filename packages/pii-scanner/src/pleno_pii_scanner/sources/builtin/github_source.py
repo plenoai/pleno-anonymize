@@ -31,13 +31,8 @@ from pathlib import Path
 from typing import Any
 
 from pleno_pii_scanner.github import list_org_repos
-
-
-# Test seam: factory that turns (slug, config) into a local cloned path.
-# Production default is `_clone_into_tempdir` which shells out to git.
-CloneFn = Callable[[str, "GithubConfig"], Path]
-EnumerateFn = Callable[[str, bool], list[str]]
 from pleno_pii_scanner.sources.base import (
+    SUBSOURCE_METADATA_KEY,
     Capabilities,
     Cursor,
     Document,
@@ -45,9 +40,28 @@ from pleno_pii_scanner.sources.base import (
     DocumentRef,
     SourceConnector,
     SourceFilter,
+    Subsource,
 )
 from pleno_pii_scanner.sources.builtin.dir_source import DirConfig, DirConnector
 from pleno_pii_scanner.sources.registry import ConnectorSpec
+
+
+# Test seams. Production defaults shell out (`git clone`, `gh repo list`,
+# `git ls-remote`); tests inject in-memory doubles to keep the suite
+# deterministic + offline + sub-second.
+CloneFn = Callable[[str, "GithubConfig"], Path]
+EnumerateFn = Callable[[str, bool], list[str]]
+# `HeadShaFn` returns None when the SHA is unavailable (private repo,
+# network failure) so the runner falls back to a full clone instead of
+# risking a stale-cache hit.
+HeadShaFn = Callable[[str], str | None]
+
+
+# Bounds the number of concurrent `git ls-remote` subprocesses during
+# `list_subsources`. 16 is a comfortable balance — high enough that an
+# org with 1000 repos resolves in a few seconds, low enough that we do
+# not exhaust file descriptors or trip GitHub's per-IP abuse heuristics.
+_HEAD_SHA_CONCURRENCY = 16
 
 
 @dataclass(frozen=True, slots=True)
@@ -94,24 +108,65 @@ class GithubConnector:
         *,
         clone_fn: CloneFn | None = None,
         enumerate_fn: EnumerateFn | None = None,
+        head_sha_fn: HeadShaFn | None = None,
     ) -> None:
         self._config = config
         self.id = config.resolved_id()
         self._clone_fn: CloneFn = clone_fn or _clone_into_tempdir
         self._enumerate_fn: EnumerateFn = enumerate_fn or _default_enumerate
+        self._head_sha_fn: HeadShaFn = head_sha_fn or _default_head_sha
         # slug → cloned path; populated lazily during fetch.
         self._clones: dict[str, Path] = {}
         self._tempdirs: list[Path] = []
+        # IncrementalSourceConnector state. Populated by list_subsources()
+        # so a subsequent set_subsource_skip() can land before discover()
+        # runs; cleared on close().
+        self._enumerated_slugs: list[str] | None = None
+        self._skip_subsources: frozenset[str] = frozenset()
         self._lock = asyncio.Lock()
 
     def capabilities(self) -> Capabilities:
         return Capabilities(
-            incremental=False,
+            # `incremental` advertises sub-source level skip via
+            # IncrementalSourceConnector; the per-document iteration is
+            # still a full re-walk inside an unchanged repo.
+            incremental=True,
             binary=False,
-            content_hash_delta=False,
+            content_hash_delta=True,
             max_concurrent_fetches=4,
             streaming=False,
         )
+
+    async def list_subsources(self) -> tuple[Subsource, ...]:
+        """Return one Subsource per repo with its remote HEAD SHA.
+
+        For an org config, enumerates all repos under the org (cached
+        across this connector's lifetime so a follow-up `discover()`
+        does not re-list). For a single-repo config, returns one entry.
+        Slugs whose HEAD SHA cannot be resolved are returned with the
+        sentinel fingerprint `unknown:<slug>` — the runner treats them
+        as cache misses, never as silent hits.
+
+        SHA resolution fans out across `_HEAD_SHA_CONCURRENCY` worker
+        threads — each `git ls-remote` is a 100–500 ms blocking network
+        round-trip, so an org with 1000 repos finishes in seconds, not
+        minutes. The semaphore caps the fan-out so we do not flood the
+        kernel with subprocess forks or trip GitHub's anti-abuse limits
+        on a single client.
+        """
+        slugs = await self._resolve_slugs(use_cache=True)
+        sem = asyncio.Semaphore(_HEAD_SHA_CONCURRENCY)
+
+        async def _resolve(slug: str) -> Subsource:
+            async with sem:
+                sha = await asyncio.to_thread(self._head_sha_fn, slug)
+            fingerprint = sha if sha is not None else f"unknown:{slug}"
+            return Subsource(sub_id=slug, fingerprint=fingerprint)
+
+        return tuple(await asyncio.gather(*(_resolve(s) for s in slugs)))
+
+    def set_subsource_skip(self, skip: frozenset[str]) -> None:
+        self._skip_subsources = skip
 
     async def discover(
         self,
@@ -119,8 +174,12 @@ class GithubConnector:
         cursor: Cursor | None,
     ) -> AsyncIterator[DocumentRef]:
         del cursor
-        slugs = await self._resolve_slugs()
+        slugs = await self._resolve_slugs(use_cache=True)
         for slug in slugs:
+            if slug in self._skip_subsources:
+                # Cache hit — the IncrementalRunner already replayed this
+                # repo's findings; we must not clone or yield refs for it.
+                continue
             repo_path = await self._ensure_clone(slug)
             inner = DirConnector(
                 DirConfig(root=repo_path, id=f"github:{slug}")
@@ -174,16 +233,28 @@ class GithubConnector:
                 await asyncio.to_thread(shutil.rmtree, path, ignore_errors=True)
             self._tempdirs.clear()
             self._clones.clear()
+            self._enumerated_slugs = None
+            self._skip_subsources = frozenset()
 
-    async def _resolve_slugs(self) -> list[str]:
+    async def _resolve_slugs(self, *, use_cache: bool = False) -> list[str]:
+        """Resolve the slug list. Single-repo configs short-circuit; for
+        org configs the enumeration is cached after the first call so
+        list_subsources() and discover() do not double-list. `use_cache`
+        is the only entry point — passing False forces a re-enumeration
+        (currently unused, kept for symmetry with the builtin connector
+        idiom of an explicit refresh path)."""
         if self._config.repo is not None:
             return [self._config.repo]
         assert self._config.org is not None
-        return await asyncio.to_thread(
+        if use_cache and self._enumerated_slugs is not None:
+            return list(self._enumerated_slugs)
+        slugs = await asyncio.to_thread(
             self._enumerate_fn,
             self._config.org,
             self._config.include_archived,
         )
+        self._enumerated_slugs = list(slugs)
+        return list(slugs)
 
     async def _ensure_clone(self, slug: str) -> Path:
         async with self._lock:
@@ -204,7 +275,9 @@ class GithubConnector:
     def _wrap_ref(self, inner: DocumentRef, slug: str) -> DocumentRef:
         # Re-emit with our connector identity + the slug so fetch can
         # find the right clone. parent_chain captures the github://
-        # provenance for findings dashboards.
+        # provenance for findings dashboards. SUBSOURCE_METADATA_KEY
+        # lets the IncrementalRunner attribute findings back to this
+        # repo when it stores the per-sub-source cache entry.
         return DocumentRef(
             source_id=self.id,
             source_kind=self.kind,
@@ -215,7 +288,12 @@ class GithubConnector:
             size=inner.size,
             etag=inner.etag,
             last_modified=inner.last_modified,
-            metadata={**inner.metadata, "slug": slug, "inner_path": inner.path},
+            metadata={
+                **inner.metadata,
+                "slug": slug,
+                "inner_path": inner.path,
+                SUBSOURCE_METADATA_KEY: slug,
+            },
         )
 
     def _unwrap_ref(self, ref: DocumentRef, slug: str) -> DocumentRef:
@@ -234,6 +312,42 @@ class GithubConnector:
 def _default_enumerate(org: str, include_archived: bool) -> list[str]:
     """Positional-arg adapter so EnumerateFn doubles are easy to write."""
     return list_org_repos(org, include_archived=include_archived)
+
+
+def _default_head_sha(slug: str) -> str | None:
+    """Resolve a slug's remote HEAD commit SHA without cloning.
+
+    Uses `git ls-remote --symref <url> HEAD`, parsing the SHA out of the
+    second line ("<sha>\\tHEAD"). One outbound TCP connection per repo;
+    no working tree on disk. Returns None on any failure so the runner
+    can fall back to a full clone instead of risking a stale-cache hit.
+    """
+    url = (
+        slug
+        if "://" in slug or "@" in slug
+        else f"https://github.com/{slug}.git"
+    )
+    try:
+        proc = subprocess.run(
+            ["git", "ls-remote", url, "HEAD"],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=30,
+        )
+    except (subprocess.SubprocessError, FileNotFoundError):
+        return None
+    line = proc.stdout.decode("utf-8", errors="replace").strip().splitlines()
+    if not line:
+        return None
+    sha = line[0].split()[0].strip()
+    # WHY: a valid Git SHA-1 is 40 hex chars; SHA-256 repos emit 64.
+    # Anything else (HTML error page from a captive portal, an empty
+    # ref) is a sentinel-worthy failure. Treating it as None forces a
+    # cache miss + fresh clone rather than caching garbage.
+    if len(sha) not in (40, 64) or not all(c in "0123456789abcdef" for c in sha):
+        return None
+    return sha
 
 
 def _clone_into_tempdir(slug: str, config: GithubConfig) -> Path:

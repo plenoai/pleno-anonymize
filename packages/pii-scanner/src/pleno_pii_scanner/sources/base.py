@@ -2,11 +2,20 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Mapping
+from collections.abc import AsyncIterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 from hashlib import sha256
 from typing import Protocol, runtime_checkable
+
+
+# Reserved DocumentRef.metadata key. Connectors that aggregate sub-units
+# (github org → repos, slack workspace → channels, gdrive → drives,
+# postgres → tables) must populate this on every yielded ref so the
+# IncrementalRunner can attribute per-document findings back to the
+# sub-source they belong to. Connectors with a flat namespace (single
+# repo, one filesystem root) leave it absent.
+SUBSOURCE_METADATA_KEY = "_subsource_id"
 
 
 # Opaque per-connector resume token. Persisted verbatim in CheckpointStore
@@ -157,6 +166,64 @@ class DocumentChunk:
                 f"DocumentChunk.byte_range must be (start>=0, end>=start); "
                 f"got {self.byte_range}"
             )
+
+
+@dataclass(frozen=True, slots=True)
+class Subsource:
+    """An addressable sub-unit of a connector, with a content fingerprint.
+
+    A connector that aggregates many sub-units yields one `Subsource` per
+    unit so the IncrementalRunner can consult the ScanCache and skip
+    sub-units whose `fingerprint` matches a prior successful scan. The
+    fingerprint is opaque to everything outside the connector that
+    produced it — it is a commit SHA for github/git, a delta token for
+    SharePoint, a snapshot id for BigQuery, an `updated_at` cursor for
+    Jira, etc. The contract is only that the same content yields the
+    same fingerprint and different content yields a different one.
+    """
+
+    sub_id: str
+    fingerprint: str
+
+
+@runtime_checkable
+class IncrementalSourceConnector(Protocol):
+    """Optional extension to `SourceConnector` for hierarchical sources.
+
+    Connectors that aggregate many sub-units (org → repos, workspace →
+    channels, account → drives) implement this protocol so the
+    IncrementalRunner can:
+
+      1. Cheaply enumerate sub-units with their snapshot fingerprints.
+      2. Skip any sub-unit whose fingerprint matches the cache, replaying
+         that sub-unit's findings without ever touching its payload.
+
+    Connectors that present a flat namespace (single repo, one filesystem
+    root) do not need to implement this — document-level caching alone
+    handles their incremental story.
+
+    Implementations must populate `DocumentRef.metadata[SUBSOURCE_METADATA_KEY]`
+    on every ref they yield so the runner can attribute per-document
+    findings back to a sub-unit.
+    """
+
+    async def list_subsources(self) -> Sequence[Subsource]:
+        """Cheaply enumerate every sub-unit with its content fingerprint.
+
+        Must complete without downloading payloads (a single API call per
+        sub-unit at most). Called once per scan, before `discover()`.
+        """
+        ...
+
+    def set_subsource_skip(self, skip: frozenset[str]) -> None:
+        """Tell the connector to omit these sub_ids from `discover()`.
+
+        Called by the runner after consulting the cache. The connector
+        must persist the filter for the rest of its lifetime; subsequent
+        `discover()` calls behave as if the skipped sub_ids do not exist.
+        Calling with an empty frozenset clears any prior filter.
+        """
+        ...
 
 
 @runtime_checkable

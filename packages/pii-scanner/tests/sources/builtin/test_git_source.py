@@ -10,9 +10,11 @@ from pathlib import Path
 import pytest
 
 from pleno_pii_scanner.sources import (
+    SUBSOURCE_METADATA_KEY,
     Capabilities,
     Document,
     DocumentRef,
+    IncrementalSourceConnector,
     SourceConnector,
     SourceFilter,
     create,
@@ -71,12 +73,14 @@ class TestProtocol:
         c = GitConnector(GitConfig(repo=repo))
         assert isinstance(c, SourceConnector)
 
-    def test_capabilities_are_conservative(self, repo: Path) -> None:
+    def test_capabilities_advertise_subsource_skip(self, repo: Path) -> None:
         c = GitConnector(GitConfig(repo=repo))
         assert c.capabilities() == Capabilities(
-            incremental=False,
+            # IncrementalSourceConnector treats the whole repo as one
+            # sub-source whose fingerprint is HEAD's SHA.
+            incremental=True,
             binary=False,
-            content_hash_delta=False,
+            content_hash_delta=True,
             max_concurrent_fetches=4,
             streaming=False,
         )
@@ -271,3 +275,50 @@ class TestParseHelpers:
         assert lines[0] == "first"
         assert lines[1] == ""
         assert lines[4] == "fifth"
+
+
+class TestIncrementalSubsources:
+    def test_runtime_isinstance(self, repo: Path) -> None:
+        c = GitConnector(GitConfig(repo=repo))
+        assert isinstance(c, IncrementalSourceConnector)
+
+    async def test_list_subsources_uses_head_sha(self, repo: Path) -> None:
+        c = GitConnector(GitConfig(repo=repo))
+        subs = await c.list_subsources()
+        # One sub-source = the whole repo. Fingerprint is HEAD's SHA.
+        assert len(subs) == 1
+        assert subs[0].sub_id == c.id
+        assert len(subs[0].fingerprint) in (40, 64)
+        assert all(ch in "0123456789abcdef" for ch in subs[0].fingerprint)
+
+    async def test_list_subsources_unknown_sha_for_broken_repo(
+        self, tmp_path: Path
+    ) -> None:
+        broken = tmp_path / "not-a-repo"
+        broken.mkdir()
+        c = GitConnector(GitConfig(repo=broken))
+        subs = await c.list_subsources()
+        assert subs[0].fingerprint.startswith("unknown:")
+
+    async def test_set_subsource_skip_yields_zero_refs(
+        self, repo: Path
+    ) -> None:
+        c = GitConnector(GitConfig(repo=repo))
+        c.set_subsource_skip(frozenset({c.id}))
+        try:
+            refs = await _drain(c.discover(SourceFilter(), None))
+            assert refs == []
+        finally:
+            await c.close()
+
+    async def test_subsource_metadata_attached_to_refs(
+        self, repo: Path
+    ) -> None:
+        c = GitConnector(GitConfig(repo=repo))
+        try:
+            refs = await _drain(c.discover(SourceFilter(), None))
+            assert refs
+            for r in refs:
+                assert r.metadata[SUBSOURCE_METADATA_KEY] == c.id
+        finally:
+            await c.close()

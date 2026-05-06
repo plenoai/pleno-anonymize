@@ -26,6 +26,7 @@ import click
 
 from pleno_pii_scanner.scheduler import (
     GlobalRateLimiter,
+    IncrementalRunner,
     Scheduler,
     SchedulerConfig,
     SourcePlan,
@@ -40,6 +41,11 @@ from pleno_pii_scanner.sources.registry import (
     UnknownConnectorError,
     create,
     list_kinds,
+)
+from pleno_pii_scanner.state import (
+    SqliteScanCache,
+    default_cache_path,
+    schema_version,
 )
 
 
@@ -91,6 +97,30 @@ def scan_group() -> None:
     default="text",
     show_default=True,
 )
+@click.option(
+    "--cache/--no-cache",
+    "use_cache",
+    default=True,
+    show_default=True,
+    help=(
+        "Enable the incremental scan cache. Sub-source level skip "
+        "(unchanged repos / channels / drives) plus document-level skip "
+        "(unchanged file payloads) reuse prior findings instead of "
+        "re-running the detector pipeline. Disable when investigating "
+        "false negatives or after a recognizer update."
+    ),
+)
+@click.option(
+    "--cache-path",
+    "cache_path",
+    type=click.Path(dir_okay=False, path_type=Path),
+    default=None,
+    help=(
+        "Override the SQLite cache file path. Default lives under "
+        "$XDG_STATE_HOME/pleno/cache/scan_cache.sqlite and is shared "
+        "across scan_ids."
+    ),
+)
 def cmd_run(
     kind: str,
     config_path: Path | None,
@@ -100,6 +130,8 @@ def cmd_run(
     max_size: int | None,
     scan_id: str,
     report_format: str,
+    use_cache: bool,
+    cache_path: Path | None,
 ) -> None:
     """Run a single-source scan via the registered connector for KIND.
 
@@ -118,15 +150,26 @@ def cmd_run(
         exclude=tuple(exclude),
         max_size=max_size,
     )
-    summary = asyncio.run(_drive_scan(connector, sf, scan_id))
+    summary = asyncio.run(
+        _drive_scan(connector, sf, scan_id, use_cache, cache_path)
+    )
     if report_format == "json":
         click.echo(json.dumps(summary, indent=2))
     else:
+        cache = summary.get("cache")
+        cache_blurb = ""
+        if cache is not None:
+            cache_blurb = (
+                f" cache=sub({cache['subsource_hits']}/"
+                f"{cache['subsource_total']})/"
+                f"doc({cache['document_hits']}/"
+                f"{cache['document_total']})"
+            )
         click.echo(
             f"scan {kind}: refs_seen={summary['refs_seen']} "
             f"docs_fetched={summary['docs_fetched']} "
             f"findings_emitted={summary['findings_emitted']} "
-            f"error={summary['error']}",
+            f"error={summary['error']}{cache_blurb}",
             err=True,
         )
     if summary["error"]:
@@ -169,19 +212,63 @@ def _load_config(path: Path | None, inline_json: str | None) -> dict[str, Any]:
 
 
 async def _drive_scan(
-    connector: Any, sf: SourceFilter, scan_id: str
+    connector: Any,
+    sf: SourceFilter,
+    scan_id: str,
+    use_cache: bool,
+    cache_path: Path | None,
 ) -> dict[str, Any]:
-    """Run one SourcePlan through the Scheduler and return its summary."""
+    """Run one SourcePlan through the Scheduler and return its summary.
+
+    With `use_cache=True` the scan is layered behind an
+    `IncrementalRunner` so unchanged sub-sources / documents replay
+    cached findings instead of re-detecting. The detector wiring is
+    still the stub `_count_only_detector` until the regex_pass /
+    ner_pass / verify pipeline is bridged through this CLI — bringing
+    the cache up first means the bridge will land *with* incremental
+    semantics already in place rather than as a follow-up.
+    """
     plan = SourcePlan(connector=connector, filter=sf)
     rl = GlobalRateLimiter()
     sch = Scheduler(config=SchedulerConfig(), rate_limiter=rl)
+    if not use_cache:
+        try:
+            results = await sch.run(
+                [plan], scan_id=scan_id, scan_fn=_count_only_scan_fn
+            )
+        finally:
+            await sch.close()
+        return _summary_from_result(results[0])
+
+    cache = await SqliteScanCache.open(path=cache_path)
     try:
-        results = await sch.run(
-            [plan], scan_id=scan_id, scan_fn=_count_only_scan_fn
+        runner = IncrementalRunner(
+            sch, cache, schema_version=schema_version()
+        )
+        inc_results = await runner.run(
+            [plan],
+            scan_id=scan_id,
+            detector=_count_only_detector,
+            on_findings=_swallow_findings,
         )
     finally:
         await sch.close()
-    [r] = results
+        await cache.close()
+    inc = inc_results[0]
+    summary = _summary_from_result(inc.source_result)
+    summary["cache"] = {
+        "subsource_total": inc.cache_stats.subsource_total,
+        "subsource_hits": inc.cache_stats.subsource_hits,
+        "subsource_misses": inc.cache_stats.subsource_misses,
+        "document_total": inc.cache_stats.document_total,
+        "document_hits": inc.cache_stats.document_hits,
+        "document_misses": inc.cache_stats.document_misses,
+        "path": str(cache_path or default_cache_path()),
+    }
+    return summary
+
+
+def _summary_from_result(r: Any) -> dict[str, Any]:
     return {
         "source_id": r.source_id,
         "source_kind": r.source_kind,
@@ -207,6 +294,30 @@ async def _count_only_scan_fn(
     a transient hack we'd then have to undo.
     """
     return 0
+
+
+async def _count_only_detector(
+    _ref: DocumentRef, _doc: Document | DocumentChunk
+) -> tuple[int, bytes]:
+    """Stub `DetectorFn` paired with `_count_only_scan_fn`.
+
+    Returns `(0, b"")` — same observable behaviour as the no-cache
+    path. Once the detector pipeline lands on this CLI it returns
+    `(len(findings), serialize(findings))` and cache hits start
+    skipping real work.
+    """
+    return (0, b"")
+
+
+async def _swallow_findings(
+    _source_id: str,
+    _sub_id: str | None,
+    _count: int,
+    _payload: bytes,
+    _replayed: bool,
+) -> None:
+    """No-op `OnFindingsFn`. Replaced when the detector pipeline lands."""
+    return None
 
 
 __all__ = ["scan_group"]
