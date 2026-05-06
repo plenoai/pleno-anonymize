@@ -1,12 +1,12 @@
 [project]
-name = "pleno-pii-scanner-saas-scraper"
-version = "0.1.0"
-description = "saas-scraper-backed SourceConnector for pleno-pii-scanner — Chrome-driven Slack / GitHub / GitLab / Bitbucket / Jira / Confluence / Notion content via inherited SSO sessions"
+name = "pleno-pii-scanner-saas-retriever"
+version = "0.2.0"
+description = "saas-retriever-backed SourceConnector for pleno-pii-scanner — API-only org-wide GitHub (slack / jira / confluence / notion / gitlab / bitbucket land in subsequent saas-retriever releases)"
 readme = "README.md"
 license = { text = "AGPL-3.0-or-later" }
 requires-python = ">=3.12"
 authors = [{ name = "pleno", email = "ai@egahika.dev" }]
-keywords = ["pii", "scanner", "saas", "chrome", "slack", "github", "notion", "jira"]
+keywords = ["pii", "scanner", "saas", "github", "secrets", "dlp"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -20,24 +20,24 @@ dependencies = [
     # Core protocol + Capabilities + ConnectorSpec live in pleno-pii-scanner;
     # pinned via workspace below for in-tree development.
     "pleno-pii-scanner",
-    # The browser-driven content collection layer. We pin >=0.5 because we
-    # rely on the multi-resource GitHub connector (issues + PRs) introduced
-    # in saas-scraper 0.5.0; older versions only exposed the file tree.
-    "saas-scraper>=0.5.0",
+    # API-driven content collection (httpx; no Chromium). >=0.1 because
+    # the package was reborn at 0.1 as the API-only successor to
+    # saas-scraper. Pin floors per provider as new connectors land.
+    "saas-retriever>=0.1.0",
 ]
 
 [project.entry-points."pleno_pii_scanner.connectors"]
-# A single connector kind covers all saas-scraper providers. The
-# underlying provider (slack, github, gitlab, ...) is selected by
-# `config.scraper_kind`. Splitting into per-provider kinds would force
-# every user to reconfigure their pipeline when saas-scraper adds a new
-# connector — the indirection lets us absorb that growth without
-# touching this wheel.
-saas-scraper = "pleno_pii_scanner_saas_scraper:SPEC"
+# A single connector kind covers all saas-retriever providers. The
+# underlying provider (github today; slack / jira / ... as they land)
+# is selected by `config.connector_kind`. Splitting into per-provider
+# kinds would force every user to reconfigure their pipeline whenever
+# saas-retriever adds a new connector — the indirection lets us absorb
+# that growth without touching this wheel.
+saas-retriever = "pleno_pii_scanner_saas_retriever:SPEC"
 
 [project.urls]
 Homepage = "https://github.com/plenoai/pleno-anonymize"
-Source = "https://github.com/plenoai/pleno-anonymize/tree/main/packages/pii-scanner-saas-scraper"
+Source = "https://github.com/plenoai/pleno-anonymize/tree/main/packages/pii-scanner-saas-retriever"
 Issues = "https://github.com/plenoai/pleno-anonymize/issues"
 
 [tool.uv.sources]
@@ -56,7 +56,7 @@ asyncio_mode = "auto"
 
 [tool.coverage.run]
 branch = true
-source = ["pleno_pii_scanner_saas_scraper"]
+source = ["pleno_pii_scanner_saas_retriever"]
 
 [tool.coverage.report]
 show_missing = true
@@ -67,4 +67,4 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/pleno_pii_scanner_saas_scraper"]
+packages = ["src/pleno_pii_scanner_saas_retriever"]
