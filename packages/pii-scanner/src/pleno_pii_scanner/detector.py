@@ -34,7 +34,8 @@ fresh detector run.
 from __future__ import annotations
 
 import json
-from collections.abc import Awaitable, Callable, Sequence
+from collections.abc import Awaitable, Callable, Iterable, Sequence
+from hashlib import sha256
 from typing import Any
 
 from pleno_recognizers.types import PiiRecognizer
@@ -63,6 +64,91 @@ DetectorFn = Callable[
 # format flip auto-invalidates every cached entry without operator
 # action.
 DETECTOR_WIRE_VERSION = "1"
+
+
+# Detector logic version — bumped manually when a code change in the
+# regex / NER / verify pipeline alters output for the same inputs
+# without affecting the wire format. Reviewers gate this in PR review;
+# forgetting to bump it just means the operator has to wipe the cache,
+# never that incorrect cached findings get served. (The verify rules
+# and ner_pass thresholds are the most likely places to need a bump.)
+DETECTOR_LOGIC_VERSION = "1"
+
+
+def recognizer_pack_fingerprint(
+    recognizers: Iterable[PiiRecognizer],
+) -> str:
+    """Stable 16-hex-char fingerprint of a recognizer pack.
+
+    Captures every field that influences detector output: entity name,
+    language, the full pattern list (name + regex + score), and the
+    context-keyword tuple. Recognizers are sorted by `(entity, language)`
+    so iteration order in `ALL_JA_RECOGNIZERS` does not affect the
+    hash. Adding a new recognizer, tweaking a regex, or rotating a
+    context keyword all flip the fingerprint and auto-invalidate the
+    cache on next scan.
+    """
+    sorted_recognizers = sorted(
+        recognizers, key=lambda r: (r.entity, r.language)
+    )
+    h = sha256()
+    for r in sorted_recognizers:
+        h.update(r.entity.encode())
+        h.update(b"\0")
+        h.update(r.language.encode())
+        h.update(b"\0")
+        for p in r.patterns:
+            h.update(p.name.encode())
+            h.update(b"=")
+            h.update(p.regex.encode())
+            h.update(b"@")
+            h.update(f"{p.score:.6f}".encode())
+            h.update(b";")
+        h.update(b"\0")
+        for kw in r.context:
+            h.update(kw.encode())
+            h.update(b",")
+        h.update(b"\0")
+    return h.hexdigest()[:16]
+
+
+def schema_components(
+    recognizers: Iterable[PiiRecognizer],
+    *,
+    language: str,
+    entities: tuple[str, ...] | None,
+    skip_ner: bool,
+    skip_verify: bool = False,
+    extra: tuple[str, ...] = (),
+) -> tuple[str, ...]:
+    """Canonical component tuple for `state.schema_version()`.
+
+    Bundles every input that affects what `make_detector(...)`
+    produces:
+
+      * `DETECTOR_WIRE_VERSION` — JSON shape on the cache wire.
+      * `DETECTOR_LOGIC_VERSION` — manual code-change marker.
+      * `recognizer_pack_fingerprint(...)` — auto-detects regex pack
+        edits, recognizer additions, score / context-keyword flips.
+      * `language`, `entities`, `skip_ner`, `skip_verify` — operator
+        flags that change which findings are emitted.
+      * `extra` — caller-supplied (NER model checksum, custom
+        recognizer revisions, deployment-specific knobs).
+
+    Pass the result to `state.schema_version(*components)` to derive
+    the cache key.
+    """
+    entity_str = ",".join(entities) if entities else "*"
+    return (
+        f"detector-wire/{DETECTOR_WIRE_VERSION}",
+        f"detector-logic/{DETECTOR_LOGIC_VERSION}",
+        f"recognizers/{recognizer_pack_fingerprint(recognizers)}",
+        f"lang/{language}",
+        f"entities/{entity_str}",
+        f"skip_ner/{int(skip_ner)}",
+        f"skip_verify/{int(skip_verify)}",
+        *extra,
+    )
 
 
 def encode_findings(findings: Sequence[Finding]) -> bytes:
@@ -209,9 +295,12 @@ def _doc_text(doc: Document | DocumentChunk) -> str | None:
 
 
 __all__ = [
+    "DETECTOR_LOGIC_VERSION",
     "DETECTOR_WIRE_VERSION",
     "DetectorFn",
     "decode_findings",
     "encode_findings",
     "make_detector",
+    "recognizer_pack_fingerprint",
+    "schema_components",
 ]

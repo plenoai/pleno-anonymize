@@ -13,10 +13,13 @@ from datetime import UTC, datetime
 import pytest
 
 from pleno_pii_scanner.detector import (
+    DETECTOR_LOGIC_VERSION,
     DETECTOR_WIRE_VERSION,
     decode_findings,
     encode_findings,
     make_detector,
+    recognizer_pack_fingerprint,
+    schema_components,
 )
 from pleno_pii_scanner.models import Finding
 from pleno_pii_scanner.sources.base import (
@@ -122,6 +125,117 @@ class TestWireFormat:
         # is the kind of value that hashes cleanly.
         assert isinstance(DETECTOR_WIRE_VERSION, str)
         assert DETECTOR_WIRE_VERSION
+        assert isinstance(DETECTOR_LOGIC_VERSION, str)
+        assert DETECTOR_LOGIC_VERSION
+
+
+# ---- recognizer pack fingerprint ----------------------------------
+
+
+class TestRecognizerPackFingerprint:
+    """The recognizer pack hash drives auto-invalidation when a regex
+    pack flip ships — package version is intentionally not part of the
+    cache key, so this fingerprint carries the load."""
+
+    def test_same_pack_yields_same_hash(self) -> None:
+        from pleno_recognizers.ja import ALL_JA_RECOGNIZERS
+
+        a = recognizer_pack_fingerprint(ALL_JA_RECOGNIZERS)
+        b = recognizer_pack_fingerprint(ALL_JA_RECOGNIZERS)
+        assert a == b
+
+    def test_iteration_order_does_not_change_hash(self) -> None:
+        from pleno_recognizers.ja import ALL_JA_RECOGNIZERS
+
+        normal = recognizer_pack_fingerprint(ALL_JA_RECOGNIZERS)
+        reversed_ = recognizer_pack_fingerprint(
+            tuple(reversed(ALL_JA_RECOGNIZERS))
+        )
+        assert normal == reversed_
+
+    def test_dropping_one_recognizer_changes_hash(self) -> None:
+        from pleno_recognizers.ja import ALL_JA_RECOGNIZERS
+
+        full = recognizer_pack_fingerprint(ALL_JA_RECOGNIZERS)
+        partial = recognizer_pack_fingerprint(ALL_JA_RECOGNIZERS[:-1])
+        assert full != partial
+
+    def test_pattern_regex_change_flips_hash(self) -> None:
+        from pleno_recognizers.types import PiiPattern, PiiRecognizer
+
+        original = (
+            PiiRecognizer(
+                entity="EMAIL",
+                language="en",
+                patterns=(PiiPattern(name="basic", regex=r"\w+@\w+", score=0.5),),
+                context=("email",),
+            ),
+        )
+        edited = (
+            PiiRecognizer(
+                entity="EMAIL",
+                language="en",
+                patterns=(
+                    PiiPattern(
+                        name="basic", regex=r"[A-Za-z0-9]+@\w+", score=0.5
+                    ),
+                ),
+                context=("email",),
+            ),
+        )
+        assert recognizer_pack_fingerprint(
+            original
+        ) != recognizer_pack_fingerprint(edited)
+
+
+class TestSchemaComponents:
+    def test_includes_recognizer_fingerprint_and_flags(self) -> None:
+        from pleno_recognizers.ja import ALL_JA_RECOGNIZERS
+
+        components = schema_components(
+            ALL_JA_RECOGNIZERS,
+            language="ja",
+            entities=None,
+            skip_ner=False,
+        )
+        # Every prefix must be present; downstream callers rely on the
+        # tuple shape for clear cache-key debugging.
+        prefixes = [c.split("/", 1)[0] for c in components]
+        assert "detector-wire" in prefixes
+        assert "detector-logic" in prefixes
+        assert "recognizers" in prefixes
+        assert "lang" in prefixes
+        assert "entities" in prefixes
+        assert "skip_ner" in prefixes
+
+    def test_skip_ner_flip_changes_components(self) -> None:
+        from pleno_recognizers.ja import ALL_JA_RECOGNIZERS
+
+        on = schema_components(
+            ALL_JA_RECOGNIZERS,
+            language="ja",
+            entities=None,
+            skip_ner=False,
+        )
+        off = schema_components(
+            ALL_JA_RECOGNIZERS,
+            language="ja",
+            entities=None,
+            skip_ner=True,
+        )
+        assert on != off
+
+    def test_extra_components_appear_at_tail(self) -> None:
+        from pleno_recognizers.ja import ALL_JA_RECOGNIZERS
+
+        components = schema_components(
+            ALL_JA_RECOGNIZERS,
+            language="ja",
+            entities=None,
+            skip_ner=False,
+            extra=("model/onnx-v0.13.0",),
+        )
+        assert components[-1] == "model/onnx-v0.13.0"
 
 
 # ---- DetectorFn ----------------------------------------------------
