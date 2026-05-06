@@ -39,6 +39,7 @@ members = [
     "pleno-pii-scanner-ci-logs",
     "pleno-pii-scanner-confluence",
     "pleno-pii-scanner-discord",
+    "pleno-pii-scanner-elasticsearch",
     "pleno-pii-scanner-gcs",
     "pleno-pii-scanner-gdrive",
     "pleno-pii-scanner-github",
@@ -3333,7 +3334,7 @@ provides-extras = ["training", "hf", "bench"]
 
 [[package]]
 name = "pleno-pii-scanner"
-version = "0.3.1"
+version = "0.3.2"
 source = { editable = "packages/pii-scanner" }
 dependencies = [
     { name = "aiosmtplib" },
@@ -3628,6 +3629,35 @@ dev = [
 name = "pleno-pii-scanner-discord"
 version = "0.1.0"
 source = { editable = "packages/pii-scanner-discord" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pleno-pii-scanner" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "pleno-pii-scanner", editable = "packages/pii-scanner" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-asyncio", specifier = ">=0.24" },
+    { name = "pytest-cov", specifier = ">=5.0" },
+]
+
+[[package]]
+name = "pleno-pii-scanner-elasticsearch"
+version = "0.1.0"
+source = { editable = "packages/pii-scanner-elasticsearch" }
 dependencies = [
     { name = "httpx" },
     { name = "pleno-pii-scanner" },
