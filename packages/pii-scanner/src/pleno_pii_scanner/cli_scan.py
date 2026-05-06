@@ -25,10 +25,10 @@ from typing import Any
 import click
 
 from pleno_pii_scanner.detector import (
-    DETECTOR_WIRE_VERSION,
     DetectorFn,
     decode_findings,
     make_detector,
+    schema_components,
 )
 from pleno_pii_scanner.scheduler import (
     GlobalRateLimiter,
@@ -394,13 +394,19 @@ async def _drive_scan(
             runner = IncrementalRunner(
                 sch,
                 cache,
-                # Detector wire-format version flips this when the JSON
-                # shape changes; cache hits then auto-fall-through.
+                # Components captured: detector wire/logic versions,
+                # recognizer pack content fingerprint, and the operator
+                # flags that change emitted findings. Notably absent:
+                # the pleno-pii-scanner package version — a patch
+                # release that doesn't touch detector logic must not
+                # blow away the cache.
                 schema_version=schema_version(
-                    f"detector-wire/{DETECTOR_WIRE_VERSION}",
-                    f"skip_ner/{int(skip_ner)}",
-                    f"lang/{language}",
-                    f"entities/{entities_csv or '*'}",
+                    *schema_components(
+                        recognizers,
+                        language=language,
+                        entities=entity_filter,
+                        skip_ner=skip_ner,
+                    )
                 ),
             )
             inc_results = await runner.run(
