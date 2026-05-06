@@ -1,18 +1,32 @@
 from pathlib import Path
 
-from pleno_pii_scanner.ignore import IgnoreSet, _inline_ignored_entities, filter_findings, write_baseline, load_baseline
+from pleno_pii_scanner.ignore import (
+    IgnoreSet,
+    _inline_ignored_entities,
+    filter_findings,
+    write_baseline,
+    load_baseline,
+)
 from pleno_pii_scanner.models import Finding
 
 
 def _f(entity="EMAIL_ADDRESS", file="a.py", line=1, matched="x@y.com"):
     return Finding(
-        entity=entity, file=file, line=line, col=1, score=0.9,
-        snippet="snip", matched=matched, pattern_name="p",
+        entity=entity,
+        file=file,
+        line=line,
+        col=1,
+        score=0.9,
+        snippet="snip",
+        matched=matched,
+        pattern_name="p",
     )
 
 
 def test_inline_ignore_specific():
-    assert _inline_ignored_entities("x = 1  # pleno:ignore PHONE_NUMBER") == {"PHONE_NUMBER"}
+    assert _inline_ignored_entities("x = 1  # pleno:ignore PHONE_NUMBER") == {
+        "PHONE_NUMBER"
+    }
 
 
 def test_inline_ignore_all():
@@ -32,12 +46,7 @@ def test_inline_ignore_none():
 
 def test_ignoreset_loads(tmp_path: Path):
     p = tmp_path / ".plenoignore"
-    p.write_text(
-        "# comment\n"
-        "docs/**\n"
-        "PHONE_NUMBER\n"
-        "finding:abc123\n"
-    )
+    p.write_text("# comment\ndocs/**\nPHONE_NUMBER\nfinding:abc123\n")
     s = IgnoreSet.load(p)
     assert "PHONE_NUMBER" in s.entities
     assert "abc123" in s.fingerprints

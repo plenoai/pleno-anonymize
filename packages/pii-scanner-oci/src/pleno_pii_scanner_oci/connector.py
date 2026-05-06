@@ -282,9 +282,7 @@ class OciConnector:
 
     # --- internals -------------------------------------------------
 
-    async def _resolve_manifest(
-        self, ref: ImageReference
-    ) -> "_ResolvedManifest":
+    async def _resolve_manifest(self, ref: ImageReference) -> "_ResolvedManifest":
         manifest_url = ref.manifest_url()
         body, media_type = await self._get_json(
             manifest_url, scope=f"repository:{ref.repository}:pull", ref=ref
@@ -331,9 +329,7 @@ class OciConnector:
         media_type = resp.headers.get("Content-Type", "").split(";", 1)[0].strip()
         return resp.json(), media_type
 
-    async def _fetch_blob(
-        self, ref: ImageReference, digest: str
-    ) -> bytes:
+    async def _fetch_blob(self, ref: ImageReference, digest: str) -> bytes:
         url = ref.blob_url(digest)
         scope = f"repository:{ref.repository}:pull"
         headers = await self._auth_headers(ref.registry, scope, ref=ref)
@@ -341,9 +337,7 @@ class OciConnector:
         if resp.status_code == 401:
             await self._negotiate_token(resp, ref.registry, scope)
             headers = await self._auth_headers(ref.registry, scope, ref=ref)
-            resp = await self._client.get(
-                url, headers=headers, follow_redirects=True
-            )
+            resp = await self._client.get(url, headers=headers, follow_redirects=True)
         resp.raise_for_status()
         return resp.content
 
@@ -371,9 +365,7 @@ class OciConnector:
         # `scope` so subsequent `_auth_headers` lookups hit.
         token_scope = params.get("scope", scope)
         if not realm:
-            raise ValueError(
-                "challenge from registry has no realm parameter"
-            )
+            raise ValueError("challenge from registry has no realm parameter")
         auth: BasicAuth | AnonymousAuth
         if self._config.username is not None and self._config.password is not None:
             auth = BasicAuth(self._config.username, self._config.password)
@@ -409,14 +401,10 @@ def _factory(config: Mapping[str, Any]) -> SourceConnector:
                 else None
             ),
             username=(
-                str(config["username"])
-                if config.get("username") is not None
-                else None
+                str(config["username"]) if config.get("username") is not None else None
             ),
             password=(
-                str(config["password"])
-                if config.get("password") is not None
-                else None
+                str(config["password"]) if config.get("password") is not None else None
             ),
             id=str(config["id"]) if config.get("id") is not None else None,
         )

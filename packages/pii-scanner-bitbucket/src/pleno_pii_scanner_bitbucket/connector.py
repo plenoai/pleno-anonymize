@@ -95,9 +95,9 @@ class BitbucketConfig:
 
     flavor: Flavor
     workspace: str | None = None  # required when flavor=cloud and project unset
-    project: str | None = None    # required when flavor=server and repo_slug unset
+    project: str | None = None  # required when flavor=server and repo_slug unset
     repo_slug: str | None = None  # `workspace/repo` (cloud) or `PROJECT/repo` (server)
-    base_url: str | None = None   # default api.bitbucket.org/2.0 for cloud
+    base_url: str | None = None  # default api.bitbucket.org/2.0 for cloud
     include_archived: bool = False
     include_public: bool = True
     ca_bundle_path: str | None = None
@@ -240,9 +240,7 @@ class BitbucketConnector:
         repos = await self._enumerate_fn(self, self._config)
         for slug, clone_url in repos:
             repo_path = await self._ensure_clone(slug, clone_url)
-            inner = DirConnector(
-                DirConfig(root=repo_path, id=f"bitbucket:{slug}")
-            )
+            inner = DirConnector(DirConfig(root=repo_path, id=f"bitbucket:{slug}"))
             try:
                 async for inner_ref in inner.discover(filter, None):
                     yield self._wrap_ref(inner_ref, slug)
@@ -291,9 +289,7 @@ class BitbucketConnector:
         """
         async with self._lock:
             for path in self._tempdirs:
-                await asyncio.to_thread(
-                    shutil.rmtree, path, ignore_errors=True
-                )
+                await asyncio.to_thread(shutil.rmtree, path, ignore_errors=True)
             self._tempdirs.clear()
             self._clones.clear()
         await self._api.aclose()
@@ -431,11 +427,14 @@ def _build_auth(flavor: Flavor, credential: Credential) -> AuthMode:
         return BearerAuth(token=token)
     username = payload.get("username")
     password = (
-        payload.get("app_password")
-        if flavor == "cloud"
-        else payload.get("password")
+        payload.get("app_password") if flavor == "cloud" else payload.get("password")
     )
-    if isinstance(username, str) and isinstance(password, str) and username and password:
+    if (
+        isinstance(username, str)
+        and isinstance(password, str)
+        and username
+        and password
+    ):
         return BasicAuth(username=username, password=password)
     raise ValueError(
         f"bitbucket-{flavor} credential.payload requires either "
@@ -464,9 +463,7 @@ def _embed_credentials(clone_url: str, auth: AuthMode) -> str:
     if isinstance(auth, BearerAuth):
         userinfo = f"x-token-auth:{quote(auth.token, safe='')}"
     else:
-        userinfo = (
-            f"{quote(auth.username, safe='')}:{quote(auth.password, safe='')}"
-        )
+        userinfo = f"{quote(auth.username, safe='')}:{quote(auth.password, safe='')}"
     netloc = parsed.netloc
     # Strip any pre-existing userinfo on the URL — Bitbucket's clone
     # URLs sometimes carry one (`bitbucket-server@host/...`) and we
@@ -517,9 +514,7 @@ def _single_repo_clone_url(config: BitbucketConfig) -> str:
     return f"{host}/scm/{project.lower()}/{repo}.git"
 
 
-def _browse_url(
-    config: BitbucketConfig, slug: str, inner_path: str
-) -> str | None:
+def _browse_url(config: BitbucketConfig, slug: str, inner_path: str) -> str | None:
     """Render a human-clickable browse URL for findings dashboards."""
     if config.flavor == "cloud":
         return f"https://bitbucket.org/{slug}/src/HEAD/{inner_path}"
@@ -615,9 +610,7 @@ def _factory(config: Mapping[str, Any]) -> SourceConnector:
                 else None
             ),
             project=(
-                str(config["project"])
-                if config.get("project") is not None
-                else None
+                str(config["project"]) if config.get("project") is not None else None
             ),
             repo_slug=(
                 str(config["repo_slug"])
@@ -625,9 +618,7 @@ def _factory(config: Mapping[str, Any]) -> SourceConnector:
                 else None
             ),
             base_url=(
-                str(config["base_url"])
-                if config.get("base_url") is not None
-                else None
+                str(config["base_url"]) if config.get("base_url") is not None else None
             ),
             include_archived=bool(config.get("include_archived", False)),
             include_public=bool(config.get("include_public", True)),

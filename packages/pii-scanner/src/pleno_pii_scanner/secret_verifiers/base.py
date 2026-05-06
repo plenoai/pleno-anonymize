@@ -80,6 +80,4 @@ class LivenessVerifier(Protocol):
     name: str
     entities: frozenset[str]
 
-    async def verify(
-        self, value: str, *, ctx: VerifyContext
-    ) -> VerificationResult: ...
+    async def verify(self, value: str, *, ctx: VerifyContext) -> VerificationResult: ...

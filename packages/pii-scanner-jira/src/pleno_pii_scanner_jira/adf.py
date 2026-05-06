@@ -111,9 +111,7 @@ def _render_node(node: Mapping[str, Any], *, depth: int, max_depth: int) -> str:
     return f"{marker}\n{inner}".rstrip() if inner else marker
 
 
-def _render_children(
-    node: Mapping[str, Any], *, depth: int, max_depth: int
-) -> str:
+def _render_children(node: Mapping[str, Any], *, depth: int, max_depth: int) -> str:
     """Render `node['content']` as a sibling sequence."""
     children = node.get("content")
     if not isinstance(children, Sequence) or isinstance(children, (str, bytes)):
@@ -121,9 +119,7 @@ def _render_children(
     return _render_sequence(list(children), depth=depth, max_depth=max_depth)
 
 
-def _render_sequence(
-    nodes: list[Any], *, depth: int, max_depth: int
-) -> str:
+def _render_sequence(nodes: list[Any], *, depth: int, max_depth: int) -> str:
     """Render a list of sibling nodes, joining block-level ones with newlines.
 
     Inline runs (`text`, `mention`, `emoji`, inline marks) are
@@ -180,24 +176,18 @@ def _handle_text(node: Mapping[str, Any], **_: Any) -> str:
     return text
 
 
-def _handle_paragraph(
-    node: Mapping[str, Any], *, depth: int, max_depth: int
-) -> str:
+def _handle_paragraph(node: Mapping[str, Any], *, depth: int, max_depth: int) -> str:
     return _render_children(node, depth=depth + 1, max_depth=max_depth)
 
 
-def _handle_heading(
-    node: Mapping[str, Any], *, depth: int, max_depth: int
-) -> str:
+def _handle_heading(node: Mapping[str, Any], *, depth: int, max_depth: int) -> str:
     # Drop the `# ` prefix Markdown renderers would emit; downstream
     # consumers only care about the body text. The level lives in
     # `attrs.level` if a future renderer wants it.
     return _render_children(node, depth=depth + 1, max_depth=max_depth)
 
 
-def _handle_list(
-    node: Mapping[str, Any], *, depth: int, max_depth: int
-) -> str:
+def _handle_list(node: Mapping[str, Any], *, depth: int, max_depth: int) -> str:
     """bulletList / orderedList — render each `listItem` on its own line."""
     children = node.get("content")
     if not isinstance(children, Sequence) or isinstance(children, (str, bytes)):
@@ -214,18 +204,14 @@ def _handle_list(
     return "\n".join(items)
 
 
-def _handle_list_item(
-    node: Mapping[str, Any], *, depth: int, max_depth: int
-) -> str:
+def _handle_list_item(node: Mapping[str, Any], *, depth: int, max_depth: int) -> str:
     inner = _render_children(node, depth=depth + 1, max_depth=max_depth)
     # Strip the trailing newline added by block children inside the
     # item; the outer list joiner re-adds one between items.
     return inner.rstrip("\n")
 
 
-def _handle_code_block(
-    node: Mapping[str, Any], *, depth: int, max_depth: int
-) -> str:
+def _handle_code_block(node: Mapping[str, Any], *, depth: int, max_depth: int) -> str:
     """codeBlock — flatten to its inner text, dropping the language attr.
 
     Detectors care about the literal code (a `password = "x"` constant
@@ -290,9 +276,7 @@ def _handle_inline_card(node: Mapping[str, Any], **_: Any) -> str:
     return ""
 
 
-def _handle_media_single(
-    node: Mapping[str, Any], *, depth: int, max_depth: int
-) -> str:
+def _handle_media_single(node: Mapping[str, Any], *, depth: int, max_depth: int) -> str:
     """mediaSingle — wraps a single `media` node; surface its filename/url."""
     return _render_children(node, depth=depth + 1, max_depth=max_depth)
 
@@ -309,9 +293,7 @@ def _handle_media(node: Mapping[str, Any], **_: Any) -> str:
     return " ".join(parts)
 
 
-def _handle_panel(
-    node: Mapping[str, Any], *, depth: int, max_depth: int
-) -> str:
+def _handle_panel(node: Mapping[str, Any], *, depth: int, max_depth: int) -> str:
     """panel — coloured callout box. Render its content verbatim.
 
     The `attrs.panelType` (info, warning, error, note, success) carries
@@ -320,9 +302,7 @@ def _handle_panel(
     return _render_children(node, depth=depth + 1, max_depth=max_depth)
 
 
-def _handle_blockquote(
-    node: Mapping[str, Any], *, depth: int, max_depth: int
-) -> str:
+def _handle_blockquote(node: Mapping[str, Any], *, depth: int, max_depth: int) -> str:
     return _render_children(node, depth=depth + 1, max_depth=max_depth)
 
 
@@ -332,9 +312,7 @@ def _handle_rule(_node: Mapping[str, Any], **_: Any) -> str:
     return "\n"
 
 
-def _handle_table(
-    node: Mapping[str, Any], *, depth: int, max_depth: int
-) -> str:
+def _handle_table(node: Mapping[str, Any], *, depth: int, max_depth: int) -> str:
     """table — newline-separated rows; each row is tab-separated cells."""
     children = node.get("content")
     if not isinstance(children, Sequence) or isinstance(children, (str, bytes)):
@@ -351,9 +329,7 @@ def _handle_table(
     return "\n".join(rows)
 
 
-def _handle_table_row(
-    node: Mapping[str, Any], *, depth: int, max_depth: int
-) -> str:
+def _handle_table_row(node: Mapping[str, Any], *, depth: int, max_depth: int) -> str:
     cells = node.get("content")
     if not isinstance(cells, Sequence) or isinstance(cells, (str, bytes)):
         return ""
@@ -368,16 +344,12 @@ def _handle_table_row(
     return "\t".join(cell_texts)
 
 
-def _handle_doc(
-    node: Mapping[str, Any], *, depth: int, max_depth: int
-) -> str:
+def _handle_doc(node: Mapping[str, Any], *, depth: int, max_depth: int) -> str:
     """The document root; just descend into `content`."""
     return _render_children(node, depth=depth, max_depth=max_depth)
 
 
-def _handle_expand(
-    node: Mapping[str, Any], *, depth: int, max_depth: int
-) -> str:
+def _handle_expand(node: Mapping[str, Any], *, depth: int, max_depth: int) -> str:
     """expand / nestedExpand — collapsible block. Render the body."""
     return _render_children(node, depth=depth + 1, max_depth=max_depth)
 

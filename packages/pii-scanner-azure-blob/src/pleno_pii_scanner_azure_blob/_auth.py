@@ -49,9 +49,7 @@ import httpx
 # Microsoft Entra v2.0 token endpoint template. Tenant-scoped because
 # the multi-tenant `/common/` endpoint cannot issue tokens for the
 # Azure Storage resource without an admin-consented common app.
-_AAD_TOKEN_URL_TEMPLATE = (
-    "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token"
-)
+_AAD_TOKEN_URL_TEMPLATE = "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token"
 # Azure Storage OAuth resource scope. The `/.default` suffix is the
 # v2.0 endpoint convention requesting the union of consented scopes
 # for the resource. Hard-coded because this is a public Azure constant
@@ -62,15 +60,11 @@ AZURE_STORAGE_DEFAULT_SCOPE = f"{AZURE_STORAGE_RESOURCE}.default"
 # the documented minimum and stable across all Azure SKUs that expose
 # IMDS (VMs, AKS, App Service, Functions). Pinned so a future IMDS
 # version bump does not silently change the response shape.
-_IMDS_TOKEN_URL = (
-    "http://169.254.169.254/metadata/identity/oauth2/token"
-)
+_IMDS_TOKEN_URL = "http://169.254.169.254/metadata/identity/oauth2/token"
 _IMDS_API_VERSION = "2018-02-01"
 # JWT-bearer client-assertion grant. RFC 7521 / 7523. AAD documents
 # this string verbatim; any deviation 400s with an unhelpful message.
-_CLIENT_ASSERTION_TYPE = (
-    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
-)
+_CLIENT_ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
 # Refresh tokens this many seconds before the upstream `expires_at` so
 # in-flight paginates do not 401 mid-walk. 30 s mirrors the GCS / AWS
 # connector's safety margin.
@@ -221,9 +215,7 @@ class TokenCache:
 
     async def get(self, client: httpx.AsyncClient) -> AccessToken:
         async with self._lock:
-            if self._cached is not None and not self._cached.is_expired(
-                self.now()
-            ):
+            if self._cached is not None and not self._cached.is_expired(self.now()):
                 return self._cached
             self._cached = await self.source.acquire(client)
             return self._cached
@@ -263,9 +255,7 @@ class SharedKeyCredential:
         try:
             base64.b64decode(self.account_key_b64, validate=True)
         except (ValueError, base64.binascii.Error) as exc:
-            raise ValueError(
-                f"account_key_b64 is not valid base64: {exc}"
-            ) from None
+            raise ValueError(f"account_key_b64 is not valid base64: {exc}") from None
         if not self.account_name:
             raise ValueError("account_name must be non-empty")
 
@@ -329,29 +319,37 @@ def sign_shared_key(
     if_unmodified_since = h.get("if-unmodified-since", "")
     range_header = h.get("range", "")
     canonicalized_headers = _canonicalize_headers(h)
-    canonicalized_resource = _canonicalize_resource(
-        credential.account_name, url
-    )
+    canonicalized_resource = _canonicalize_resource(credential.account_name, url)
     string_to_sign = (
-        verb + "\n"
-        + content_encoding + "\n"
-        + content_language + "\n"
-        + content_length_str + "\n"
-        + content_md5 + "\n"
-        + content_type + "\n"
-        + date + "\n"
-        + if_modified_since + "\n"
-        + if_match + "\n"
-        + if_none_match + "\n"
-        + if_unmodified_since + "\n"
-        + range_header + "\n"
+        verb
+        + "\n"
+        + content_encoding
+        + "\n"
+        + content_language
+        + "\n"
+        + content_length_str
+        + "\n"
+        + content_md5
+        + "\n"
+        + content_type
+        + "\n"
+        + date
+        + "\n"
+        + if_modified_since
+        + "\n"
+        + if_match
+        + "\n"
+        + if_none_match
+        + "\n"
+        + if_unmodified_since
+        + "\n"
+        + range_header
+        + "\n"
         + canonicalized_headers
         + canonicalized_resource
     )
     key = base64.b64decode(credential.account_key_b64)
-    sig = hmac.new(
-        key, string_to_sign.encode("utf-8"), hashlib.sha256
-    ).digest()
+    sig = hmac.new(key, string_to_sign.encode("utf-8"), hashlib.sha256).digest()
     sig_b64 = base64.b64encode(sig).decode("ascii")
     return f"SharedKey {credential.account_name}:{sig_b64}"
 
@@ -425,9 +423,7 @@ def _canonicalize_resource(account_name: str, url: httpx.URL) -> str:
 # --- helpers --------------------------------------------------------
 
 
-def _parse_aad_token_response(
-    resp: httpx.Response, now: datetime
-) -> AccessToken:
+def _parse_aad_token_response(resp: httpx.Response, now: datetime) -> AccessToken:
     """Convert an Entra v2.0 token response into our AccessToken.
 
     Entra returns `access_token` + `expires_in` (seconds). We compute
@@ -446,16 +442,12 @@ def _parse_aad_token_response(
     body = resp.json()
     token = body.get("access_token")
     if not token:
-        raise ValueError(
-            "Entra token response missing access_token"
-        )
+        raise ValueError("Entra token response missing access_token")
     ttl = int(body.get("expires_in", 3600))
     return AccessToken(value=token, expires_at=now + timedelta(seconds=ttl))
 
 
-def _parse_imds_token_response(
-    resp: httpx.Response, now: datetime
-) -> AccessToken:
+def _parse_imds_token_response(resp: httpx.Response, now: datetime) -> AccessToken:
     """Convert an IMDS token response into our AccessToken.
 
     IMDS returns `access_token` + `expires_in` (seconds, sometimes a

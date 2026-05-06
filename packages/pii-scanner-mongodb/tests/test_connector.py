@@ -173,8 +173,7 @@ class _FakeMotor:
         change_events: dict[str, list[dict[str, Any]]] | None = None,
     ) -> None:
         self._databases: dict[str, _FakeDatabase] = {
-            name: _FakeDatabase(name, colls)
-            for name, colls in databases.items()
+            name: _FakeDatabase(name, colls) for name, colls in databases.items()
         }
         self.admin = _FakeAdmin({"secondary": secondary})
         self.closed = False
@@ -196,9 +195,7 @@ class _FakeMotor:
         self.closed = True
 
 
-def _make_connector(
-    fake: _FakeMotor, **overrides: Any
-) -> MongoConnector:
+def _make_connector(fake: _FakeMotor, **overrides: Any) -> MongoConnector:
     kwargs = {"uri": "mongodb://h", "require_secondary": True} | overrides
     return MongoConnector(MongoConfig(**kwargs), client=fake)
 
@@ -253,9 +250,7 @@ class TestConfig:
         assert cfg.resolved_id() == "my-id"
 
     def test_default_id_strips_credentials(self) -> None:
-        cfg = MongoConfig(
-            uri="mongodb://user:secret@mongo.example:27017/db?w=majority"
-        )
+        cfg = MongoConfig(uri="mongodb://user:secret@mongo.example:27017/db?w=majority")
         rid = cfg.resolved_id()
         assert "secret" not in rid
         assert "user" not in rid
@@ -420,9 +415,7 @@ class TestDiscover:
             await c.close()
 
     async def test_database_include_filter(self) -> None:
-        fake = _FakeMotor(
-            {"app": {"users": []}, "billing": {"invoices": []}}
-        )
+        fake = _FakeMotor({"app": {"users": []}, "billing": {"invoices": []}})
         c = _make_connector(fake, databases=("app",))
         try:
             refs = [r async for r in c.discover(SourceFilter(), None)]
@@ -431,9 +424,7 @@ class TestDiscover:
             await c.close()
 
     async def test_database_exclude_filter(self) -> None:
-        fake = _FakeMotor(
-            {"app": {"users": []}, "billing": {"invoices": []}}
-        )
+        fake = _FakeMotor({"app": {"users": []}, "billing": {"invoices": []}})
         c = _make_connector(fake, excluded_databases=("billing",))
         try:
             refs = [r async for r in c.discover(SourceFilter(), None)]
@@ -442,9 +433,7 @@ class TestDiscover:
             await c.close()
 
     async def test_collection_include_filter(self) -> None:
-        fake = _FakeMotor(
-            {"app": {"users": [], "logs": []}}
-        )
+        fake = _FakeMotor({"app": {"users": [], "logs": []}})
         c = _make_connector(fake, collections=("app.users",))
         try:
             refs = [r async for r in c.discover(SourceFilter(), None)]
@@ -453,9 +442,7 @@ class TestDiscover:
             await c.close()
 
     async def test_collection_exclude_filter(self) -> None:
-        fake = _FakeMotor(
-            {"app": {"users": [], "logs": []}}
-        )
+        fake = _FakeMotor({"app": {"users": [], "logs": []}})
         c = _make_connector(fake, excluded_collections=("app.logs",))
         try:
             refs = [r async for r in c.discover(SourceFilter(), None)]
@@ -464,32 +451,22 @@ class TestDiscover:
             await c.close()
 
     async def test_source_filter_include_glob(self) -> None:
-        fake = _FakeMotor(
-            {"app": {"users": []}, "billing": {"invoices": []}}
-        )
+        fake = _FakeMotor({"app": {"users": []}, "billing": {"invoices": []}})
         c = _make_connector(fake)
         try:
             refs = [
-                r
-                async for r in c.discover(
-                    SourceFilter(include=("billing.*",)), None
-                )
+                r async for r in c.discover(SourceFilter(include=("billing.*",)), None)
             ]
             assert {r.path for r in refs} == {"billing.invoices"}
         finally:
             await c.close()
 
     async def test_source_filter_exclude_glob(self) -> None:
-        fake = _FakeMotor(
-            {"app": {"users": [], "logs": []}}
-        )
+        fake = _FakeMotor({"app": {"users": [], "logs": []}})
         c = _make_connector(fake)
         try:
             refs = [
-                r
-                async for r in c.discover(
-                    SourceFilter(exclude=("*.logs",)), None
-                )
+                r async for r in c.discover(SourceFilter(exclude=("*.logs",)), None)
             ]
             assert {r.path for r in refs} == {"app.users"}
         finally:
@@ -500,10 +477,7 @@ class TestDiscover:
         fake = _FakeMotor({"app": {"users": []}})
         c = _make_connector(fake, incremental=True)
         try:
-            refs = [
-                r
-                async for r in c.discover(SourceFilter(), "resume-token-X")
-            ]
+            refs = [r async for r in c.discover(SourceFilter(), "resume-token-X")]
             assert refs[0].metadata["_cursor"] == "resume-token-X"
         finally:
             await c.close()
@@ -526,9 +500,7 @@ class TestSample:
             assert len(collected) == 10
             # Pipeline must contain $sample with the configured size.
             coll = fake["app"]["users"]
-            assert coll.last_aggregate_pipeline == [
-                {"$sample": {"size": 10}}
-            ]
+            assert coll.last_aggregate_pipeline == [{"$sample": {"size": 10}}]
         finally:
             await c.close()
 
@@ -543,9 +515,7 @@ class TestSample:
             await c.close()
 
     async def test_document_index_attached(self) -> None:
-        fake = _FakeMotor(
-            {"app": {"users": [{"_id": 1}, {"_id": 2}]}}
-        )
+        fake = _FakeMotor({"app": {"users": [{"_id": 1}, {"_id": 2}]}})
         c = _make_connector(fake, sample_rows=2)
         try:
             refs = [r async for r in c.discover(SourceFilter(), None)]
@@ -757,24 +727,17 @@ class TestChangeStream:
 
 class TestRedactUri:
     def test_strips_userinfo(self) -> None:
-        assert (
-            _redact_uri("mongodb://u:p@h:27017/d")
-            == "mongodb://h:27017/d"
-        )
+        assert _redact_uri("mongodb://u:p@h:27017/d") == "mongodb://h:27017/d"
 
     def test_strips_query(self) -> None:
         # Query string can carry password= in some setups.
-        assert "password" not in _redact_uri(
-            "mongodb://h/?password=p&authSource=admin"
-        )
+        assert "password" not in _redact_uri("mongodb://h/?password=p&authSource=admin")
 
     def test_passes_through_when_no_userinfo(self) -> None:
         assert _redact_uri("mongodb://h:27017/d") == "mongodb://h:27017/d"
 
     def test_handles_srv(self) -> None:
-        out = _redact_uri(
-            "mongodb+srv://scanner:hunter2@cluster.example/?w=majority"
-        )
+        out = _redact_uri("mongodb+srv://scanner:hunter2@cluster.example/?w=majority")
         assert "hunter2" not in out
         assert "scanner" not in out
         assert "cluster.example" in out
@@ -875,11 +838,7 @@ class TestLifecycle:
         from pleno_pii_scanner_mongodb import connector as mod
 
         monkeypatch.setattr(mod, "AsyncIOMotorClient", _Spy)
-        MongoConnector(
-            MongoConfig(
-                uri="mongodb://h", username="u", password="p"
-            )
-        )
+        MongoConnector(MongoConfig(uri="mongodb://h", username="u", password="p"))
         assert captured["username"] == "u"
         assert captured["password"] == "p"
         assert captured["maxPoolSize"] == 2

@@ -20,7 +20,7 @@ Notion API change must never crash a scan.
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 
@@ -82,9 +82,7 @@ def _render_rich_text_element(element: Mapping[str, Any]) -> str:
         # raw text see the LaTeX source verbatim.
         equation = element.get("equation")
         expression = (
-            equation.get("expression", "")
-            if isinstance(equation, Mapping)
-            else ""
+            equation.get("expression", "") if isinstance(equation, Mapping) else ""
         )
         return f"${expression}$" if expression else _plain(element)
     # Unknown rich-text type: fall back to the `plain_text` field that
@@ -119,13 +117,25 @@ def _render_mention_element(element: Mapping[str, Any]) -> str:
     if not href:
         if mention_type == "user":
             user = mention.get("user") or {}
-            href = f"notion://user/{user.get('id', 'unknown')}" if isinstance(user, Mapping) else None
+            href = (
+                f"notion://user/{user.get('id', 'unknown')}"
+                if isinstance(user, Mapping)
+                else None
+            )
         elif mention_type == "page":
             page = mention.get("page") or {}
-            href = f"notion://page/{page.get('id', 'unknown')}" if isinstance(page, Mapping) else None
+            href = (
+                f"notion://page/{page.get('id', 'unknown')}"
+                if isinstance(page, Mapping)
+                else None
+            )
         elif mention_type == "database":
             db = mention.get("database") or {}
-            href = f"notion://database/{db.get('id', 'unknown')}" if isinstance(db, Mapping) else None
+            href = (
+                f"notion://database/{db.get('id', 'unknown')}"
+                if isinstance(db, Mapping)
+                else None
+            )
         elif mention_type == "date":
             date = mention.get("date") or {}
             start = date.get("start", "") if isinstance(date, Mapping) else ""
@@ -289,7 +299,9 @@ def _render_bulleted(payload: Mapping[str, Any], **_: Any) -> str:
     return f"- {render_rich_text(payload.get('rich_text'))}"
 
 
-def _render_numbered(payload: Mapping[str, Any], *, numbered_index: int = 1, **_: Any) -> str:
+def _render_numbered(
+    payload: Mapping[str, Any], *, numbered_index: int = 1, **_: Any
+) -> str:
     return f"{numbered_index}. {render_rich_text(payload.get('rich_text'))}"
 
 
@@ -336,7 +348,9 @@ def _render_table_placeholder(_: Mapping[str, Any], **__: Any) -> str:
 
 def _render_table_row(payload: Mapping[str, Any], **_: Any) -> str:
     cells = payload.get("cells") or []
-    rendered_cells = [render_rich_text(cell) for cell in cells if isinstance(cell, Sequence)]
+    rendered_cells = [
+        render_rich_text(cell) for cell in cells if isinstance(cell, Sequence)
+    ]
     return "| " + " | ".join(rendered_cells) + " |"
 
 
@@ -390,11 +404,23 @@ def _render_table(payload: Mapping[str, Any], rows: Sequence[Mapping[str, Any]])
     if not rows:
         return ""
     table_width = int(payload.get("table_width") or 0) or _row_width(rows[0])
-    header_row, *body_rows = rows if payload.get("has_column_header") else (
-        [{"type": "table_row", "table_row": {"cells": [[] for _ in range(table_width)]}}]
-        + list(rows)
+    header_row, *body_rows = (
+        rows
+        if payload.get("has_column_header")
+        else (
+            [
+                {
+                    "type": "table_row",
+                    "table_row": {"cells": [[] for _ in range(table_width)]},
+                }
+            ]
+            + list(rows)
+        )
     )
-    parts = [_render_one_row(header_row), "| " + " | ".join(["---"] * table_width) + " |"]
+    parts = [
+        _render_one_row(header_row),
+        "| " + " | ".join(["---"] * table_width) + " |",
+    ]
     for r in body_rows:
         parts.append(_render_one_row(r))
     return "\n".join(parts)
@@ -511,11 +537,7 @@ def _prop_select(prop: Mapping[str, Any]) -> str:
 
 def _prop_multi_select(prop: Mapping[str, Any]) -> str:
     items = prop.get("multi_select") or []
-    names = [
-        str(item.get("name", ""))
-        for item in items
-        if isinstance(item, Mapping)
-    ]
+    names = [str(item.get("name", "")) for item in items if isinstance(item, Mapping)]
     return ", ".join(n for n in names if n)
 
 
@@ -555,11 +577,7 @@ def _prop_people(prop: Mapping[str, Any]) -> str:
             continue
         name = person.get("name")
         person_obj = person.get("person")
-        email = (
-            person_obj.get("email")
-            if isinstance(person_obj, Mapping)
-            else None
-        )
+        email = person_obj.get("email") if isinstance(person_obj, Mapping) else None
         if name and email:
             rendered.append(f"{name} <{email}>")
         elif name:
@@ -623,7 +641,11 @@ def _prop_rollup(prop: Mapping[str, Any]) -> str:
         return ""
     if r_type == "array" and isinstance(value, list):
         # Each array element is itself a typed property; recurse.
-        rendered = [_render_property(item, item.get("type")) for item in value if isinstance(item, Mapping)]
+        rendered = [
+            _render_property(item, item.get("type"))
+            for item in value
+            if isinstance(item, Mapping)
+        ]
         return ", ".join(r for r in rendered if r)
     if isinstance(value, Mapping) and "start" in value:
         return _prop_date({"date": value})

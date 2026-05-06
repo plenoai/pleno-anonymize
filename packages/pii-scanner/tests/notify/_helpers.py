@@ -34,7 +34,9 @@ def make_finding(
     )
 
 
-def make_batch(*findings: Finding, scan_id: str = "scan-1", **metadata) -> NotificationBatch:
+def make_batch(
+    *findings: Finding, scan_id: str = "scan-1", **metadata
+) -> NotificationBatch:
     summary: dict[str, int] = {}
     for f in findings:
         bucket = severity_for(f)

@@ -1,7 +1,6 @@
 """End-to-end-ish: invoke the CLI on the bundled fixtures dir."""
 
 import json
-import sys
 from pathlib import Path
 
 from click.testing import CliRunner
@@ -15,7 +14,14 @@ def test_dir_finds_pii_in_positive_fixtures():
     runner = CliRunner()
     result = runner.invoke(
         main,
-        ["dir", str(FIXTURES / "positive"), "--report-format", "json", "--no-color", "--exit-zero"],
+        [
+            "dir",
+            str(FIXTURES / "positive"),
+            "--report-format",
+            "json",
+            "--no-color",
+            "--exit-zero",
+        ],
     )
     assert result.exit_code == 0, result.output
     data = json.loads(result.output)
@@ -30,7 +36,14 @@ def test_dir_inline_ignore_suppresses_negatives():
     runner = CliRunner()
     result = runner.invoke(
         main,
-        ["dir", str(FIXTURES / "negative"), "--report-format", "json", "--no-color", "--exit-zero"],
+        [
+            "dir",
+            str(FIXTURES / "negative"),
+            "--report-format",
+            "json",
+            "--no-color",
+            "--exit-zero",
+        ],
     )
     assert result.exit_code == 0, result.output
     data = json.loads(result.output)

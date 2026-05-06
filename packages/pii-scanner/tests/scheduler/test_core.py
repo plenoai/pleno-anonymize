@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import asyncio
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 
-import pytest
 
 from pleno_pii_scanner.scheduler import (
     GlobalRateLimiter,
@@ -113,9 +111,7 @@ async def _scan_collect(emitted: list[tuple[str, str]]):
 
 class TestRunOne:
     async def test_happy_path_emits_all_refs(self) -> None:
-        c = _FakeConnector(
-            id="fake:1", refs=(_ref("fake:1", "a"), _ref("fake:1", "b"))
-        )
+        c = _FakeConnector(id="fake:1", refs=(_ref("fake:1", "a"), _ref("fake:1", "b")))
         emitted: list[tuple[str, str]] = []
         s = Scheduler(config=_config())
         result = await s.run_one(
@@ -269,9 +265,7 @@ class TestRun:
         assert sorted(p for p, _ in emitted) == ["a", "b"]
 
     async def test_one_failing_plan_does_not_cancel_siblings(self) -> None:
-        c_ok = _FakeConnector(
-            id="fake:ok", refs=(_ref("fake:ok", "x"),)
-        )
+        c_ok = _FakeConnector(id="fake:ok", refs=(_ref("fake:ok", "x"),))
         c_bad = _FakeConnector(
             id="fake:bad",
             refs=(_ref("fake:bad", "y"),),

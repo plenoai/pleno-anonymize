@@ -147,9 +147,7 @@ def _in_code_span(line: str, col_1based: int, matched: str) -> bool:
 # the captured span against a strict pattern catches both classes.
 # ---------------------------------------------------------------------------
 
-_STRICT_EMAIL_RE = re.compile(
-    r"\A[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\Z"
-)
+_STRICT_EMAIL_RE = re.compile(r"\A[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\Z")
 
 # RFC 2606 plus the conventional ``example.co.jp``. Never real PII.
 _RESERVED_EMAIL_DOMAINS = frozenset(
@@ -234,15 +232,33 @@ def _in_product_url(line: str) -> bool:
 
 _NER_FP_NOUN_SUFFIXES = (
     # Generic head nouns frequent in dev-doc prose
-    "一覧", "番号", "設計", "機能", "属性", "定数", "変数",
-    "関数", "引数", "戻り値", "演算子", "例外", "数値",
-    "残置",                          # 原則残置 (leave-as-is)
-    "呼び出し",                       # サンプル呼び出し
+    "一覧",
+    "番号",
+    "設計",
+    "機能",
+    "属性",
+    "定数",
+    "変数",
+    "関数",
+    "引数",
+    "戻り値",
+    "演算子",
+    "例外",
+    "数値",
+    "残置",  # 原則残置 (leave-as-is)
+    "呼び出し",  # サンプル呼び出し
     # Verb-form deverbal nouns (action-of-X) — never personal names
-    "割り当て", "割り当てる",
-    "書き込み", "書き出し", "読み込み", "読み出し",
-    "貼り付け", "切り出し", "差し替え",
-    "立ち上げ", "立ち上がり",
+    "割り当て",
+    "割り当てる",
+    "書き込み",
+    "書き出し",
+    "読み込み",
+    "読み出し",
+    "貼り付け",
+    "切り出し",
+    "差し替え",
+    "立ち上げ",
+    "立ち上がり",
     "問い合わせ",
 )
 
@@ -377,20 +393,64 @@ _LATIN_NAME_CONTEXT_RE = re.compile(
 # the v0.2.x eval (LICENSE files, READMEs, changelog headers).
 _NON_NAME_LATIN_TOKENS = frozenset(
     {
-        "License", "Public", "Apache", "Mozilla", "Foundation",
-        "Pull", "Request", "Requests", "Issue", "Issues",
-        "Source", "Open", "Free", "Software",
-        "Code", "Conduct", "Contributing", "Community",
-        "Copyright", "Reserved", "Rights",
-        "Read", "Quick", "Start", "Hello", "World",
-        "Lorem", "Ipsum",
-        "Java", "JavaScript", "TypeScript", "Node", "Script",
-        "York", "America", "Asia", "Europe", "Africa", "Australia",
-        "Major", "Minor", "Patch", "Stable", "Latest",
-        "Table", "Contents",
-        "Section", "Chapter", "Appendix",
-        "Note", "Notes", "Warning", "Caution", "Tip",
-        "True", "False", "None", "Null",
+        "License",
+        "Public",
+        "Apache",
+        "Mozilla",
+        "Foundation",
+        "Pull",
+        "Request",
+        "Requests",
+        "Issue",
+        "Issues",
+        "Source",
+        "Open",
+        "Free",
+        "Software",
+        "Code",
+        "Conduct",
+        "Contributing",
+        "Community",
+        "Copyright",
+        "Reserved",
+        "Rights",
+        "Read",
+        "Quick",
+        "Start",
+        "Hello",
+        "World",
+        "Lorem",
+        "Ipsum",
+        "Java",
+        "JavaScript",
+        "TypeScript",
+        "Node",
+        "Script",
+        "York",
+        "America",
+        "Asia",
+        "Europe",
+        "Africa",
+        "Australia",
+        "Major",
+        "Minor",
+        "Patch",
+        "Stable",
+        "Latest",
+        "Table",
+        "Contents",
+        "Section",
+        "Chapter",
+        "Appendix",
+        "Note",
+        "Notes",
+        "Warning",
+        "Caution",
+        "Tip",
+        "True",
+        "False",
+        "None",
+        "Null",
     }
 )
 
@@ -465,7 +525,9 @@ def _line_for(file_text: str, line: int) -> str:
 def _window_around(file_text: str, line_text: str, matched: str) -> str:
     if matched and matched in line_text:
         idx = line_text.find(matched)
-        return line_text[max(0, idx - _NOISE_WINDOW) : idx + len(matched) + _NOISE_WINDOW]
+        return line_text[
+            max(0, idx - _NOISE_WINDOW) : idx + len(matched) + _NOISE_WINDOW
+        ]
     return line_text
 
 
@@ -598,7 +660,9 @@ def _should_drop(f: Finding, file_text_for: dict[str, str]) -> bool:
         idx = line.find(f.matched) if f.matched else -1
         if idx >= 0:
             left = line[idx - 1] if idx > 0 else ""
-            right = line[idx + len(f.matched)] if idx + len(f.matched) < len(line) else ""
+            right = (
+                line[idx + len(f.matched)] if idx + len(f.matched) < len(line) else ""
+            )
             if left == "`" or right == "`":
                 return True
         # ASCII art "─────>│" runs of box-drawing chars — never a real entity.

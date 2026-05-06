@@ -186,9 +186,7 @@ class TestSingleRepo:
 
     async def test_fetch_ref_without_slug_returns_empty(self) -> None:
         c = GithubConnector(GithubConfig(repo="acme/widgets"))
-        ghost = DocumentRef(
-            source_id=c.id, source_kind=c.kind, path="x/y/z"
-        )
+        ghost = DocumentRef(source_id=c.id, source_kind=c.kind, path="x/y/z")
         async for _ in c.fetch(ghost):
             pytest.fail("must yield nothing without slug metadata")
 
@@ -254,9 +252,7 @@ class TestOrgEnumeration:
 
 
 class TestClose:
-    async def test_close_rmtree_tempdirs(
-        self, fake_repo: Path, tmp_path: Path
-    ) -> None:
+    async def test_close_rmtree_tempdirs(self, fake_repo: Path, tmp_path: Path) -> None:
         for f in fake_repo.iterdir():
             if f.is_file():
                 (tmp_path / f.name).write_text(f.read_text())
@@ -334,7 +330,9 @@ class TestProductionHelpers:
 
         monkeypatch.setattr(mod.subprocess, "run", fake_run)
         # Drive with a slug (no scheme) so the helper synthesizes a URL.
-        path = mod._clone_into_tempdir("acme/widgets", GithubConfig(repo="acme/widgets"))
+        path = mod._clone_into_tempdir(
+            "acme/widgets", GithubConfig(repo="acme/widgets")
+        )
         assert path.exists()
         assert any("https://github.com/acme/widgets.git" in c for c in seen_cmds[0])
         assert "--depth=1" in seen_cmds[0]
@@ -350,8 +348,9 @@ class TestProductionHelpers:
         monkeypatch.setattr(
             mod.subprocess,
             "run",
-            lambda cmd, **kw: seen_cmds.append(list(cmd))
-            or type("R", (), {"returncode": 0})(),
+            lambda cmd, **kw: (
+                seen_cmds.append(list(cmd)) or type("R", (), {"returncode": 0})()
+            ),
         )
         url = "git@github.com:acme/widgets.git"
         path = mod._clone_into_tempdir(url, GithubConfig(repo=url))
@@ -367,8 +366,9 @@ class TestProductionHelpers:
         monkeypatch.setattr(
             mod.subprocess,
             "run",
-            lambda cmd, **kw: seen_cmds.append(list(cmd))
-            or type("R", (), {"returncode": 0})(),
+            lambda cmd, **kw: (
+                seen_cmds.append(list(cmd)) or type("R", (), {"returncode": 0})()
+            ),
         )
         path = mod._clone_into_tempdir(
             "acme/widgets", GithubConfig(repo="acme/widgets", full=True)
@@ -429,15 +429,15 @@ class TestIncrementalSubsources:
         subs = await c.list_subsources()
         assert len(subs) == 1
         assert subs[0].sub_id == "acme/widgets"
-        assert subs[0].fingerprint == (
-            "deadbeefcafebabe1234567890abcdef12345678"
-        )
+        assert subs[0].fingerprint == ("deadbeefcafebabe1234567890abcdef12345678")
 
     async def test_list_subsources_for_org(self) -> None:
         c = GithubConnector(
             GithubConfig(org="acme"),
             enumerate_fn=lambda org, archived: ["acme/one", "acme/two"],
-            head_sha_fn=lambda slug: f"sha-{slug.split('/')[-1]}-pad-pad-pad-pad-pad-pad-pad",
+            head_sha_fn=lambda slug: (
+                f"sha-{slug.split('/')[-1]}-pad-pad-pad-pad-pad-pad-pad"
+            ),
         )
         subs = await c.list_subsources()
         slug_set = {s.sub_id for s in subs}
@@ -482,9 +482,7 @@ class TestIncrementalSubsources:
     ) -> None:
         from pleno_pii_scanner.sources.builtin import github_source as mod
 
-        sample = (
-            b"abcdef0123456789abcdef0123456789abcdef01\tHEAD\n"
-        )
+        sample = b"abcdef0123456789abcdef0123456789abcdef01\tHEAD\n"
         monkeypatch.setattr(
             mod.subprocess,
             "run",
@@ -514,8 +512,6 @@ class TestIncrementalSubsources:
         monkeypatch.setattr(
             mod.subprocess,
             "run",
-            lambda cmd, **kw: type(
-                "R", (), {"stdout": b"<html>nope</html>\n"}
-            )(),
+            lambda cmd, **kw: type("R", (), {"stdout": b"<html>nope</html>\n"})(),
         )
         assert mod._default_head_sha("acme/widgets") is None

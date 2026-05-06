@@ -30,8 +30,7 @@ class DocxExtractor:
     name = "office:docx"
     accepts = frozenset(
         {
-            "application/vnd.openxmlformats-officedocument."
-            "wordprocessingml.document",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         }
     )
 
@@ -39,9 +38,7 @@ class DocxExtractor:
         try:
             import docx
         except ImportError as exc:
-            raise ExtractorError(
-                "DocxExtractor requires the [office] extra"
-            ) from exc
+            raise ExtractorError("DocxExtractor requires the [office] extra") from exc
         self._docx = docx
 
     async def extract(
@@ -74,8 +71,7 @@ class XlsxExtractor:
     name = "office:xlsx"
     accepts = frozenset(
         {
-            "application/vnd.openxmlformats-officedocument."
-            "spreadsheetml.sheet",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         }
     )
 
@@ -83,9 +79,7 @@ class XlsxExtractor:
         try:
             import openpyxl
         except ImportError as exc:
-            raise ExtractorError(
-                "XlsxExtractor requires the [office] extra"
-            ) from exc
+            raise ExtractorError("XlsxExtractor requires the [office] extra") from exc
         self._openpyxl = openpyxl
 
     async def extract(
@@ -102,9 +96,7 @@ class XlsxExtractor:
                 ws = wb[sheet_name]
                 for row in ws.iter_rows(values_only=False):
                     for cell in row:
-                        if cell.value is None or not isinstance(
-                            cell.value, str
-                        ):
+                        if cell.value is None or not isinstance(cell.value, str):
                             continue
                         yield ExtractedFragment(
                             text=cell.value,
@@ -122,8 +114,7 @@ class PptxExtractor:
     name = "office:pptx"
     accepts = frozenset(
         {
-            "application/vnd.openxmlformats-officedocument."
-            "presentationml.presentation",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
         }
     )
 
@@ -131,9 +122,7 @@ class PptxExtractor:
         try:
             from pptx import Presentation
         except ImportError as exc:
-            raise ExtractorError(
-                "PptxExtractor requires the [office] extra"
-            ) from exc
+            raise ExtractorError("PptxExtractor requires the [office] extra") from exc
         self._Presentation = Presentation
 
     async def extract(

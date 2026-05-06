@@ -49,7 +49,6 @@ class TestServiceAccountKey:
             # `assertion=`. Verify the signature roundtrips against the
             # fixture's public key.
             body = request.content.decode()
-            params = dict(p.split("=", 1) for p in body.split("&"))
             assertion = httpx.QueryParams(body).get("assertion")
             assert assertion is not None
             captured["assertion"] = assertion
@@ -58,9 +57,7 @@ class TestServiceAccountKey:
                 json={"access_token": "tok-abc", "expires_in": 3600},
             )
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             src = ServiceAccountKeyTokenSource(key_data=service_account_key)
             token = await src.acquire(client)
         assert token.value == "tok-abc"
@@ -147,9 +144,7 @@ class TestServiceAccountKey:
 
 
 class TestWorkloadIdentity:
-    async def test_two_step_exchange_with_impersonation(
-        self, tmp_path
-    ) -> None:
+    async def test_two_step_exchange_with_impersonation(self, tmp_path) -> None:
         token_file = tmp_path / "oidc.jwt"
         token_file.write_text("external-oidc-token")
         calls: list[str] = []
@@ -182,9 +177,7 @@ class TestWorkloadIdentity:
                 )
             return httpx.Response(404)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             src = WorkloadIdentityTokenSource(
                 audience=(
                     "//iam.googleapis.com/projects/123/locations/global/"
@@ -200,21 +193,15 @@ class TestWorkloadIdentity:
         assert any("sts.googleapis" in c for c in calls)
         assert any("iamcredentials.googleapis" in c for c in calls)
 
-    async def test_no_impersonation_returns_federated_directly(
-        self, tmp_path
-    ) -> None:
+    async def test_no_impersonation_returns_federated_directly(self, tmp_path) -> None:
         token_file = tmp_path / "oidc.jwt"
         token_file.write_text("ext-tok")
 
         def handler(request: httpx.Request) -> httpx.Response:
             assert "sts.googleapis.com" in str(request.url)
-            return httpx.Response(
-                200, json={"access_token": "fed", "expires_in": 1800}
-            )
+            return httpx.Response(200, json={"access_token": "fed", "expires_in": 1800})
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             src = WorkloadIdentityTokenSource(
                 audience="//iam.googleapis.com/x",
                 token_path=str(token_file),
@@ -224,9 +211,7 @@ class TestWorkloadIdentity:
         # ~30 minutes ahead, allow a 5-second clock skew.
         assert (token.expires_at - datetime.now(UTC)).total_seconds() > 1700
 
-    async def test_sts_missing_access_token_rejected(
-        self, tmp_path
-    ) -> None:
+    async def test_sts_missing_access_token_rejected(self, tmp_path) -> None:
         token_file = tmp_path / "oidc.jwt"
         token_file.write_text("ext")
         async with httpx.AsyncClient(
@@ -264,9 +249,7 @@ class TestWorkloadIdentity:
                 )
             return httpx.Response(404)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             src = WorkloadIdentityTokenSource(
                 audience="//iam.googleapis.com/x",
                 token_path=str(token_file),
@@ -275,9 +258,7 @@ class TestWorkloadIdentity:
             token = await src.acquire(client)
         assert token.expires_at.tzinfo == UTC
 
-    async def test_impersonate_missing_fields_rejected(
-        self, tmp_path
-    ) -> None:
+    async def test_impersonate_missing_fields_rejected(self, tmp_path) -> None:
         token_file = tmp_path / "oidc.jwt"
         token_file.write_text("ext")
 
@@ -289,9 +270,7 @@ class TestWorkloadIdentity:
             # iamcredentials returns body without expireTime.
             return httpx.Response(200, json={"accessToken": "x"})
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             src = WorkloadIdentityTokenSource(
                 audience="//iam.googleapis.com/x",
                 token_path=str(token_file),
@@ -308,13 +287,9 @@ class TestWorkloadIdentity:
         def handler(request: httpx.Request) -> httpx.Response:
             body = json.loads(request.content)
             assert body["subjectToken"] == "from-seam"
-            return httpx.Response(
-                200, json={"access_token": "tok", "expires_in": 60}
-            )
+            return httpx.Response(200, json={"access_token": "tok", "expires_in": 60})
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             src = WorkloadIdentityTokenSource(
                 audience="//iam.googleapis.com/x",
                 token_path="/no/such/file",
@@ -345,9 +320,7 @@ class TestApplicationDefault:
                 200, json={"access_token": "adc-tok", "expires_in": 60}
             )
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             src = ApplicationDefaultTokenSource(
                 env_get=env_get, file_reader=file_reader
             )
@@ -365,9 +338,7 @@ class TestApplicationDefault:
                 200, json={"access_token": "metadata-tok", "expires_in": 900}
             )
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             src = ApplicationDefaultTokenSource(env_get=env_get)
             token = await src.acquire(client)
         assert token.value == "metadata-tok"
@@ -378,9 +349,7 @@ class TestApplicationDefault:
 
         async with httpx.AsyncClient(
             transport=httpx.MockTransport(
-                lambda _r: httpx.Response(
-                    200, json={"expires_in": 60}
-                )
+                lambda _r: httpx.Response(200, json={"expires_in": 60})
             )
         ) as client:
             src = ApplicationDefaultTokenSource(env_get=env_get)

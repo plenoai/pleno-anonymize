@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import gzip
-import io
 import json
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -82,9 +81,7 @@ class TestS3Config:
 
     def test_requires_buckets(self) -> None:
         with pytest.raises(ValueError, match="buckets"):
-            S3Config(
-                accounts=(AccountSpec(account_id="1"),), buckets=()
-            )
+            S3Config(accounts=(AccountSpec(account_id="1"),), buckets=())
 
     def test_invalid_max_doc_bytes(self) -> None:
         with pytest.raises(ValueError):
@@ -105,7 +102,11 @@ class TestS3Config:
 
 class TestCursor:
     def test_round_trip(self) -> None:
-        c = _Cursor(bucket_index=2, continuation_token="t", last_modified_floor="2024-01-01T00:00:00+00:00")
+        c = _Cursor(
+            bucket_index=2,
+            continuation_token="t",
+            last_modified_floor="2024-01-01T00:00:00+00:00",
+        )
         again = _Cursor.loads(c.dumps())
         assert again == c
 
@@ -123,7 +124,9 @@ class TestProtocolCompliance:
         assert isinstance(c, SourceConnector)
 
     def test_capabilities(self) -> None:
-        c = S3Connector(_config([BucketSpec(name="b")], concurrency=8), _factory_creds())
+        c = S3Connector(
+            _config([BucketSpec(name="b")], concurrency=8), _factory_creds()
+        )
         caps = c.capabilities()
         assert caps == Capabilities(
             incremental=True,
@@ -151,9 +154,7 @@ def _client_with(objects: dict[str, list[FakeObject]], **kw: Any) -> FakeS3Clien
     return FakeS3Client(objects, **kw)
 
 
-def _connector(
-    config: S3Config, client: FakeS3Client | None = None
-) -> S3Connector:
+def _connector(config: S3Config, client: FakeS3Client | None = None) -> S3Connector:
     factory = make_client_factory(lambda a, b: client or _client_with({}))
     return S3Connector(config, _factory_creds(), client_factory=factory)
 
@@ -168,7 +169,10 @@ async def _drain_refs(c: S3Connector, cursor: str | None = None) -> list[Documen
 
 class TestDiscoverObjects:
     async def test_lists_and_paginates(self) -> None:
-        objs = [FakeObject(key=f"a/{i}.txt", body=b"x", last_modified=_now()) for i in range(5)]
+        objs = [
+            FakeObject(key=f"a/{i}.txt", body=b"x", last_modified=_now())
+            for i in range(5)
+        ]
         client = _client_with({"b": objs}, page_size=2)
         c = _connector(_config([BucketSpec(name="b")]), client)
         refs = await _drain_refs(c)
@@ -176,7 +180,9 @@ class TestDiscoverObjects:
         assert {r.path for r in refs} == {f"s3://b/a/{i}.txt" for i in range(5)}
 
     async def test_metadata_carries_account_and_key(self) -> None:
-        client = _client_with({"b": [FakeObject(key="x", body=b"hello", last_modified=_now())]})
+        client = _client_with(
+            {"b": [FakeObject(key="x", body=b"hello", last_modified=_now())]}
+        )
         c = _connector(_config([BucketSpec(name="b")]), client)
         ref = (await _drain_refs(c))[0]
         assert ref.metadata["aws_account_id"] == "111111111111"
@@ -189,10 +195,30 @@ class TestDiscoverObjects:
         client = _client_with(
             {
                 "b": [
-                    FakeObject(key="a", body=b"x", storage_class="STANDARD", last_modified=_now()),
-                    FakeObject(key="b", body=b"y", storage_class="GLACIER", last_modified=_now()),
-                    FakeObject(key="c", body=b"z", storage_class="DEEP_ARCHIVE", last_modified=_now()),
-                    FakeObject(key="d", body=b"w", storage_class="GLACIER_IR", last_modified=_now()),
+                    FakeObject(
+                        key="a",
+                        body=b"x",
+                        storage_class="STANDARD",
+                        last_modified=_now(),
+                    ),
+                    FakeObject(
+                        key="b",
+                        body=b"y",
+                        storage_class="GLACIER",
+                        last_modified=_now(),
+                    ),
+                    FakeObject(
+                        key="c",
+                        body=b"z",
+                        storage_class="DEEP_ARCHIVE",
+                        last_modified=_now(),
+                    ),
+                    FakeObject(
+                        key="d",
+                        body=b"w",
+                        storage_class="GLACIER_IR",
+                        last_modified=_now(),
+                    ),
                 ]
             },
             page_size=10,
@@ -216,7 +242,9 @@ class TestDiscoverObjects:
         c = _connector(_config([BucketSpec(name="b")]), client)
         refs = [
             r
-            async for r in c.discover(SourceFilter(since=_now() - timedelta(days=1)), None)
+            async for r in c.discover(
+                SourceFilter(since=_now() - timedelta(days=1)), None
+            )
         ]
         assert {r.metadata["aws_key"] for r in refs} == {"new"}
 
@@ -246,11 +274,16 @@ class TestDiscoverObjects:
             await _drain_refs(c)
 
     async def test_non_throttle_error_propagates(self) -> None:
-        client = _client_with({"b": [FakeObject(key="x", body=b"x", last_modified=_now())]})
+        client = _client_with(
+            {"b": [FakeObject(key="x", body=b"x", last_modified=_now())]}
+        )
 
         async def boom(*a, **k):  # noqa: ARG001
             raise _ClientError(
-                {"Error": {"Code": "AccessDenied"}, "ResponseMetadata": {"HTTPStatusCode": 403}}
+                {
+                    "Error": {"Code": "AccessDenied"},
+                    "ResponseMetadata": {"HTTPStatusCode": 403},
+                }
             )
 
         client.list_objects_v2 = boom  # type: ignore[assignment]
@@ -264,15 +297,17 @@ class TestDiscoverVersions:
         client = _client_with(
             {
                 "b": [
-                    FakeObject(key="x", body=b"v1", version_id="v1", last_modified=_now()),
-                    FakeObject(key="x", body=b"v2", version_id="v2", last_modified=_now()),
+                    FakeObject(
+                        key="x", body=b"v1", version_id="v1", last_modified=_now()
+                    ),
+                    FakeObject(
+                        key="x", body=b"v2", version_id="v2", last_modified=_now()
+                    ),
                 ]
             },
             page_size=10,
         )
-        c = _connector(
-            _config([BucketSpec(name="b")], include_versions=True), client
-        )
+        c = _connector(_config([BucketSpec(name="b")], include_versions=True), client)
         refs = await _drain_refs(c)
         assert {r.metadata["aws_version_id"] for r in refs} == {"v1", "v2"}
 
@@ -280,26 +315,28 @@ class TestDiscoverVersions:
         client = _client_with(
             {
                 "b": [
-                    FakeObject(key=f"k{i}", body=b"x", version_id="v", last_modified=_now())
+                    FakeObject(
+                        key=f"k{i}", body=b"x", version_id="v", last_modified=_now()
+                    )
                     for i in range(5)
                 ]
             },
             page_size=2,
         )
-        c = _connector(
-            _config([BucketSpec(name="b")], include_versions=True), client
-        )
+        c = _connector(_config([BucketSpec(name="b")], include_versions=True), client)
         refs = await _drain_refs(c)
         assert len(refs) == 5
 
     async def test_versions_throttle_translated(self) -> None:
         client = _client_with(
-            {"b": [FakeObject(key="x", body=b"x", version_id="v", last_modified=_now())]},
+            {
+                "b": [
+                    FakeObject(key="x", body=b"x", version_id="v", last_modified=_now())
+                ]
+            },
             throttle_after_calls=0,
         )
-        c = _connector(
-            _config([BucketSpec(name="b")], include_versions=True), client
-        )
+        c = _connector(_config([BucketSpec(name="b")], include_versions=True), client)
         with pytest.raises(RateLimited):
             await _drain_refs(c)
 
@@ -322,7 +359,12 @@ class TestDiscoverVersions:
 class TestSamplingPath:
     async def test_reservoir_caps_results(self) -> None:
         client = _client_with(
-            {"b": [FakeObject(key=f"k{i}", body=b"x", last_modified=_now()) for i in range(100)]},
+            {
+                "b": [
+                    FakeObject(key=f"k{i}", body=b"x", last_modified=_now())
+                    for i in range(100)
+                ]
+            },
             page_size=10,
         )
         cfg = _config(
@@ -336,7 +378,12 @@ class TestSamplingPath:
 
     async def test_force_full_scan_disables_sampling(self) -> None:
         client = _client_with(
-            {"b": [FakeObject(key=f"k{i}", body=b"x", last_modified=_now()) for i in range(50)]},
+            {
+                "b": [
+                    FakeObject(key=f"k{i}", body=b"x", last_modified=_now())
+                    for i in range(50)
+                ]
+            },
             page_size=20,
         )
         cfg = _config(
@@ -448,7 +495,10 @@ class TestInventoryPath:
         )
         c = _connector(_config([bucket]), client)
         refs = [
-            r async for r in c.discover(SourceFilter(since=_now() - timedelta(days=1)), None)
+            r
+            async for r in c.discover(
+                SourceFilter(since=_now() - timedelta(days=1)), None
+            )
         ]
         assert refs == []
 
@@ -542,7 +592,10 @@ class TestFetchSmall:
 
         async def boom(*a, **k):  # noqa: ARG001
             raise _ClientError(
-                {"Error": {"Code": "ThrottlingException"}, "ResponseMetadata": {"HTTPStatusCode": 429}}
+                {
+                    "Error": {"Code": "ThrottlingException"},
+                    "ResponseMetadata": {"HTTPStatusCode": 429},
+                }
             )
 
         client.get_object = boom  # type: ignore[assignment]
@@ -551,12 +604,16 @@ class TestFetchSmall:
 
     async def test_fetch_versioned(self) -> None:
         client = _client_with(
-            {"b": [FakeObject(key="x", body=b"v1-body", version_id="v1", last_modified=_now())]},
+            {
+                "b": [
+                    FakeObject(
+                        key="x", body=b"v1-body", version_id="v1", last_modified=_now()
+                    )
+                ]
+            },
             page_size=10,
         )
-        c = _connector(
-            _config([BucketSpec(name="b")], include_versions=True), client
-        )
+        c = _connector(_config([BucketSpec(name="b")], include_versions=True), client)
         ref = (await _drain_refs(c))[0]
         out = [d async for d in c.fetch(ref)]
         assert isinstance(out[0], Document)
@@ -569,7 +626,9 @@ class TestFetchSmall:
             [d async for d in c.fetch(bare)]
 
     async def test_fetch_unknown_account_raises(self) -> None:
-        client = _client_with({"b": [FakeObject(key="x", body=b"y", last_modified=_now())]})
+        client = _client_with(
+            {"b": [FakeObject(key="x", body=b"y", last_modified=_now())]}
+        )
         c = _connector(_config([BucketSpec(name="b")]), client)
         ref = DocumentRef(
             source_id="x",
@@ -582,13 +641,19 @@ class TestFetchSmall:
             [d async for d in c.fetch(ref)]
 
     async def test_fetch_unknown_bucket_raises(self) -> None:
-        client = _client_with({"b": [FakeObject(key="x", body=b"y", last_modified=_now())]})
+        client = _client_with(
+            {"b": [FakeObject(key="x", body=b"y", last_modified=_now())]}
+        )
         c = _connector(_config([BucketSpec(name="b")]), client)
         ref = DocumentRef(
             source_id="x",
             source_kind=KIND,
             path="s3://b/x",
-            metadata={"aws_account_id": "111111111111", "aws_bucket": "ghost", "aws_key": "x"},
+            metadata={
+                "aws_account_id": "111111111111",
+                "aws_bucket": "ghost",
+                "aws_key": "x",
+            },
             size=1,
         )
         with pytest.raises(KeyError, match="bucket"):
@@ -628,7 +693,10 @@ class TestFetchChunked:
 
         async def boom(*a, **k):  # noqa: ARG001
             raise _ClientError(
-                {"Error": {"Code": "SlowDown"}, "ResponseMetadata": {"HTTPStatusCode": 503}}
+                {
+                    "Error": {"Code": "SlowDown"},
+                    "ResponseMetadata": {"HTTPStatusCode": 503},
+                }
             )
 
         client.get_object = boom  # type: ignore[assignment]
@@ -680,7 +748,10 @@ class TestFetchChunked:
 
         async def boom(*a, **k):  # noqa: ARG001
             raise _ClientError(
-                {"Error": {"Code": "SlowDown"}, "ResponseMetadata": {"HTTPStatusCode": 503}}
+                {
+                    "Error": {"Code": "SlowDown"},
+                    "ResponseMetadata": {"HTTPStatusCode": 503},
+                }
             )
 
         client.get_object = boom  # type: ignore[assignment]
@@ -837,7 +908,9 @@ class TestEdgeCoverage:
         client = _client_with(
             {
                 "b": [
-                    FakeObject(key=f"k{i}", body=b"x", version_id="v", last_modified=_now())
+                    FakeObject(
+                        key=f"k{i}", body=b"x", version_id="v", last_modified=_now()
+                    )
                     for i in range(4)
                 ]
             },
@@ -847,7 +920,11 @@ class TestEdgeCoverage:
         refs = await _drain_refs(c)
         assert len(refs) == 4
         # second call had KeyMarker set
-        kms = [params["KeyMarker"] for name, params in client.calls if name == "list_object_versions"]
+        kms = [
+            params["KeyMarker"]
+            for name, params in client.calls
+            if name == "list_object_versions"
+        ]
         assert kms[0] is None
         assert kms[1] is not None
 
@@ -921,10 +998,21 @@ class TestEdgeCoverage:
         assert refs[0].last_modified.year == 2025
 
     async def test_versions_non_throttle_error_propagates(self) -> None:
-        client = _client_with({"b": [FakeObject(key="x", body=b"x", version_id="v", last_modified=_now())]})
+        client = _client_with(
+            {
+                "b": [
+                    FakeObject(key="x", body=b"x", version_id="v", last_modified=_now())
+                ]
+            }
+        )
 
         async def boom(**_):
-            raise _ClientError({"Error": {"Code": "AccessDenied"}, "ResponseMetadata": {"HTTPStatusCode": 403}})
+            raise _ClientError(
+                {
+                    "Error": {"Code": "AccessDenied"},
+                    "ResponseMetadata": {"HTTPStatusCode": 403},
+                }
+            )
 
         client.list_object_versions = boom  # type: ignore[assignment]
         c = _connector(_config([BucketSpec(name="b")], include_versions=True), client)
@@ -932,10 +1020,17 @@ class TestEdgeCoverage:
             await _drain_refs(c)
 
     async def test_sampled_non_throttle_error_propagates(self) -> None:
-        client = _client_with({"b": [FakeObject(key="x", body=b"x", last_modified=_now())]})
+        client = _client_with(
+            {"b": [FakeObject(key="x", body=b"x", last_modified=_now())]}
+        )
 
         async def boom(**_):
-            raise _ClientError({"Error": {"Code": "AccessDenied"}, "ResponseMetadata": {"HTTPStatusCode": 403}})
+            raise _ClientError(
+                {
+                    "Error": {"Code": "AccessDenied"},
+                    "ResponseMetadata": {"HTTPStatusCode": 403},
+                }
+            )
 
         client.list_objects_v2 = boom  # type: ignore[assignment]
         cfg = _config(
@@ -948,12 +1043,19 @@ class TestEdgeCoverage:
             await _drain_refs(c)
 
     async def test_fetch_whole_non_throttle_error_propagates(self) -> None:
-        client = _client_with({"b": [FakeObject(key="x", body=b"x", last_modified=_now())]})
+        client = _client_with(
+            {"b": [FakeObject(key="x", body=b"x", last_modified=_now())]}
+        )
         c = _connector(_config([BucketSpec(name="b")]), client)
         ref = (await _drain_refs(c))[0]
 
         async def boom(**_):
-            raise _ClientError({"Error": {"Code": "NoSuchKey"}, "ResponseMetadata": {"HTTPStatusCode": 404}})
+            raise _ClientError(
+                {
+                    "Error": {"Code": "NoSuchKey"},
+                    "ResponseMetadata": {"HTTPStatusCode": 404},
+                }
+            )
 
         client.get_object = boom  # type: ignore[assignment]
         with pytest.raises(_ClientError):
@@ -992,7 +1094,13 @@ class TestEdgeCoverage:
         # arm of `_fetch_chunked`.
         body = b"H" * 2_000
         client = _client_with(
-            {"b": [FakeObject(key="x", body=body, version_id="v1", last_modified=_now())]},
+            {
+                "b": [
+                    FakeObject(
+                        key="x", body=body, version_id="v1", last_modified=_now()
+                    )
+                ]
+            },
             page_size=10,
         )
         cfg = _config([BucketSpec(name="b")], chunk_bytes=1_000, max_doc_bytes=500)
@@ -1029,7 +1137,10 @@ class TestEdgeCoverage:
             call_count["n"] += 1
             if call_count["n"] >= 2:
                 raise _ClientError(
-                    {"Error": {"Code": "NoSuchKey"}, "ResponseMetadata": {"HTTPStatusCode": 404}}
+                    {
+                        "Error": {"Code": "NoSuchKey"},
+                        "ResponseMetadata": {"HTTPStatusCode": 404},
+                    }
                 )
             return await original(**kwargs)
 
@@ -1086,7 +1197,10 @@ class TestEdgeCoverage:
 
         async def boom(**_):
             raise _ClientError(
-                {"Error": {"Code": "AccessDenied"}, "ResponseMetadata": {"HTTPStatusCode": 403}}
+                {
+                    "Error": {"Code": "AccessDenied"},
+                    "ResponseMetadata": {"HTTPStatusCode": 403},
+                }
             )
 
         client.get_object = boom  # type: ignore[assignment]
@@ -1140,7 +1254,9 @@ class TestDefaultClientFactory:
     def test_returns_async_context_manager(self) -> None:
         from pleno_pii_scanner_aws.s3 import _default_client_factory
 
-        creds = AwsCredentials(access_key_id="A", secret_access_key="B", region="us-east-1")
+        creds = AwsCredentials(
+            access_key_id="A", secret_access_key="B", region="us-east-1"
+        )
         cm = _default_client_factory(
             session=None,
             creds=creds,

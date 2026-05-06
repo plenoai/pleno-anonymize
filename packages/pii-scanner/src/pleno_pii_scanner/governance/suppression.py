@@ -236,9 +236,7 @@ def load_suppression_policy_from_toml(
         keys = set(rd.keys())
         unknown = keys - _RULE_KEYS_ALLOWED
         if unknown:
-            raise SuppressionLoadError(
-                f"rule[{idx}] unknown keys: {sorted(unknown)}"
-            )
+            raise SuppressionLoadError(f"rule[{idx}] unknown keys: {sorted(unknown)}")
         scope = rd.get("scope")
         if scope != expected_scope:
             raise SuppressionLoadError(

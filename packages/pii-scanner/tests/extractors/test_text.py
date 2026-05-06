@@ -62,7 +62,9 @@ class TestDecodeBytes:
     def test_utf8_round_trip(self) -> None:
         assert decode_bytes("hello".encode()) == "hello"
 
-    def test_garbage_falls_back_to_replace(self, recwarn: pytest.WarningsRecorder) -> None:
+    def test_garbage_falls_back_to_replace(
+        self, recwarn: pytest.WarningsRecorder
+    ) -> None:
         # A short fully-random byte string defeats charset detection;
         # the decoder must still return a usable str rather than raise.
         # Repeated 0xFF is not valid UTF-8 nor any common encoding's

@@ -161,8 +161,7 @@ class AzureBlobAuthConfig:
             )
         if modes > 1:
             raise ValueError(
-                "AzureBlobAuthConfig must select EXACTLY one auth "
-                "mode; got multiple"
+                "AzureBlobAuthConfig must select EXACTLY one auth mode; got multiple"
             )
 
 
@@ -190,7 +189,9 @@ class AzureAccount:
         return f"https://{self.storage_account}.{self.endpoint_suffix}"
 
     def resolved_label(self) -> str:
-        return self.label or f"azure_blob:{self.storage_account}"  # pragma: no cover - operator-facing helper, not on the scan hot path
+        return (
+            self.label or f"azure_blob:{self.storage_account}"
+        )  # pragma: no cover - operator-facing helper, not on the scan hot path
 
 
 @dataclass(frozen=True, slots=True)
@@ -277,8 +278,7 @@ class AzureBlobConfig:
             for name in self.discovery.accounts:
                 if name not in account_names:
                     raise ValueError(
-                        f"discovery account={name!r} is not in "
-                        f"AzureBlobConfig.accounts"
+                        f"discovery account={name!r} is not in AzureBlobConfig.accounts"
                     )
 
 
@@ -429,9 +429,7 @@ class AzureBlobConnector:
                     source_id=self.id,
                     source_kind=self.kind,
                     path=f"azure-blob://{account.storage_account}/{container}/",
-                    native_url=(
-                        f"{account.base_url()}/{container}"
-                    ),
+                    native_url=(f"{account.base_url()}/{container}"),
                     content_type="text/plain",
                     metadata={
                         "azure_storage_account": account.storage_account,
@@ -484,13 +482,9 @@ class AzureBlobConnector:
             if marker:
                 params["marker"] = marker
             url = f"{account.base_url()}/"
-            resp = await self._authed_request(
-                "GET", url, account, params=params
-            )
+            resp = await self._authed_request("GET", url, account, params=params)
             if resp.status_code == 403:
-                raise _AccessDenied(
-                    status=403, account=account.storage_account
-                )
+                raise _AccessDenied(status=403, account=account.storage_account)
             resp.raise_for_status()
             root = _parse_xml(resp.content)
             containers_node = root.find("Containers")
@@ -538,9 +532,7 @@ class AzureBlobConnector:
                 params["include"] = ",".join(include_clauses)
             if marker:
                 params["marker"] = marker
-            resp = await self._authed_request(
-                "GET", url, account, params=params
-            )
+            resp = await self._authed_request("GET", url, account, params=params)
             if resp.status_code == 403:
                 raise _AccessDenied(status=403)
             resp.raise_for_status()
@@ -588,8 +580,7 @@ class AzureBlobConnector:
         name = name_node.text
         deleted_node = entry.find("Deleted")
         is_deleted = (
-            deleted_node is not None
-            and (deleted_node.text or "").lower() == "true"
+            deleted_node is not None and (deleted_node.text or "").lower() == "true"
         )
         if is_deleted and not self._config.include_versions:
             return None
@@ -622,12 +613,12 @@ class AzureBlobConnector:
                 kms_key = kms_key_node.text
             # Encryption-scope (CMK alternative) — also opaque.
             scope_node = props.find("EncryptionScope")
-            if scope_node is not None and scope_node.text:  # pragma: no cover - rare CMK alternative, exercised in integration
+            if (
+                scope_node is not None and scope_node.text
+            ):  # pragma: no cover - rare CMK alternative, exercised in integration
                 kms_key = kms_key or scope_node.text
         version_id_node = entry.find("VersionId")
-        version_id = (
-            version_id_node.text if version_id_node is not None else None
-        )
+        version_id = version_id_node.text if version_id_node is not None else None
         metadata: dict[str, str] = {
             "azure_storage_account": account.storage_account,
             "azure_container": container,
@@ -644,9 +635,7 @@ class AzureBlobConnector:
             source_id=self.id,
             source_kind=self.kind,
             path=f"azure-blob://{account.storage_account}/{container}/{name}",
-            native_url=(
-                f"{account.base_url()}/{container}/{quote(name, safe='/')}"
-            ),
+            native_url=(f"{account.base_url()}/{container}/{quote(name, safe='/')}"),
             content_type=content_type,
             size=size,
             etag=etag,
@@ -654,9 +643,7 @@ class AzureBlobConnector:
             metadata=metadata,
         )
 
-    async def fetch(
-        self, ref: DocumentRef
-    ) -> AsyncIterator[Document | DocumentChunk]:
+    async def fetch(self, ref: DocumentRef) -> AsyncIterator[Document | DocumentChunk]:
         """Stream the blob body via `GET <account>/<container>/<blob>`.
 
         Bounded by `_fetch_semaphore` so the per-connector concurrency
@@ -672,13 +659,8 @@ class AzureBlobConnector:
             )
         account = self._accounts_by_name.get(account_name)
         if account is None:
-            raise KeyError(
-                f"account={account_name!r} not in AzureBlobConfig.accounts"
-            )
-        url = (
-            f"{account.base_url()}/{container}/"
-            f"{quote(blob, safe='/')}"
-        )
+            raise KeyError(f"account={account_name!r} not in AzureBlobConfig.accounts")
+        url = f"{account.base_url()}/{container}/{quote(blob, safe='/')}"
         params: dict[str, str] = {}
         version_id = ref.metadata.get("azure_version_id")
         if version_id:
@@ -815,11 +797,7 @@ def _parse_xml(raw: bytes) -> ET.Element:
 
 def _key_from_path(path: str) -> str:
     """Strip `azure-blob://account/container/` from a full path."""
-    rest = (
-        path[len("azure-blob://") :]
-        if path.startswith("azure-blob://")
-        else path
-    )
+    rest = path[len("azure-blob://") :] if path.startswith("azure-blob://") else path
     parts = rest.split("/", 2)
     return parts[2] if len(parts) == 3 else ""
 
@@ -848,7 +826,9 @@ def _parse_rfc1123(value: str) -> datetime | None:
         dt = parsedate_to_datetime(value)
     except (TypeError, ValueError):
         return None
-    if dt is None:  # pragma: no cover - parsedate_to_datetime returns None on edge inputs
+    if (
+        dt is None
+    ):  # pragma: no cover - parsedate_to_datetime returns None on edge inputs
         return None
     if dt.tzinfo is None:  # pragma: no cover - RFC1123 always carries GMT
         dt = dt.replace(tzinfo=UTC)
@@ -880,9 +860,7 @@ def _build_token_source(auth: AzureBlobAuthConfig) -> TokenSource | None:
             scope=auth.scope,
         )
     if auth.managed_identity:
-        return ManagedIdentityTokenSource(
-            client_id=auth.managed_identity_client_id
-        )
+        return ManagedIdentityTokenSource(client_id=auth.managed_identity_client_id)
     # Shared Key only: no bearer source needed.
     return None
 
@@ -894,9 +872,7 @@ def _build_shared_keys(
     if not auth.account_keys:
         return {}
     return {
-        name: SharedKeyCredential(
-            account_name=name, account_key_b64=key
-        )
+        name: SharedKeyCredential(account_name=name, account_key_b64=key)
         for name, key in auth.account_keys.items()
     }
 
@@ -932,9 +908,7 @@ def _factory(config: Mapping[str, Any]) -> AzureBlobConnector:
     if not isinstance(auth_raw, Mapping):
         raise ValueError("azure_blob config: 'auth' must be a mapping")
     if not isinstance(discovery_raw, Mapping):
-        raise ValueError(
-            "azure_blob config: 'discovery' must be a mapping"
-        )
+        raise ValueError("azure_blob config: 'discovery' must be a mapping")
     if not isinstance(accounts_raw, (list, tuple)):
         raise ValueError(
             "azure_blob config: 'accounts' must be a list of account specs"
@@ -944,9 +918,7 @@ def _factory(config: Mapping[str, Any]) -> AzureBlobConnector:
         client_id=auth_raw.get("client_id"),
         oidc_token_path=auth_raw.get("oidc_token_path"),
         managed_identity=bool(auth_raw.get("managed_identity", False)),
-        managed_identity_client_id=auth_raw.get(
-            "managed_identity_client_id"
-        ),
+        managed_identity_client_id=auth_raw.get("managed_identity_client_id"),
         account_keys=dict(auth_raw.get("account_keys", {}) or {}),
         scope=str(auth_raw.get("scope", AZURE_STORAGE_DEFAULT_SCOPE)),
     )
@@ -954,9 +926,7 @@ def _factory(config: Mapping[str, Any]) -> AzureBlobConnector:
         AzureAccount(
             storage_account=str(a["storage_account"]),
             subscription_id=str(a.get("subscription_id", "")),
-            endpoint_suffix=str(
-                a.get("endpoint_suffix", DEFAULT_ENDPOINT_SUFFIX)
-            ),
+            endpoint_suffix=str(a.get("endpoint_suffix", DEFAULT_ENDPOINT_SUFFIX)),
             label=str(a.get("label", "")),
         )
         for a in accounts_raw
@@ -967,9 +937,7 @@ def _factory(config: Mapping[str, Any]) -> AzureBlobConnector:
             ContainerSpec(account=str(c["account"]), name=str(c["name"]))
             for c in containers_raw
         ),
-        accounts=tuple(
-            str(name) for name in (discovery_raw.get("accounts") or ())
-        ),
+        accounts=tuple(str(name) for name in (discovery_raw.get("accounts") or ())),
     )
     cfg = AzureBlobConfig(
         auth=auth,

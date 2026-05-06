@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import math
 
 import pytest
 
 from pleno_pii_scanner_postgres.sampling import (
-    SamplingPlan,
     _quote_ident,
     plan_sample,
     reservoir_sample_size,
@@ -79,15 +77,11 @@ class TestPlanSample:
 
     def test_rejects_zero_estimated_rows(self) -> None:
         with pytest.raises(ValueError, match="estimated_rows"):
-            plan_sample(
-                schema="s", table="t", estimated_rows=0, sample_rows=10
-            )
+            plan_sample(schema="s", table="t", estimated_rows=0, sample_rows=10)
 
     def test_rejects_zero_sample_rows(self) -> None:
         with pytest.raises(ValueError, match="sample_rows"):
-            plan_sample(
-                schema="s", table="t", estimated_rows=100, sample_rows=0
-            )
+            plan_sample(schema="s", table="t", estimated_rows=100, sample_rows=0)
 
     def test_query_quotes_identifiers(self) -> None:
         p = plan_sample(

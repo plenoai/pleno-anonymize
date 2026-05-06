@@ -50,7 +50,6 @@ from pleno_pii_scanner.sources.base import (
 )
 from pleno_pii_scanner.sources.registry import ConnectorSpec
 from pleno_pii_scanner_mysql.sampling import (
-    SamplingPlan,
     plan_sample,
     reservoir_sample_size,
 )
@@ -98,9 +97,7 @@ class MysqlConfig:
     tables: tuple[str, ...] = ()
     excluded_tables: tuple[str, ...] = ()
     sample_rows: int = field(
-        default_factory=lambda: reservoir_sample_size(
-            confidence=0.95, prevalence=0.01
-        )
+        default_factory=lambda: reservoir_sample_size(confidence=0.95, prevalence=0.01)
     )
     statement_timeout_ms: int = 30_000
     pool_size: int = 2
@@ -111,9 +108,7 @@ class MysqlConfig:
         if not self.dsn:
             raise ValueError("dsn must be non-empty")
         if not self.dsn.startswith(("mysql://", "mysql+aiomysql://")):
-            raise ValueError(
-                "dsn must start with mysql:// or mysql+aiomysql://"
-            )
+            raise ValueError("dsn must start with mysql:// or mysql+aiomysql://")
         if self.sample_rows <= 0:
             raise ValueError("sample_rows must be > 0")
         if self.pool_size < 1:
@@ -287,9 +282,7 @@ class MysqlConnector:
         #      must return ≥1 row → this server is replicating from
         #      another. Belt-and-braces: a `read_only` primary that
         #      isn't actually replicating should also be refused.
-        ro = await self._fetch_all(
-            "SHOW VARIABLES LIKE 'read_only'", ()
-        )
+        ro = await self._fetch_all("SHOW VARIABLES LIKE 'read_only'", ())
         if not ro or _row_value(ro[0]).lower() not in {"on", "1"}:
             raise PrimaryConnectionRefused(
                 "refusing to scan: read_only is OFF (set "
@@ -324,9 +317,7 @@ class MysqlConnector:
             schema, table = full.split(".", 1)
         except ValueError:
             return None
-        rows = await self._fetch_all(
-            _RELOAD_SQL, (schema, table, list(_TEXTUAL_TYPES))
-        )
+        rows = await self._fetch_all(_RELOAD_SQL, (schema, table, list(_TEXTUAL_TYPES)))
         if not rows:
             return None
         return _TableMeta(
@@ -347,9 +338,7 @@ class MysqlConnector:
                     await cur.execute(sql)
                 return await cur.fetchall()
 
-    async def _fetch_all_one_of(
-        self, sqls: tuple[str, ...]
-    ) -> list[dict[str, Any]]:
+    async def _fetch_all_one_of(self, sqls: tuple[str, ...]) -> list[dict[str, Any]]:
         # Tries each statement until one runs without ProgrammingError.
         # Both `SHOW REPLICA STATUS` (≥8.0.22) and `SHOW SLAVE STATUS`
         # are valid on different MySQL versions; we try the modern
@@ -484,9 +473,7 @@ def _factory(config: Mapping[str, Any]) -> SourceConnector:
                     reservoir_sample_size(confidence=0.95, prevalence=0.01),
                 )
             ),
-            statement_timeout_ms=int(
-                config.get("statement_timeout_ms", 30_000)
-            ),
+            statement_timeout_ms=int(config.get("statement_timeout_ms", 30_000)),
             pool_size=int(config.get("pool_size", 2)),
             require_replica=bool(config.get("require_replica", True)),
             id=str(config["id"]) if config.get("id") is not None else None,

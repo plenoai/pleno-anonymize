@@ -88,9 +88,7 @@ def recognizer_pack_fingerprint(
     context keyword all flip the fingerprint and auto-invalidate the
     cache on next scan.
     """
-    sorted_recognizers = sorted(
-        recognizers, key=lambda r: (r.entity, r.language)
-    )
+    sorted_recognizers = sorted(recognizers, key=lambda r: (r.entity, r.language))
     h = sha256()
     for r in sorted_recognizers:
         h.update(r.entity.encode())

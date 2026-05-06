@@ -40,7 +40,9 @@ def test_derive_signing_key_matches_aws_docs_example() -> None:
         "us-east-1",
         "iam",
     )
-    assert key.hex() == "f4780e2d9f65fa895f9c67b32ce1baf0b0d8a43505a000a1a9e090d414db404d"
+    assert (
+        key.hex() == "f4780e2d9f65fa895f9c67b32ce1baf0b0d8a43505a000a1a9e090d414db404d"
+    )
 
 
 def test_sigv4_sign_post_is_deterministic_for_fixed_inputs() -> None:
@@ -84,9 +86,7 @@ async def test_missing_secret_returns_unknown() -> None:
     def handler(_: httpx.Request) -> httpx.Response:
         raise AssertionError("must not be called when secret is missing")
 
-    result = await AwsVerifier().verify(
-        "AKIAIOSFODNN7EXAMPLE", ctx=_ctx(handler)
-    )
+    result = await AwsVerifier().verify("AKIAIOSFODNN7EXAMPLE", ctx=_ctx(handler))
     assert result.state == "unknown"
     assert "aws_secret_access_key" in result.detail
 

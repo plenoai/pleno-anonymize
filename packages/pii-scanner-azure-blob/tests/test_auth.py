@@ -68,9 +68,7 @@ class TestWorkloadIdentity:
                 },
             )
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             src = WorkloadIdentityTokenSource(
                 tenant_id="tenant-abc",
                 client_id="client-xyz",
@@ -99,13 +97,9 @@ class TestWorkloadIdentity:
         def handler(request: httpx.Request) -> httpx.Response:
             params = dict(httpx.QueryParams(request.content.decode()).items())
             seen_assertions.append(params["client_assertion"])
-            return httpx.Response(
-                200, json={"access_token": "x", "expires_in": 60}
-            )
+            return httpx.Response(200, json={"access_token": "x", "expires_in": 60})
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             src = WorkloadIdentityTokenSource(
                 tenant_id="t",
                 client_id="c",
@@ -124,13 +118,9 @@ class TestWorkloadIdentity:
         def handler(request: httpx.Request) -> httpx.Response:
             params = dict(httpx.QueryParams(request.content.decode()).items())
             assert params["client_assertion"] == "from-seam"
-            return httpx.Response(
-                200, json={"access_token": "tok", "expires_in": 60}
-            )
+            return httpx.Response(200, json={"access_token": "tok", "expires_in": 60})
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             src = WorkloadIdentityTokenSource(
                 tenant_id="t",
                 client_id="c",
@@ -140,16 +130,15 @@ class TestWorkloadIdentity:
             tok = await src.acquire(client)
         assert tok.value == "tok"
 
-    async def test_entra_error_does_not_leak_assertion(
-        self, tmp_path
-    ) -> None:
+    async def test_entra_error_does_not_leak_assertion(self, tmp_path) -> None:
         token_file = tmp_path / "oidc.jwt"
         token_file.write_text("LEAKING-JWT")
 
         async with httpx.AsyncClient(
             transport=httpx.MockTransport(
                 lambda _r: httpx.Response(
-                    400, json={"error": "invalid_client", "client_assertion": "LEAKING-JWT"}
+                    400,
+                    json={"error": "invalid_client", "client_assertion": "LEAKING-JWT"},
                 )
             )
         ) as client:
@@ -161,9 +150,7 @@ class TestWorkloadIdentity:
         assert "LEAKING-JWT" not in str(info.value)
         assert "status=400" in str(info.value)
 
-    async def test_entra_missing_access_token_rejected(
-        self, tmp_path
-    ) -> None:
+    async def test_entra_missing_access_token_rejected(self, tmp_path) -> None:
         token_file = tmp_path / "oidc.jwt"
         token_file.write_text("ok")
         async with httpx.AsyncClient(
@@ -188,10 +175,7 @@ class TestManagedIdentity:
             assert request.url.path == "/metadata/identity/oauth2/token"
             assert request.headers.get("Metadata") == "true"
             assert request.url.params.get("api-version") == "2018-02-01"
-            assert (
-                request.url.params.get("resource")
-                == "https://storage.azure.com/"
-            )
+            assert request.url.params.get("resource") == "https://storage.azure.com/"
             assert request.url.params.get("client_id") is None
             return httpx.Response(
                 200,
@@ -202,9 +186,7 @@ class TestManagedIdentity:
                 },
             )
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             src = ManagedIdentityTokenSource()
             token = await src.acquire(client)
         assert token.value == "imds-bearer"
@@ -212,21 +194,15 @@ class TestManagedIdentity:
     async def test_user_assigned_client_id_added(self) -> None:
         def handler(request: httpx.Request) -> httpx.Response:
             assert request.url.params.get("client_id") == "uami-1234"
-            return httpx.Response(
-                200, json={"access_token": "x", "expires_in": 60}
-            )
+            return httpx.Response(200, json={"access_token": "x", "expires_in": 60})
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             src = ManagedIdentityTokenSource(client_id="uami-1234")
             await src.acquire(client)
 
     async def test_imds_non_200_raises(self) -> None:
         async with httpx.AsyncClient(
-            transport=httpx.MockTransport(
-                lambda _r: httpx.Response(500, text="oops")
-            )
+            transport=httpx.MockTransport(lambda _r: httpx.Response(500, text="oops"))
         ) as client:
             src = ManagedIdentityTokenSource()
             with pytest.raises(httpx.HTTPStatusError) as info:
@@ -256,9 +232,7 @@ class TestManagedIdentity:
                 },
             )
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             src = ManagedIdentityTokenSource()
             tok = await src.acquire(client)
         # ~1 h ahead, allow 5 s skew.
@@ -345,9 +319,7 @@ class TestSharedKeyCredential:
 
     def test_invalid_base64_rejected(self) -> None:
         with pytest.raises(ValueError, match="not valid base64"):
-            SharedKeyCredential(
-                account_name="acct", account_key_b64="not-base64!!!"
-            )
+            SharedKeyCredential(account_name="acct", account_key_b64="not-base64!!!")
 
     def test_empty_account_name_rejected(self) -> None:
         key = base64.b64encode(b"x" * 32).decode("ascii")
@@ -386,36 +358,32 @@ class TestSharedKeySignature:
         credential = SharedKeyCredential(
             account_name="myaccount", account_key_b64=key_b64
         )
-        url = httpx.URL(
-            "http://myaccount.blob.core.windows.net/?comp=list"
-        )
+        url = httpx.URL("http://myaccount.blob.core.windows.net/?comp=list")
         headers = {
             "x-ms-date": "Fri, 26 Jun 2015 23:39:12 GMT",
             "x-ms-version": "2015-02-21",
         }
         # Hand-construct StringToSign per the spec.
         expected_sts = (
-            "GET\n"      # VERB
-            "\n"         # Content-Encoding
-            "\n"         # Content-Language
-            "\n"         # Content-Length (0 → empty)
-            "\n"         # Content-MD5
-            "\n"         # Content-Type
-            "\n"         # Date (empty because x-ms-date is set)
-            "\n"         # If-Modified-Since
-            "\n"         # If-Match
-            "\n"         # If-None-Match
-            "\n"         # If-Unmodified-Since
-            "\n"         # Range
+            "GET\n"  # VERB
+            "\n"  # Content-Encoding
+            "\n"  # Content-Language
+            "\n"  # Content-Length (0 → empty)
+            "\n"  # Content-MD5
+            "\n"  # Content-Type
+            "\n"  # Date (empty because x-ms-date is set)
+            "\n"  # If-Modified-Since
+            "\n"  # If-Match
+            "\n"  # If-None-Match
+            "\n"  # If-Unmodified-Since
+            "\n"  # Range
             "x-ms-date:Fri, 26 Jun 2015 23:39:12 GMT\n"
             "x-ms-version:2015-02-21\n"
             "/myaccount/\n"
             "comp:list"
         )
         expected_sig = base64.b64encode(
-            hmac.new(
-                key_raw, expected_sts.encode("utf-8"), hashlib.sha256
-            ).digest()
+            hmac.new(key_raw, expected_sts.encode("utf-8"), hashlib.sha256).digest()
         ).decode("ascii")
         expected_header = f"SharedKey myaccount:{expected_sig}"
         actual = sign_shared_key(
@@ -431,9 +399,7 @@ class TestSharedKeySignature:
         # GET /container/blob — the path must appear in the canonical
         # resource exactly once, prefixed by the account name.
         key_b64 = base64.b64encode(b"k" * 32).decode("ascii")
-        credential = SharedKeyCredential(
-            account_name="acct", account_key_b64=key_b64
-        )
+        credential = SharedKeyCredential(account_name="acct", account_key_b64=key_b64)
         url = httpx.URL("https://acct.blob.core.windows.net/c/blob.txt")
         sig = sign_shared_key(
             method="GET",
@@ -453,9 +419,7 @@ class TestSharedKeySignature:
             "/acct/c/blob.txt"
         )
         expected_b64 = base64.b64encode(
-            hmac.new(
-                b"k" * 32, sts.encode("utf-8"), hashlib.sha256
-            ).digest()
+            hmac.new(b"k" * 32, sts.encode("utf-8"), hashlib.sha256).digest()
         ).decode("ascii")
         assert sig == f"SharedKey acct:{expected_b64}"
 
@@ -463,9 +427,7 @@ class TestSharedKeySignature:
         # `comp=list&prefix=foo&restype=container` — names lowercased,
         # sorted, and joined with `\n`.
         key_b64 = base64.b64encode(b"k" * 32).decode("ascii")
-        credential = SharedKeyCredential(
-            account_name="acct", account_key_b64=key_b64
-        )
+        credential = SharedKeyCredential(account_name="acct", account_key_b64=key_b64)
         url = httpx.URL(
             "https://acct.blob.core.windows.net/c?restype=container&comp=list&prefix=foo"
         )
@@ -490,21 +452,15 @@ class TestSharedKeySignature:
             "restype:container"
         )
         expected_b64 = base64.b64encode(
-            hmac.new(
-                b"k" * 32, sts.encode("utf-8"), hashlib.sha256
-            ).digest()
+            hmac.new(b"k" * 32, sts.encode("utf-8"), hashlib.sha256).digest()
         ).decode("ascii")
         assert sig == f"SharedKey acct:{expected_b64}"
 
     def test_repeated_query_param_values_comma_joined_sorted(self) -> None:
         # Spec example: `comp=metadata&comp=list` → `comp:list,metadata`.
         key_b64 = base64.b64encode(b"k" * 32).decode("ascii")
-        credential = SharedKeyCredential(
-            account_name="acct", account_key_b64=key_b64
-        )
-        url = httpx.URL(
-            "https://acct.blob.core.windows.net/c?comp=metadata&comp=list"
-        )
+        credential = SharedKeyCredential(account_name="acct", account_key_b64=key_b64)
+        url = httpx.URL("https://acct.blob.core.windows.net/c?comp=metadata&comp=list")
         sig = sign_shared_key(
             method="GET",
             url=url,
@@ -523,9 +479,7 @@ class TestSharedKeySignature:
             "comp:list,metadata"
         )
         expected_b64 = base64.b64encode(
-            hmac.new(
-                b"k" * 32, sts.encode("utf-8"), hashlib.sha256
-            ).digest()
+            hmac.new(b"k" * 32, sts.encode("utf-8"), hashlib.sha256).digest()
         ).decode("ascii")
         assert sig == f"SharedKey acct:{expected_b64}"
 
@@ -533,9 +487,7 @@ class TestSharedKeySignature:
         # When the caller passes only headers (no explicit content_length),
         # the signer must read `content-length` from the headers map.
         key_b64 = base64.b64encode(b"k" * 32).decode("ascii")
-        credential = SharedKeyCredential(
-            account_name="acct", account_key_b64=key_b64
-        )
+        credential = SharedKeyCredential(account_name="acct", account_key_b64=key_b64)
         url = httpx.URL("https://acct.blob.core.windows.net/c/blob")
         sig_explicit = sign_shared_key(
             method="PUT",
@@ -565,9 +517,7 @@ class TestSharedKeySignature:
         # as 0 rather than raising — the signer must not crash on input
         # it cannot parse.
         key_b64 = base64.b64encode(b"k" * 32).decode("ascii")
-        credential = SharedKeyCredential(
-            account_name="acct", account_key_b64=key_b64
-        )
+        credential = SharedKeyCredential(account_name="acct", account_key_b64=key_b64)
         url = httpx.URL("https://acct.blob.core.windows.net/c")
         sig_bad = sign_shared_key(
             method="GET",
@@ -595,9 +545,7 @@ class TestSharedKeySignature:
         # When `x-ms-date` is absent, the legacy `Date` header is what
         # the StringToSign references in slot 7.
         key_b64 = base64.b64encode(b"k" * 32).decode("ascii")
-        credential = SharedKeyCredential(
-            account_name="acct", account_key_b64=key_b64
-        )
+        credential = SharedKeyCredential(account_name="acct", account_key_b64=key_b64)
         url = httpx.URL("https://acct.blob.core.windows.net/c")
         sig = sign_shared_key(
             method="GET",
@@ -617,9 +565,7 @@ class TestSharedKeySignature:
             "/acct/c"
         )
         expected_b64 = base64.b64encode(
-            hmac.new(
-                b"k" * 32, sts.encode("utf-8"), hashlib.sha256
-            ).digest()
+            hmac.new(b"k" * 32, sts.encode("utf-8"), hashlib.sha256).digest()
         ).decode("ascii")
         assert sig == f"SharedKey acct:{expected_b64}"
 
@@ -628,9 +574,7 @@ class TestSharedKeySignature:
         # constructed URL could lack it. The canonical resource must
         # still produce `/<account>/<path>`.
         key_b64 = base64.b64encode(b"k" * 32).decode("ascii")
-        credential = SharedKeyCredential(
-            account_name="acct", account_key_b64=key_b64
-        )
+        credential = SharedKeyCredential(account_name="acct", account_key_b64=key_b64)
 
         class _FakeURL:
             path = "container/blob"
@@ -653,8 +597,6 @@ class TestSharedKeySignature:
             "/acct/container/blob"
         )
         expected_b64 = base64.b64encode(
-            hmac.new(
-                b"k" * 32, sts.encode("utf-8"), hashlib.sha256
-            ).digest()
+            hmac.new(b"k" * 32, sts.encode("utf-8"), hashlib.sha256).digest()
         ).decode("ascii")
         assert sig == f"SharedKey acct:{expected_b64}"

@@ -5,7 +5,6 @@ from __future__ import annotations
 import pytest
 
 from pleno_pii_scanner_mysql.sampling import (
-    SamplingPlan,
     plan_sample,
     reservoir_sample_size,
 )

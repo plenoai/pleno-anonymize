@@ -106,8 +106,7 @@ class SMTPNotifier:
         critical = batch.severity_summary.get("critical", 0)
         subject_prefix = "[CRITICAL] " if critical else "[PII] "
         msg["Subject"] = (
-            f"{subject_prefix}scan {batch.scan_id} — "
-            f"{len(batch.findings)} finding(s)"
+            f"{subject_prefix}scan {batch.scan_id} — {len(batch.findings)} finding(s)"
         )
         msg["From"] = self._sender
         msg["To"] = ", ".join(self._recipients)

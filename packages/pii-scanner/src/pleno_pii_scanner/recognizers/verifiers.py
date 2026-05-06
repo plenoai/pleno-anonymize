@@ -112,8 +112,7 @@ def _verify_callable(value: str, params: Mapping[str, Any]) -> VerifierResult:
         fn = getattr(module, function_name)
     except AttributeError as exc:
         raise VerifierResolutionError(
-            f"callable verifier could not resolve "
-            f"{module_name}:{function_name}: {exc}"
+            f"callable verifier could not resolve {module_name}:{function_name}: {exc}"
         ) from exc
     if not callable(fn):
         raise VerifierResolutionError(
@@ -155,7 +154,6 @@ def resolve_verifier(name: str, params: Mapping[str, Any]) -> Verifier:
         fn = BUILTIN_VERIFIERS[name]
     except KeyError as exc:
         raise VerifierResolutionError(
-            f"unknown verifier type: {name!r}. "
-            f"Built-in: {sorted(BUILTIN_VERIFIERS)}"
+            f"unknown verifier type: {name!r}. Built-in: {sorted(BUILTIN_VERIFIERS)}"
         ) from exc
     return Verifier(name=name, fn=fn, params=dict(params))

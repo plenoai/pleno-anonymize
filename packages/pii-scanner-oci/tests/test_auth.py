@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 
 import httpx
 import pytest
@@ -35,15 +34,11 @@ class TestParseChallenge:
             parse_challenge("Basic realm=foo")
 
     def test_quoted_value_with_comma(self) -> None:
-        params = parse_challenge(
-            'Bearer realm="https://auth/token",scope="a,b,c"'
-        )
+        params = parse_challenge('Bearer realm="https://auth/token",scope="a,b,c"')
         assert params["scope"] == "a,b,c"
 
     def test_ignores_malformed_pair(self) -> None:
-        params = parse_challenge(
-            'Bearer realm="https://auth/token",noequalshere'
-        )
+        params = parse_challenge('Bearer realm="https://auth/token",noequalshere')
         assert "realm" in params
         assert "noequalshere" not in params
 
@@ -55,9 +50,7 @@ class TestBasicAuth:
         def handler(request: httpx.Request) -> httpx.Response:
             seen_request["url"] = str(request.url)
             seen_request["auth"] = request.headers.get("Authorization", "")
-            return httpx.Response(
-                200, json={"token": "token-from-realm"}
-            )
+            return httpx.Response(200, json={"token": "token-from-realm"})
 
         transport = httpx.MockTransport(handler)
         async with httpx.AsyncClient(transport=transport) as client:
@@ -67,7 +60,10 @@ class TestBasicAuth:
             )
         assert token == "token-from-realm"
         assert "service=r.example" in seen_request["url"]
-        assert "scope=repo%3Afoo%3Apull" in seen_request["url"] or "scope=repo:foo:pull" in seen_request["url"]
+        assert (
+            "scope=repo%3Afoo%3Apull" in seen_request["url"]
+            or "scope=repo:foo:pull" in seen_request["url"]
+        )
         assert seen_request["auth"].startswith("Basic ")
 
     async def test_accepts_access_token_field(self) -> None:
@@ -112,6 +108,4 @@ class TestAnonymousAuth:
 
         async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             with pytest.raises(ValueError, match="neither 'token'"):
-                await AnonymousAuth().fetch_token(
-                    client, "https://x/token", "s", "v"
-                )
+                await AnonymousAuth().fetch_token(client, "https://x/token", "s", "v")

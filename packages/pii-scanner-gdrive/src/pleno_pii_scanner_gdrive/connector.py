@@ -175,9 +175,7 @@ class GdriveConnector:
         try:
             self._sa = json.loads(config.service_account_json)
         except (TypeError, ValueError) as exc:
-            raise ValueError(
-                "service_account_json must be valid JSON"
-            ) from exc
+            raise ValueError("service_account_json must be valid JSON") from exc
 
     def capabilities(self) -> Capabilities:
         # incremental=True because Drive exposes per-drive pageTokens
@@ -226,22 +224,16 @@ class GdriveConnector:
                     ref = self._ref_from_file(drive_id, entry, cursor_str)
                     if ref is None:
                         continue
-                    if filter.include and not _matches_any(
-                        ref.path, filter.include
-                    ):
+                    if filter.include and not _matches_any(ref.path, filter.include):
                         continue
-                    if filter.exclude and _matches_any(
-                        ref.path, filter.exclude
-                    ):
+                    if filter.exclude and _matches_any(ref.path, filter.exclude):
                         continue
                     yield ref
                 if not next_page:
                     break
                 page_token = next_page
 
-    async def fetch(
-        self, ref: DocumentRef
-    ) -> AsyncIterator[Document | DocumentChunk]:
+    async def fetch(self, ref: DocumentRef) -> AsyncIterator[Document | DocumentChunk]:
         size_str = ref.metadata.get("size")
         # Skip oversized files — emit no Document so the pipeline
         # records a fetch-skip rather than buffering 100 MiB into
@@ -260,9 +252,7 @@ class GdriveConnector:
         if mime_type in _NATIVE_DOC_MIMES:
             export_mime = self._config.export_google_docs_as
             url = f"{self._drive_base}/files/{file_id}/export"
-            resp = await self._authed_get(
-                url, params={"mimeType": export_mime}
-            )
+            resp = await self._authed_get(url, params={"mimeType": export_mime})
             resp.raise_for_status()
             if export_mime == "text/plain":
                 yield Document(
@@ -313,9 +303,7 @@ class GdriveConnector:
             params: dict[str, str] = {"pageSize": "100"}
             if page_token:
                 params["pageToken"] = page_token
-            resp = await self._authed_get(
-                f"{self._drive_base}/drives", params=params
-            )
+            resp = await self._authed_get(f"{self._drive_base}/drives", params=params)
             resp.raise_for_status()
             body = resp.json()
             for entry in body.get("drives", ()) or ():
@@ -431,9 +419,7 @@ class GdriveConnector:
             + b"."
             + _b64url(json.dumps(claim, separators=(",", ":")).encode())
         )
-        signature = _sign_rs256(
-            signing_input, self._sa.get("private_key", "")
-        )
+        signature = _sign_rs256(signing_input, self._sa.get("private_key", ""))
         return (signing_input + b"." + _b64url(signature)).decode("ascii")
 
 
@@ -459,9 +445,7 @@ def _sign_rs256(signing_input: bytes, private_key_pem: str) -> bytes:
     except ImportError:  # pragma: no cover — exercised only when crypto missing
         digest = hashlib.sha256(signing_input).digest()
         return digest
-    key = serialization.load_pem_private_key(
-        private_key_pem.encode(), password=None
-    )
+    key = serialization.load_pem_private_key(private_key_pem.encode(), password=None)
     return key.sign(  # type: ignore[union-attr]
         signing_input, padding.PKCS1v15(), hashes.SHA256()
     )
@@ -479,8 +463,7 @@ def _list_files_params(drive_id: str, page_token: str | None) -> dict[str, str]:
         "q": "trashed=false",
         "pageSize": "1000",
         "fields": (
-            "files(id,name,mimeType,modifiedTime,size,md5Checksum),"
-            "nextPageToken"
+            "files(id,name,mimeType,modifiedTime,size,md5Checksum),nextPageToken"
         ),
     }
     if drive_id == "root":
@@ -538,9 +521,7 @@ def _parse_iso_utc(value: Any) -> datetime | None:
 
 def _factory(config: Mapping[str, Any]) -> SourceConnector:
     if "service_account_json" not in config:
-        raise ValueError(
-            "gdrive connector config requires 'service_account_json'"
-        )
+        raise ValueError("gdrive connector config requires 'service_account_json'")
     return GdriveConnector(
         GdriveConfig(
             service_account_json=str(config["service_account_json"]),
@@ -550,9 +531,7 @@ def _factory(config: Mapping[str, Any]) -> SourceConnector:
                 else None
             ),
             drives=tuple(str(d) for d in config.get("drives", ()) or ()),
-            include_shared_drives=bool(
-                config.get("include_shared_drives", True)
-            ),
+            include_shared_drives=bool(config.get("include_shared_drives", True)),
             max_file_size_bytes=int(
                 config.get("max_file_size_bytes", _DEFAULT_MAX_FILE_SIZE)
             ),

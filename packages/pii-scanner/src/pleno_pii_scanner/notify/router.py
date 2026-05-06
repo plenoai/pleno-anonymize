@@ -82,10 +82,7 @@ class Router:
             raise ValueError(
                 f"Routing rule references unknown transport(s): {', '.join(unknown_in_rules)}"
             )
-        if (
-            default_transport is not None
-            and default_transport not in self._notifiers
-        ):
+        if default_transport is not None and default_transport not in self._notifiers:
             raise ValueError(
                 f"Default transport {default_transport!r} not in notifiers"
             )
@@ -153,9 +150,7 @@ class Router:
                     error=f"unhandled transport error: {exc!r}",
                 )
 
-        results = await asyncio.gather(
-            *[_send(t, fs) for t, fs in buckets.items()]
-        )
+        results = await asyncio.gather(*[_send(t, fs) for t, fs in buckets.items()])
         return list(results)
 
     async def close(self) -> None:

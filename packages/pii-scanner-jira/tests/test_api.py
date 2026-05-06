@@ -352,9 +352,7 @@ class TestThrottle:
         def handler(_r: httpx.Request) -> httpx.Response:
             attempts["n"] += 1
             if attempts["n"] == 1:
-                return httpx.Response(
-                    429, headers={"Retry-After": "not-a-number"}
-                )
+                return httpx.Response(429, headers={"Retry-After": "not-a-number"})
             return httpx.Response(200, json={})
 
         api = JiraApi(

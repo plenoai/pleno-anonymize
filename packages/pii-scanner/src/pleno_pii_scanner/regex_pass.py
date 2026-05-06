@@ -73,9 +73,7 @@ def _line_col(line_starts: list[int], offset: int) -> tuple[int, int]:
     return line_idx + 1, offset - line_starts[line_idx] + 1
 
 
-def _scan_text(
-    text: str, file: str, patterns: list[CompiledPattern]
-) -> list[Finding]:
+def _scan_text(text: str, file: str, patterns: list[CompiledPattern]) -> list[Finding]:
     if not text:
         return []
     line_starts = _line_offsets(text)
@@ -85,7 +83,11 @@ def _scan_text(
             start = m.start()
             line, col = _line_col(line_starts, start)
             line_end_idx = bisect.bisect_right(line_starts, start)
-            line_end = line_starts[line_end_idx] if line_end_idx < len(line_starts) else len(text)
+            line_end = (
+                line_starts[line_end_idx]
+                if line_end_idx < len(line_starts)
+                else len(text)
+            )
             snippet = text[line_starts[line - 1] : line_end].rstrip("\n")
             if len(snippet) > 240:
                 # Center the snippet on the match.

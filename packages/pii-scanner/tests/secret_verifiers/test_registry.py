@@ -34,7 +34,9 @@ def _finding(entity: str = "GITHUB_PAT", matched: str = "ghp_token") -> Finding:
 
 
 class _StubVerifier:
-    def __init__(self, name: str, entities: frozenset[str], result: VerificationResult) -> None:
+    def __init__(
+        self, name: str, entities: frozenset[str], result: VerificationResult
+    ) -> None:
         self.name = name
         self.entities = entities
         self.result = result
@@ -58,16 +60,24 @@ def test_register_get_for_entity_names_iter_len() -> None:
 
 def test_register_duplicate_name_rejected() -> None:
     registry = ProviderRegistry()
-    registry.register(_StubVerifier("a", frozenset({"X"}), VerificationResult(state="live")))
+    registry.register(
+        _StubVerifier("a", frozenset({"X"}), VerificationResult(state="live"))
+    )
     with pytest.raises(ValueError):
-        registry.register(_StubVerifier("a", frozenset({"Y"}), VerificationResult(state="live")))
+        registry.register(
+            _StubVerifier("a", frozenset({"Y"}), VerificationResult(state="live"))
+        )
 
 
 def test_register_duplicate_entity_rejected() -> None:
     registry = ProviderRegistry()
-    registry.register(_StubVerifier("a", frozenset({"X"}), VerificationResult(state="live")))
+    registry.register(
+        _StubVerifier("a", frozenset({"X"}), VerificationResult(state="live"))
+    )
     with pytest.raises(ValueError):
-        registry.register(_StubVerifier("b", frozenset({"X"}), VerificationResult(state="live")))
+        registry.register(
+            _StubVerifier("b", frozenset({"X"}), VerificationResult(state="live"))
+        )
 
 
 def test_unregister_removes_provider_and_entity_index() -> None:
@@ -139,7 +149,9 @@ async def test_verify_finding_live_marks_passed() -> None:
 async def test_verify_finding_revoked_marks_failed() -> None:
     registry = ProviderRegistry()
     registry.register(
-        _StubVerifier("s", frozenset({"GITHUB_PAT"}), VerificationResult(state="revoked"))
+        _StubVerifier(
+            "s", frozenset({"GITHUB_PAT"}), VerificationResult(state="revoked")
+        )
     )
     out = await verify_finding(_finding(), registry=registry)
     assert out.verification == "failed"
@@ -148,7 +160,9 @@ async def test_verify_finding_revoked_marks_failed() -> None:
 async def test_verify_finding_unknown_keeps_unverified() -> None:
     registry = ProviderRegistry()
     registry.register(
-        _StubVerifier("s", frozenset({"GITHUB_PAT"}), VerificationResult(state="unknown"))
+        _StubVerifier(
+            "s", frozenset({"GITHUB_PAT"}), VerificationResult(state="unknown")
+        )
     )
     out = await verify_finding(_finding(), registry=registry)
     assert out.verification == "unverified"
@@ -165,7 +179,9 @@ async def test_verify_finding_error_keeps_unverified() -> None:
 
 async def test_verify_finding_uses_cache_hit() -> None:
     registry = ProviderRegistry()
-    stub = _StubVerifier("s", frozenset({"GITHUB_PAT"}), VerificationResult(state="live"))
+    stub = _StubVerifier(
+        "s", frozenset({"GITHUB_PAT"}), VerificationResult(state="live")
+    )
     registry.register(stub)
     cache = VerificationCache()
     finding = _finding()
@@ -249,7 +265,9 @@ async def test_verify_finding_explicit_ctx_passed_through() -> None:
 
     registry = ProviderRegistry()
     registry.register(_CaptureCtx())
-    await verify_finding(_finding(), registry=registry, ctx=VerifyContext(timeout_seconds=2.0))
+    await verify_finding(
+        _finding(), registry=registry, ctx=VerifyContext(timeout_seconds=2.0)
+    )
     assert seen == [2.0]
 
 
@@ -293,7 +311,9 @@ async def test_cache_expired_entry_triggers_re_probe() -> None:
         "s",
         frozenset({"GITHUB_PAT"}),
         VerificationResult(
-            state="live", ttl_seconds=1, checked_at=datetime.now(UTC) - timedelta(seconds=10)
+            state="live",
+            ttl_seconds=1,
+            checked_at=datetime.now(UTC) - timedelta(seconds=10),
         ),
     )
     registry.register(stub)

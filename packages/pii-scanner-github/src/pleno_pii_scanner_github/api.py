@@ -184,9 +184,7 @@ def _raise_for_rate_limit(response: httpx.Response) -> None:
     status = response.status_code
     if status == 429:
         retry_after = response.headers.get("Retry-After")
-        raise RateLimited(
-            f"github primary 429; retry_after={retry_after!r}"
-        )
+        raise RateLimited(f"github primary 429; retry_after={retry_after!r}")
     if status == 403 and response.headers.get("Retry-After") is not None:
         raise RateLimited(
             f"github secondary 403; retry_after={response.headers['Retry-After']!r}"

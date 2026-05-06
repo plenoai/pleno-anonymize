@@ -57,10 +57,7 @@ class SamplingPlan:
                 f"WHERE CRC32(CAST(`id` AS CHAR)) % {self.bucket_modulus} = 0 "
                 f"LIMIT {self.sample_rows}"
             )
-        return (
-            f"SELECT {cols} FROM {ident} "
-            f"ORDER BY RAND() LIMIT {self.sample_rows}"
-        )
+        return f"SELECT {cols} FROM {ident} ORDER BY RAND() LIMIT {self.sample_rows}"
 
 
 def plan_sample(
@@ -105,9 +102,7 @@ def _quote_ident(name: str) -> str:
     injection via crafted catalog rows.
     """
     if "`" in name:
-        raise ValueError(
-            f"refusing to quote identifier containing backtick: {name!r}"
-        )
+        raise ValueError(f"refusing to quote identifier containing backtick: {name!r}")
     if not name:
         raise ValueError("identifier must be non-empty")
     return f"`{name}`"

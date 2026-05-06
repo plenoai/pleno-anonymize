@@ -242,8 +242,7 @@ class CiLogsApi:
         response = await self.get(path_or_url, accept="application/zip")
         if response.status_code != 200:
             raise CiLogsApiError(
-                f"ci_logs[{self._flavor}] log-fetch returned "
-                f"{response.status_code}"
+                f"ci_logs[{self._flavor}] log-fetch returned {response.status_code}"
             )
         return response.content
 

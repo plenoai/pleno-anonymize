@@ -15,7 +15,12 @@ from pleno_pii_scanner import __version__
 from pleno_pii_scanner.cloud_pass import CloudConfig, scan_files_cloud
 from pleno_pii_scanner.git_history import scan_history as _scan_history
 from pleno_pii_scanner.github import list_org_repos, shallow_clone
-from pleno_pii_scanner.ignore import IgnoreSet, filter_findings, load_baseline, write_baseline
+from pleno_pii_scanner.ignore import (
+    IgnoreSet,
+    filter_findings,
+    load_baseline,
+    write_baseline,
+)
 from pleno_pii_scanner.cluster import ClusterPolicy, keep_db_clusters
 from pleno_pii_scanner.models import Finding, ScanStats
 from pleno_pii_scanner.ner_pass import scan_files as scan_files_ner
@@ -27,38 +32,100 @@ from pleno_pii_scanner.walker import walk
 
 
 def _common_options(f):
-    f = click.option("--entities", default=None, help="Comma-separated entity types to scan for.")(f)
-    f = click.option("--language", default="ja", show_default=True, help="Analysis language (ja|en). Cloud mode only.")(f)
-    f = click.option("--base-url", "base_url", default=None,
-                     envvar="PLENO_BASE_URL",
-                     help="Offload analysis to a remote pleno-anonymize at this URL. "
-                          "When omitted, NER + regex run locally (the default).")(f)
-    f = click.option("--api-key", default=None, envvar="PLENO_API_KEY",
-                     help="Bearer token for the cloud API. Cloud mode only.")(f)
-    f = click.option("--concurrency", type=int, default=8, show_default=True,
-                     help="Parallel HTTP requests in cloud mode.")(f)
-    f = click.option("--report-format", type=click.Choice(["human", "json", "sarif"]), default="human")(f)
-    f = click.option("--report-path", type=click.Path(dir_okay=False, path_type=Path), default=None)(f)
-    f = click.option("--baseline", "baseline_path", type=click.Path(dir_okay=False, path_type=Path), default=None)(f)
-    f = click.option("--ignore-file", type=click.Path(dir_okay=False, path_type=Path), default=None)(f)
-    f = click.option("--max-file-size", type=int, default=1024 * 1024, show_default=True)(f)
-    f = click.option("--include", multiple=True, help="Glob to include (gitignore syntax).")(f)
-    f = click.option("--exclude", multiple=True, help="Glob to exclude (gitignore syntax).")(f)
-    f = click.option("--workers", type=int, default=None, help="Reserved for the regex-only history pass (default: CPU count).")(f)
-    f = click.option("--only-verified", is_flag=True, help="Suppress unverified/failed findings.")(f)
-    f = click.option("--db-only", "db_only", is_flag=True,
-                     help="Cluster mode: keep findings only from files (>=2 findings) "
-                          "or folders (>=3 findings) that look like a PII database. "
-                          "Single isolated mentions are dropped — repository-level "
-                          "PII risk follows DB shape, not single contacts.")(f)
-    f = click.option("--db-file-threshold", "db_file_threshold", type=int, default=2,
-                     show_default=True,
-                     help="Minimum findings per file to count as a DB cluster (with --db-only).")(f)
-    f = click.option("--db-folder-threshold", "db_folder_threshold", type=int, default=3,
-                     show_default=True,
-                     help="Minimum findings per folder to count as a DB cluster (with --db-only).")(f)
+    f = click.option(
+        "--entities", default=None, help="Comma-separated entity types to scan for."
+    )(f)
+    f = click.option(
+        "--language",
+        default="ja",
+        show_default=True,
+        help="Analysis language (ja|en). Cloud mode only.",
+    )(f)
+    f = click.option(
+        "--base-url",
+        "base_url",
+        default=None,
+        envvar="PLENO_BASE_URL",
+        help="Offload analysis to a remote pleno-anonymize at this URL. "
+        "When omitted, NER + regex run locally (the default).",
+    )(f)
+    f = click.option(
+        "--api-key",
+        default=None,
+        envvar="PLENO_API_KEY",
+        help="Bearer token for the cloud API. Cloud mode only.",
+    )(f)
+    f = click.option(
+        "--concurrency",
+        type=int,
+        default=8,
+        show_default=True,
+        help="Parallel HTTP requests in cloud mode.",
+    )(f)
+    f = click.option(
+        "--report-format",
+        type=click.Choice(["human", "json", "sarif"]),
+        default="human",
+    )(f)
+    f = click.option(
+        "--report-path", type=click.Path(dir_okay=False, path_type=Path), default=None
+    )(f)
+    f = click.option(
+        "--baseline",
+        "baseline_path",
+        type=click.Path(dir_okay=False, path_type=Path),
+        default=None,
+    )(f)
+    f = click.option(
+        "--ignore-file", type=click.Path(dir_okay=False, path_type=Path), default=None
+    )(f)
+    f = click.option(
+        "--max-file-size", type=int, default=1024 * 1024, show_default=True
+    )(f)
+    f = click.option(
+        "--include", multiple=True, help="Glob to include (gitignore syntax)."
+    )(f)
+    f = click.option(
+        "--exclude", multiple=True, help="Glob to exclude (gitignore syntax)."
+    )(f)
+    f = click.option(
+        "--workers",
+        type=int,
+        default=None,
+        help="Reserved for the regex-only history pass (default: CPU count).",
+    )(f)
+    f = click.option(
+        "--only-verified", is_flag=True, help="Suppress unverified/failed findings."
+    )(f)
+    f = click.option(
+        "--db-only",
+        "db_only",
+        is_flag=True,
+        help="Cluster mode: keep findings only from files (>=2 findings) "
+        "or folders (>=3 findings) that look like a PII database. "
+        "Single isolated mentions are dropped — repository-level "
+        "PII risk follows DB shape, not single contacts.",
+    )(f)
+    f = click.option(
+        "--db-file-threshold",
+        "db_file_threshold",
+        type=int,
+        default=2,
+        show_default=True,
+        help="Minimum findings per file to count as a DB cluster (with --db-only).",
+    )(f)
+    f = click.option(
+        "--db-folder-threshold",
+        "db_folder_threshold",
+        type=int,
+        default=3,
+        show_default=True,
+        help="Minimum findings per folder to count as a DB cluster (with --db-only).",
+    )(f)
     f = click.option("--no-color", is_flag=True, help="Disable ANSI colors.")(f)
-    f = click.option("--exit-zero", is_flag=True, help="Always exit 0 even when findings exist.")(f)
+    f = click.option(
+        "--exit-zero", is_flag=True, help="Always exit 0 even when findings exist."
+    )(f)
     return f
 
 
@@ -91,8 +158,13 @@ def _resolve_entities(entities_csv: str | None) -> tuple[str, ...] | None:
     return wanted
 
 
-def _cloud_config(base_url: str | None, api_key: str | None, language: str,
-                  concurrency: int, entities: tuple[str, ...] | None) -> CloudConfig | None:
+def _cloud_config(
+    base_url: str | None,
+    api_key: str | None,
+    language: str,
+    concurrency: int,
+    entities: tuple[str, ...] | None,
+) -> CloudConfig | None:
     if not base_url:
         return None
     return CloudConfig(
@@ -155,12 +227,14 @@ def _scan_directory(
     recognizers = _select_recognizers(entities)
 
     t0 = time.monotonic()
-    files = list(walk(
-        root,
-        max_file_size=max_file_size,
-        include=list(include) if include else None,
-        exclude=list(exclude) if exclude else None,
-    ))
+    files = list(
+        walk(
+            root,
+            max_file_size=max_file_size,
+            include=list(include) if include else None,
+            exclude=list(exclude) if exclude else None,
+        )
+    )
 
     file_pairs: list[tuple[Path, Path]] = []
     file_text: dict[str, str] = {}
@@ -226,7 +300,9 @@ def _maybe_filter_verified(stats: ScanStats, only_verified: bool) -> ScanStats:
     return stats
 
 
-def _maybe_cluster_db(stats: ScanStats, db_only: bool, file_t: int, folder_t: int) -> ScanStats:
+def _maybe_cluster_db(
+    stats: ScanStats, db_only: bool, file_t: int, folder_t: int
+) -> ScanStats:
     """Apply DB-cluster filtering when --db-only is set.
 
     Repository-level PII risk follows database shape: a single contact email
@@ -278,9 +354,9 @@ _register_builtins()
 # Mount the multi-source CLI groups (#15). They live in sibling modules
 # so backward-compat subcommands (dir/git/github/baseline/protect) above
 # stay byte-identical and the new groups can be tested in isolation.
-from pleno_pii_scanner.cli_connectors import connectors_group as _connectors_group
-from pleno_pii_scanner.cli_schedule import schedule_group as _schedule_group
-from pleno_pii_scanner.cli_scan import scan_group as _scan_group
+from pleno_pii_scanner.cli_connectors import connectors_group as _connectors_group  # noqa: E402
+from pleno_pii_scanner.cli_schedule import schedule_group as _schedule_group  # noqa: E402
+from pleno_pii_scanner.cli_scan import scan_group as _scan_group  # noqa: E402
 
 main.add_command(_connectors_group)
 main.add_command(_schedule_group)
@@ -290,15 +366,34 @@ main.add_command(_scan_group)
 @main.command(name="dir")
 @click.argument("path", type=click.Path(exists=True, file_okay=False, path_type=Path))
 @_common_options
-def cmd_dir(path: Path, entities, language, base_url, api_key, concurrency,
-            report_format, report_path, baseline_path,
-            ignore_file, max_file_size, include, exclude, workers, only_verified,
-            db_only, db_file_threshold, db_folder_threshold,
-            no_color, exit_zero) -> None:
+def cmd_dir(
+    path: Path,
+    entities,
+    language,
+    base_url,
+    api_key,
+    concurrency,
+    report_format,
+    report_path,
+    baseline_path,
+    ignore_file,
+    max_file_size,
+    include,
+    exclude,
+    workers,
+    only_verified,
+    db_only,
+    db_file_threshold,
+    db_folder_threshold,
+    no_color,
+    exit_zero,
+) -> None:
     """Scan a directory tree."""
     ignore_set = _resolve_ignore(ignore_file, path)
     baseline = load_baseline(baseline_path) if baseline_path else set()
-    cloud = _cloud_config(base_url, api_key, language, concurrency, _resolve_entities(entities))
+    cloud = _cloud_config(
+        base_url, api_key, language, concurrency, _resolve_entities(entities)
+    )
     stats = _scan_directory(
         path.resolve(),
         entities=entities,
@@ -322,11 +417,30 @@ def cmd_dir(path: Path, entities, language, base_url, api_key, concurrency,
 @click.option("--no-history", is_flag=True, help="Skip git history pass.")
 @click.option("--max-commits", type=int, default=None, help="Cap commits scanned.")
 @_common_options
-def cmd_git(path: Path, no_history, max_commits, entities, language, base_url, api_key,
-            concurrency, report_format, report_path,
-            baseline_path, ignore_file, max_file_size, include, exclude, workers,
-            only_verified, db_only, db_file_threshold, db_folder_threshold,
-            no_color, exit_zero) -> None:
+def cmd_git(
+    path: Path,
+    no_history,
+    max_commits,
+    entities,
+    language,
+    base_url,
+    api_key,
+    concurrency,
+    report_format,
+    report_path,
+    baseline_path,
+    ignore_file,
+    max_file_size,
+    include,
+    exclude,
+    workers,
+    only_verified,
+    db_only,
+    db_file_threshold,
+    db_folder_threshold,
+    no_color,
+    exit_zero,
+) -> None:
     """Scan a local git repository (working tree + history).
 
     History pass always runs locally (regex only) since per-line cloud calls
@@ -334,7 +448,9 @@ def cmd_git(path: Path, no_history, max_commits, entities, language, base_url, a
     """
     ignore_set = _resolve_ignore(ignore_file, path)
     baseline = load_baseline(baseline_path) if baseline_path else set()
-    cloud = _cloud_config(base_url, api_key, language, concurrency, _resolve_entities(entities))
+    cloud = _cloud_config(
+        base_url, api_key, language, concurrency, _resolve_entities(entities)
+    )
     recognizers = _select_recognizers(entities)
     patterns = compile_patterns(recognizers)
 
@@ -352,9 +468,13 @@ def cmd_git(path: Path, no_history, max_commits, entities, language, base_url, a
 
     if not no_history:
         t0 = time.monotonic()
-        hist_findings, n_commits = _scan_history(path.resolve(), patterns, max_commits=max_commits)
+        hist_findings, n_commits = _scan_history(
+            path.resolve(), patterns, max_commits=max_commits
+        )
         hist_findings = verify(hist_findings, recognizers)
-        kept, _ = filter_findings(hist_findings, ignore_set=ignore_set, baseline=baseline)
+        kept, _ = filter_findings(
+            hist_findings, ignore_set=ignore_set, baseline=baseline
+        )
         stats.findings.extend(kept)
         stats.findings.sort(key=lambda f: (f.commit or "", f.file, f.line))
         stats.commits_scanned = n_commits
@@ -369,15 +489,42 @@ def cmd_git(path: Path, no_history, max_commits, entities, language, base_url, a
 
 @main.command(name="github")
 @click.argument("target")
-@click.option("--org", is_flag=True, help="Treat TARGET as a GitHub org and scan all repos.")
+@click.option(
+    "--org", is_flag=True, help="Treat TARGET as a GitHub org and scan all repos."
+)
 @click.option("--full", is_flag=True, help="Full clone (default: shallow depth=1).")
-@click.option("--scan-history/--no-scan-history", "include_history", default=False, help="Scan git history (requires --full).")
+@click.option(
+    "--scan-history/--no-scan-history",
+    "include_history",
+    default=False,
+    help="Scan git history (requires --full).",
+)
 @_common_options
-def cmd_github(target, org, full, include_history, entities, language, base_url, api_key,
-               concurrency, report_format, report_path,
-               baseline_path, ignore_file, max_file_size, include, exclude, workers,
-               only_verified, db_only, db_file_threshold, db_folder_threshold,
-               no_color, exit_zero) -> None:
+def cmd_github(
+    target,
+    org,
+    full,
+    include_history,
+    entities,
+    language,
+    base_url,
+    api_key,
+    concurrency,
+    report_format,
+    report_path,
+    baseline_path,
+    ignore_file,
+    max_file_size,
+    include,
+    exclude,
+    workers,
+    only_verified,
+    db_only,
+    db_file_threshold,
+    db_folder_threshold,
+    no_color,
+    exit_zero,
+) -> None:
     """Clone a GitHub repo (or all repos in an org) and scan."""
     if include_history and not full:
         raise click.UsageError("--scan-history requires --full")
@@ -385,7 +532,9 @@ def cmd_github(target, org, full, include_history, entities, language, base_url,
     targets = list_org_repos(target) if org else [target]
 
     aggregate = ScanStats()
-    cloud = _cloud_config(base_url, api_key, language, concurrency, _resolve_entities(entities))
+    cloud = _cloud_config(
+        base_url, api_key, language, concurrency, _resolve_entities(entities)
+    )
     recognizers = _select_recognizers(entities)
     patterns = compile_patterns(recognizers)
 
@@ -413,9 +562,7 @@ def cmd_github(target, org, full, include_history, entities, language, base_url,
             # Re-prefix file paths so output is unambiguous across many repos.
             # Finding is a frozen slotted dataclass — use dataclasses.replace,
             # not __dict__ (slots=True removes __dict__).
-            sub.findings = [
-                replace(f, file=f"{slug}:{f.file}") for f in sub.findings
-            ]
+            sub.findings = [replace(f, file=f"{slug}:{f.file}") for f in sub.findings]
             aggregate.files_scanned += sub.files_scanned
             aggregate.bytes_scanned += sub.bytes_scanned
             aggregate.duration_ms += sub.duration_ms
@@ -424,14 +571,18 @@ def cmd_github(target, org, full, include_history, entities, language, base_url,
             if include_history:
                 hist, n_commits = _scan_history(repo, patterns)
                 hist = verify(hist, recognizers)
-                hist, _ = filter_findings(hist, ignore_set=ignore_set, baseline=baseline)
+                hist, _ = filter_findings(
+                    hist, ignore_set=ignore_set, baseline=baseline
+                )
                 aggregate.findings.extend(
                     replace(h, file=f"{slug}:{h.file}") for h in hist
                 )
                 aggregate.commits_scanned += n_commits
 
     aggregate = _maybe_filter_verified(aggregate, only_verified)
-    aggregate = _maybe_cluster_db(aggregate, db_only, db_file_threshold, db_folder_threshold)
+    aggregate = _maybe_cluster_db(
+        aggregate, db_only, db_file_threshold, db_folder_threshold
+    )
     color = sys.stdout.isatty() and not no_color and report_format == "human"
     _emit(aggregate, report_format, report_path, color)
     sys.exit(_exit_code(aggregate, exit_zero))
@@ -439,8 +590,13 @@ def cmd_github(target, org, full, include_history, entities, language, base_url,
 
 @main.command(name="baseline")
 @click.argument("path", type=click.Path(exists=True, file_okay=False, path_type=Path))
-@click.option("--out", "out_path", type=click.Path(dir_okay=False, path_type=Path),
-              default=Path(".plenoignore-baseline.json"), show_default=True)
+@click.option(
+    "--out",
+    "out_path",
+    type=click.Path(dir_okay=False, path_type=Path),
+    default=Path(".plenoignore-baseline.json"),
+    show_default=True,
+)
 @click.option("--entities", default=None)
 @click.option("--max-file-size", type=int, default=1024 * 1024)
 @click.option("--workers", type=int, default=None)
@@ -470,7 +626,9 @@ def cmd_protect(entities, only_verified, no_color) -> None:
 
     diff = subprocess.run(
         ["git", "diff", "--cached", "--unified=0", "--no-color"],
-        capture_output=True, text=True, errors="replace",
+        capture_output=True,
+        text=True,
+        errors="replace",
     )
     if diff.returncode != 0:
         click.echo(diff.stderr, err=True)
@@ -483,6 +641,7 @@ def cmd_protect(entities, only_verified, no_color) -> None:
     current_file: str | None = None
     new_line = 0
     import re as _re
+
     file_re = _re.compile(r"^\+\+\+ b/(.+)$")
     hunk_re = _re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@")
 
@@ -498,6 +657,7 @@ def cmd_protect(entities, only_verified, no_color) -> None:
         if current_file and line.startswith("+") and not line.startswith("+++"):
             text = line[1:]
             from pleno_pii_scanner.regex_pass import scan_text as _scan_text
+
             for f in _scan_text(text, current_file, patterns):
                 findings.append(replace(f, line=new_line))
             new_line += 1

@@ -194,9 +194,7 @@ class TestTickCron:
             jitter_calls.append((lo, hi))
             return 0.001
 
-        reg = ScheduleRegistry(
-            store, runner, now_fn=now_fn, jitter_fn=jitter
-        )
+        reg = ScheduleRegistry(store, runner, now_fn=now_fn, jitter_fn=jitter)
         await reg.register(_hourly_schedule(jitter_seconds=15))
         box[0] = datetime(2026, 5, 4, 13, 5, tzinfo=UTC)
         await asyncio.gather(*(await reg.tick()))
@@ -209,12 +207,8 @@ class TestTickCron:
         runner = _Recorder()
         box, now_fn = _frozen_now(datetime(2026, 5, 4, 12, 30, tzinfo=UTC))
         reg = ScheduleRegistry(store, runner, now_fn=now_fn)
-        await reg.register(
-            _hourly_schedule(id="a", plan_ref="shared")
-        )
-        await reg.register(
-            _hourly_schedule(id="b", plan_ref="shared")
-        )
+        await reg.register(_hourly_schedule(id="a", plan_ref="shared"))
+        await reg.register(_hourly_schedule(id="b", plan_ref="shared"))
         box[0] = datetime(2026, 5, 4, 13, 5, tzinfo=UTC)
         await asyncio.gather(*(await reg.tick()))
         # The second due schedule had its plan_ref already claimed.

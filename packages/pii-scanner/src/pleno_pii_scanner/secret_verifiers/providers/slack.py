@@ -26,9 +26,7 @@ class SlackVerifier:
         }
     )
 
-    async def verify(
-        self, value: str, *, ctx: VerifyContext
-    ) -> VerificationResult:
+    async def verify(self, value: str, *, ctx: VerifyContext) -> VerificationResult:
         headers = {
             "Authorization": f"Bearer {value}",
             "Content-Type": "application/x-www-form-urlencoded",
@@ -58,7 +56,9 @@ class SlackVerifier:
         except ValueError:
             return VerificationResult(state="error", detail="bad json", ttl_seconds=60)
         if not isinstance(payload, dict):
-            return VerificationResult(state="error", detail="bad payload", ttl_seconds=60)
+            return VerificationResult(
+                state="error", detail="bad payload", ttl_seconds=60
+            )
         if payload.get("ok") is True:
             metadata = {
                 key: payload[key]
@@ -75,7 +75,13 @@ class SlackVerifier:
             return VerificationResult(
                 state="rate_limited", detail="slack rate limited", ttl_seconds=60
             )
-        if error in {"invalid_auth", "not_authed", "account_inactive", "token_revoked", "token_expired"}:
+        if error in {
+            "invalid_auth",
+            "not_authed",
+            "account_inactive",
+            "token_revoked",
+            "token_expired",
+        }:
             return VerificationResult(state="revoked", detail=error)
         return VerificationResult(
             state="unknown", detail=f"slack error: {error}", ttl_seconds=300

@@ -81,8 +81,7 @@ class GithubAppConfig:
         targets = [t for t in (self.repo, self.org, self.enterprise) if t is not None]
         if len(targets) != 1:
             raise ValueError(
-                "GithubAppConfig must set exactly one of "
-                "`repo` / `org` / `enterprise`"
+                "GithubAppConfig must set exactly one of `repo` / `org` / `enterprise`"
             )
 
     def resolved_id(self) -> str:
@@ -143,7 +142,8 @@ class GithubAppConnector:
             app_id=app_id,
             installation_id=installation_id,
             private_key_pem=(
-                private_key if isinstance(private_key, str)
+                private_key
+                if isinstance(private_key, str)
                 else private_key.decode("utf-8")
             ),
             api=self._api,
@@ -204,9 +204,7 @@ class GithubAppConnector:
             return tuple(out)
 
         assert self._config.enterprise is not None
-        async for org_name in self._iter_enterprise_orgs(
-            self._config.enterprise
-        ):
+        async for org_name in self._iter_enterprise_orgs(self._config.enterprise):
             async for slug, sha in self._iter_org_subsources(
                 org_name,
                 include_archived=self._config.include_archived,
@@ -222,9 +220,7 @@ class GithubAppConnector:
     def set_subsource_skip(self, skip: frozenset[str]) -> None:
         self._skip_subsources = skip
 
-    async def _resolve_repo_head_sha(
-        self, owner: str, name: str
-    ) -> str | None:
+    async def _resolve_repo_head_sha(self, owner: str, name: str) -> str | None:
         """Single-repo HEAD SHA via REST. Returns None on any error so
         the runner falls back to a normal walk instead of caching a
         stale entry."""
@@ -322,17 +318,13 @@ class GithubAppConnector:
                 after=page_cursor,
                 since=filter.since,
             ):
-                async for ref in self._iter_repo_refs(
-                    owner, name, filter, next_cursor
-                ):
+                async for ref in self._iter_repo_refs(owner, name, filter, next_cursor):
                     yield ref
                 page_cursor = next_cursor
             return
         else:
             assert self._config.enterprise is not None
-            async for org_name in self._iter_enterprise_orgs(
-                self._config.enterprise
-            ):
+            async for org_name in self._iter_enterprise_orgs(self._config.enterprise):
                 async for owner, name, next_cursor in self._iter_org_repos(
                     org_name,
                     include_archived=self._config.include_archived,
@@ -384,13 +376,9 @@ class GithubAppConnector:
             size = entry.get("size")
             if max_size is not None and isinstance(size, int) and size > max_size:
                 continue
-            if filter.exclude and any(
-                _glob_match(path, p) for p in filter.exclude
-            ):
+            if filter.exclude and any(_glob_match(path, p) for p in filter.exclude):
                 continue
-            if filter.include and not any(
-                _glob_match(path, p) for p in filter.include
-            ):
+            if filter.include and not any(_glob_match(path, p) for p in filter.include):
                 continue
             sha = entry["sha"]
             yield DocumentRef(
@@ -458,9 +446,7 @@ class GithubAppConnector:
                 return
             cursor = page_info.get("endCursor")
 
-    async def _iter_enterprise_orgs(
-        self, enterprise: str
-    ) -> AsyncIterator[str]:
+    async def _iter_enterprise_orgs(self, enterprise: str) -> AsyncIterator[str]:
         """Page through `enterprise.organizations` (GHES only).
 
         Returns just org logins; downstream re-enters
@@ -508,9 +494,7 @@ class GithubAppConnector:
             # Stale ref or wrong connector — yield nothing rather than
             # crashing the scheduler's gather().
             return
-        response = await self._api.get(
-            f"/repos/{owner}/{repo}/git/blobs/{sha}"
-        )
+        response = await self._api.get(f"/repos/{owner}/{repo}/git/blobs/{sha}")
         if response.status_code != 200:
             return
         payload = response.json()
@@ -530,9 +514,7 @@ class GithubAppConnector:
             content_hash=sha,
         )
 
-    async def fetch_repo_tarball(
-        self, owner: str, repo: str
-    ) -> bytes | None:
+    async def fetch_repo_tarball(self, owner: str, repo: str) -> bytes | None:
         """Bulk-pull a small repo as a tarball (single HTTP).
 
         Used opportunistically when a discovery pass determined the
@@ -590,6 +572,7 @@ def _parse_iso(value: str) -> datetime:
 def _glob_match(path: str, pattern: str) -> bool:
     """Minimal fnmatch wrapper exposed as a hook for tests."""
     from fnmatch import fnmatch
+
     return fnmatch(path, pattern)
 
 

@@ -88,13 +88,9 @@ class TestEveryConnector:
         assert spec.version, f"{kind} SPEC.version must be non-empty"
         assert callable(spec.factory)
         assert isinstance(spec.capabilities, Capabilities)
-        assert spec.required_scopes, (
-            f"{kind} SPEC.required_scopes should be non-empty"
-        )
+        assert spec.required_scopes, f"{kind} SPEC.required_scopes should be non-empty"
 
-    def test_factory_rejects_empty_config(
-        self, kind: str, spec: ConnectorSpec
-    ) -> None:
+    def test_factory_rejects_empty_config(self, kind: str, spec: ConnectorSpec) -> None:
         # Every connector requires at least one credential or endpoint —
         # an empty config must raise ValueError (not KeyError or
         # AttributeError) so the registry can surface the violation

@@ -71,9 +71,7 @@ class CheckpointStoreProtocol(Protocol):
     """
 
     async def save(self, cp: object) -> None: ...
-    async def load(
-        self, scan_id: str, source_id: str
-    ) -> object | None: ...
+    async def load(self, scan_id: str, source_id: str) -> object | None: ...
 
 
 @dataclass(frozen=True, slots=True)

@@ -44,15 +44,25 @@ class _TextCollector(HTMLParser):
         self._buf: list[str] = []
         self._skip_depth = 0
 
-    def handle_starttag(
-        self, tag: str, attrs: list[tuple[str, str | None]]
-    ) -> None:
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag in _SKIP_TAGS:
             self._skip_depth += 1
         # Block-level tags get a newline so adjacent <p>s don't run together.
         elif tag in {
-            "p", "br", "div", "li", "tr", "td", "h1", "h2", "h3", "h4",
-            "h5", "h6", "blockquote", "pre",
+            "p",
+            "br",
+            "div",
+            "li",
+            "tr",
+            "td",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "blockquote",
+            "pre",
         }:
             self._buf.append("\n")
 
@@ -60,9 +70,7 @@ class _TextCollector(HTMLParser):
         if tag in _SKIP_TAGS and self._skip_depth > 0:
             self._skip_depth -= 1
 
-    def handle_startendtag(
-        self, tag: str, attrs: list[tuple[str, str | None]]
-    ) -> None:
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         # <br/>, <img/>, etc. — treat <br/> as a line break, ignore others.
         if tag == "br":
             self._buf.append("\n")

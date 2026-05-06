@@ -127,8 +127,12 @@ class TestDocumentChunk:
         # (that's the connector's contract) but we verify the data shape
         # is suitable for it.
         chunks = [
-            DocumentChunk(ref=_ref(), byte_range=(0, 1023), is_final=False, binary=b"a" * 1024),
-            DocumentChunk(ref=_ref(), byte_range=(1024, 2047), is_final=True, binary=b"b" * 1024),
+            DocumentChunk(
+                ref=_ref(), byte_range=(0, 1023), is_final=False, binary=b"a" * 1024
+            ),
+            DocumentChunk(
+                ref=_ref(), byte_range=(1024, 2047), is_final=True, binary=b"b" * 1024
+            ),
         ]
         assert sorted(chunks, key=lambda c: c.byte_range[0]) == chunks
         assert chunks[-1].is_final

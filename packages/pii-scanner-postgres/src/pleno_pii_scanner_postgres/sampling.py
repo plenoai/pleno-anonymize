@@ -59,10 +59,7 @@ class SamplingPlan:
         # O(N log N) so we cap with `LIMIT` upfront — the planner can
         # use index-only scans here on small tables but the strategy is
         # only ever picked when estimated_rows ≤ 100k.
-        return (
-            f"SELECT {cols} FROM {ident} "
-            f"ORDER BY random() LIMIT {self.sample_rows}"
-        )
+        return f"SELECT {cols} FROM {ident} ORDER BY random() LIMIT {self.sample_rows}"
 
 
 def plan_sample(

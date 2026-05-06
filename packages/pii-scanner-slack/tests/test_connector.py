@@ -65,9 +65,7 @@ class TestProtocol:
         assert c.id == "slack:bot:T1"
 
     def test_resolved_id_org(self) -> None:
-        c = SlackConnector(
-            SlackConfig(token="xoxa-1", enterprise_id="E1")
-        )
+        c = SlackConnector(SlackConfig(token="xoxa-1", enterprise_id="E1"))
         assert c.id == "slack:org:E1"
 
     def test_resolved_id_unknown_scope(self) -> None:
@@ -101,7 +99,10 @@ class TestDiscoverConversations:
         fake = FakeAsyncWebClient()
         fake.script("auth_test", FakeResponse({"team_id": "T9", "ok": True}))
         fake.script("conversations_list", _list_resp([{"id": "C1"}]))
-        fake.script("conversations_history", _hist_resp([{"ts": "1.0", "user": "U", "text": "x"}]))
+        fake.script(
+            "conversations_history",
+            _hist_resp([{"ts": "1.0", "user": "U", "text": "x"}]),
+        )
         c = SlackConnector(
             SlackConfig(token="xoxb-test"),
             client_factory=make_client_factory(fake),
@@ -116,7 +117,10 @@ class TestDiscoverConversations:
         fake = FakeAsyncWebClient()
         # No auth_test scripted — would AssertionError if called.
         fake.script("conversations_list", _list_resp([{"id": "C1"}]))
-        fake.script("conversations_history", _hist_resp([{"ts": "1.0", "user": "U", "text": "x"}]))
+        fake.script(
+            "conversations_history",
+            _hist_resp([{"ts": "1.0", "user": "U", "text": "x"}]),
+        )
         c = SlackConnector(
             SlackConfig(token="xoxb-test", team_id="T1"),
             client_factory=make_client_factory(fake),
@@ -141,7 +145,9 @@ class TestDiscoverConversations:
         finally:
             await c.close()
         # The history call must have been made with oldest=500.0.
-        history_call = next(call for call in fake.calls if call[0] == "conversations_history")
+        history_call = next(
+            call for call in fake.calls if call[0] == "conversations_history"
+        )
         assert history_call[1]["oldest"] == "500.0"
         assert refs == []
 
@@ -240,8 +246,14 @@ class TestFetchMessage:
 
     async def test_principal_cache_hits_once(self) -> None:
         fake = FakeAsyncWebClient()
-        fake.script("conversations_history", _hist_resp([{"ts": "1.0", "user": "U1", "text": "a"}]))
-        fake.script("conversations_history", _hist_resp([{"ts": "2.0", "user": "U1", "text": "b"}]))
+        fake.script(
+            "conversations_history",
+            _hist_resp([{"ts": "1.0", "user": "U1", "text": "a"}]),
+        )
+        fake.script(
+            "conversations_history",
+            _hist_resp([{"ts": "2.0", "user": "U1", "text": "b"}]),
+        )
         fake.script(
             "users_info",
             FakeResponse({"user": {"id": "U1", "real_name": "Alice"}}),
@@ -274,11 +286,12 @@ class TestFetchMessage:
 
     async def test_principal_disabled(self) -> None:
         fake = FakeAsyncWebClient()
-        fake.script("conversations_history", _hist_resp([{"ts": "1.0", "user": "U1", "text": "a"}]))
+        fake.script(
+            "conversations_history",
+            _hist_resp([{"ts": "1.0", "user": "U1", "text": "a"}]),
+        )
         c = SlackConnector(
-            SlackConfig(
-                token="xoxb-x", team_id="T1", fetch_user_principal=False
-            ),
+            SlackConfig(token="xoxb-x", team_id="T1", fetch_user_principal=False),
             client_factory=make_client_factory(fake),
         )
         try:
@@ -296,8 +309,13 @@ class TestFetchMessage:
 
     async def test_principal_fallback_when_user_not_found(self) -> None:
         fake = FakeAsyncWebClient()
-        fake.script("conversations_history", _hist_resp([{"ts": "1.0", "user": "U1", "text": "x"}]))
-        err_resp = FakeResponse({"ok": False, "error": "user_not_found"}, status_code=200)
+        fake.script(
+            "conversations_history",
+            _hist_resp([{"ts": "1.0", "user": "U1", "text": "x"}]),
+        )
+        err_resp = FakeResponse(
+            {"ok": False, "error": "user_not_found"}, status_code=200
+        )
         fake.script("users_info", SlackApiError("nope", err_resp))
         c = SlackConnector(
             SlackConfig(token="xoxb-x", team_id="T1"),
@@ -319,8 +337,13 @@ class TestFetchMessage:
 
     async def test_principal_users_info_unexpected_error_raises(self) -> None:
         fake = FakeAsyncWebClient()
-        fake.script("conversations_history", _hist_resp([{"ts": "1.0", "user": "U1", "text": "x"}]))
-        err_resp = FakeResponse({"ok": False, "error": "internal_error"}, status_code=500)
+        fake.script(
+            "conversations_history",
+            _hist_resp([{"ts": "1.0", "user": "U1", "text": "x"}]),
+        )
+        err_resp = FakeResponse(
+            {"ok": False, "error": "internal_error"}, status_code=500
+        )
         fake.script("users_info", SlackApiError("boom", err_resp))
         c = SlackConnector(
             SlackConfig(token="xoxb-x", team_id="T1"),
@@ -361,7 +384,10 @@ class TestFetchMessage:
 
     async def test_principal_minimal_when_user_payload_missing(self) -> None:
         fake = FakeAsyncWebClient()
-        fake.script("conversations_history", _hist_resp([{"ts": "1.0", "user": "U2", "text": "x"}]))
+        fake.script(
+            "conversations_history",
+            _hist_resp([{"ts": "1.0", "user": "U2", "text": "x"}]),
+        )
         # users.info returns ok=true but with no user object — strange,
         # but Slack has been observed to return this on permission denial.
         fake.script("users_info", FakeResponse({"ok": True}))
@@ -384,7 +410,9 @@ class TestFetchMessage:
 
     async def test_message_not_in_channel_returns_empty(self) -> None:
         fake = FakeAsyncWebClient()
-        err_resp = FakeResponse({"ok": False, "error": "not_in_channel"}, status_code=200)
+        err_resp = FakeResponse(
+            {"ok": False, "error": "not_in_channel"}, status_code=200
+        )
         fake.script("conversations_history", SlackApiError("nope", err_resp))
         c = SlackConnector(
             SlackConfig(token="xoxb-x", team_id="T1"),
@@ -592,7 +620,13 @@ class TestFetchFile:
                 source_id=c.id,
                 source_kind="slack",
                 path="slack://T1/C1/1.0/files/F1",
-                metadata={"channel_id": "C1", "team_id": "T1", "ts": "1.0", "file_id": "F1", "parent_ts": "1.0"},
+                metadata={
+                    "channel_id": "C1",
+                    "team_id": "T1",
+                    "ts": "1.0",
+                    "file_id": "F1",
+                    "parent_ts": "1.0",
+                },
             )
             docs = [d async for d in c.fetch(ref)]
         finally:
@@ -617,7 +651,13 @@ class TestFetchFile:
                 source_id=c.id,
                 source_kind="slack",
                 path="slack://T1/C1/1.0/files/F1",
-                metadata={"channel_id": "C1", "team_id": "T1", "ts": "1.0", "file_id": "F1", "parent_ts": "1.0"},
+                metadata={
+                    "channel_id": "C1",
+                    "team_id": "T1",
+                    "ts": "1.0",
+                    "file_id": "F1",
+                    "parent_ts": "1.0",
+                },
             )
             with pytest.raises(RateLimited):
                 [d async for d in c.fetch(ref)]
@@ -638,7 +678,13 @@ class TestFetchFile:
                 source_id=c.id,
                 source_kind="slack",
                 path="slack://T1/C1/1.0/files/F1",
-                metadata={"channel_id": "C1", "team_id": "T1", "ts": "1.0", "file_id": "F1", "parent_ts": "1.0"},
+                metadata={
+                    "channel_id": "C1",
+                    "team_id": "T1",
+                    "ts": "1.0",
+                    "file_id": "F1",
+                    "parent_ts": "1.0",
+                },
             )
             with pytest.raises(SlackApiError):
                 [d async for d in c.fetch(ref)]
@@ -663,7 +709,13 @@ class TestFetchFile:
                 source_id=c.id,
                 source_kind="slack",
                 path="slack://T1/C1/1.0/files/F1",
-                metadata={"channel_id": "C1", "team_id": "T1", "ts": "1.0", "file_id": "F1", "parent_ts": "1.0"},
+                metadata={
+                    "channel_id": "C1",
+                    "team_id": "T1",
+                    "ts": "1.0",
+                    "file_id": "F1",
+                    "parent_ts": "1.0",
+                },
             )
             docs = [d async for d in c.fetch(ref)]
         finally:
@@ -683,7 +735,13 @@ class TestFetchFile:
                 source_id=c.id,
                 source_kind="slack",
                 path="slack://T1/C1/1.0/files/F1",
-                metadata={"channel_id": "C1", "team_id": "T1", "ts": "1.0", "file_id": "F1", "parent_ts": "1.0"},
+                metadata={
+                    "channel_id": "C1",
+                    "team_id": "T1",
+                    "ts": "1.0",
+                    "file_id": "F1",
+                    "parent_ts": "1.0",
+                },
             )
             docs = [d async for d in c.fetch(ref)]
         finally:
@@ -709,7 +767,9 @@ class TestFetchFile:
 
         def handler(request: httpx.Request) -> httpx.Response:
             called["url"] = str(request.url)
-            return httpx.Response(200, content=b"ok", headers={"Content-Type": "text/plain"})
+            return httpx.Response(
+                200, content=b"ok", headers={"Content-Type": "text/plain"}
+            )
 
         c = SlackConnector(
             SlackConfig(token="xoxb-x", team_id="T1"),
@@ -721,7 +781,13 @@ class TestFetchFile:
                 source_id=c.id,
                 source_kind="slack",
                 path="slack://T1/C1/1.0/files/F1",
-                metadata={"channel_id": "C1", "team_id": "T1", "ts": "1.0", "file_id": "F1", "parent_ts": "1.0"},
+                metadata={
+                    "channel_id": "C1",
+                    "team_id": "T1",
+                    "ts": "1.0",
+                    "file_id": "F1",
+                    "parent_ts": "1.0",
+                },
             )
             docs = [d async for d in c.fetch(ref)]
         finally:
@@ -757,7 +823,13 @@ class TestFetchFile:
                 source_id=c.id,
                 source_kind="slack",
                 path="slack://T1/C1/1.0/files/F1",
-                metadata={"channel_id": "C1", "team_id": "T1", "ts": "1.0", "file_id": "F1", "parent_ts": "1.0"},
+                metadata={
+                    "channel_id": "C1",
+                    "team_id": "T1",
+                    "ts": "1.0",
+                    "file_id": "F1",
+                    "parent_ts": "1.0",
+                },
             )
             with pytest.raises(RateLimited):
                 [d async for d in c.fetch(ref)]
@@ -792,7 +864,13 @@ class TestFetchFile:
                 source_id=c.id,
                 source_kind="slack",
                 path="slack://T1/C1/1.0/files/F1",
-                metadata={"channel_id": "C1", "team_id": "T1", "ts": "1.0", "file_id": "F1", "parent_ts": "1.0"},
+                metadata={
+                    "channel_id": "C1",
+                    "team_id": "T1",
+                    "ts": "1.0",
+                    "file_id": "F1",
+                    "parent_ts": "1.0",
+                },
             )
             with pytest.raises(httpx.HTTPStatusError):
                 [d async for d in c.fetch(ref)]

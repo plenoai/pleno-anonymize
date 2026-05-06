@@ -150,8 +150,7 @@ class JiraConfig:
             )
         if len(modes) > 1:
             raise ValueError(
-                f"JiraConfig accepts exactly one auth mode; "
-                f"received: {sorted(modes)}"
+                f"JiraConfig accepts exactly one auth mode; received: {sorted(modes)}"
             )
 
     def _present_auth_modes(self) -> set[str]:
@@ -279,9 +278,7 @@ class JiraConnector:
         # operator-supplied `--since` is the authoritative knob (tests
         # also rely on this for deterministic JQL assertions).
         since = (
-            filter.since.isoformat()
-            if filter.since is not None
-            else prior_high_water
+            filter.since.isoformat() if filter.since is not None else prior_high_water
         )
         projects = await self._enumerate_projects(filter)
         for project_key in projects:
@@ -370,9 +367,7 @@ class JiraConnector:
     # internals
     # ------------------------------------------------------------------
 
-    async def _enumerate_projects(
-        self, filter: SourceFilter
-    ) -> list[str]:
+    async def _enumerate_projects(self, filter: SourceFilter) -> list[str]:
         """Return project keys to scan, applying allow-list + filter."""
         if self._config.projects:
             # Operator-supplied allow-list short-circuits enumeration —
@@ -411,9 +406,7 @@ class JiraConnector:
                 return keys
             values = body.get("values") or []
             for project in values:
-                key = (
-                    project.get("key") if isinstance(project, Mapping) else None
-                )
+                key = project.get("key") if isinstance(project, Mapping) else None
                 if isinstance(key, str) and key:
                     keys.append(key)
             if body.get("isLast", True):
@@ -482,9 +475,7 @@ class JiraConnector:
                 return
             start_at = new_start
 
-    async def _fetch_comments(
-        self, issue_key: str
-    ) -> list[Mapping[str, Any]]:
+    async def _fetch_comments(self, issue_key: str) -> list[Mapping[str, Any]]:
         """Paginate `/issue/{key}/comment` and return every comment."""
         out: list[Mapping[str, Any]] = []
         start_at = 0
@@ -589,9 +580,7 @@ class JiraConnector:
             parts.append(f"description={description_text}")
         for comment in comments:
             comment_id = comment.get("id")
-            author = _display_name(
-                comment.get("author") or comment.get("updateAuthor")
-            )
+            author = _display_name(comment.get("author") or comment.get("updateAuthor"))
             body_text = self._convert_body(comment.get("body"))
             if not body_text:
                 continue
@@ -604,13 +593,9 @@ class JiraConnector:
             for attachment in fields.get("attachment") or []:
                 if not isinstance(attachment, Mapping):
                     continue
-                name = (
-                    attachment.get("filename") or attachment.get("name") or ""
-                )
+                name = attachment.get("filename") or attachment.get("name") or ""
                 content_url = (
-                    attachment.get("content")
-                    or attachment.get("contentUrl")
-                    or ""
+                    attachment.get("content") or attachment.get("contentUrl") or ""
                 )
                 if name or content_url:
                     parts.append(f"attachment={name}, url={content_url}")
@@ -745,7 +730,7 @@ def _host_only(base_url: str) -> str:
     s = base_url
     for prefix in ("https://", "http://"):
         if s.startswith(prefix):
-            s = s[len(prefix):]
+            s = s[len(prefix) :]
             break
     if "/" in s:
         s = s.split("/", 1)[0]
@@ -789,9 +774,7 @@ def _factory(config: Mapping[str, Any]) -> SourceConnector:
             projects=_string_tuple(config.get("projects")),
             include_comments=bool(config.get("include_comments", True)),
             include_attachments=bool(config.get("include_attachments", True)),
-            request_timeout=float(
-                config.get("request_timeout", DEFAULT_TIMEOUT)
-            ),
+            request_timeout=float(config.get("request_timeout", DEFAULT_TIMEOUT)),
             id=_opt_str(config.get("id")),
         )
     )
@@ -816,9 +799,7 @@ def _string_tuple(value: Any) -> tuple[str, ...]:
             "not a bare string"
         )
     if not isinstance(value, Iterable):
-        raise ValueError(
-            "jira connector list-typed configs must be iterable"
-        )
+        raise ValueError("jira connector list-typed configs must be iterable")
     out: list[str] = []
     for item in value:
         if not isinstance(item, str) or not item:

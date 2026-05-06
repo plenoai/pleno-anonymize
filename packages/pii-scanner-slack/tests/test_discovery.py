@@ -373,7 +373,10 @@ class TestDiscoveryDiscover:
                 cursor_state=cursor_state,
             )
         ]
-        assert refs[1].metadata["url_private_download"] == "https://files.slack.com/fallback"
+        assert (
+            refs[1].metadata["url_private_download"]
+            == "https://files.slack.com/fallback"
+        )
 
     async def test_file_with_no_url_omits_metadata(self) -> None:
         # Neither url_private_download nor url_private — both branches
@@ -465,8 +468,6 @@ class TestDiscoveryDiscover:
             status_code=429,
             headers={"Retry-After": "5"},
         )
-        client.script(
-            "discovery_enterprise_info", SlackApiError("rate", response)
-        )
+        client.script("discovery_enterprise_info", SlackApiError("rate", response))
         with pytest.raises(RateLimited):
             await fetch_enterprise_id(client)

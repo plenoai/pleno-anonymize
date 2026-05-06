@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 
 import httpx
-import pytest
 
 from pleno_pii_scanner.cloud_pass import CloudConfig, _chunk, scan_files_cloud
 
@@ -69,9 +68,7 @@ def test_scan_files_cloud_translates_offsets(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(httpx.AsyncClient, "__init__", fake_init)
 
     cfg = CloudConfig(base_url="https://example.invalid", concurrency=1)
-    findings = scan_files_cloud(
-        [(Path("x.txt"), file)], {"x.txt": text}, cfg
-    )
+    findings = scan_files_cloud([(Path("x.txt"), file)], {"x.txt": text}, cfg)
     assert len(findings) == 1
     f = findings[0]
     assert f.entity == "PHONE_NUMBER"
@@ -97,9 +94,7 @@ def test_scan_files_cloud_handles_http_error(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(httpx.AsyncClient, "__init__", fake_init)
 
     cfg = CloudConfig(base_url="https://example.invalid", concurrency=1)
-    findings = scan_files_cloud(
-        [(Path("x.txt"), file)], {"x.txt": "hello world"}, cfg
-    )
+    findings = scan_files_cloud([(Path("x.txt"), file)], {"x.txt": "hello world"}, cfg)
     # 500 errors are swallowed and produce no findings (per-file resilience).
     assert findings == []
 

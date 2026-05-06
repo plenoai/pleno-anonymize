@@ -89,7 +89,8 @@ def cloud_issue(
             "status": {"name": "Open"},
             "assignee": {"displayName": "Alice"},
             "reporter": {"displayName": "Bob"},
-            "description": description or adf_doc(
+            "description": description
+            or adf_doc(
                 {
                     "type": "paragraph",
                     "content": [adf_text("Hello, world.")],
@@ -117,7 +118,9 @@ def dc_issue(
             "assignee": {"displayName": "Alice", "name": "alice"},
             "reporter": {"displayName": "Bob", "name": "bob"},
             "description": (
-                description if description is not None else "<p>Hello, <b>world</b>.</p>"
+                description
+                if description is not None
+                else "<p>Hello, <b>world</b>.</p>"
             ),
             "attachment": attachments or [],
         },

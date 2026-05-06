@@ -33,11 +33,10 @@ operators to pin `sites=` to the granted set; falling back to
 from __future__ import annotations
 
 import asyncio
-import base64
 import json
 import time
 from collections.abc import AsyncIterator, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
@@ -66,9 +65,7 @@ _TOKEN_URL = "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token"
 
 # JWT-bearer client_assertion grant per RFC 7521/7523. Required when
 # we substitute a federated OIDC JWT for a client_secret.
-_CLIENT_ASSERTION_TYPE = (
-    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
-)
+_CLIENT_ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
 
 # Default Graph scope for application credentials. `/.default` requests
 # the union of pre-consented application permissions registered on the
@@ -153,9 +150,7 @@ class SharePointConnector:
         self._config = config
         self.id = config.resolved_id()
         if client is None:
-            self._client = httpx.AsyncClient(
-                base_url=_GRAPH_BASE, timeout=30.0
-            )
+            self._client = httpx.AsyncClient(base_url=_GRAPH_BASE, timeout=30.0)
             self._owns_client = True
         else:
             self._client = client
@@ -243,10 +238,7 @@ class SharePointConnector:
 
     async def _bearer(self) -> str:
         cached = self._cached
-        if (
-            cached is not None
-            and cached.expires_at - _TOKEN_SKEW_SECONDS > self._now()
-        ):
+        if cached is not None and cached.expires_at - _TOKEN_SKEW_SECONDS > self._now():
             return cached.token
         async with self._token_lock:
             cached = self._cached
@@ -282,9 +274,7 @@ class SharePointConnector:
         payload = resp.json()
         token = payload["access_token"]
         expires_in = payload.get("expires_in", 3600)
-        return _CachedBearer(
-            token=token, expires_at=self._now() + float(expires_in)
-        )
+        return _CachedBearer(token=token, expires_at=self._now() + float(expires_in))
 
     async def _auth_headers(self) -> dict[str, str]:
         return {"Authorization": f"Bearer {await self._bearer()}"}
@@ -331,8 +321,7 @@ class SharePointConnector:
         # Initial run hits the bare delta endpoint; resume re-uses the
         # absolute deltaLink the service handed back last time.
         next_url: str | None = (
-            resume_link
-            or f"/v1.0/sites/{site_id}/drives/{drive_id}/root/delta"
+            resume_link or f"/v1.0/sites/{site_id}/drives/{drive_id}/root/delta"
         )
         while next_url is not None:
             payload = await self._get_json(next_url)
@@ -382,15 +371,11 @@ class SharePointConnector:
                 # bookkeeping prefix so the rendered path is clean.
                 _, _, parent_path = raw.partition("root:")
                 parent_path = parent_path.lstrip("/")
-        full_path = "/".join(
-            p for p in (site_name, drive_name, parent_path, name) if p
-        )
+        full_path = "/".join(p for p in (site_name, drive_name, parent_path, name) if p)
         size = item.get("size")
         file_facet = item.get("file") or {}
         mime = (
-            file_facet.get("mimeType")
-            if isinstance(file_facet, Mapping)
-            else None
+            file_facet.get("mimeType") if isinstance(file_facet, Mapping) else None
         ) or "application/octet-stream"
         etag = item.get("eTag") or item.get("cTag")
         last_modified_str = item.get("lastModifiedDateTime")
@@ -455,10 +440,7 @@ class SharePointConnector:
     async def _fetch_file(
         self, ref: DocumentRef
     ) -> AsyncIterator[Document | DocumentChunk]:
-        if (
-            ref.size is not None
-            and ref.size > self._config.max_file_size_bytes
-        ):
+        if ref.size is not None and ref.size > self._config.max_file_size_bytes:
             # Surface the skip via empty fetch — the discover ref still
             # exists for auditing.
             return

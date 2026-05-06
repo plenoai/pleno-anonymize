@@ -52,9 +52,7 @@ class _FlatConnector:
                 path=path,
             )
 
-    async def fetch(
-        self, ref: DocumentRef
-    ) -> AsyncIterator[Document | DocumentChunk]:
+    async def fetch(self, ref: DocumentRef) -> AsyncIterator[Document | DocumentChunk]:
         body = next(b for p, b in self.refs if p == ref.path)
         yield Document(ref=ref, text=body, content_hash=f"h:{body}")
 
@@ -109,9 +107,7 @@ class _HierarchicalConnector:
                     metadata={SUBSOURCE_METADATA_KEY: sub_id},
                 )
 
-    async def fetch(
-        self, ref: DocumentRef
-    ) -> AsyncIterator[Document | DocumentChunk]:
+    async def fetch(self, ref: DocumentRef) -> AsyncIterator[Document | DocumentChunk]:
         sub_id = ref.metadata[SUBSOURCE_METADATA_KEY]
         path = ref.path[len(sub_id) + 1 :]
         body = next(b for p, b in self.sub_layout[sub_id][1] if p == path)
@@ -187,9 +183,7 @@ class TestDocumentLevelCache:
             assert all(not replayed for *_, replayed in received)
 
             # Re-create the connector — same content, fresh discover.
-            connector2 = _FlatConnector(
-                refs=(("a.txt", "alpha"), ("b.txt", "bravo"))
-            )
+            connector2 = _FlatConnector(refs=(("a.txt", "alpha"), ("b.txt", "bravo")))
             plan2 = SourcePlan(connector=connector2)
             received2, on_findings2 = _collect_findings()
             results2 = await runner.run(

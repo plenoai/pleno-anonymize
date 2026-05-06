@@ -292,8 +292,7 @@ class SalesforceConnector:
 
     async def _describe_fields(self, sobject: str) -> tuple[str, ...]:
         body = await self._get_json(
-            f"/services/data/{self._config.api_version}"
-            f"/sobjects/{sobject}/describe"
+            f"/services/data/{self._config.api_version}/sobjects/{sobject}/describe"
         )
         out: list[str] = []
         for entry in body.get("fields", []) or []:
@@ -328,9 +327,7 @@ class SalesforceConnector:
             resp = await self._client.post(
                 f"{_LOGIN_HOST}{_TOKEN_PATH}",
                 data={
-                    "grant_type": (
-                        "urn:ietf:params:oauth:grant-type:jwt-bearer"
-                    ),
+                    "grant_type": ("urn:ietf:params:oauth:grant-type:jwt-bearer"),
                     "assertion": assertion,
                 },
             )
@@ -338,9 +335,7 @@ class SalesforceConnector:
             body = resp.json()
             access = body.get("access_token")
             if not isinstance(access, str) or not access:
-                raise ValueError(
-                    "Salesforce token endpoint returned no access_token"
-                )
+                raise ValueError("Salesforce token endpoint returned no access_token")
             # Salesforce does not return `expires_in` on the JWT bearer
             # response; tokens default to the org's session timeout
             # (typically 2 h). Cache for 1 h to bound staleness.
@@ -480,9 +475,7 @@ def _parse_iso(value: Any) -> datetime | None:
 def _factory(config: Mapping[str, Any]) -> SourceConnector:
     for required in ("instance_url", "client_id", "username", "private_key_pem"):
         if required not in config:
-            raise ValueError(
-                f"salesforce connector config requires {required!r}"
-            )
+            raise ValueError(f"salesforce connector config requires {required!r}")
     sobjects_raw = config.get("sobjects", _DEFAULT_SOBJECTS)
     sobjects = tuple(str(s) for s in sobjects_raw)
     return SalesforceConnector(

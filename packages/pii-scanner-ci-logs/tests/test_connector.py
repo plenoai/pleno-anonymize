@@ -71,15 +71,11 @@ class TestConfig:
 
     def test_invalid_vcs_type_rejected(self) -> None:
         with pytest.raises(ValueError, match="vcs_type"):
-            CiLogsConfig(
-                flavor="circleci", owner="o", repo="r", vcs_type="ghe"
-            )
+            CiLogsConfig(flavor="circleci", owner="o", repo="r", vcs_type="ghe")
 
     def test_max_builds_must_be_positive(self) -> None:
         with pytest.raises(ValueError, match="max_builds"):
-            CiLogsConfig(
-                flavor="github_actions", owner="o", repo="r", max_builds=0
-            )
+            CiLogsConfig(flavor="github_actions", owner="o", repo="r", max_builds=0)
 
     def test_max_log_bytes_must_be_positive(self) -> None:
         with pytest.raises(ValueError, match="max_log_bytes"):
@@ -107,9 +103,7 @@ class TestConfig:
         assert c.resolved_id() == "jenkins:https://j.local"
 
     def test_resolved_id_explicit_id_wins(self) -> None:
-        c = CiLogsConfig(
-            flavor="github_actions", owner="o", repo="r", id="custom-id"
-        )
+        c = CiLogsConfig(flavor="github_actions", owner="o", repo="r", id="custom-id")
         assert c.resolved_id() == "custom-id"
 
     def test_resolved_base_url_default_per_flavor(self) -> None:
@@ -158,9 +152,7 @@ class TestAuthSelection:
         assert auth.password == "jenkins_TESTTOKEN"
 
     def test_jenkins_password_alias_accepted(self) -> None:
-        cred = Credential(
-            kind="ci_logs", payload={"username": "u", "password": "pw"}
-        )
+        cred = Credential(kind="ci_logs", payload={"username": "u", "password": "pw"})
         auth = _build_auth("jenkins", cred)
         assert isinstance(auth, BasicAuth)
         assert auth.password == "pw"
@@ -213,9 +205,7 @@ class TestAuthSelection:
 
 
 class TestConstruction:
-    def test_runtime_protocol_isinstance(
-        self, gha_credential: Credential
-    ) -> None:
+    def test_runtime_protocol_isinstance(self, gha_credential: Credential) -> None:
         c = CiLogsConnector(
             CiLogsConfig(flavor="github_actions", owner="o", repo="r"),
             credential=gha_credential,
@@ -402,9 +392,7 @@ class TestGithubActions:
         finally:
             await c.close()
 
-    async def test_max_builds_caps_emission(
-        self, gha_credential: Credential
-    ) -> None:
+    async def test_max_builds_caps_emission(self, gha_credential: Credential) -> None:
         def runs(_: httpx.Request) -> httpx.Response:
             return httpx.Response(
                 200,
@@ -498,9 +486,7 @@ class TestGithubActions:
         finally:
             await c.close()
 
-    async def test_fetch_unpacks_zip_members(
-        self, gha_credential: Credential
-    ) -> None:
+    async def test_fetch_unpacks_zip_members(self, gha_credential: Credential) -> None:
         zip_blob = build_zip(
             {
                 "step1.txt": b"echo $TOKEN=ghp_secret\n",
@@ -513,9 +499,7 @@ class TestGithubActions:
             return httpx.Response(
                 200,
                 json={
-                    "workflow_runs": [
-                        {"id": 42, "created_at": "2026-05-04T00:00:00Z"}
-                    ],
+                    "workflow_runs": [{"id": 42, "created_at": "2026-05-04T00:00:00Z"}],
                     "total_count": 1,
                 },
             )
@@ -527,10 +511,12 @@ class TestGithubActions:
             CiLogsConfig(flavor="github_actions", owner="o", repo="r"),
             credential=gha_credential,
             transport=httpx.MockTransport(
-                make_handler([
-                    ("/runs/42/logs", logs),
-                    ("/runs", runs),
-                ])
+                make_handler(
+                    [
+                        ("/runs/42/logs", logs),
+                        ("/runs", runs),
+                    ]
+                )
             ),
         )
         try:
@@ -563,9 +549,7 @@ class TestGithubActions:
             return httpx.Response(
                 200,
                 json={
-                    "workflow_runs": [
-                        {"id": 1, "created_at": "2026-05-04T00:00:00Z"}
-                    ],
+                    "workflow_runs": [{"id": 1, "created_at": "2026-05-04T00:00:00Z"}],
                     "total_count": 1,
                 },
             )
@@ -582,10 +566,12 @@ class TestGithubActions:
             ),
             credential=gha_credential,
             transport=httpx.MockTransport(
-                make_handler([
-                    ("/runs/1/logs", logs),
-                    ("/runs", runs),
-                ])
+                make_handler(
+                    [
+                        ("/runs/1/logs", logs),
+                        ("/runs", runs),
+                    ]
+                )
             ),
         )
         try:
@@ -603,9 +589,7 @@ class TestGithubActions:
             return httpx.Response(
                 200,
                 json={
-                    "workflow_runs": [
-                        {"id": 1, "created_at": "2026-05-04T00:00:00Z"}
-                    ],
+                    "workflow_runs": [{"id": 1, "created_at": "2026-05-04T00:00:00Z"}],
                     "total_count": 1,
                 },
             )
@@ -617,10 +601,12 @@ class TestGithubActions:
             CiLogsConfig(flavor="github_actions", owner="o", repo="r"),
             credential=gha_credential,
             transport=httpx.MockTransport(
-                make_handler([
-                    ("/runs/1/logs", logs),
-                    ("/runs", runs),
-                ])
+                make_handler(
+                    [
+                        ("/runs/1/logs", logs),
+                        ("/runs", runs),
+                    ]
+                )
             ),
         )
         try:
@@ -639,9 +625,7 @@ class TestGithubActions:
             return httpx.Response(
                 200,
                 json={
-                    "workflow_runs": [
-                        {"id": 1, "created_at": "2026-05-04T00:00:00Z"}
-                    ],
+                    "workflow_runs": [{"id": 1, "created_at": "2026-05-04T00:00:00Z"}],
                     "total_count": 1,
                 },
             )
@@ -653,10 +637,12 @@ class TestGithubActions:
             CiLogsConfig(flavor="github_actions", owner="o", repo="r"),
             credential=gha_credential,
             transport=httpx.MockTransport(
-                make_handler([
-                    ("/runs/1/logs", logs),
-                    ("/runs", runs),
-                ])
+                make_handler(
+                    [
+                        ("/runs/1/logs", logs),
+                        ("/runs", runs),
+                    ]
+                )
             ),
         )
         try:
@@ -672,9 +658,7 @@ class TestGithubActions:
         c = CiLogsConnector(
             CiLogsConfig(flavor="github_actions", owner="o", repo="r"),
             credential=gha_credential,
-            transport=httpx.MockTransport(
-                lambda _: httpx.Response(404)
-            ),
+            transport=httpx.MockTransport(lambda _: httpx.Response(404)),
         )
         try:
             ghost = DocumentRef(
@@ -720,9 +704,7 @@ class TestCircleCi:
         c = CiLogsConnector(
             CiLogsConfig(flavor="circleci", owner="o", repo="r"),
             credential=circleci_credential,
-            transport=httpx.MockTransport(
-                make_handler([("/job", jobs)])
-            ),
+            transport=httpx.MockTransport(make_handler([("/job", jobs)])),
         )
         try:
             refs = await drain(c.discover(SourceFilter(), None))
@@ -766,9 +748,7 @@ class TestCircleCi:
             return httpx.Response(200, json=next(pages))
 
         c = CiLogsConnector(
-            CiLogsConfig(
-                flavor="circleci", owner="o", repo="r", max_builds=10
-            ),
+            CiLogsConfig(flavor="circleci", owner="o", repo="r", max_builds=10),
             credential=circleci_credential,
             transport=httpx.MockTransport(make_handler([("/job", jobs)])),
         )
@@ -812,9 +792,7 @@ class TestCircleCi:
         finally:
             await c.close()
 
-    async def test_since_short_circuits(
-        self, circleci_credential: Credential
-    ) -> None:
+    async def test_since_short_circuits(self, circleci_credential: Credential) -> None:
         def jobs(_: httpx.Request) -> httpx.Response:
             return httpx.Response(
                 200,
@@ -851,25 +829,20 @@ class TestCircleCi:
         finally:
             await c.close()
 
-    async def test_max_builds_caps(
-        self, circleci_credential: Credential
-    ) -> None:
+    async def test_max_builds_caps(self, circleci_credential: Credential) -> None:
         def jobs(_: httpx.Request) -> httpx.Response:
             return httpx.Response(
                 200,
                 json={
                     "items": [
-                        {"job_number": i, "status": "success"}
-                        for i in range(100)
+                        {"job_number": i, "status": "success"} for i in range(100)
                     ],
                     "next_page_token": None,
                 },
             )
 
         c = CiLogsConnector(
-            CiLogsConfig(
-                flavor="circleci", owner="o", repo="r", max_builds=3
-            ),
+            CiLogsConfig(flavor="circleci", owner="o", repo="r", max_builds=3),
             credential=circleci_credential,
             transport=httpx.MockTransport(make_handler([("/job", jobs)])),
         )
@@ -879,9 +852,7 @@ class TestCircleCi:
         finally:
             await c.close()
 
-    async def test_429_handled(
-        self, circleci_credential: Credential
-    ) -> None:
+    async def test_429_handled(self, circleci_credential: Credential) -> None:
         responses = iter(
             [
                 httpx.Response(429, headers={"Retry-After": "1"}),
@@ -969,10 +940,12 @@ class TestCircleCi:
             ),
             credential=circleci_credential,
             transport=httpx.MockTransport(
-                make_handler([
-                    ("/job/7", detail),
-                    ("/job", jobs),
-                ])
+                make_handler(
+                    [
+                        ("/job/7", detail),
+                        ("/job", jobs),
+                    ]
+                )
             ),
         )
         try:
@@ -1141,7 +1114,7 @@ class TestBuildkite:
                     ],
                     headers={
                         "Link": (
-                            '<https://api.buildkite.com/v2/organizations/o/'
+                            "<https://api.buildkite.com/v2/organizations/o/"
                             'pipelines/p/builds?page=2>; rel="next"'
                         )
                     },
@@ -1172,9 +1145,7 @@ class TestBuildkite:
                 max_builds=10,
             ),
             credential=buildkite_credential,
-            transport=httpx.MockTransport(
-                make_handler([("/builds", builds)])
-            ),
+            transport=httpx.MockTransport(make_handler([("/builds", builds)])),
         )
         try:
             refs = await drain(c.discover(SourceFilter(), None))
@@ -1217,9 +1188,7 @@ class TestBuildkite:
                 failed_only=True,
             ),
             credential=buildkite_credential,
-            transport=httpx.MockTransport(
-                make_handler([("/builds", builds)])
-            ),
+            transport=httpx.MockTransport(make_handler([("/builds", builds)])),
         )
         try:
             refs = await drain(c.discover(SourceFilter(), None))
@@ -1228,9 +1197,7 @@ class TestBuildkite:
         finally:
             await c.close()
 
-    async def test_since_short_circuits(
-        self, buildkite_credential: Credential
-    ) -> None:
+    async def test_since_short_circuits(self, buildkite_credential: Credential) -> None:
         def builds(_: httpx.Request) -> httpx.Response:
             return httpx.Response(
                 200,
@@ -1250,7 +1217,7 @@ class TestBuildkite:
                 ],
                 headers={
                     "Link": (
-                        '<https://api.buildkite.com/v2/organizations/o/'
+                        "<https://api.buildkite.com/v2/organizations/o/"
                         'pipelines/p/builds?page=2>; rel="next"'
                     )
                 },
@@ -1264,9 +1231,7 @@ class TestBuildkite:
                 since=datetime(2026, 5, 1, tzinfo=UTC),
             ),
             credential=buildkite_credential,
-            transport=httpx.MockTransport(
-                make_handler([("/builds", builds)])
-            ),
+            transport=httpx.MockTransport(make_handler([("/builds", builds)])),
         )
         try:
             refs = await drain(c.discover(SourceFilter(), None))
@@ -1298,9 +1263,7 @@ class TestBuildkite:
                 max_builds=2,
             ),
             credential=buildkite_credential,
-            transport=httpx.MockTransport(
-                make_handler([("/builds", builds)])
-            ),
+            transport=httpx.MockTransport(make_handler([("/builds", builds)])),
         )
         try:
             refs = await drain(c.discover(SourceFilter(), None))
@@ -1308,9 +1271,7 @@ class TestBuildkite:
         finally:
             await c.close()
 
-    async def test_429_handled(
-        self, buildkite_credential: Credential
-    ) -> None:
+    async def test_429_handled(self, buildkite_credential: Credential) -> None:
         responses = iter(
             [
                 httpx.Response(429, headers={"Retry-After": "2"}),
@@ -1337,9 +1298,7 @@ class TestBuildkite:
         c = CiLogsConnector(
             CiLogsConfig(flavor="buildkite", org="o", pipeline="p"),
             credential=buildkite_credential,
-            transport=httpx.MockTransport(
-                make_handler([("/builds", builds)])
-            ),
+            transport=httpx.MockTransport(make_handler([("/builds", builds)])),
             sleep=fake_sleep,
         )
         try:
@@ -1374,9 +1333,7 @@ class TestBuildkite:
         c = CiLogsConnector(
             CiLogsConfig(flavor="buildkite", org="o", pipeline="p"),
             credential=buildkite_credential,
-            transport=httpx.MockTransport(
-                make_handler([("/builds", builds)])
-            ),
+            transport=httpx.MockTransport(make_handler([("/builds", builds)])),
         )
         try:
             refs = await drain(c.discover(SourceFilter(), None))
@@ -1407,10 +1364,12 @@ class TestBuildkite:
             CiLogsConfig(flavor="buildkite", org="o", pipeline="p"),
             credential=buildkite_credential,
             transport=httpx.MockTransport(
-                make_handler([
-                    ("/jobs/j-1/log", log),
-                    ("/builds", builds),
-                ])
+                make_handler(
+                    [
+                        ("/jobs/j-1/log", log),
+                        ("/builds", builds),
+                    ]
+                )
             ),
         )
         try:
@@ -1446,10 +1405,12 @@ class TestBuildkite:
             CiLogsConfig(flavor="buildkite", org="o", pipeline="p"),
             credential=buildkite_credential,
             transport=httpx.MockTransport(
-                make_handler([
-                    ("/jobs/j-1/log", log),
-                    ("/builds", builds),
-                ])
+                make_handler(
+                    [
+                        ("/jobs/j-1/log", log),
+                        ("/builds", builds),
+                    ]
+                )
             ),
         )
         try:
@@ -1482,10 +1443,12 @@ class TestBuildkite:
             CiLogsConfig(flavor="buildkite", org="o", pipeline="p"),
             credential=buildkite_credential,
             transport=httpx.MockTransport(
-                make_handler([
-                    ("/jobs/j-1/log", log),
-                    ("/builds", builds),
-                ])
+                make_handler(
+                    [
+                        ("/jobs/j-1/log", log),
+                        ("/builds", builds),
+                    ]
+                )
             ),
         )
         try:
@@ -1519,10 +1482,12 @@ class TestBuildkite:
             CiLogsConfig(flavor="buildkite", org="o", pipeline="p"),
             credential=buildkite_credential,
             transport=httpx.MockTransport(
-                make_handler([
-                    ("/jobs/j-1/log", log),
-                    ("/builds", builds),
-                ])
+                make_handler(
+                    [
+                        ("/jobs/j-1/log", log),
+                        ("/builds", builds),
+                    ]
+                )
             ),
         )
         try:
@@ -1546,9 +1511,7 @@ class TestBuildkite:
 
 
 class TestJenkins:
-    async def test_auth_uses_basic(
-        self, jenkins_credential: Credential
-    ) -> None:
+    async def test_auth_uses_basic(self, jenkins_credential: Credential) -> None:
         seen: dict[str, str] = {}
 
         def api_json(request: httpx.Request) -> httpx.Response:
@@ -1575,9 +1538,7 @@ class TestJenkins:
         c = CiLogsConnector(
             CiLogsConfig(flavor="jenkins", base_url="https://j.local"),
             credential=jenkins_credential,
-            transport=httpx.MockTransport(
-                make_handler([("/api/json", api_json)])
-            ),
+            transport=httpx.MockTransport(make_handler([("/api/json", api_json)])),
         )
         try:
             refs = await drain(c.discover(SourceFilter(), None))
@@ -1629,9 +1590,7 @@ class TestJenkins:
                 failed_only=True,
             ),
             credential=jenkins_credential,
-            transport=httpx.MockTransport(
-                make_handler([("/api/json", api_json)])
-            ),
+            transport=httpx.MockTransport(make_handler([("/api/json", api_json)])),
         )
         try:
             refs = await drain(c.discover(SourceFilter(), None))
@@ -1640,9 +1599,7 @@ class TestJenkins:
         finally:
             await c.close()
 
-    async def test_since_short_circuits(
-        self, jenkins_credential: Credential
-    ) -> None:
+    async def test_since_short_circuits(self, jenkins_credential: Credential) -> None:
         # 2024-05-05 = 1714867200000 ms; 2026-04-01 = 1774953600000 ms.
         def api_json(_: httpx.Request) -> httpx.Response:
             return httpx.Response(
@@ -1677,9 +1634,7 @@ class TestJenkins:
                 since=datetime(2025, 1, 1, tzinfo=UTC),
             ),
             credential=jenkins_credential,
-            transport=httpx.MockTransport(
-                make_handler([("/api/json", api_json)])
-            ),
+            transport=httpx.MockTransport(make_handler([("/api/json", api_json)])),
         )
         try:
             refs = await drain(c.discover(SourceFilter(), None))
@@ -1687,9 +1642,7 @@ class TestJenkins:
         finally:
             await c.close()
 
-    async def test_max_builds_caps(
-        self, jenkins_credential: Credential
-    ) -> None:
+    async def test_max_builds_caps(self, jenkins_credential: Credential) -> None:
         def api_json(_: httpx.Request) -> httpx.Response:
             return httpx.Response(
                 200,
@@ -1717,9 +1670,7 @@ class TestJenkins:
                 max_builds=4,
             ),
             credential=jenkins_credential,
-            transport=httpx.MockTransport(
-                make_handler([("/api/json", api_json)])
-            ),
+            transport=httpx.MockTransport(make_handler([("/api/json", api_json)])),
         )
         try:
             refs = await drain(c.discover(SourceFilter(), None))
@@ -1727,9 +1678,7 @@ class TestJenkins:
         finally:
             await c.close()
 
-    async def test_429_handled(
-        self, jenkins_credential: Credential
-    ) -> None:
+    async def test_429_handled(self, jenkins_credential: Credential) -> None:
         responses = iter(
             [
                 httpx.Response(429, headers={"Retry-After": "1"}),
@@ -1763,9 +1712,7 @@ class TestJenkins:
         c = CiLogsConnector(
             CiLogsConfig(flavor="jenkins", base_url="https://j.local"),
             credential=jenkins_credential,
-            transport=httpx.MockTransport(
-                make_handler([("/api/json", api_json)])
-            ),
+            transport=httpx.MockTransport(make_handler([("/api/json", api_json)])),
             sleep=fake_sleep,
         )
         try:
@@ -1805,9 +1752,7 @@ class TestJenkins:
         c = CiLogsConnector(
             CiLogsConfig(flavor="jenkins", base_url="https://j.local"),
             credential=jenkins_credential,
-            transport=httpx.MockTransport(
-                make_handler([("/api/json", api_json)])
-            ),
+            transport=httpx.MockTransport(make_handler([("/api/json", api_json)])),
         )
         try:
             refs = await drain(c.discover(SourceFilter(), None))
@@ -1825,9 +1770,7 @@ class TestJenkins:
         c = CiLogsConnector(
             CiLogsConfig(flavor="jenkins", base_url="https://j.local"),
             credential=jenkins_credential,
-            transport=httpx.MockTransport(
-                make_handler([("/api/json", api_json)])
-            ),
+            transport=httpx.MockTransport(make_handler([("/api/json", api_json)])),
         )
         try:
             refs = await drain(c.discover(SourceFilter(), None))
@@ -1850,9 +1793,7 @@ class TestJenkins:
         c = CiLogsConnector(
             CiLogsConfig(flavor="jenkins", base_url="https://j.local"),
             credential=jenkins_credential,
-            transport=httpx.MockTransport(
-                make_handler([("/api/json", api_json)])
-            ),
+            transport=httpx.MockTransport(make_handler([("/api/json", api_json)])),
         )
         try:
             refs = await drain(c.discover(SourceFilter(), None))
@@ -1860,9 +1801,7 @@ class TestJenkins:
         finally:
             await c.close()
 
-    async def test_fetch_consoleText(
-        self, jenkins_credential: Credential
-    ) -> None:
+    async def test_fetch_consoleText(self, jenkins_credential: Credential) -> None:
         def api_json(_: httpx.Request) -> httpx.Response:
             return httpx.Response(
                 200,
@@ -1889,10 +1828,12 @@ class TestJenkins:
             CiLogsConfig(flavor="jenkins", base_url="https://j.local"),
             credential=jenkins_credential,
             transport=httpx.MockTransport(
-                make_handler([
-                    ("/job/deploy/42/consoleText", console),
-                    ("/api/json", api_json),
-                ])
+                make_handler(
+                    [
+                        ("/job/deploy/42/consoleText", console),
+                        ("/api/json", api_json),
+                    ]
+                )
             ),
         )
         try:
@@ -1932,10 +1873,12 @@ class TestJenkins:
             CiLogsConfig(flavor="jenkins", base_url="https://j.local"),
             credential=jenkins_credential,
             transport=httpx.MockTransport(
-                make_handler([
-                    ("/job/deploy/42/consoleText", console),
-                    ("/api/json", api_json),
-                ])
+                make_handler(
+                    [
+                        ("/job/deploy/42/consoleText", console),
+                        ("/api/json", api_json),
+                    ]
+                )
             ),
         )
         try:
@@ -2035,9 +1978,7 @@ class TestFetchZipDirEntry:
             return httpx.Response(
                 200,
                 json={
-                    "workflow_runs": [
-                        {"id": 1, "created_at": "2026-05-04T00:00:00Z"}
-                    ],
+                    "workflow_runs": [{"id": 1, "created_at": "2026-05-04T00:00:00Z"}],
                     "total_count": 1,
                 },
             )
@@ -2049,10 +1990,12 @@ class TestFetchZipDirEntry:
             CiLogsConfig(flavor="github_actions", owner="o", repo="r"),
             credential=gha_credential,
             transport=httpx.MockTransport(
-                make_handler([
-                    ("/runs/1/logs", logs),
-                    ("/runs", runs),
-                ])
+                make_handler(
+                    [
+                        ("/runs/1/logs", logs),
+                        ("/runs", runs),
+                    ]
+                )
             ),
         )
         try:
@@ -2082,7 +2025,7 @@ class TestExtractGuards:
     def test_buildkite_extract_log_rejects_non_mapping(self) -> None:
         # Defensive against a body that arrived as a list (proxy
         # rewrite, schema drift). Pass a list, expect None.
-        assert _buildkite_extract_log([])  is None  # type: ignore[arg-type]
+        assert _buildkite_extract_log([]) is None  # type: ignore[arg-type]
 
 
 class TestFetchUnknownFlavor:
@@ -2113,13 +2056,13 @@ class TestFetchUnknownFlavor:
 
 
 class TestLifecycle:
-    async def test_close_aclose_api(
-        self, gha_credential: Credential
-    ) -> None:
+    async def test_close_aclose_api(self, gha_credential: Credential) -> None:
         c = CiLogsConnector(
             CiLogsConfig(flavor="github_actions", owner="o", repo="r"),
             credential=gha_credential,
-            transport=httpx.MockTransport(lambda _: httpx.Response(200, json={"workflow_runs": []})),
+            transport=httpx.MockTransport(
+                lambda _: httpx.Response(200, json={"workflow_runs": []})
+            ),
         )
         # Drive at least one round-trip so the underlying client is
         # hot before close — exercises the same path production hits.
@@ -2201,9 +2144,7 @@ class TestSpec:
         assert isinstance(c, CiLogsConnector)
         assert c.id == "github_actions:o/r"
 
-    def test_factory_circleci(
-        self, circleci_credential: Credential
-    ) -> None:
+    def test_factory_circleci(self, circleci_credential: Credential) -> None:
         c = SPEC.factory(
             {
                 "flavor": "circleci",
@@ -2218,9 +2159,7 @@ class TestSpec:
         assert isinstance(c, CiLogsConnector)
         assert c.id == "circleci:bb/o/r"
 
-    def test_factory_buildkite(
-        self, buildkite_credential: Credential
-    ) -> None:
+    def test_factory_buildkite(self, buildkite_credential: Credential) -> None:
         c = SPEC.factory(
             {
                 "flavor": "buildkite",
@@ -2232,9 +2171,7 @@ class TestSpec:
         assert isinstance(c, CiLogsConnector)
         assert c.id == "buildkite:acme/api"
 
-    def test_factory_jenkins(
-        self, jenkins_credential: Credential
-    ) -> None:
+    def test_factory_jenkins(self, jenkins_credential: Credential) -> None:
         c = SPEC.factory(
             {
                 "flavor": "jenkins",
@@ -2252,9 +2189,7 @@ class TestSpec:
         with pytest.raises(ValueError, match="Credential"):
             SPEC.factory({"flavor": "github_actions", "owner": "o", "repo": "r"})
 
-    def test_factory_rejects_invalid_flavor(
-        self, gha_credential: Credential
-    ) -> None:
+    def test_factory_rejects_invalid_flavor(self, gha_credential: Credential) -> None:
         with pytest.raises(ValueError, match="flavor"):
             SPEC.factory(
                 {
@@ -2263,9 +2198,7 @@ class TestSpec:
                 }
             )
 
-    def test_factory_parses_since_string(
-        self, gha_credential: Credential
-    ) -> None:
+    def test_factory_parses_since_string(self, gha_credential: Credential) -> None:
         c = SPEC.factory(
             {
                 "flavor": "github_actions",
@@ -2277,9 +2210,7 @@ class TestSpec:
         )
         assert c.config.since is not None
 
-    def test_factory_passes_datetime_since(
-        self, gha_credential: Credential
-    ) -> None:
+    def test_factory_passes_datetime_since(self, gha_credential: Credential) -> None:
         when = datetime(2026, 5, 1, tzinfo=UTC)
         c = SPEC.factory(
             {
@@ -2292,9 +2223,7 @@ class TestSpec:
         )
         assert c.config.since == when
 
-    def test_factory_rejects_bad_since_string(
-        self, gha_credential: Credential
-    ) -> None:
+    def test_factory_rejects_bad_since_string(self, gha_credential: Credential) -> None:
         with pytest.raises(ValueError, match="since"):
             SPEC.factory(
                 {

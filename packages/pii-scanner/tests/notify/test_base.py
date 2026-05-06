@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 
 import pytest
 
@@ -226,7 +225,9 @@ async def test_notifier_protocol_runtime_check():
         name = "stub"
 
         async def send(self, batch):
-            return NotificationResult(transport="stub", delivered=True, delivered_count=0)
+            return NotificationResult(
+                transport="stub", delivered=True, delivered_count=0
+            )
 
         async def close(self):
             pass

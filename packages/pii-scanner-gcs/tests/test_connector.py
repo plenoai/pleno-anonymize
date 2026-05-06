@@ -12,7 +12,6 @@ from __future__ import annotations
 import json
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
-from typing import Any
 
 import httpx
 import pytest
@@ -61,9 +60,7 @@ def _make_handler(
         for suffix, responder in routes.items():
             if request.url.path.endswith(suffix) or suffix in str(request.url):
                 return responder(request)
-        return httpx.Response(
-            404, content=b"unmatched: " + str(request.url).encode()
-        )
+        return httpx.Response(404, content=b"unmatched: " + str(request.url).encode())
 
     return handler
 
@@ -142,9 +139,7 @@ class TestProtocol:
             await c.close()
 
     async def test_capabilities_reflect_concurrency(self) -> None:
-        c = GcsConnector(
-            _explicit_config("b1", concurrency=4), _canned_cache()
-        )
+        c = GcsConnector(_explicit_config("b1", concurrency=4), _canned_cache())
         try:
             caps = c.capabilities()
             assert caps == Capabilities(
@@ -161,9 +156,7 @@ class TestProtocol:
         # We assert the limit by reading the semaphore's `_value`
         # rather than racing real fetches — the ADR §7 covers the
         # parallel-test orthogonally.
-        c = GcsConnector(
-            _explicit_config("b1", concurrency=3), _canned_cache()
-        )
+        c = GcsConnector(_explicit_config("b1", concurrency=3), _canned_cache())
         try:
             assert c._fetch_semaphore._value == 3
         finally:
@@ -216,13 +209,9 @@ class TestDiscoverExplicit:
             assert "/b/bucket-a/o" in str(request.url)
             token = request.url.params.get("pageToken")
             seen_tokens.append(token)
-            return httpx.Response(
-                200, json=page2 if token == "page2" else page1
-            )
+            return httpx.Response(200, json=page2 if token == "page2" else page1)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = GcsConnector(
                 _explicit_config("bucket-a"), _canned_cache(), client=client
             )
@@ -250,9 +239,7 @@ class TestDiscoverExplicit:
             seen_prefix["v"] = request.url.params.get("prefix")
             return httpx.Response(200, json={"items": []})
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = GcsConnector(
                 _explicit_config("b1", prefix="logs/"),
                 _canned_cache(),
@@ -276,9 +263,7 @@ class TestDiscoverExplicit:
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = GcsConnector(
                 _explicit_config("b1", glob="*.log"),
                 _canned_cache(),
@@ -304,18 +289,11 @@ class TestDiscoverExplicit:
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
-            c = GcsConnector(
-                _explicit_config("b1"), _canned_cache(), client=client
-            )
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            c = GcsConnector(_explicit_config("b1"), _canned_cache(), client=client)
             try:
                 refs = [
-                    r
-                    async for r in c.discover(
-                        SourceFilter(include=("*.csv",)), None
-                    )
+                    r async for r in c.discover(SourceFilter(include=("*.csv",)), None)
                 ]
             finally:
                 await c.close()
@@ -332,12 +310,8 @@ class TestDiscoverExplicit:
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
-            c = GcsConnector(
-                _explicit_config("b1"), _canned_cache(), client=client
-            )
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            c = GcsConnector(_explicit_config("b1"), _canned_cache(), client=client)
             try:
                 refs = [
                     r
@@ -374,9 +348,7 @@ class TestVersioning:
                 },
             )
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = GcsConnector(
                 _explicit_config("b1", include_deleted=True),
                 _canned_cache(),
@@ -410,12 +382,8 @@ class TestVersioning:
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
-            c = GcsConnector(
-                _explicit_config("b1"), _canned_cache(), client=client
-            )
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            c = GcsConnector(_explicit_config("b1"), _canned_cache(), client=client)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
             finally:
@@ -448,9 +416,7 @@ class TestAccessDenied:
                 )
             return httpx.Response(404)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = GcsConnector(
                 _explicit_config("denied", "ok"),
                 _canned_cache(),
@@ -496,9 +462,7 @@ class TestCloudAssetInventory:
             # Per-bucket listing: empty body.
             return httpx.Response(200, json={"items": []})
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             cfg = GcsConfig(
                 auth=GcsAuthConfig(),
                 discovery=GcsBucketDiscovery(project="proj"),
@@ -531,9 +495,7 @@ class TestCloudAssetInventory:
                 return httpx.Response(200, json=body)
             return httpx.Response(200, json={"items": []})
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             cfg = GcsConfig(
                 auth=GcsAuthConfig(),
                 discovery=GcsBucketDiscovery(project="p", cai_filter="loc:us"),
@@ -555,9 +517,7 @@ class TestCloudAssetInventory:
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             cfg = GcsConfig(
                 auth=GcsAuthConfig(),
                 discovery=GcsBucketDiscovery(project="p"),
@@ -596,12 +556,8 @@ class TestFetch:
                 return httpx.Response(200, content=payload)
             return httpx.Response(200, json=list_body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
-            c = GcsConnector(
-                _explicit_config("b1"), _canned_cache(), client=client
-            )
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            c = GcsConnector(_explicit_config("b1"), _canned_cache(), client=client)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
                 docs = []
@@ -617,9 +573,7 @@ class TestFetch:
     async def test_fetch_rejects_ref_without_metadata(self) -> None:
         c = GcsConnector(_explicit_config("b1"), _canned_cache())
         try:
-            ref = DocumentRef(
-                source_id=c.id, source_kind=c.kind, path="gs://b1/x"
-            )
+            ref = DocumentRef(source_id=c.id, source_kind=c.kind, path="gs://b1/x")
             with pytest.raises(ValueError, match="gcs_bucket"):
                 async for _ in c.fetch(ref):
                     pass
@@ -636,12 +590,8 @@ class TestFetch:
             seen_path["v"] = request.url.raw_path.decode()
             return httpx.Response(200, content=b"x")
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
-            c = GcsConnector(
-                _explicit_config("b1"), _canned_cache(), client=client
-            )
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            c = GcsConnector(_explicit_config("b1"), _canned_cache(), client=client)
             try:
                 ref = DocumentRef(
                     source_id=c.id,
@@ -688,9 +638,7 @@ class TestAuthRetry:
             assert request.headers["Authorization"] == "Bearer tok-2"
             return httpx.Response(200, json={"items": []})
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = GcsConnector(_explicit_config("b1"), cache, client=client)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
@@ -707,20 +655,14 @@ class TestAuthRetry:
 class TestCursor:
     async def test_cursor_dumps_and_loads(self) -> None:
         body = {
-            "items": [
-                {"name": "a", "size": "1", "updated": "2026-01-01T00:00:00Z"}
-            ]
+            "items": [{"name": "a", "size": "1", "updated": "2026-01-01T00:00:00Z"}]
         }
 
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
-            c = GcsConnector(
-                _explicit_config("b1"), _canned_cache(), client=client
-            )
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            c = GcsConnector(_explicit_config("b1"), _canned_cache(), client=client)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
                 # Yielded refs carry the cursor for the scheduler.
@@ -745,9 +687,7 @@ class TestCursor:
                     return httpx.Response(200, json={"items": []})
             return httpx.Response(404)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = GcsConnector(
                 _explicit_config("first-bucket", "second-bucket"),
                 _canned_cache(),
@@ -851,9 +791,7 @@ class TestFactory:
 
     def test_factory_rejects_non_mapping_auth(self) -> None:
         with pytest.raises(ValueError, match="auth.*mapping"):
-            SPEC.factory(
-                {"auth": "wrong", "discovery": {"buckets": ["b"]}}
-            )
+            SPEC.factory({"auth": "wrong", "discovery": {"buckets": ["b"]}})
 
     def test_factory_rejects_non_mapping_discovery(self) -> None:
         with pytest.raises(ValueError, match="discovery.*mapping"):
@@ -871,9 +809,7 @@ class TestLifecycle:
 
     async def test_close_does_not_close_external_client(self) -> None:
         client = httpx.AsyncClient()
-        c = GcsConnector(
-            _explicit_config("b1"), _canned_cache(), client=client
-        )
+        c = GcsConnector(_explicit_config("b1"), _canned_cache(), client=client)
         await c.close()
         assert not client.is_closed
         await client.aclose()
@@ -902,12 +838,8 @@ class TestRefParsing:
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
-            c = GcsConnector(
-                _explicit_config("b1"), _canned_cache(), client=client
-            )
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            c = GcsConnector(_explicit_config("b1"), _canned_cache(), client=client)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
             finally:
@@ -925,12 +857,8 @@ class TestRefParsing:
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
-            c = GcsConnector(
-                _explicit_config("b1"), _canned_cache(), client=client
-            )
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            c = GcsConnector(_explicit_config("b1"), _canned_cache(), client=client)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
             finally:
@@ -951,12 +879,8 @@ class TestRefParsing:
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
-            c = GcsConnector(
-                _explicit_config("b1"), _canned_cache(), client=client
-            )
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            c = GcsConnector(_explicit_config("b1"), _canned_cache(), client=client)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
             finally:
@@ -967,21 +891,13 @@ class TestRefParsing:
         # Defensive: GCS always emits Z-suffixed timestamps, but if a
         # mock/test/fork ever returns naive ISO, we still produce a UTC
         # datetime rather than raising.
-        body = {
-            "items": [
-                {"name": "x", "size": "1", "updated": "2026-01-01T00:00:00"}
-            ]
-        }
+        body = {"items": [{"name": "x", "size": "1", "updated": "2026-01-01T00:00:00"}]}
 
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
-            c = GcsConnector(
-                _explicit_config("b1"), _canned_cache(), client=client
-            )
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            c = GcsConnector(_explicit_config("b1"), _canned_cache(), client=client)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
             finally:
@@ -997,12 +913,8 @@ class TestRefParsing:
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
-            c = GcsConnector(
-                _explicit_config("b1"), _canned_cache(), client=client
-            )
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            c = GcsConnector(_explicit_config("b1"), _canned_cache(), client=client)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
             finally:
@@ -1010,21 +922,13 @@ class TestRefParsing:
         assert refs[0].last_modified is None
 
     async def test_ref_handles_invalid_updated(self) -> None:
-        body = {
-            "items": [
-                {"name": "x", "size": "1", "updated": "not-a-date"}
-            ]
-        }
+        body = {"items": [{"name": "x", "size": "1", "updated": "not-a-date"}]}
 
         def handler(_r: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=body)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
-            c = GcsConnector(
-                _explicit_config("b1"), _canned_cache(), client=client
-            )
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            c = GcsConnector(_explicit_config("b1"), _canned_cache(), client=client)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
             finally:

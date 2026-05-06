@@ -67,10 +67,7 @@ def iter_layer_members(
         for entry in tar:
             if not entry.isfile():
                 continue
-            if (
-                max_member_bytes is not None
-                and entry.size > max_member_bytes
-            ):
+            if max_member_bytes is not None and entry.size > max_member_bytes:
                 continue
             extracted = tar.extractfile(entry)
             if extracted is None:
@@ -99,9 +96,7 @@ def _open_decompressed(media_type: str, raw: bytes):
         import io
 
         return io.BytesIO(raw)
-    raise ValueError(
-        f"unsupported layer media-type: {media_type!r}"
-    )
+    raise ValueError(f"unsupported layer media-type: {media_type!r}")
 
 
 __all__ = [

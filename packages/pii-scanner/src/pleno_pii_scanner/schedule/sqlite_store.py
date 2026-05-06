@@ -123,9 +123,7 @@ class SqliteScheduleStore:
     async def delete(self, schedule_id: str) -> None:
         async with self._lock:
             self._raise_if_closed()
-            await self._conn.execute(
-                "DELETE FROM schedules WHERE id=?", (schedule_id,)
-            )
+            await self._conn.execute("DELETE FROM schedules WHERE id=?", (schedule_id,))
             await self._conn.commit()
 
     async def due(self, now: datetime) -> list[Schedule]:

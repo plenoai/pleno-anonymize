@@ -91,7 +91,6 @@ async def test_webhook_unsigned_request_omits_signature_header():
 
 async def test_verify_hmac_rejects_tampered_payload():
     secret = "k"
-    body = b'{"x":1}'
 
     def handler(request):
         return httpx.Response(200)

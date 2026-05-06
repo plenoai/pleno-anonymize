@@ -100,9 +100,7 @@ _DROP_TAGS: frozenset[str] = frozenset({"parameter"})
 # tag-strip fallback. `&nbsp;` is the only one Confluence emits in raw
 # storage in practice — the rest are already numeric refs by the time
 # they hit the wire.
-_ENTITY_FIXUPS: tuple[tuple[str, str], ...] = (
-    ("&nbsp;", " "),
-)
+_ENTITY_FIXUPS: tuple[tuple[str, str], ...] = (("&nbsp;", " "),)
 
 
 def storage_to_text(body: str | None) -> str:

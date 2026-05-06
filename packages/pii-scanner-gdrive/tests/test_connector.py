@@ -105,14 +105,10 @@ class TestConfig:
 
     def test_requires_impersonate_when_shared_drives(self) -> None:
         with pytest.raises(ValueError, match="impersonate"):
-            GdriveConfig(
-                service_account_json=SA_JSON, include_shared_drives=True
-            )
+            GdriveConfig(service_account_json=SA_JSON, include_shared_drives=True)
 
     def test_allows_no_impersonate_when_shared_drives_off(self) -> None:
-        cfg = GdriveConfig(
-            service_account_json=SA_JSON, include_shared_drives=False
-        )
+        cfg = GdriveConfig(service_account_json=SA_JSON, include_shared_drives=False)
         assert cfg.impersonate is None
 
     def test_rejects_bad_export_mime(self) -> None:
@@ -178,17 +174,13 @@ class TestConfig:
 class TestProtocol:
     def test_runtime_isinstance(self) -> None:
         c = GdriveConnector(
-            GdriveConfig(
-                service_account_json=SA_JSON, impersonate="x@y.com"
-            )
+            GdriveConfig(service_account_json=SA_JSON, impersonate="x@y.com")
         )
         assert isinstance(c, SourceConnector)
 
     def test_capabilities(self) -> None:
         c = GdriveConnector(
-            GdriveConfig(
-                service_account_json=SA_JSON, impersonate="x@y.com"
-            )
+            GdriveConfig(service_account_json=SA_JSON, impersonate="x@y.com")
         )
         assert c.capabilities() == Capabilities(
             incremental=True,
@@ -280,9 +272,7 @@ class TestDiscover:
         # /drives was hit
         assert any(p.endswith("/drives") for p in seen_paths)
 
-    async def test_pagination(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_pagination(self, monkeypatch: pytest.MonkeyPatch) -> None:
         page_calls: list[str | None] = []
 
         def handler(request: httpx.Request) -> httpx.Response:
@@ -293,14 +283,10 @@ class TestDiscover:
                 if token is None:
                     return httpx.Response(
                         200,
-                        json=_files_response(
-                            _file("f1"), next_page="page2"
-                        ),
+                        json=_files_response(_file("f1"), next_page="page2"),
                     )
                 if token == "page2":
-                    return httpx.Response(
-                        200, json=_files_response(_file("f2"))
-                    )
+                    return httpx.Response(200, json=_files_response(_file("f2")))
             return httpx.Response(404)
 
         cfg = GdriveConfig(
@@ -359,9 +345,7 @@ class TestDiscover:
                 drive_id = request.url.params.get("driveId")
                 return httpx.Response(
                     200,
-                    json=_files_response(
-                        _file(f"f-{drive_id or 'root'}")
-                    ),
+                    json=_files_response(_file(f"f-{drive_id or 'root'}")),
                 )
             return httpx.Response(404)
 
@@ -382,9 +366,7 @@ class TestDiscover:
             await c.close()
             await client.aclose()
 
-    async def test_drives_pagination(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_drives_pagination(self, monkeypatch: pytest.MonkeyPatch) -> None:
         drives_pages = [
             {"drives": [{"id": "d1"}], "nextPageToken": "p2"},
             {"drives": [{"id": "d2", "name": "n2"}, "garbage", {}]},
@@ -399,9 +381,7 @@ class TestDiscover:
                 return httpx.Response(200, json=resp)
             if path.endswith("/files"):
                 drive_id = request.url.params.get("driveId") or "root"
-                return httpx.Response(
-                    200, json=_files_response(_file(f"f-{drive_id}"))
-                )
+                return httpx.Response(200, json=_files_response(_file(f"f-{drive_id}")))
             return httpx.Response(404)
 
         c, client = _make(handler, monkeypatch)
@@ -438,9 +418,7 @@ class TestDiscover:
         try:
             refs = [
                 r
-                async for r in c.discover(
-                    SourceFilter(include=("root/keep-*",)), None
-                )
+                async for r in c.discover(SourceFilter(include=("root/keep-*",)), None)
             ]
             assert [r.path for r in refs] == ["root/keep-me"]
         finally:
@@ -451,9 +429,7 @@ class TestDiscover:
         try:
             refs = [
                 r
-                async for r in c2.discover(
-                    SourceFilter(exclude=("root/drop-*",)), None
-                )
+                async for r in c2.discover(SourceFilter(exclude=("root/drop-*",)), None)
             ]
             assert [r.path for r in refs] == ["root/keep-me"]
         finally:
@@ -544,9 +520,7 @@ class TestCursor:
             path = request.url.path
             if path.endswith("/files"):
                 called_files["n"] += 1
-                return httpx.Response(
-                    200, json=_files_response(_file("after-resume"))
-                )
+                return httpx.Response(200, json=_files_response(_file("after-resume")))
             return httpx.Response(404)
 
         cfg = GdriveConfig(
@@ -557,9 +531,7 @@ class TestCursor:
         c, client = _make(handler, monkeypatch, cfg=cfg)
         try:
             cursor = json.dumps({"root": "__done__"})
-            refs = [
-                r async for r in c.discover(SourceFilter(), cursor)
-            ]
+            refs = [r async for r in c.discover(SourceFilter(), cursor)]
             # Only d2 walked
             assert [r.path for r in refs] == ["d2/after-resume"]
             assert called_files["n"] == 1
@@ -579,9 +551,7 @@ class TestCursor:
         def handler(request: httpx.Request) -> httpx.Response:
             if request.url.path.endswith("/files"):
                 observed_token["v"] = request.url.params.get("pageToken")
-                return httpx.Response(
-                    200, json=_files_response(_file("late"))
-                )
+                return httpx.Response(200, json=_files_response(_file("late")))
             return httpx.Response(404)
 
         cfg = GdriveConfig(
@@ -639,9 +609,7 @@ class TestCursor:
         def handler(request: httpx.Request) -> httpx.Response:
             if request.url.path.endswith("/files"):
                 observed["v"] = request.url.params.get("pageToken")
-                return httpx.Response(
-                    200, json=_files_response(_file("ok"))
-                )
+                return httpx.Response(200, json=_files_response(_file("ok")))
             return httpx.Response(404)
 
         cfg = GdriveConfig(
@@ -702,9 +670,7 @@ class TestFetch:
             await c.close()
             await client.aclose()
 
-    async def test_native_doc_pdf_export(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_native_doc_pdf_export(self, monkeypatch: pytest.MonkeyPatch) -> None:
         pdf_bytes = b"%PDF-1.7 ... bytes ..."
 
         def handler(request: httpx.Request) -> httpx.Response:
@@ -722,10 +688,7 @@ class TestFetch:
                     ),
                 )
             if path.endswith("/files/sheet-1/export"):
-                assert (
-                    request.url.params.get("mimeType")
-                    == "application/pdf"
-                )
+                assert request.url.params.get("mimeType") == "application/pdf"
                 return httpx.Response(
                     200, content=pdf_bytes, headers={"content-type": "application/pdf"}
                 )
@@ -747,9 +710,7 @@ class TestFetch:
             await c.close()
             await client.aclose()
 
-    async def test_binary_alt_media(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_binary_alt_media(self, monkeypatch: pytest.MonkeyPatch) -> None:
         body = b"\x89PNG\r\n\x1a\n binary"
 
         def handler(request: httpx.Request) -> httpx.Response:
@@ -757,9 +718,7 @@ class TestFetch:
             if path.endswith("/files"):
                 return httpx.Response(
                     200,
-                    json=_files_response(
-                        _file("png-1", mime="image/png", size="20")
-                    ),
+                    json=_files_response(_file("png-1", mime="image/png", size="20")),
                 )
             if path.endswith("/files/png-1"):
                 assert request.url.params.get("alt") == "media"
@@ -782,9 +741,7 @@ class TestFetch:
             await c.close()
             await client.aclose()
 
-    async def test_max_size_skip(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_max_size_skip(self, monkeypatch: pytest.MonkeyPatch) -> None:
         called_get = {"n": 0}
 
         def handler(request: httpx.Request) -> httpx.Response:
@@ -885,13 +842,8 @@ class TestToken:
                     json={"access_token": "tok-fresh", "expires_in": 3600},
                 )
             if path.endswith("/files"):
-                assert (
-                    request.headers.get("Authorization")
-                    == "Bearer tok-fresh"
-                )
-                return httpx.Response(
-                    200, json=_files_response(_file("a"), _file("b"))
-                )
+                assert request.headers.get("Authorization") == "Bearer tok-fresh"
+                return httpx.Response(200, json=_files_response(_file("a"), _file("b")))
             return httpx.Response(404)
 
         # NOTE: do NOT inject `_acquire_token` here — exercise the real path.
@@ -906,7 +858,9 @@ class TestToken:
         # Make signing deterministic by stubbing `_build_jwt_assertion`
         # so we do not require the cryptography backend in tests.
         monkeypatch.setattr(
-            GdriveConnector, "_build_jwt_assertion", lambda self, now: "stub.jwt.assertion"
+            GdriveConnector,
+            "_build_jwt_assertion",
+            lambda self, now: "stub.jwt.assertion",
         )
         try:
             # Two iterations exhaust files; token should refresh only once.
@@ -941,9 +895,7 @@ class TestToken:
                     },
                 )
             if request.url.path.endswith("/files"):
-                return httpx.Response(
-                    200, json=_files_response(_file("x"))
-                )
+                return httpx.Response(200, json=_files_response(_file("x")))
             return httpx.Response(404)
 
         client = _client(handler)
@@ -1006,9 +958,7 @@ class TestToken:
 
         client = _client(handler)
         c = GdriveConnector(
-            GdriveConfig(
-                service_account_json=SA_JSON, impersonate="x@y.com"
-            ),
+            GdriveConfig(service_account_json=SA_JSON, impersonate="x@y.com"),
             client=client,
         )
         monkeypatch.setattr(
@@ -1106,18 +1056,14 @@ class TestSpec:
 class TestClose:
     async def test_close_owns_client(self) -> None:
         c = GdriveConnector(
-            GdriveConfig(
-                service_account_json=SA_JSON, impersonate="x@y.com"
-            )
+            GdriveConfig(service_account_json=SA_JSON, impersonate="x@y.com")
         )
         await c.close()
 
     async def test_close_external_client_not_closed(self) -> None:
         client = httpx.AsyncClient()
         c = GdriveConnector(
-            GdriveConfig(
-                service_account_json=SA_JSON, impersonate="x@y.com"
-            ),
+            GdriveConfig(service_account_json=SA_JSON, impersonate="x@y.com"),
             client=client,
         )
         await c.close()

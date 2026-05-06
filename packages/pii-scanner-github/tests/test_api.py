@@ -225,6 +225,7 @@ class TestGraphQL:
 
         def handler(request: httpx.Request) -> httpx.Response:
             import json
+
             seen.update(json.loads(request.content))
             return httpx.Response(200, json={"data": {}})
 
@@ -252,9 +253,7 @@ class TestGraphQL:
 
     async def test_graphql_errors_field_raises(self) -> None:
         def handler(_: httpx.Request) -> httpx.Response:
-            return httpx.Response(
-                200, json={"errors": [{"message": "bad query"}]}
-            )
+            return httpx.Response(200, json={"errors": [{"message": "bad query"}]})
 
         api = GithubApi(transport=httpx.MockTransport(handler))
         try:
@@ -281,6 +280,7 @@ class TestPost:
 
         def handler(request: httpx.Request) -> httpx.Response:
             import json
+
             seen["body"] = json.loads(request.content)
             return httpx.Response(201, json={"ok": True})
 

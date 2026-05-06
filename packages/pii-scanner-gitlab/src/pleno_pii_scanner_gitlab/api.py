@@ -76,9 +76,7 @@ class GitlabApi:
     ) -> None:
         self._base_url = base_url.rstrip("/")
         self._auth_mode = auth_mode
-        self._auth_header_name, self._auth_header_value = header_for(
-            auth_mode, token
-        )
+        self._auth_header_name, self._auth_header_value = header_for(auth_mode, token)
         kwargs: dict[str, Any] = {"timeout": timeout}
         if transport is not None:
             # MockTransport short-circuits the network entirely; passing
@@ -180,9 +178,7 @@ def _raise_for_rate_limit(response: httpx.Response) -> None:
     status = response.status_code
     if status == 429:
         retry_after = response.headers.get("Retry-After")
-        raise RateLimited(
-            f"gitlab 429; retry_after={retry_after!r}"
-        )
+        raise RateLimited(f"gitlab 429; retry_after={retry_after!r}")
     if status == 403 and (
         response.headers.get("RateLimit-Remaining") == "0"
         or response.headers.get("X-RateLimit-Remaining") == "0"
@@ -190,9 +186,8 @@ def _raise_for_rate_limit(response: httpx.Response) -> None:
         # Quota exhausted, no Retry-After. Surface as RateLimited so the
         # scheduler treats it as transient (refill in <bucket window>)
         # rather than as a permission failure that needs an operator.
-        reset = (
-            response.headers.get("RateLimit-Reset")
-            or response.headers.get("X-RateLimit-Reset")
+        reset = response.headers.get("RateLimit-Reset") or response.headers.get(
+            "X-RateLimit-Reset"
         )
         raise RateLimited(f"gitlab quota exhausted; reset={reset!r}")
 

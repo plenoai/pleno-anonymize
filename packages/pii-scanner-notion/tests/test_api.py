@@ -13,7 +13,7 @@ from pleno_pii_scanner_notion.api import (
     NotionApiError,
 )
 
-from .conftest import json_response, make_handler
+from .conftest import json_response
 
 
 class TestConstruction:
@@ -86,7 +86,9 @@ class TestStatusHandling:
     async def test_404_returns_empty_dict(self) -> None:
         api = NotionApi(
             token="x",
-            transport=httpx.MockTransport(lambda _: httpx.Response(404, text="not found")),
+            transport=httpx.MockTransport(
+                lambda _: httpx.Response(404, text="not found")
+            ),
         )
         try:
             assert await api.get("/pages/missing") == {}

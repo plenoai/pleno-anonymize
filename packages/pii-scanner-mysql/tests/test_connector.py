@@ -89,7 +89,9 @@ class _FakePool:
         self.closed = False
         self.waited_close = False
         self._replica_status = (
-            replica_status if replica_status is not None else [{"Source_Host": "primary"}]
+            replica_status
+            if replica_status is not None
+            else [{"Source_Host": "primary"}]
         )
         self._read_only_value = read_only_value
         self._replica_command_supported = replica_command_supported
@@ -107,9 +109,7 @@ class _FakePool:
         # canned routing for replica check
         upper = sql.strip().upper()
         if "SHOW VARIABLES LIKE 'READ_ONLY'" in upper:
-            return [
-                {"Variable_name": "read_only", "Value": self._read_only_value}
-            ]
+            return [{"Variable_name": "read_only", "Value": self._read_only_value}]
         if "SHOW REPLICA STATUS" in upper:
             if not self._replica_command_supported:
                 raise _FakeProgrammingError("SHOW REPLICA STATUS not supported")
@@ -132,7 +132,6 @@ class _FakePool:
 @pytest.fixture(autouse=True)
 def _patch_aiomysql_programmingerror(monkeypatch: pytest.MonkeyPatch):
     # Connector catches aiomysql.ProgrammingError; route to our fake.
-    import pleno_pii_scanner_mysql.connector as conn_mod
     import aiomysql
 
     monkeypatch.setattr(aiomysql, "ProgrammingError", _FakeProgrammingError)
@@ -165,9 +164,7 @@ class TestConfig:
         assert cfg.resolved_schemas() == ("app",)
 
     def test_explicit_schemas_override_dsn_db(self) -> None:
-        cfg = MysqlConfig(
-            dsn="mysql://u:p@h:3306/app", schemas=("billing", "app")
-        )
+        cfg = MysqlConfig(dsn="mysql://u:p@h:3306/app", schemas=("billing", "app"))
         assert cfg.resolved_schemas() == ("billing", "app")
 
     def test_rejects_bad_sample_rows(self) -> None:
@@ -199,15 +196,11 @@ class TestConfig:
 
 class TestProtocol:
     def test_runtime_isinstance(self) -> None:
-        c = MysqlConnector(
-            MysqlConfig(dsn="mysql://u@h/db"), pool=_FakePool()
-        )
+        c = MysqlConnector(MysqlConfig(dsn="mysql://u@h/db"), pool=_FakePool())
         assert isinstance(c, SourceConnector)
 
     def test_capabilities(self) -> None:
-        c = MysqlConnector(
-            MysqlConfig(dsn="mysql://u@h/db"), pool=_FakePool()
-        )
+        c = MysqlConnector(MysqlConfig(dsn="mysql://u@h/db"), pool=_FakePool())
         assert c.capabilities() == Capabilities(
             incremental=False,
             binary=True,
@@ -222,9 +215,7 @@ class TestProtocol:
 
 class TestReplicaEnforcement:
     async def test_replica_passes(self) -> None:
-        c = MysqlConnector(
-            MysqlConfig(dsn="mysql://u@h/db"), pool=_FakePool()
-        )
+        c = MysqlConnector(MysqlConfig(dsn="mysql://u@h/db"), pool=_FakePool())
         try:
             await c._enforce_replica()
         finally:
@@ -423,10 +414,7 @@ class TestDiscover:
         )
         try:
             refs = [
-                r
-                async for r in c.discover(
-                    SourceFilter(include=("app.users",)), None
-                )
+                r async for r in c.discover(SourceFilter(include=("app.users",)), None)
             ]
             assert {r.path for r in refs} == {"app.users"}
         finally:
@@ -546,9 +534,7 @@ class TestFetch:
             MysqlConfig(dsn="mysql://u@h/db", schemas=("app",)), pool=pool
         )
         try:
-            ref = DocumentRef(
-                source_id=c.id, source_kind=c.kind, path="ghost.gone"
-            )
+            ref = DocumentRef(source_id=c.id, source_kind=c.kind, path="ghost.gone")
             docs = [d async for d in c.fetch(ref)]
             assert docs == []
         finally:

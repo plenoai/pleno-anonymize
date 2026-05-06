@@ -165,9 +165,7 @@ class TestPayloadAEAD:
         dek = generate_dek()
         aead = AESGCM(dek)
         nonce = os.urandom(NONCE_SIZE)
-        combined = aead.encrypt(
-            nonce, _json.dumps([1, 2, 3]).encode(), b"tenant-a"
-        )
+        combined = aead.encrypt(nonce, _json.dumps([1, 2, 3]).encode(), b"tenant-a")
         bad = EncryptedPayload(
             tenant_id="tenant-a",
             nonce=nonce,
@@ -181,9 +179,7 @@ class TestPayloadAEAD:
 class TestEncryptedPayloadHygiene:
     def test_repr_does_not_leak_ciphertext(self) -> None:
         dek = generate_dek()
-        payload = encrypt_payload(
-            dek, "tenant-a", {"matched": "DO-NOT-LOG-RAW"}
-        )
+        payload = encrypt_payload(dek, "tenant-a", {"matched": "DO-NOT-LOG-RAW"})
         text = repr(payload)
         assert "redacted" in text
         # The base64 of the ciphertext should not appear; in particular

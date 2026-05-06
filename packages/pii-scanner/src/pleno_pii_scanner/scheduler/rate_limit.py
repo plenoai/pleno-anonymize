@@ -62,7 +62,7 @@ class AdaptiveTokenBucket:
     """
 
     capacity: float
-    rate: float                       # ceiling (tokens/sec)
+    rate: float  # ceiling (tokens/sec)
     current_rate: float = field(init=False)
     tokens: float = field(init=False)
     last_refill: float = field(default_factory=monotonic, init=False)
@@ -162,9 +162,7 @@ class GlobalRateLimiter:
         self._overrides: dict[str, tuple[float, float]] = {}
         self._lock = asyncio.Lock()
 
-    def configure(
-        self, connector_kind: str, *, capacity: float, rate: float
-    ) -> None:
+    def configure(self, connector_kind: str, *, capacity: float, rate: float) -> None:
         """Pin (capacity, rate) for a kind — applied to future bucket creation.
 
         Doesn't retroactively replace existing buckets; the Scheduler

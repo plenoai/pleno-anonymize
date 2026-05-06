@@ -14,14 +14,21 @@ from pleno_pii_scanner.credentials.resolvers.file import default_credentials_pat
 
 
 class TestDefaultCredentialsPath:
-    def test_xdg_config_home_honored(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    def test_xdg_config_home_honored(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
         monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
         assert default_credentials_path() == tmp_path / "pleno" / "credentials.toml"
 
-    def test_falls_back_to_home(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    def test_falls_back_to_home(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
         monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
         monkeypatch.setenv("HOME", str(tmp_path))
-        assert default_credentials_path() == tmp_path / ".config" / "pleno" / "credentials.toml"
+        assert (
+            default_credentials_path()
+            == tmp_path / ".config" / "pleno" / "credentials.toml"
+        )
 
 
 class TestFileCredentialResolver:
@@ -48,7 +55,7 @@ class TestFileCredentialResolver:
     async def test_aws_iam_with_extra_fields(self, tmp_path: Path) -> None:
         f = tmp_path / "creds.toml"
         f.write_text(
-            '[aws.prod]\n'
+            "[aws.prod]\n"
             'kind = "aws-iam"\n'
             'access_key_id = "AKIA..."\n'
             'secret_access_key = "wJa..."\n'
@@ -64,13 +71,15 @@ class TestFileCredentialResolver:
 
     async def test_private_key_path_expansion(self, tmp_path: Path) -> None:
         pem_path = tmp_path / "github-app.pem"
-        pem_path.write_text("-----BEGIN PRIVATE KEY-----\nDATA\n-----END-----\n", encoding="utf-8")
+        pem_path.write_text(
+            "-----BEGIN PRIVATE KEY-----\nDATA\n-----END-----\n", encoding="utf-8"
+        )
         f = tmp_path / "creds.toml"
         f.write_text(
-            f'[github.work]\n'
+            f"[github.work]\n"
             f'kind = "github-app"\n'
-            f'app_id = 12345\n'
-            f'installation_id = 678\n'
+            f"app_id = 12345\n"
+            f"installation_id = 678\n"
             f'private_key_path = "{pem_path}"\n',
             encoding="utf-8",
         )
@@ -85,10 +94,10 @@ class TestFileCredentialResolver:
     async def test_private_key_path_unreadable(self, tmp_path: Path) -> None:
         f = tmp_path / "creds.toml"
         f.write_text(
-            '[github.work]\n'
+            "[github.work]\n"
             'kind = "github-app"\n'
-            'app_id = 1\n'
-            'installation_id = 1\n'
+            "app_id = 1\n"
+            "installation_id = 1\n"
             'private_key_path = "/nonexistent/path/key.pem"\n',
             encoding="utf-8",
         )
@@ -107,7 +116,9 @@ class TestFileCredentialResolver:
         f = tmp_path / "creds.toml"
         f.write_text('[github.default]\ntoken = "x"\n', encoding="utf-8")
         r = FileCredentialResolver(path=f)
-        with pytest.raises(CredentialMisconfiguredError, match="missing required `kind`"):
+        with pytest.raises(
+            CredentialMisconfiguredError, match="missing required `kind`"
+        ):
             await r.resolve("github-pat", "default")
 
     async def test_kind_must_be_string(self, tmp_path: Path) -> None:
@@ -123,10 +134,7 @@ class TestFileCredentialResolver:
         # github-pat was requested.
         f = tmp_path / "creds.toml"
         f.write_text(
-            '[github.default]\n'
-            'kind = "github-app"\n'
-            'app_id = 1\n'
-            'installation_id = 1\n',
+            '[github.default]\nkind = "github-app"\napp_id = 1\ninstallation_id = 1\n',
             encoding="utf-8",
         )
         r = FileCredentialResolver(path=f)
@@ -134,13 +142,18 @@ class TestFileCredentialResolver:
 
     async def test_missing_section_returns_none(self, tmp_path: Path) -> None:
         f = tmp_path / "creds.toml"
-        f.write_text('[aws.prod]\nkind = "aws-iam"\naccess_key_id = "x"\nsecret_access_key = "y"\n', encoding="utf-8")
+        f.write_text(
+            '[aws.prod]\nkind = "aws-iam"\naccess_key_id = "x"\nsecret_access_key = "y"\n',
+            encoding="utf-8",
+        )
         r = FileCredentialResolver(path=f)
         assert await r.resolve("github-pat", "default") is None
 
     async def test_missing_name_returns_none(self, tmp_path: Path) -> None:
         f = tmp_path / "creds.toml"
-        f.write_text('[github.work]\nkind = "github-pat"\ntoken = "x"\n', encoding="utf-8")
+        f.write_text(
+            '[github.work]\nkind = "github-pat"\ntoken = "x"\n', encoding="utf-8"
+        )
         r = FileCredentialResolver(path=f)
         assert await r.resolve("github-pat", "missing-name") is None
 
@@ -176,35 +189,44 @@ class TestFileCredentialResolver:
         with pytest.raises(NotImplementedError, match="SOPS"):
             await r.resolve("github-pat", "default")
 
-    async def test_default_path_used_when_explicit_none(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    async def test_default_path_used_when_explicit_none(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
         # Set XDG so default path lands inside tmp_path; create credential there.
         monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
         creds = tmp_path / "pleno" / "credentials.toml"
         creds.parent.mkdir(parents=True)
-        creds.write_text('[github.default]\nkind = "github-pat"\ntoken = "x"\n', encoding="utf-8")
+        creds.write_text(
+            '[github.default]\nkind = "github-pat"\ntoken = "x"\n', encoding="utf-8"
+        )
         r = FileCredentialResolver()
         cred = await r.resolve("github-pat", "default")
         assert cred is not None
 
     async def test_load_caches(self, tmp_path: Path) -> None:
         f = tmp_path / "creds.toml"
-        f.write_text('[github.default]\nkind = "github-pat"\ntoken = "x"\n', encoding="utf-8")
+        f.write_text(
+            '[github.default]\nkind = "github-pat"\ntoken = "x"\n', encoding="utf-8"
+        )
         r = FileCredentialResolver(path=f)
         await r.resolve("github-pat", "default")
         # Mutate file: cached resolver should still return the original.
-        f.write_text('[github.default]\nkind = "github-pat"\ntoken = "rotated"\n', encoding="utf-8")
+        f.write_text(
+            '[github.default]\nkind = "github-pat"\ntoken = "rotated"\n',
+            encoding="utf-8",
+        )
         cred = await r.resolve("github-pat", "default")
         assert cred is not None
         assert cred.payload["token"] == "x"
 
-    async def test_exact_kind_lookup_used_when_family_misses(self, tmp_path: Path) -> None:
+    async def test_exact_kind_lookup_used_when_family_misses(
+        self, tmp_path: Path
+    ) -> None:
         # When the TOML uses [github-pat.default] form rather than the
         # family form, exact-kind lookup must still find it.
         f = tmp_path / "creds.toml"
         f.write_text(
-            '[github-pat.default]\n'
-            'kind = "github-pat"\n'
-            'token = "exact"\n',
+            '[github-pat.default]\nkind = "github-pat"\ntoken = "exact"\n',
             encoding="utf-8",
         )
         r = FileCredentialResolver(path=f)

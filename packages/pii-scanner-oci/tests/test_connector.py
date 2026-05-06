@@ -7,7 +7,6 @@ import io
 import json
 import tarfile
 from collections.abc import Callable
-from typing import Any
 
 import httpx
 import pytest
@@ -329,7 +328,6 @@ class TestLayerDedup:
             )
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
-                kinds = [r.metadata.get("kind") for r in refs]
                 # 2 configs + 1 dedup'd layer (the layer for the second
                 # image is only emitted after fetch() of the first marks
                 # the digest as scanned)
@@ -376,9 +374,7 @@ class TestStaleFetch:
         async with httpx.AsyncClient(
             transport=httpx.MockTransport(lambda _r: httpx.Response(404))
         ) as client:
-            c = OciConnector(
-                OciConfig(references=("alpine",)), client=client
-            )
+            c = OciConnector(OciConfig(references=("alpine",)), client=client)
             try:
                 ref = DocumentRef(
                     source_id=c.id,
@@ -452,9 +448,7 @@ class TestTokenNegotiation:
                 return httpx.Response(200, content=config_bytes)
             return httpx.Response(404)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = OciConnector(OciConfig(references=("alpine:v1",)), client=client)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
@@ -504,9 +498,7 @@ class TestTokenNegotiation:
                 )
             return httpx.Response(404)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = OciConnector(
                 OciConfig(
                     references=("alpine:v1",),
@@ -551,9 +543,7 @@ class TestTokenNegotiation:
                 )
             return httpx.Response(404)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = OciConnector(
                 OciConfig(
                     references=("alpine:v1",),
@@ -633,9 +623,7 @@ class TestErrorPaths:
                 headers={"Content-Type": "application/x-bogus"},
             )
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = OciConnector(OciConfig(references=("alpine",)), client=client)
             try:
                 with pytest.raises(ValueError, match="unexpected manifest media-type"):
@@ -682,9 +670,7 @@ class TestErrorPaths:
                 return httpx.Response(200, content=config_bytes)
             return httpx.Response(404)
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = OciConnector(OciConfig(references=("alpine:v1",)), client=client)
             try:
                 refs = [r async for r in c.discover(SourceFilter(), None)]
@@ -702,9 +688,7 @@ class TestErrorPaths:
                 headers={"WWW-Authenticate": 'Bearer service="r.example"'},
             )
 
-        async with httpx.AsyncClient(
-            transport=httpx.MockTransport(handler)
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             c = OciConnector(OciConfig(references=("alpine",)), client=client)
             try:
                 with pytest.raises(ValueError, match="no realm parameter"):

@@ -42,9 +42,7 @@ def kek(capsys: pytest.CaptureFixture[str]) -> InMemoryKekProvider:
 
 
 class TestDefaultIndexPath:
-    def test_uses_xdg(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_uses_xdg(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path))
         assert default_index_path("scan-x") == (
             tmp_path / "pleno" / "scan-x" / "findings.sqlite"
@@ -56,8 +54,7 @@ class TestDefaultIndexPath:
         monkeypatch.delenv("XDG_STATE_HOME", raising=False)
         monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
         assert default_index_path("scan-x") == (
-            tmp_path / ".local" / "state" / "pleno" / "scan-x"
-            / "findings.sqlite"
+            tmp_path / ".local" / "state" / "pleno" / "scan-x" / "findings.sqlite"
         )
 
     def test_empty_xdg_falls_back(
@@ -66,8 +63,7 @@ class TestDefaultIndexPath:
         monkeypatch.setenv("XDG_STATE_HOME", "")
         monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
         assert default_index_path("scan-x") == (
-            tmp_path / ".local" / "state" / "pleno" / "scan-x"
-            / "findings.sqlite"
+            tmp_path / ".local" / "state" / "pleno" / "scan-x" / "findings.sqlite"
         )
 
 
@@ -152,9 +148,7 @@ class TestOpenAndClose:
             index_path=tmp_path / "f.sqlite",
             shard_base=tmp_path / "shards",
         ) as store:
-            await store.save_findings(
-                "scan-1", "src-a", [_finding()]
-            )
+            await store.save_findings("scan-1", "src-a", [_finding()])
         # Reopen and confirm survival
         async with await SqliteFindingsStore.open(
             "scan-1",
@@ -214,9 +208,7 @@ class TestSaveQueryGet:
             assert await store.get("absent") is None
 
     @pytest.mark.asyncio
-    async def test_pagination(
-        self, tmp_path: Path, kek: InMemoryKekProvider
-    ) -> None:
+    async def test_pagination(self, tmp_path: Path, kek: InMemoryKekProvider) -> None:
         async with await SqliteFindingsStore.open(
             "scan-1",
             kek=kek,
@@ -347,9 +339,7 @@ class TestRevealValue:
                 "scan-1", "src-a", [_finding(matched="async-secret")]
             )
             recs = await store.query()
-            value = await store.reveal_value(
-                recs[0].finding_id, audit_principal="ops"
-            )
+            value = await store.reveal_value(recs[0].finding_id, audit_principal="ops")
             assert value == "async-secret"
             assert spy == ["ops"]
 
@@ -383,14 +373,10 @@ class TestRevealValue:
             index_path=tmp_path / "f.sqlite",
             shard_base=tmp_path / "shards",
         ) as store:
-            await store.save_findings(
-                "scan-1", "src-a", [_finding(matched="silent")]
-            )
+            await store.save_findings("scan-1", "src-a", [_finding(matched="silent")])
             recs = await store.query()
             assert (
-                await store.reveal_value(
-                    recs[0].finding_id, audit_principal="x"
-                )
+                await store.reveal_value(recs[0].finding_id, audit_principal="x")
                 == "silent"
             )
 
@@ -411,9 +397,7 @@ class TestRevealValue:
             # Wipe the shard file to simulate disk-side loss.
             ref.path.unlink()
             with pytest.raises(EncryptionError, match="indexed but absent"):
-                await store.reveal_value(
-                    recs[0].finding_id, audit_principal="ops"
-                )
+                await store.reveal_value(recs[0].finding_id, audit_principal="ops")
 
     @pytest.mark.asyncio
     async def test_reveal_with_wrong_kek_fails(
@@ -431,9 +415,7 @@ class TestRevealValue:
             index_path=tmp_path / "f.sqlite",
             shard_base=tmp_path / "shards",
         )
-        await store.save_findings(
-            "scan-1", "src-a", [_finding(matched="protected")]
-        )
+        await store.save_findings("scan-1", "src-a", [_finding(matched="protected")])
         await store.close()
 
         kek_b = InMemoryKekProvider(master_key=b"\x22" * DEK_SIZE)
@@ -447,18 +429,14 @@ class TestRevealValue:
         try:
             recs = await reopened.query()
             with pytest.raises(EncryptionError):
-                await reopened.reveal_value(
-                    recs[0].finding_id, audit_principal="ops"
-                )
+                await reopened.reveal_value(recs[0].finding_id, audit_principal="ops")
         finally:
             await reopened.close()
 
 
 class TestSecretHygiene:
     @pytest.mark.asyncio
-    async def test_repr_no_raw(
-        self, tmp_path: Path, kek: InMemoryKekProvider
-    ) -> None:
+    async def test_repr_no_raw(self, tmp_path: Path, kek: InMemoryKekProvider) -> None:
         async with await SqliteFindingsStore.open(
             "scan-1",
             kek=kek,
@@ -619,9 +597,7 @@ class TestCorruptionPaths:
             shard_base=tmp_path / "shards",
         )
         try:
-            await store.save_findings(
-                "scan-1", "src-a", [_finding(matched="forged")]
-            )
+            await store.save_findings("scan-1", "src-a", [_finding(matched="forged")])
             recs = await store.query()
             dek = await store._ensure_dek()
             # Overwrite the shard with a payload whose tenant_id is wrong.
@@ -640,12 +616,8 @@ class TestCorruptionPaths:
                 [forged],
             )
             await writer.close()
-            with pytest.raises(
-                EncryptionError, match="tenant_id does not match"
-            ):
-                await store.reveal_value(
-                    recs[0].finding_id, audit_principal="ops"
-                )
+            with pytest.raises(EncryptionError, match="tenant_id does not match"):
+                await store.reveal_value(recs[0].finding_id, audit_principal="ops")
         finally:
             await store.close()
 
@@ -668,14 +640,10 @@ class TestCorruptionPaths:
             shard_base=tmp_path / "shards",
         )
         try:
-            await store.save_findings(
-                "scan-1", "src-a", [_finding(matched="trace")]
-            )
+            await store.save_findings("scan-1", "src-a", [_finding(matched="trace")])
             recs = await store.query()
             dek = await store._ensure_dek()
-            path = shard_path(
-                store.shard_base, "scan-1", "src-a", recs[0].shard_index
-            )
+            path = shard_path(store.shard_base, "scan-1", "src-a", recs[0].shard_index)
             path.unlink()
             writer = JsonlShardWriter(path)
             no_matched = encrypt_payload(
@@ -688,9 +656,7 @@ class TestCorruptionPaths:
             )
             await writer.close()
             with pytest.raises(EncryptionError, match="missing 'matched'"):
-                await store.reveal_value(
-                    recs[0].finding_id, audit_principal="ops"
-                )
+                await store.reveal_value(recs[0].finding_id, audit_principal="ops")
         finally:
             await store.close()
 
@@ -725,9 +691,7 @@ class TestNaiveDatetimeBackfill:
             shard_base=tmp_path / "shards",
         )
         try:
-            await store.save_findings(
-                "scan-1", "src-a", [_finding(matched="x")]
-            )
+            await store.save_findings("scan-1", "src-a", [_finding(matched="x")])
             recs = await store.query()
             # Forcibly write a naive datetime to simulate a legacy row.
             await store._conn.execute(
@@ -743,12 +707,8 @@ class TestNaiveDatetimeBackfill:
             await store._conn.commit()
             got = await store.get(recs[0].finding_id)
             assert got is not None
-            assert got.created_at == datetime(
-                2026, 5, 4, 12, tzinfo=UTC
-            )
-            assert got.sla_due_at == datetime(
-                2026, 5, 4, 12, tzinfo=UTC
-            )
+            assert got.created_at == datetime(2026, 5, 4, 12, tzinfo=UTC)
+            assert got.sla_due_at == datetime(2026, 5, 4, 12, tzinfo=UTC)
         finally:
             await store.close()
 

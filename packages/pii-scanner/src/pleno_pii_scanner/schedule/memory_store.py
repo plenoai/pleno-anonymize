@@ -41,9 +41,7 @@ class MemoryScheduleStore(ScheduleStore):
             return [
                 s
                 for s in self._items.values()
-                if s.enabled
-                and s.next_run_at is not None
-                and s.next_run_at <= now
+                if s.enabled and s.next_run_at is not None and s.next_run_at <= now
             ]
 
     async def close(self) -> None:

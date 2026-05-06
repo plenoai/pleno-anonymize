@@ -266,7 +266,9 @@ def _load_config(path: Path | None, inline_json: str | None) -> dict[str, Any]:
             raise click.ClickException(f"{path} is not valid TOML: {exc}") from None
 
 
-def _resolve_recognizers(entities_csv: str | None) -> tuple[Any, tuple[str, ...] | None]:
+def _resolve_recognizers(
+    entities_csv: str | None,
+) -> tuple[Any, tuple[str, ...] | None]:
     """Mirror cli._select_recognizers without inheriting its flags.
 
     Returns `(recognizers, ner_entity_filter)`. The NER filter is None
@@ -441,9 +443,7 @@ def _make_uncached_scan_fn(detector: DetectorFn, emit_findings):
     streams.
     """
 
-    async def scan_fn(
-        ref: DocumentRef, doc: Document | DocumentChunk
-    ) -> int:
+    async def scan_fn(ref: DocumentRef, doc: Document | DocumentChunk) -> int:
         count, payload = await detector(ref, doc)
         await emit_findings(ref.source_id, _sub_id(ref), count, payload, False)
         return count

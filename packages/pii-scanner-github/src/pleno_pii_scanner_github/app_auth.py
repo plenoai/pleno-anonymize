@@ -85,8 +85,7 @@ def mint_app_jwt(
     key = serialization.load_pem_private_key(pem_bytes, password=None)
     if not isinstance(key, rsa.RSAPrivateKey):
         raise ValueError(
-            "GitHub App private key must be RSA; got "
-            f"{type(key).__name__}"
+            f"GitHub App private key must be RSA; got {type(key).__name__}"
         )
     signature = key.sign(
         signing_input.encode("ascii"),
@@ -144,7 +143,10 @@ class AppAuth:
             return cached.token
         async with self._lock:
             cached = self._cached
-            if cached is not None and cached.expires_at - self.skew_seconds > self.now():
+            if (
+                cached is not None
+                and cached.expires_at - self.skew_seconds > self.now()
+            ):
                 return cached.token
             fresh = await self._mint_installation_token()
             self._cached = fresh
@@ -190,6 +192,7 @@ def _parse_expiry(payload: dict[str, object], *, now: float) -> float:
         # GitHub uses `Z` suffix; datetime.fromisoformat in 3.11+ handles
         # it natively but we keep the fallback for paranoia.
         from datetime import datetime
+
         try:
             return datetime.fromisoformat(raw.replace("Z", "+00:00")).timestamp()
         except ValueError as exc:

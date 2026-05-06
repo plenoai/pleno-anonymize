@@ -160,13 +160,9 @@ class SnowflakeConnector:
                     rows, columns = await self._sample_table(db, schema, table)
                     for i, row in enumerate(rows):
                         path = f"{db}/{schema}/{table}/{i}"
-                        if filter.include and not _matches_any(
-                            path, filter.include
-                        ):
+                        if filter.include and not _matches_any(path, filter.include):
                             continue
-                        if filter.exclude and _matches_any(
-                            path, filter.exclude
-                        ):
+                        if filter.exclude and _matches_any(path, filter.exclude):
                             continue
                         # JSON-encode the projected row dict so the
                         # row payload travels as the DocumentRef
@@ -222,12 +218,9 @@ class SnowflakeConnector:
         )
         return [_pick(columns, row, "name") for row in rows]
 
-    async def _resolve_tables(
-        self, database: str, schema: str
-    ) -> list[str]:
+    async def _resolve_tables(self, database: str, schema: str) -> list[str]:
         rows, columns = await self._run(
-            f"SHOW TABLES IN SCHEMA "
-            f"{_quote_ident(database)}.{_quote_ident(schema)}"
+            f"SHOW TABLES IN SCHEMA {_quote_ident(database)}.{_quote_ident(schema)}"
         )
         return [_pick(columns, row, "name") for row in rows]
 
@@ -265,10 +258,7 @@ class SnowflakeConnector:
         resp.raise_for_status()
         payload = resp.json()
         meta = payload.get("resultSetMetaData", {}) or {}
-        columns = [
-            str(c.get("name", ""))
-            for c in (meta.get("rowType") or [])
-        ]
+        columns = [str(c.get("name", "")) for c in (meta.get("rowType") or [])]
         rows: list[list[Any]] = list(payload.get("data") or [])
         partitions = meta.get("partitionInfo") or []
         handle = payload.get("statementHandle") or payload.get("statementHandles")
@@ -286,7 +276,9 @@ class SnowflakeConnector:
                 rows.extend(part_body.get("data") or [])
         return rows, columns
 
-    async def _acquire_token(self) -> str:  # pragma: no cover - signing path is exercised in integration; unit tests monkeypatch
+    async def _acquire_token(
+        self,
+    ) -> str:  # pragma: no cover - signing path is exercised in integration; unit tests monkeypatch
         """Sign a short-lived RS256 JWT with the user's private key.
 
         Production code wires in `cryptography`-based signing; the
@@ -301,7 +293,9 @@ class SnowflakeConnector:
 # --- helpers ------------------------------------------------------
 
 
-def _sign_jwt(account: str, user: str, private_key_pem: str) -> str:  # pragma: no cover - exercises real RSA crypto in deployment
+def _sign_jwt(
+    account: str, user: str, private_key_pem: str
+) -> str:  # pragma: no cover - exercises real RSA crypto in deployment
     """Build and sign the Snowflake key-pair JWT.
 
     Pulled out of the connector to keep the I/O class testable
@@ -316,16 +310,12 @@ def _sign_jwt(account: str, user: str, private_key_pem: str) -> str:  # pragma: 
     from cryptography.hazmat.primitives import hashes, serialization
     from cryptography.hazmat.primitives.asymmetric import padding
 
-    key = serialization.load_pem_private_key(
-        private_key_pem.encode(), password=None
-    )
+    key = serialization.load_pem_private_key(private_key_pem.encode(), password=None)
     public_bytes = key.public_key().public_bytes(
         encoding=serialization.Encoding.DER,
         format=serialization.PublicFormat.SubjectPublicKeyInfo,
     )
-    fp = "SHA256:" + base64.b64encode(
-        hashlib.sha256(public_bytes).digest()
-    ).decode()
+    fp = "SHA256:" + base64.b64encode(hashlib.sha256(public_bytes).digest()).decode()
     sub = f"{account.upper()}.{user.upper()}"
     iss = f"{sub}.{fp}"
     now = int(time.time())
@@ -368,8 +358,9 @@ def _pick(columns: list[str], row: list[Any], wanted: str) -> str:
 
 
 def _project_row(columns: list[str], row: list[Any]) -> dict[str, Any]:
-    return {columns[i] if i < len(columns) else f"_col{i}": v
-            for i, v in enumerate(row)}
+    return {
+        columns[i] if i < len(columns) else f"_col{i}": v for i, v in enumerate(row)
+    }
 
 
 # --- factory / spec -----------------------------------------------
@@ -378,9 +369,7 @@ def _project_row(columns: list[str], row: list[Any]) -> dict[str, Any]:
 def _factory(config: Mapping[str, Any]) -> SourceConnector:
     for required in ("account", "user", "private_key_pem"):
         if required not in config:
-            raise ValueError(
-                f"snowflake connector config requires {required!r}"
-            )
+            raise ValueError(f"snowflake connector config requires {required!r}")
     return SnowflakeConnector(
         SnowflakeConfig(
             account=str(config["account"]),
@@ -390,9 +379,7 @@ def _factory(config: Mapping[str, Any]) -> SourceConnector:
             databases=tuple(config.get("databases", ())),
             schemas=tuple(config.get("schemas", ())),
             sample_rows=int(config.get("sample_rows", 1000)),
-            statement_timeout_seconds=int(
-                config.get("statement_timeout_seconds", 60)
-            ),
+            statement_timeout_seconds=int(config.get("statement_timeout_seconds", 60)),
             role=str(config.get("role", "PUBLIC")),
             id=str(config["id"]) if config.get("id") is not None else None,
         )

@@ -188,9 +188,7 @@ class MsTeamsConnector:
                     yield self._ref_for(msg, full, team_id, channel_id)
                     if not self._config.include_replies:
                         continue
-                    replies = await self._list_replies(
-                        team_id, channel_id, msg_id
-                    )
+                    replies = await self._list_replies(team_id, channel_id, msg_id)
                     for reply in replies:
                         reply_id = reply.get("id")
                         if not reply_id:
@@ -200,9 +198,7 @@ class MsTeamsConnector:
                             full_reply, filter.include
                         ):
                             continue
-                        if filter.exclude and _matches_any(
-                            full_reply, filter.exclude
-                        ):
+                        if filter.exclude and _matches_any(full_reply, filter.exclude):
                             continue
                         self._messages[full_reply] = reply
                         yield self._ref_for(
@@ -270,9 +266,7 @@ class MsTeamsConnector:
             return access_token
 
     async def _acquire_token(self) -> tuple[str, float]:
-        url = (
-            f"{_LOGIN_BASE}/{self._config.tenant_id}/oauth2/v2.0/token"
-        )
+        url = f"{_LOGIN_BASE}/{self._config.tenant_id}/oauth2/v2.0/token"
         data: dict[str, str] = {
             "client_id": self._config.client_id,
             "scope": _GRAPH_SCOPE,
@@ -335,9 +329,7 @@ class MsTeamsConnector:
             url = resume_link
             absolute = True
         else:
-            url = (
-                f"/v1.0/teams/{team_id}/channels/{channel_id}/messages/delta"
-            )
+            url = f"/v1.0/teams/{team_id}/channels/{channel_id}/messages/delta"
             absolute = False
         collected: list[dict[str, Any]] = []
         delta_link: str | None = None
@@ -359,8 +351,7 @@ class MsTeamsConnector:
         self, team_id: str, channel_id: str, message_id: str
     ) -> list[dict[str, Any]]:
         url = (
-            f"/v1.0/teams/{team_id}/channels/{channel_id}"
-            f"/messages/{message_id}/replies"
+            f"/v1.0/teams/{team_id}/channels/{channel_id}/messages/{message_id}/replies"
         )
         absolute = False
         out: list[dict[str, Any]] = []

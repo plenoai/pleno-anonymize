@@ -65,9 +65,7 @@ class TestRun:
         # text output is on stderr; runner mixes them.
         assert "refs_seen=2" in result.output
 
-    def test_runs_dir_via_toml_config(
-        self, small_tree: Path, tmp_path: Path
-    ) -> None:
+    def test_runs_dir_via_toml_config(self, small_tree: Path, tmp_path: Path) -> None:
         cfg = tmp_path / "dir.toml"
         cfg.write_text(f'root = "{small_tree}"\n')
         result = CliRunner().invoke(
@@ -111,9 +109,7 @@ class TestRun:
     def test_toml_invalid_syntax(self, tmp_path: Path) -> None:
         cfg = tmp_path / "bad.toml"
         cfg.write_text("this is = = invalid")
-        result = CliRunner().invoke(
-            main, ["scan", "run", "dir", "--config", str(cfg)]
-        )
+        result = CliRunner().invoke(main, ["scan", "run", "dir", "--config", str(cfg)])
         assert result.exit_code != 0
         assert "not valid TOML" in result.output
 

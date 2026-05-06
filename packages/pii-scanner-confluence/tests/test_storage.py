@@ -14,7 +14,6 @@ under the `ac:` and `ri:` prefixes. The converter must:
 
 from __future__ import annotations
 
-import pytest
 
 from pleno_pii_scanner_confluence.storage import storage_to_text
 
@@ -51,9 +50,7 @@ class TestStorageBasicHtml:
         assert "alphabeta" not in out
 
     def test_table_cells_extracted(self) -> None:
-        out = storage_to_text(
-            "<table><tr><td>name</td><td>alice</td></tr></table>"
-        )
+        out = storage_to_text("<table><tr><td>name</td><td>alice</td></tr></table>")
         assert "name" in out
         assert "alice" in out
 
@@ -80,7 +77,7 @@ class TestStorageMacros:
     def test_panel_macro_rich_text_body_extracted(self) -> None:
         body = (
             '<ac:structured-macro ac:name="info">'
-            '<ac:rich-text-body><p>note me</p></ac:rich-text-body>'
+            "<ac:rich-text-body><p>note me</p></ac:rich-text-body>"
             "</ac:structured-macro>"
         )
         assert "note me" in storage_to_text(body)
@@ -126,11 +123,7 @@ class TestStorageMacros:
         # its attributes are pointers, not surface text. The walker
         # must produce no output for it (and not crash on the prefixed
         # attribute).
-        body = (
-            "<p>before</p>"
-            '<ri:user ri:userkey="ff8080816a8a8a8a"/>'
-            "<p>after</p>"
-        )
+        body = '<p>before</p><ri:user ri:userkey="ff8080816a8a8a8a"/><p>after</p>'
         out = storage_to_text(body)
         assert "before" in out
         assert "after" in out

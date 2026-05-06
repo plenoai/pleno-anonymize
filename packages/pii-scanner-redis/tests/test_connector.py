@@ -70,14 +70,10 @@ class _FakeRedis:
                 return self._acl_user
         raise AssertionError(f"unexpected command: {args}")
 
-    def scan_iter(
-        self, *, match: str = "*", count: int = 100
-    ) -> AsyncIterator[bytes]:
+    def scan_iter(self, *, match: str = "*", count: int = 100) -> AsyncIterator[bytes]:
         import fnmatch
 
-        keys = [
-            k for k in self._keys.keys() if fnmatch.fnmatch(k.decode(), match)
-        ]
+        keys = [k for k in self._keys.keys() if fnmatch.fnmatch(k.decode(), match)]
 
         async def _gen() -> AsyncIterator[bytes]:
             for k in keys:
@@ -181,15 +177,11 @@ class TestConfig:
 
 class TestProtocol:
     def test_runtime_isinstance(self) -> None:
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=_FakeRedis()
-        )
+        c = RedisConnector(RedisConfig(url="redis://h"), client=_FakeRedis())
         assert isinstance(c, SourceConnector)
 
     def test_capabilities(self) -> None:
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=_FakeRedis()
-        )
+        c = RedisConnector(RedisConfig(url="redis://h"), client=_FakeRedis())
         assert c.capabilities() == Capabilities(
             incremental=False,
             binary=True,
@@ -204,24 +196,16 @@ class TestProtocol:
 
 class TestAclEnforcement:
     async def test_readonly_user_passes(self) -> None:
-        client = _FakeRedis(
-            acl_user={"commands": "+@read +@connection -@write"}
-        )
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=client
-        )
+        client = _FakeRedis(acl_user={"commands": "+@read +@connection -@write"})
+        c = RedisConnector(RedisConfig(url="redis://h"), client=client)
         try:
             await c._enforce_acl()
         finally:
             await c.close()
 
     async def test_user_with_write_rejected(self) -> None:
-        client = _FakeRedis(
-            acl_user={"commands": "+@read +@write +@connection"}
-        )
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=client
-        )
+        client = _FakeRedis(acl_user={"commands": "+@read +@write +@connection"})
+        c = RedisConnector(RedisConfig(url="redis://h"), client=client)
         try:
             with pytest.raises(AclEnforcementError, match="@write"):
                 await c._enforce_acl()
@@ -229,12 +213,8 @@ class TestAclEnforcement:
             await c.close()
 
     async def test_user_with_admin_rejected(self) -> None:
-        client = _FakeRedis(
-            acl_user={"commands": "+@read +@admin"}
-        )
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=client
-        )
+        client = _FakeRedis(acl_user={"commands": "+@read +@admin"})
+        c = RedisConnector(RedisConfig(url="redis://h"), client=client)
         try:
             with pytest.raises(AclEnforcementError, match="@admin"):
                 await c._enforce_acl()
@@ -245,13 +225,13 @@ class TestAclEnforcement:
         # Pre-Redis 7.2 returns ACL GETUSER as a flat alternating list.
         client = _FakeRedis(
             acl_user=[
-                b"flags", [b"on"],
-                b"commands", b"+@read +@connection -@write",
+                b"flags",
+                [b"on"],
+                b"commands",
+                b"+@read +@connection -@write",
             ]
         )
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=client
-        )
+        c = RedisConnector(RedisConfig(url="redis://h"), client=client)
         try:
             await c._enforce_acl()
         finally:
@@ -259,9 +239,7 @@ class TestAclEnforcement:
 
     async def test_disabled_enforcement_skips_check(self) -> None:
         # Even an over-privileged user passes when enforcement is off.
-        client = _FakeRedis(
-            acl_user={"commands": "+@all"}
-        )
+        client = _FakeRedis(acl_user={"commands": "+@all"})
         c = RedisConnector(
             RedisConfig(url="redis://h", enforce_readonly=False),
             client=client,
@@ -281,9 +259,7 @@ class TestAclEnforcement:
                 return await super().execute_command(*args)
 
         client = _Counting()
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=client
-        )
+        c = RedisConnector(RedisConfig(url="redis://h"), client=client)
         try:
             await c._enforce_acl()
             await c._enforce_acl()
@@ -296,9 +272,7 @@ class TestAclEnforcement:
         # Defensive path — neither dict nor list. Connector should
         # not crash but also not granting privileges.
         client = _FakeRedis(acl_user="some-string")
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=client
-        )
+        c = RedisConnector(RedisConfig(url="redis://h"), client=client)
         try:
             # No forbidden category present in empty dict → passes.
             await c._enforce_acl()
@@ -311,13 +285,13 @@ class TestAclEnforcement:
 
 class TestDiscover:
     async def test_yields_one_ref_per_key(self) -> None:
-        client = _FakeRedis(keys={
-            b"user:1": ("string", b"alice@example.com"),
-            b"user:2": ("string", b"bob@example.com"),
-        })
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=client
+        client = _FakeRedis(
+            keys={
+                b"user:1": ("string", b"alice@example.com"),
+                b"user:2": ("string", b"bob@example.com"),
+            }
         )
+        c = RedisConnector(RedisConfig(url="redis://h"), client=client)
         try:
             refs = [r async for r in c.discover(SourceFilter(), None)]
             paths = sorted(r.path for r in refs)
@@ -327,13 +301,13 @@ class TestDiscover:
             await c.close()
 
     async def test_match_glob_filters_keys(self) -> None:
-        client = _FakeRedis(keys={
-            b"user:1": ("string", b"x"),
-            b"session:1": ("string", b"y"),
-        })
-        c = RedisConnector(
-            RedisConfig(url="redis://h", match="user:*"), client=client
+        client = _FakeRedis(
+            keys={
+                b"user:1": ("string", b"x"),
+                b"session:1": ("string", b"y"),
+            }
         )
+        c = RedisConnector(RedisConfig(url="redis://h", match="user:*"), client=client)
         try:
             refs = [r async for r in c.discover(SourceFilter(), None)]
             assert {r.path for r in refs} == {"user:1"}
@@ -341,38 +315,32 @@ class TestDiscover:
             await c.close()
 
     async def test_source_filter_include_applied(self) -> None:
-        client = _FakeRedis(keys={
-            b"user:1": ("string", b"x"),
-            b"session:1": ("string", b"y"),
-        })
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=client
+        client = _FakeRedis(
+            keys={
+                b"user:1": ("string", b"x"),
+                b"session:1": ("string", b"y"),
+            }
         )
+        c = RedisConnector(RedisConfig(url="redis://h"), client=client)
         try:
             refs = [
-                r
-                async for r in c.discover(
-                    SourceFilter(include=("user:*",)), None
-                )
+                r async for r in c.discover(SourceFilter(include=("user:*",)), None)
             ]
             assert {r.path for r in refs} == {"user:1"}
         finally:
             await c.close()
 
     async def test_source_filter_exclude_applied(self) -> None:
-        client = _FakeRedis(keys={
-            b"user:1": ("string", b"x"),
-            b"session:1": ("string", b"y"),
-        })
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=client
+        client = _FakeRedis(
+            keys={
+                b"user:1": ("string", b"x"),
+                b"session:1": ("string", b"y"),
+            }
         )
+        c = RedisConnector(RedisConfig(url="redis://h"), client=client)
         try:
             refs = [
-                r
-                async for r in c.discover(
-                    SourceFilter(exclude=("session:*",)), None
-                )
+                r async for r in c.discover(SourceFilter(exclude=("session:*",)), None)
             ]
             assert {r.path for r in refs} == {"user:1"}
         finally:
@@ -385,9 +353,7 @@ class TestDiscover:
                 return b"none"
 
         client = _Racing(keys={b"k": ("string", b"v")})
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=client
-        )
+        c = RedisConnector(RedisConfig(url="redis://h"), client=client)
         try:
             refs = [r async for r in c.discover(SourceFilter(), None)]
             assert refs == []
@@ -401,9 +367,7 @@ class TestDiscover:
 class TestFetchString:
     async def test_returns_text(self) -> None:
         client = _FakeRedis(keys={b"k": ("string", b"hello@example.com")})
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=client
-        )
+        c = RedisConnector(RedisConfig(url="redis://h"), client=client)
         try:
             refs = [r async for r in c.discover(SourceFilter(), None)]
             docs = [d async for d in c.fetch(refs[0])]
@@ -416,12 +380,12 @@ class TestFetchString:
 
 class TestFetchList:
     async def test_joins_entries_newline(self) -> None:
-        client = _FakeRedis(keys={
-            b"q": ("list", [b"first", b"second", b"third"]),
-        })
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=client
+        client = _FakeRedis(
+            keys={
+                b"q": ("list", [b"first", b"second", b"third"]),
+            }
         )
+        c = RedisConnector(RedisConfig(url="redis://h"), client=client)
         try:
             refs = [r async for r in c.discover(SourceFilter(), None)]
             docs = [d async for d in c.fetch(refs[0])]
@@ -432,12 +396,12 @@ class TestFetchList:
 
 class TestFetchSet:
     async def test_sorted_join(self) -> None:
-        client = _FakeRedis(keys={
-            b"s": ("set", {b"banana", b"apple", b"cherry"}),
-        })
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=client
+        client = _FakeRedis(
+            keys={
+                b"s": ("set", {b"banana", b"apple", b"cherry"}),
+            }
         )
+        c = RedisConnector(RedisConfig(url="redis://h"), client=client)
         try:
             refs = [r async for r in c.discover(SourceFilter(), None)]
             docs = [d async for d in c.fetch(refs[0])]
@@ -449,12 +413,12 @@ class TestFetchSet:
 
 class TestFetchHash:
     async def test_field_value_lines(self) -> None:
-        client = _FakeRedis(keys={
-            b"h": ("hash", {b"email": b"x@y.z", b"name": b"alice"}),
-        })
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=client
+        client = _FakeRedis(
+            keys={
+                b"h": ("hash", {b"email": b"x@y.z", b"name": b"alice"}),
+            }
         )
+        c = RedisConnector(RedisConfig(url="redis://h"), client=client)
         try:
             refs = [r async for r in c.discover(SourceFilter(), None)]
             docs = [d async for d in c.fetch(refs[0])]
@@ -466,12 +430,12 @@ class TestFetchHash:
 
 class TestFetchZset:
     async def test_member_score(self) -> None:
-        client = _FakeRedis(keys={
-            b"z": ("zset", [(b"alice", 1.0), (b"bob", 2.5)]),
-        })
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=client
+        client = _FakeRedis(
+            keys={
+                b"z": ("zset", [(b"alice", 1.0), (b"bob", 2.5)]),
+            }
         )
+        c = RedisConnector(RedisConfig(url="redis://h"), client=client)
         try:
             refs = [r async for r in c.discover(SourceFilter(), None)]
             docs = [d async for d in c.fetch(refs[0])]
@@ -483,15 +447,15 @@ class TestFetchZset:
 
 class TestFetchStream:
     async def test_id_and_fields(self) -> None:
-        client = _FakeRedis(keys={
-            b"x": (
-                "stream",
-                [(b"1700000000000-0", {b"event": b"login", b"user": b"alice"})],
-            ),
-        })
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=client
+        client = _FakeRedis(
+            keys={
+                b"x": (
+                    "stream",
+                    [(b"1700000000000-0", {b"event": b"login", b"user": b"alice"})],
+                ),
+            }
         )
+        c = RedisConnector(RedisConfig(url="redis://h"), client=client)
         try:
             refs = [r async for r in c.discover(SourceFilter(), None)]
             docs = [d async for d in c.fetch(refs[0])]
@@ -505,9 +469,7 @@ class TestFetchStream:
 class TestFetchEdge:
     async def test_unknown_type_returns_no_documents(self) -> None:
         client = _FakeRedis(keys={b"k": ("hyperloglog", b"\x00")})
-        c = RedisConnector(
-            RedisConfig(url="redis://h"), client=client
-        )
+        c = RedisConnector(RedisConfig(url="redis://h"), client=client)
         try:
             refs = [r async for r in c.discover(SourceFilter(), None)]
             # discover still yields the ref; fetch is the type filter.

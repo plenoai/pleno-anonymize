@@ -40,9 +40,7 @@ def _client(handler: Callable[[httpx.Request], httpx.Response]) -> httpx.AsyncCl
 
 
 def _ok_token(_request: httpx.Request) -> httpx.Response:
-    return httpx.Response(
-        200, json={"access_token": "AAA", "expires_in": 3600}
-    )
+    return httpx.Response(200, json={"access_token": "AAA", "expires_in": 3600})
 
 
 def _make_handler(
@@ -73,19 +71,13 @@ def _make_handler(
                 from urllib.parse import parse_qs
 
                 body = request.content.decode("utf-8")
-                token_calls.append(
-                    {k: v[0] for k, v in parse_qs(body).items()}
-                )
-            return httpx.Response(
-                200, json={"access_token": "AAA", "expires_in": 3600}
-            )
+                token_calls.append({k: v[0] for k, v in parse_qs(body).items()})
+            return httpx.Response(200, json={"access_token": "AAA", "expires_in": 3600})
         if path == "/v1.0/sites" and request.url.params.get("search") == "*":
             return httpx.Response(200, json={"value": sites})
         if path.startswith("/v1.0/sites/") and path.endswith("/drives"):
             site_id = path.split("/")[3]
-            return httpx.Response(
-                200, json={"value": drives_by_site.get(site_id, [])}
-            )
+            return httpx.Response(200, json={"value": drives_by_site.get(site_id, [])})
         if "/root/delta" in path or url in delta_pages:
             # Resume URLs are absolute; initial path is relative.
             page_key = url if url in delta_pages else path
@@ -96,23 +88,15 @@ def _make_handler(
             return httpx.Response(200, json={"value": []})
         if path.startswith("/v1.0/sites/") and path.endswith("/lists"):
             site_id = path.split("/")[3]
-            return httpx.Response(
-                200, json={"value": lists_by_site.get(site_id, [])}
-            )
+            return httpx.Response(200, json={"value": lists_by_site.get(site_id, [])})
         if (
             path.startswith("/v1.0/sites/")
             and "/lists/" in path
             and path.endswith("/items")
         ):
             list_id = path.split("/")[5]
-            return httpx.Response(
-                200, json={"value": list_items.get(list_id, [])}
-            )
-        if (
-            path.startswith("/v1.0/sites/")
-            and "/lists/" in path
-            and "/items/" in path
-        ):
+            return httpx.Response(200, json={"value": list_items.get(list_id, [])})
+        if path.startswith("/v1.0/sites/") and "/lists/" in path and "/items/" in path:
             item_id = path.split("/items/")[1]
             return httpx.Response(
                 200, json=list_item_detail.get(item_id, {"fields": {}})
@@ -123,9 +107,7 @@ def _make_handler(
             return httpx.Response(200, content=blob)
         if path.startswith("/v1.0/sites/") and path.count("/") == 3:
             # /v1.0/sites/{path-form} resolved site lookup.
-            return httpx.Response(
-                200, json={"id": "resolved-site", "name": "resolved"}
-            )
+            return httpx.Response(200, json={"id": "resolved-site", "name": "resolved"})
         return httpx.Response(404, content=str(request.url).encode())
 
     return handler
@@ -137,15 +119,11 @@ def _make_handler(
 class TestConfig:
     def test_rejects_empty_tenant_id(self) -> None:
         with pytest.raises(ValueError, match="tenant_id"):
-            SharePointConfig(
-                tenant_id="", client_id="c", client_secret="s"
-            )
+            SharePointConfig(tenant_id="", client_id="c", client_secret="s")
 
     def test_rejects_empty_client_id(self) -> None:
         with pytest.raises(ValueError, match="client_id"):
-            SharePointConfig(
-                tenant_id="t", client_id="", client_secret="s"
-            )
+            SharePointConfig(tenant_id="t", client_id="", client_secret="s")
 
     def test_rejects_neither_credential(self) -> None:
         with pytest.raises(ValueError, match="exactly one"):
@@ -176,9 +154,7 @@ class TestConfig:
         assert cfg.resolved_id() == "custom"
 
     def test_default_id_includes_tenant_and_client(self) -> None:
-        cfg = SharePointConfig(
-            tenant_id="t", client_id="c", client_secret="s"
-        )
+        cfg = SharePointConfig(tenant_id="t", client_id="c", client_secret="s")
         rid = cfg.resolved_id()
         assert "t" in rid and "c" in rid
 
@@ -198,17 +174,13 @@ class TestConfig:
 class TestProtocol:
     def test_runtime_isinstance(self) -> None:
         c = SharePointConnector(
-            SharePointConfig(
-                tenant_id="t", client_id="c", client_secret="s"
-            )
+            SharePointConfig(tenant_id="t", client_id="c", client_secret="s")
         )
         assert isinstance(c, SourceConnector)
 
     def test_capabilities(self) -> None:
         c = SharePointConnector(
-            SharePointConfig(
-                tenant_id="t", client_id="c", client_secret="s"
-            )
+            SharePointConfig(tenant_id="t", client_id="c", client_secret="s")
         )
         assert c.capabilities() == Capabilities(
             incremental=True,
@@ -348,9 +320,7 @@ class TestDelta:
         )
         async with _client(handler) as client:
             c = SharePointConnector(
-                SharePointConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -385,9 +355,7 @@ class TestDelta:
         prior = json.dumps({"s1/d1": "https://graph.microsoft.com/delta-resume"})
         async with _client(handler) as client:
             c = SharePointConnector(
-                SharePointConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -418,9 +386,7 @@ class TestDelta:
         )
         async with _client(handler) as client:
             c = SharePointConnector(
-                SharePointConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -444,9 +410,7 @@ class TestDelta:
         )
         async with _client(handler) as client:
             c = SharePointConnector(
-                SharePointConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -463,9 +427,7 @@ class TestDelta:
         )
         async with _client(handler) as client:
             c = SharePointConnector(
-                SharePointConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -543,9 +505,7 @@ class TestLists:
         )
         async with _client(handler) as client:
             c = SharePointConnector(
-                SharePointConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -575,9 +535,7 @@ class TestFetch:
         )
         async with _client(handler) as client:
             c = SharePointConnector(
-                SharePointConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -609,9 +567,7 @@ class TestFetch:
         )
         async with _client(handler) as client:
             c = SharePointConnector(
-                SharePointConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -640,9 +596,7 @@ class TestFetch:
         )
         async with _client(handler) as client:
             c = SharePointConnector(
-                SharePointConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -691,9 +645,7 @@ class TestFetch:
 
         async with _client(_make_handler()) as client:
             c = SharePointConnector(
-                SharePointConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -708,9 +660,7 @@ class TestFetch:
 
         async with _client(_make_handler()) as client:
             c = SharePointConnector(
-                SharePointConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -730,9 +680,7 @@ class TestFetch:
 
         async with _client(_make_handler()) as client:
             c = SharePointConnector(
-                SharePointConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -817,9 +765,7 @@ class TestSitesAllowlist:
             if "login.microsoftonline" in url:
                 return _ok_token(request)
             if path == "/v1.0/sites/contoso.sharepoint.com:/sites/team":
-                return httpx.Response(
-                    200, json={"id": "resolved-1", "name": "team"}
-                )
+                return httpx.Response(200, json={"id": "resolved-1", "name": "team"})
             if path.startswith("/v1.0/sites/resolved-1/drives"):
                 return httpx.Response(200, json={"value": []})
             return httpx.Response(404)
@@ -863,17 +809,12 @@ class TestFilter:
         )
         async with _client(handler) as client:
             c = SharePointConnector(
-                SharePointConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
                 refs = [
-                    r
-                    async for r in c.discover(
-                        SourceFilter(include=("*keep*",)), None
-                    )
+                    r async for r in c.discover(SourceFilter(include=("*keep*",)), None)
                 ]
                 assert {r.metadata["name"] for r in refs} == {"keep.txt"}
             finally:
@@ -899,17 +840,13 @@ class TestFilter:
                 transport=httpx.MockTransport(handler2),
             )
             c2 = SharePointConnector(
-                SharePointConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client2,
             )
             try:
                 refs = [
                     r
-                    async for r in c2.discover(
-                        SourceFilter(exclude=("*drop*",)), None
-                    )
+                    async for r in c2.discover(SourceFilter(exclude=("*drop*",)), None)
                 ]
                 assert {r.metadata["name"] for r in refs} == {"keep.txt"}
             finally:
@@ -967,9 +904,7 @@ class TestRefEdges:
         )
         async with _client(handler) as client:
             c = SharePointConnector(
-                SharePointConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -996,9 +931,7 @@ class TestRefEdges:
         )
         async with _client(handler) as client:
             c = SharePointConnector(
-                SharePointConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -1026,9 +959,7 @@ class TestRefEdges:
         )
         async with _client(handler) as client:
             c = SharePointConnector(
-                SharePointConfig(
-                    tenant_id="t", client_id="c", client_secret="s"
-                ),
+                SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
                 client=client,
             )
             try:
@@ -1094,18 +1025,14 @@ class TestSpec:
 class TestClose:
     async def test_close_owns_client(self) -> None:
         c = SharePointConnector(
-            SharePointConfig(
-                tenant_id="t", client_id="c", client_secret="s"
-            )
+            SharePointConfig(tenant_id="t", client_id="c", client_secret="s")
         )
         await c.close()
 
     async def test_close_external_client_not_closed(self) -> None:
         client = httpx.AsyncClient()
         c = SharePointConnector(
-            SharePointConfig(
-                tenant_id="t", client_id="c", client_secret="s"
-            ),
+            SharePointConfig(tenant_id="t", client_id="c", client_secret="s"),
             client=client,
         )
         await c.close()

@@ -98,9 +98,7 @@ class ExtractorRegistry:
         with self._lock:
             # Replace if the exact same pattern is registered again so test
             # fixtures can override without leaking across cases.
-            self._patterns = [
-                (p, e) for (p, e) in self._patterns if p != mime_pattern
-            ]
+            self._patterns = [(p, e) for (p, e) in self._patterns if p != mime_pattern]
             self._patterns.append((mime_pattern, extractor))
 
     def for_mime(self, mime: str) -> Extractor:
@@ -112,14 +110,10 @@ class ExtractorRegistry:
                 if fnmatch.fnmatchcase(mime, pattern)
             ]
         if not matches:
-            raise UnknownExtractorError(
-                f"no extractor registered for MIME {mime!r}"
-            )
+            raise UnknownExtractorError(f"no extractor registered for MIME {mime!r}")
         # Specificity = literal-character count (wildcards don't count).
         # Tie-break on raw length so ``text/x-*`` beats ``text/*``.
-        matches.sort(
-            key=lambda pe: (_specificity(pe[0]), len(pe[0])), reverse=True
-        )
+        matches.sort(key=lambda pe: (_specificity(pe[0]), len(pe[0])), reverse=True)
         return matches[0][1]
 
     def patterns(self) -> tuple[str, ...]:

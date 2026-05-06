@@ -72,9 +72,7 @@ class CredentialProfile:
             raise ValueError(f"profile {self.name!r} has empty base")
         kind, _, name = self.base.partition(":")
         if not kind:
-            raise ValueError(
-                f"profile {self.name!r} base {self.base!r} missing kind"
-            )
+            raise ValueError(f"profile {self.name!r} base {self.base!r} missing kind")
         return kind, name or "default"
 
 

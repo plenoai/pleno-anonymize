@@ -308,10 +308,7 @@ class TestDiscover:
             c = DiscordConnector(DiscordConfig(token="t"), client=client)
             try:
                 refs = [
-                    r
-                    async for r in c.discover(
-                        SourceFilter(include=("g1/c1",)), None
-                    )
+                    r async for r in c.discover(SourceFilter(include=("g1/c1",)), None)
                 ]
                 assert all(r.metadata["channel_id"] == "c1" for r in refs)
             finally:
@@ -320,10 +317,7 @@ class TestDiscover:
             c2 = DiscordConnector(DiscordConfig(token="t"), client=client2)
             try:
                 refs2 = [
-                    r
-                    async for r in c2.discover(
-                        SourceFilter(exclude=("g1/c2",)), None
-                    )
+                    r async for r in c2.discover(SourceFilter(exclude=("g1/c2",)), None)
                 ]
                 assert all(r.metadata["channel_id"] == "c1" for r in refs2)
             finally:
@@ -394,9 +388,7 @@ class TestThreads:
 
         async with _client(handler) as client:
             c = DiscordConnector(
-                DiscordConfig(
-                    token="t", channel_types=(0,), include_threads=False
-                ),
+                DiscordConfig(token="t", channel_types=(0,), include_threads=False),
                 client=client,
             )
             try:

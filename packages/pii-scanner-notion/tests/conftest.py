@@ -13,7 +13,6 @@ from collections.abc import Callable, Iterable
 from typing import Any
 
 import httpx
-import pytest
 
 
 # Public re-export so tests can `from conftest import ...` if needed.

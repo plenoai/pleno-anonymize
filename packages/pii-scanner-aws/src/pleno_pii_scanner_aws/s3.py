@@ -31,7 +31,7 @@ import io
 import json
 import logging
 from collections.abc import AsyncIterator, Iterable, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
@@ -277,7 +277,9 @@ class S3Connector:
                 async for ref in self._discover_bucket(
                     plan,
                     floor,
-                    decoded if idx == decoded.bucket_index else _Cursor(bucket_index=idx),
+                    decoded
+                    if idx == decoded.bucket_index
+                    else _Cursor(bucket_index=idx),
                 ):
                     yield ref
 
@@ -300,7 +302,9 @@ class S3Connector:
 
         creds = await self._sessions.credentials_for(plan.account)
         session = self._sessions.base_session()
-        async with self._client_factory(session, creds, plan.account, plan.bucket) as s3:
+        async with self._client_factory(
+            session, creds, plan.account, plan.bucket
+        ) as s3:
             if plan.sample:
                 async for ref in self._discover_sampled(s3, plan, floor, cursor):
                     yield ref
@@ -337,7 +341,11 @@ class S3Connector:
                 ref = _ref_from_listing_entry(self.id, plan, entry, version_id=None)
                 if ref is None:
                     continue
-                if floor is not None and ref.last_modified is not None and ref.last_modified <= floor:
+                if (
+                    floor is not None
+                    and ref.last_modified is not None
+                    and ref.last_modified <= floor
+                ):
                     continue
                 yield _attach_cursor(
                     ref,
@@ -382,7 +390,11 @@ class S3Connector:
                 )
                 if ref is None:
                     continue
-                if floor is not None and ref.last_modified is not None and ref.last_modified <= floor:
+                if (
+                    floor is not None
+                    and ref.last_modified is not None
+                    and ref.last_modified <= floor
+                ):
                     continue
                 yield _attach_cursor(
                     ref,
@@ -434,7 +446,11 @@ class S3Connector:
                 ref = _ref_from_listing_entry(self.id, plan, entry, version_id=None)
                 if ref is None:
                     continue
-                if floor is not None and ref.last_modified is not None and ref.last_modified <= floor:
+                if (
+                    floor is not None
+                    and ref.last_modified is not None
+                    and ref.last_modified <= floor
+                ):
                     continue
                 sampler.offer(ref)
             if not resp.get("IsTruncated"):
@@ -459,7 +475,9 @@ class S3Connector:
         creds = await self._sessions.credentials_for(plan.account)
         session = self._sessions.base_session()
         manifest_bucket, manifest_key = _parse_s3_uri(manifest_uri)
-        async with self._client_factory(session, creds, plan.account, plan.bucket) as s3:
+        async with self._client_factory(
+            session, creds, plan.account, plan.bucket
+        ) as s3:
             manifest = await _read_manifest(s3, manifest_bucket, manifest_key)
             for shard in manifest.get("files", ()):
                 shard_key = shard["key"]
@@ -476,9 +494,7 @@ class S3Connector:
                         continue
                     yield ref
 
-    async def fetch(
-        self, ref: DocumentRef
-    ) -> AsyncIterator[Document | DocumentChunk]:
+    async def fetch(self, ref: DocumentRef) -> AsyncIterator[Document | DocumentChunk]:
         """Retrieve `ref`'s payload as a Document or DocumentChunk stream.
 
         The (account, bucket) pair is rebuilt from `ref.metadata`; we put
@@ -501,7 +517,9 @@ class S3Connector:
         size = ref.size or 0
         async with self._client_factory(session, creds, account, bucket) as s3:
             if size and size <= self._config.max_doc_bytes:
-                async for piece in self._fetch_whole(s3, bucket_name, key, version_id, ref):
+                async for piece in self._fetch_whole(
+                    s3, bucket_name, key, version_id, ref
+                ):
                     yield piece
             else:
                 async for piece in self._fetch_chunked(
@@ -628,8 +646,7 @@ class ClientFactory:  # pragma: no cover - structural typing alias
         creds: Any,
         account: AccountSpec,
         bucket: BucketSpec,
-    ) -> Any:
-        ...
+    ) -> Any: ...
 
 
 def _default_client_factory(
@@ -849,7 +866,9 @@ def _iter_inventory_rows(
     text too so test fixtures can avoid the gzip dance. The column names
     come from `manifest["fileSchema"]` (a comma-separated string).
     """
-    schema = [c.strip() for c in str(manifest.get("fileSchema", "")).split(",") if c.strip()]
+    schema = [
+        c.strip() for c in str(manifest.get("fileSchema", "")).split(",") if c.strip()
+    ]
     text: str
     if raw[:2] == b"\x1f\x8b":  # gzip magic
         import gzip
@@ -903,13 +922,9 @@ def _maybe_raise_rate_limited(exc: BaseException) -> None:
     error = response.get("Error", {})
     code = error.get("Code") if isinstance(error, Mapping) else None
     metadata = response.get("ResponseMetadata", {})
-    status = (
-        metadata.get("HTTPStatusCode") if isinstance(metadata, Mapping) else None
-    )
+    status = metadata.get("HTTPStatusCode") if isinstance(metadata, Mapping) else None
     if code in _THROTTLE_CODES or status in _THROTTLE_STATUS:
-        raise RateLimited(
-            f"S3 throttled (code={code} status={status})"
-        ) from exc
+        raise RateLimited(f"S3 throttled (code={code} status={status})") from exc
 
 
 # --- factory + spec --------------------------------------------------------

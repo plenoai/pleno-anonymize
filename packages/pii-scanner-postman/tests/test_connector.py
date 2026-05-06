@@ -151,9 +151,7 @@ def _collection_basic() -> dict:
                             "script": {"exec": ["console.log('{{api_key}}')"]},
                         }
                     ],
-                    "response": [
-                        {"name": "200-ok", "body": "Bearer real-{{api_key}}"}
-                    ],
+                    "response": [{"name": "200-ok", "body": "Bearer real-{{api_key}}"}],
                 }
             ],
         }
@@ -283,7 +281,9 @@ class TestEndToEnd:
             if path.endswith("/environments/e1"):
                 return httpx.Response(200, json=_env())
             if path.endswith("/collections/c1"):
-                return httpx.Response(200, json={"collection": {"info": {"name": "C"}, "item": []}})
+                return httpx.Response(
+                    200, json={"collection": {"info": {"name": "C"}, "item": []}}
+                )
             return httpx.Response(404)
 
         async with _client(handler) as client:
@@ -364,9 +364,7 @@ class TestEdgeCases:
         coll = {
             "collection": {
                 "info": {"name": "C"},
-                "item": [
-                    {"name": "r1", "request": "https://example.com/{{path}}"}
-                ],
+                "item": [{"name": "r1", "request": "https://example.com/{{path}}"}],
             }
         }
 
@@ -666,9 +664,7 @@ class TestFilter:
             try:
                 refs = [
                     r
-                    async for r in c.discover(
-                        SourceFilter(include=("*/users",)), None
-                    )
+                    async for r in c.discover(SourceFilter(include=("*/users",)), None)
                 ]
                 assert all(r.metadata["request_name"] == "users" for r in refs)
             finally:
@@ -698,7 +694,9 @@ class TestFilter:
             if path.endswith("/environments/e1"):
                 return httpx.Response(200, json=_env())
             if path.endswith("/collections/c1"):
-                return httpx.Response(200, json={"collection": {"info": {"name": "C"}, "item": []}})
+                return httpx.Response(
+                    200, json={"collection": {"info": {"name": "C"}, "item": []}}
+                )
             return httpx.Response(404)
 
         async with _client(handler) as client:
@@ -756,9 +754,7 @@ class TestInterlock:
 
         async with _client(handler) as client:
             c = PostmanConnector(
-                PostmanConfig(
-                    api_key="k", interlock_patterns=("AKIA[A-Z0-9]+",)
-                ),
+                PostmanConfig(api_key="k", interlock_patterns=("AKIA[A-Z0-9]+",)),
                 client=client,
             )
             try:
@@ -781,9 +777,7 @@ class TestDepthDefense:
         for i in range(105):
             node = {"name": f"f{i}", "item": [node]}
 
-        coll = {
-            "collection": {"info": {"name": "C"}, "item": [node]}
-        }
+        coll = {"collection": {"info": {"name": "C"}, "item": [node]}}
 
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
@@ -1021,10 +1015,7 @@ class TestEnvIncludeFilter:
             try:
                 # Include pattern that does NOT match → env dropped
                 refs = [
-                    r
-                    async for r in c.discover(
-                        SourceFilter(include=("nope/*",)), None
-                    )
+                    r async for r in c.discover(SourceFilter(include=("nope/*",)), None)
                 ]
                 assert refs == []
             finally:

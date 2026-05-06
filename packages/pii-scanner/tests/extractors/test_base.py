@@ -24,21 +24,19 @@ from pleno_pii_scanner.sources.base import Document, DocumentRef
 
 
 def _ref(**overrides: object) -> DocumentRef:
-    base: dict[str, object] = dict(
-        source_id="t:s", source_kind="t", path="p"
-    )
+    base: dict[str, object] = dict(source_id="t:s", source_kind="t", path="p")
     base.update(overrides)
     return DocumentRef(**base)  # type: ignore[arg-type]
 
 
 class _FakeExtractor:
-    def __init__(self, name: str = "fake", patterns_: frozenset[str] = frozenset()) -> None:
+    def __init__(
+        self, name: str = "fake", patterns_: frozenset[str] = frozenset()
+    ) -> None:
         self.name = name
         self.accepts = patterns_
 
-    async def extract(
-        self, doc: Document
-    ) -> AsyncIterator[ExtractedFragment]:
+    async def extract(self, doc: Document) -> AsyncIterator[ExtractedFragment]:
         yield ExtractedFragment(
             text="x", path_hint="hint", byte_offset=0, extractor=self.name
         )

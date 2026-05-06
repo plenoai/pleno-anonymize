@@ -21,15 +21,14 @@ published cap is ~3 RPS averaged and 429 ramps up quickly past it.
 
 from __future__ import annotations
 
-import asyncio
-from collections.abc import AsyncIterator, Iterable, Mapping, Sequence
-from dataclasses import dataclass, field
+from collections.abc import AsyncIterator, Iterable, Mapping
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
 import httpx
 
-from pleno_pii_scanner.scheduler.rate_limit import BucketKey, RateLimited
+from pleno_pii_scanner.scheduler.rate_limit import BucketKey
 from pleno_pii_scanner.sources.base import (
     Capabilities,
     Cursor,
@@ -41,7 +40,7 @@ from pleno_pii_scanner.sources.base import (
 )
 from pleno_pii_scanner.sources.registry import ConnectorSpec
 
-from .api import DEFAULT_BASE_URL, NOTION_VERSION, PAGE_SIZE, NotionApi, NotionApiError
+from .api import DEFAULT_BASE_URL, NOTION_VERSION, PAGE_SIZE, NotionApi
 from .markdown import MAX_DEPTH, render_blocks, render_database_row
 
 
@@ -175,9 +174,7 @@ class NotionConnector:
             body: dict[str, Any] = {"page_size": PAGE_SIZE}
             if cursor:
                 body["start_cursor"] = cursor
-            payload = await self._api.post(
-                f"/databases/{database_id}/query", json=body
-            )
+            payload = await self._api.post(f"/databases/{database_id}/query", json=body)
             for row in payload.get("results", []):
                 ref = self._page_to_ref(row, parent_database_id=database_id)
                 if ref is not None:
@@ -231,9 +228,7 @@ class NotionConnector:
         # `notion://page/<id>` or `notion://database-row/<id>` — the
         # parent_database_id qualifier disambiguates rows from standalone
         # pages.
-        path_kind = (
-            "database-row" if parent_database_id else object_type
-        )
+        path_kind = "database-row" if parent_database_id else object_type
         path = f"notion://{path_kind}/{object_id}"
         parent_chain: tuple[str, ...] = ()
         if parent_database_id:
@@ -370,9 +365,7 @@ class NotionConnector:
             include_archived=self._config.include_archived,
         )
 
-    async def _list_block_children(
-        self, block_id: str
-    ) -> list[Mapping[str, Any]]:
+    async def _list_block_children(self, block_id: str) -> list[Mapping[str, Any]]:
         """Page through `/blocks/{id}/children` and return every child block."""
         out: list[Mapping[str, Any]] = []
         cursor: str | None = None
@@ -380,9 +373,7 @@ class NotionConnector:
             params: dict[str, Any] = {"page_size": PAGE_SIZE}
             if cursor:
                 params["start_cursor"] = cursor
-            payload = await self._api.get(
-                f"/blocks/{block_id}/children", params=params
-            )
+            payload = await self._api.get(f"/blocks/{block_id}/children", params=params)
             for block in payload.get("results", []):
                 if not isinstance(block, Mapping):
                     continue
@@ -474,15 +465,12 @@ def _string_tuple(value: Any) -> tuple[str, ...]:
             "must be a list, not a bare string"
         )
     if not isinstance(value, Iterable):
-        raise ValueError(
-            "notion connector list-typed configs must be iterable"
-        )
+        raise ValueError("notion connector list-typed configs must be iterable")
     out: list[str] = []
     for item in value:
         if not isinstance(item, str) or not item:
             raise ValueError(
-                "notion connector list-typed configs must contain "
-                "non-empty strings"
+                "notion connector list-typed configs must contain non-empty strings"
             )
         out.append(item)
     return tuple(out)

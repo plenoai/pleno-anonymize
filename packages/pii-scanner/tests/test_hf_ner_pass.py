@@ -19,7 +19,7 @@ from pleno_pii_scanner.hf_ner_pass import (
 
 def _id2label() -> dict[int, str]:
     labels = ["O", "B-ORGANIZATION", "I-ORGANIZATION", "B-PERSON", "I-PERSON"]
-    return {i: l for i, l in enumerate(labels)}
+    return dict(enumerate(labels))
 
 
 def test_parse_thresholds_defaults_match_v013_model_card():

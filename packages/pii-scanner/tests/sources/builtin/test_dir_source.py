@@ -17,7 +17,12 @@ from pleno_pii_scanner.sources import (
     register,
 )
 from pleno_pii_scanner.sources import registry as _registry_mod
-from pleno_pii_scanner.sources.builtin import DIR_KIND, DIR_SPEC, DirConfig, DirConnector
+from pleno_pii_scanner.sources.builtin import (
+    DIR_KIND,
+    DIR_SPEC,
+    DirConfig,
+    DirConnector,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -116,9 +121,7 @@ class TestDiscover:
         assert "secret.txt" not in names
         assert not any("node_modules" in n for n in names)
 
-    async def test_filter_max_size_takes_min_with_config(
-        self, tmp_path: Path
-    ) -> None:
+    async def test_filter_max_size_takes_min_with_config(self, tmp_path: Path) -> None:
         # Discover-time `filter.max_size` is the operator's `--max-file-size`;
         # the connector's own config sets the safety ceiling. The lower of the
         # two wins so a per-scan filter cannot escalate above the configured
@@ -142,18 +145,14 @@ class TestDiscover:
         (tmp_path / "a.txt").write_text("x")
         (tmp_path / "a.md").write_text("y")
         c = DirConnector(DirConfig(root=tmp_path))
-        refs = await _drain_refs(
-            c.discover(SourceFilter(include=("*.md",)), None)
-        )
+        refs = await _drain_refs(c.discover(SourceFilter(include=("*.md",)), None))
         assert [r.path for r in refs] == ["a.md"]
 
     async def test_filter_exclude_overrides_config(self, tmp_path: Path) -> None:
         (tmp_path / "a.txt").write_text("x")
         (tmp_path / "b.txt").write_text("y")
         c = DirConnector(DirConfig(root=tmp_path))
-        refs = await _drain_refs(
-            c.discover(SourceFilter(exclude=("a.txt",)), None)
-        )
+        refs = await _drain_refs(c.discover(SourceFilter(exclude=("a.txt",)), None))
         assert [r.path for r in refs] == ["b.txt"]
 
     async def test_cursor_is_ignored(self, tmp_path: Path) -> None:
@@ -175,9 +174,7 @@ class TestFetch:
         assert docs[0].text == "hello"
         assert docs[0].fetched_at is not None
 
-    async def test_decodes_invalid_utf8_with_replacement(
-        self, tmp_path: Path
-    ) -> None:
+    async def test_decodes_invalid_utf8_with_replacement(self, tmp_path: Path) -> None:
         # walker filters NUL-bearing files; a file with garbled but
         # NUL-free bytes still gets through and must not crash fetch().
         (tmp_path / "broken.txt").write_bytes(b"\xff\xfeABC")
@@ -226,23 +223,21 @@ class TestRaceConditions:
                 raise OSError("simulated race: file disappeared")
             return original_stat(self)
 
-        monkeypatch.setattr(ds, "_safe_size", lambda p: None if p.name == "a.txt" else p.stat().st_size)
+        monkeypatch.setattr(
+            ds, "_safe_size", lambda p: None if p.name == "a.txt" else p.stat().st_size
+        )
 
         refs = await _drain_refs(c.discover(SourceFilter(), None))
         assert refs == []
 
-    async def test_safe_size_returns_none_on_oserror(
-        self, tmp_path: Path
-    ) -> None:
+    async def test_safe_size_returns_none_on_oserror(self, tmp_path: Path) -> None:
         # Direct unit test of the helper used by discover().
         from pleno_pii_scanner.sources.builtin.dir_source import _safe_size
 
         ghost = tmp_path / "does-not-exist"
         assert _safe_size(ghost) is None
 
-    async def test_safe_mtime_returns_none_on_oserror(
-        self, tmp_path: Path
-    ) -> None:
+    async def test_safe_mtime_returns_none_on_oserror(self, tmp_path: Path) -> None:
         from pleno_pii_scanner.sources.builtin.dir_source import _safe_mtime
 
         ghost = tmp_path / "does-not-exist"

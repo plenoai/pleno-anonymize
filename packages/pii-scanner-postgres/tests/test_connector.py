@@ -66,9 +66,7 @@ class _FakeConn:
 
 
 class _FakePool:
-    def __init__(
-        self, fetch_responses: list[Any], in_recovery: bool = True
-    ) -> None:
+    def __init__(self, fetch_responses: list[Any], in_recovery: bool = True) -> None:
         self._conn = _FakeConn(fetch_responses, in_recovery)
         self.closed = False
 
@@ -144,17 +142,13 @@ class TestConfig:
 
 class TestHelpers:
     def test_redact_dsn_strips_password(self) -> None:
-        assert (
-            _redact_dsn("postgresql://u:p@h/d") == "postgresql://u@h/d"
-        )
+        assert _redact_dsn("postgresql://u:p@h/d") == "postgresql://u@h/d"
 
     def test_redact_dsn_no_auth(self) -> None:
         assert _redact_dsn("postgresql://h/d") == "postgresql://h/d"
 
     def test_redact_dsn_user_only(self) -> None:
-        assert (
-            _redact_dsn("postgresql://u@h/d") == "postgresql://u@h/d"
-        )
+        assert _redact_dsn("postgresql://u@h/d") == "postgresql://u@h/d"
 
     def test_redact_dsn_keyvalue_form_passthrough(self) -> None:
         # libpq key=value: too many corner cases to safely strip, so
@@ -250,9 +244,7 @@ class TestDiscover:
         ]
         patch_pool([rows])
         c = PostgresConnector(
-            PostgresConfig(
-                dsn="postgresql://u@h/d", tables=("public.users",)
-            )
+            PostgresConfig(dsn="postgresql://u@h/d", tables=("public.users",))
         )
         try:
             refs = [r async for r in c.discover(SourceFilter(), None)]
@@ -324,10 +316,7 @@ class TestDiscover:
         )
         try:
             refs = [
-                r
-                async for r in c.discover(
-                    SourceFilter(include=("billing.*",)), None
-                )
+                r async for r in c.discover(SourceFilter(include=("billing.*",)), None)
             ]
             assert {r.path for r in refs} == {"billing.invoices"}
         finally:
@@ -358,10 +347,7 @@ class TestDiscover:
         c = PostgresConnector(PostgresConfig(dsn="postgresql://u@h/d"))
         try:
             refs = [
-                r
-                async for r in c.discover(
-                    SourceFilter(exclude=("*.logs",)), None
-                )
+                r async for r in c.discover(SourceFilter(exclude=("*.logs",)), None)
             ]
             assert {r.path for r in refs} == {"public.users"}
         finally:
@@ -396,9 +382,7 @@ class TestReplicaEnforcement:
         ]
         patch_pool([rows], in_recovery=False)
         c = PostgresConnector(
-            PostgresConfig(
-                dsn="postgresql://u@h/d", require_replica=False
-            )
+            PostgresConfig(dsn="postgresql://u@h/d", require_replica=False)
         )
         try:
             refs = [r async for r in c.discover(SourceFilter(), None)]
@@ -565,9 +549,7 @@ class TestSpec:
 
     def test_factory_empty_schemas_uses_default(self) -> None:
         register(SPEC)
-        c = create(
-            "postgres", {"dsn": "postgresql://u@h/d", "schemas": []}
-        )
+        c = create("postgres", {"dsn": "postgresql://u@h/d", "schemas": []})
         assert c._config.schemas == ("public",)
 
 

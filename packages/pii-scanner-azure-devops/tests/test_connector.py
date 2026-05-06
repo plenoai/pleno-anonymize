@@ -55,9 +55,7 @@ def _stub_clone(path_factory):
         assert auth_header.startswith(("Bearer ", "Basic "))
         # Identify the repo by the trailing path segment of the URL.
         slug = clone_url.rstrip("/").rsplit("/", 1)[-1]
-        return (
-            path_factory(slug) if callable(path_factory) else path_factory
-        )
+        return path_factory(slug) if callable(path_factory) else path_factory
 
     return fn
 
@@ -65,9 +63,7 @@ def _stub_clone(path_factory):
 def _projects_response(
     names: list[str], *, continuation: str | None = None
 ) -> httpx.Response:
-    headers = (
-        {CONTINUATION_TOKEN_HEADER: continuation} if continuation else {}
-    )
+    headers = {CONTINUATION_TOKEN_HEADER: continuation} if continuation else {}
     return httpx.Response(
         200,
         json={"value": [{"name": n, "visibility": "private"} for n in names]},
@@ -121,15 +117,11 @@ class TestConfig:
         assert cfg.resolved_id() == "azure-devops:contoso"
 
     def test_resolved_id_server(self) -> None:
-        cfg = AzureDevOpsConfig(
-            flavor="server", base_url="https://tfs/Coll"
-        )
+        cfg = AzureDevOpsConfig(flavor="server", base_url="https://tfs/Coll")
         assert "azure-devops-server:" in cfg.resolved_id()
 
     def test_resolved_id_explicit(self) -> None:
-        cfg = AzureDevOpsConfig(
-            flavor="services", organization="x", id="custom"
-        )
+        cfg = AzureDevOpsConfig(flavor="services", organization="x", id="custom")
         assert cfg.resolved_id() == "custom"
 
 
@@ -137,9 +129,7 @@ class TestConfig:
 
 
 class TestServicesDiscoverFetch:
-    async def test_single_project_lists_repos_and_clones(
-        self, make_repo
-    ) -> None:
+    async def test_single_project_lists_repos_and_clones(self, make_repo) -> None:
         # One project shortcut: skip the projects-list call entirely.
         # Repo response contains one enabled repo + one disabled repo;
         # default config skips the disabled one.
@@ -175,9 +165,7 @@ class TestServicesDiscoverFetch:
             clone_fn=_stub_clone(lambda _slug: repo),
         )
         try:
-            refs = [
-                r async for r in connector.discover(SourceFilter(), None)
-            ]
+            refs = [r async for r in connector.discover(SourceFilter(), None)]
             assert len(refs) == 1
             ref = refs[0]
             assert ref.path == "Banking/core/app.py"
@@ -188,9 +176,7 @@ class TestServicesDiscoverFetch:
         finally:
             await connector.close()
 
-    async def test_include_disabled_yields_disabled_repos(
-        self, make_repo
-    ) -> None:
+    async def test_include_disabled_yields_disabled_repos(self, make_repo) -> None:
         def handler(_: httpx.Request) -> httpx.Response:
             return _repos_response(
                 [
@@ -298,9 +284,7 @@ class TestServicesDiscoverFetch:
         finally:
             await connector.close()
 
-    async def test_404_on_repos_listing_skips_project(
-        self, make_repo
-    ) -> None:
+    async def test_404_on_repos_listing_skips_project(self, make_repo) -> None:
         # Race: project disappears between projects-list and repos-list.
         # Connector must skip silently and continue (no exception).
         repo = make_repo("a", {"f.txt": "x"})
@@ -498,17 +482,13 @@ class TestServerDiscoverFetch:
         )
         try:
             refs = [r async for r in connector.discover(SourceFilter(), None)]
-            assert all(
-                u.startswith("https://tfs.internal/Coll/") for u in seen_urls
-            )
+            assert all(u.startswith("https://tfs.internal/Coll/") for u in seen_urls)
             assert refs and refs[0].native_url is not None
             assert "https://tfs.internal/Coll/" in refs[0].native_url
         finally:
             await connector.close()
 
-    async def test_server_native_url_includes_project(
-        self, make_repo
-    ) -> None:
+    async def test_server_native_url_includes_project(self, make_repo) -> None:
         repo = make_repo("api", {"app.py": "x"})
 
         def handler(request: httpx.Request) -> httpx.Response:
@@ -544,9 +524,7 @@ class TestServerDiscoverFetch:
 
 
 class TestFetch:
-    async def test_fetch_yields_document_for_known_ref(
-        self, make_repo
-    ) -> None:
+    async def test_fetch_yields_document_for_known_ref(self, make_repo) -> None:
         repo = make_repo("svc", {"a.txt": "alpha", "b.txt": "beta"})
 
         def handler(request: httpx.Request) -> httpx.Response:
@@ -563,9 +541,7 @@ class TestFetch:
             raise AssertionError(url)
 
         connector = AzureDevOpsConnector(
-            AzureDevOpsConfig(
-                flavor="services", organization="contoso", project="P"
-            ),
+            AzureDevOpsConfig(flavor="services", organization="contoso", project="P"),
             auth=AzureDevOpsAuth.pat("p"),
             transport=httpx.MockTransport(handler),
             clone_fn=_stub_clone(lambda _: repo),
@@ -583,9 +559,7 @@ class TestFetch:
 
     async def test_fetch_unknown_ref_yields_empty(self) -> None:
         connector = AzureDevOpsConnector(
-            AzureDevOpsConfig(
-                flavor="services", organization="x", project="P"
-            ),
+            AzureDevOpsConfig(flavor="services", organization="x", project="P"),
             auth=AzureDevOpsAuth.pat("p"),
             transport=httpx.MockTransport(
                 lambda _: httpx.Response(200, json={"value": []})
@@ -605,9 +579,7 @@ class TestFetch:
 
     async def test_fetch_missing_metadata_yields_empty(self) -> None:
         connector = AzureDevOpsConnector(
-            AzureDevOpsConfig(
-                flavor="services", organization="x", project="P"
-            ),
+            AzureDevOpsConfig(flavor="services", organization="x", project="P"),
             auth=AzureDevOpsAuth.pat("p"),
             transport=httpx.MockTransport(
                 lambda _: httpx.Response(200, json={"value": []})
@@ -630,9 +602,7 @@ class TestFetch:
 
 
 class TestEnumerateSeam:
-    async def test_enumerate_fn_replaces_http_enumeration(
-        self, make_repo
-    ) -> None:
+    async def test_enumerate_fn_replaces_http_enumeration(self, make_repo) -> None:
         repo = make_repo("only", {"f.txt": "x"})
 
         async def fake_enum(
@@ -644,9 +614,7 @@ class TestEnumerateSeam:
             yield ("Acme", "only", "https://x/Acme/_git/only", False)
 
         connector = AzureDevOpsConnector(
-            AzureDevOpsConfig(
-                flavor="services", organization="x"
-            ),
+            AzureDevOpsConfig(flavor="services", organization="x"),
             auth=AzureDevOpsAuth.pat("p"),
             transport=httpx.MockTransport(
                 lambda _: httpx.Response(500)
@@ -660,9 +628,7 @@ class TestEnumerateSeam:
         finally:
             await connector.close()
 
-    async def test_enumerate_fn_disabled_filtered(
-        self, make_repo
-    ) -> None:
+    async def test_enumerate_fn_disabled_filtered(self, make_repo) -> None:
         repo = make_repo("svc", {"f.txt": "x"})
 
         async def enum(connector, filter, cursor):
@@ -706,9 +672,7 @@ class TestCloneLifecycle:
             )
 
         connector = AzureDevOpsConnector(
-            AzureDevOpsConfig(
-                flavor="services", organization="x", project="P"
-            ),
+            AzureDevOpsConfig(flavor="services", organization="x", project="P"),
             auth=AzureDevOpsAuth.pat("p"),
             transport=httpx.MockTransport(handler),
             clone_fn=counting,
@@ -720,9 +684,7 @@ class TestCloneLifecycle:
         finally:
             await connector.close()
 
-    async def test_close_drops_tempdirs_and_clients(
-        self, tmp_path: Path
-    ) -> None:
+    async def test_close_drops_tempdirs_and_clients(self, tmp_path: Path) -> None:
         # We use a real tmp directory (not the make_repo one) and check
         # rmtree happens; the stub returns this dir and after close()
         # it must be gone.
@@ -741,9 +703,7 @@ class TestCloneLifecycle:
             )
 
         connector = AzureDevOpsConnector(
-            AzureDevOpsConfig(
-                flavor="services", organization="x", project="P"
-            ),
+            AzureDevOpsConfig(flavor="services", organization="x", project="P"),
             auth=AzureDevOpsAuth.pat("p"),
             transport=httpx.MockTransport(handler),
             clone_fn=lambda *_: clone_dir,
@@ -758,9 +718,7 @@ class TestCloneLifecycle:
 
     async def test_close_idempotent(self) -> None:
         connector = AzureDevOpsConnector(
-            AzureDevOpsConfig(
-                flavor="services", organization="x"
-            ),
+            AzureDevOpsConfig(flavor="services", organization="x"),
             auth=AzureDevOpsAuth.pat("p"),
         )
         await connector.close()
@@ -917,9 +875,7 @@ class TestCloneIntoTempdir:
 
         path = _clone_into_tempdir(
             "https://dev/contoso/P/_git/svc",
-            AzureDevOpsConfig(
-                flavor="services", organization="contoso"
-            ),
+            AzureDevOpsConfig(flavor="services", organization="contoso"),
             "Bearer xyz",
         )
         assert path.exists()
@@ -927,9 +883,7 @@ class TestCloneIntoTempdir:
         assert "--depth=1" in captured["cmd"]
         assert "https://dev/contoso/P/_git/svc" in captured["cmd"]
         # CA bundle not configured -> no http.sslCAInfo flag.
-        assert not any(
-            "http.sslCAInfo" in part for part in captured["cmd"]
-        )
+        assert not any("http.sslCAInfo" in part for part in captured["cmd"])
 
     def test_subprocess_with_ca_bundle(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -955,9 +909,7 @@ class TestCloneIntoTempdir:
             ),
             "Basic Og==",
         )
-        assert any(
-            "http.sslCAInfo" in part for part in captured["cmd"]
-        )
+        assert any("http.sslCAInfo" in part for part in captured["cmd"])
 
     def test_subprocess_failure_cleans_up_tempdir(
         self, monkeypatch: pytest.MonkeyPatch
@@ -984,9 +936,7 @@ class TestCloneIntoTempdir:
         with pytest.raises(RuntimeError, match="git failed"):
             _clone_into_tempdir(
                 "https://x",
-                AzureDevOpsConfig(
-                    flavor="services", organization="x"
-                ),
+                AzureDevOpsConfig(flavor="services", organization="x"),
                 "Bearer t",
             )
         assert captured_paths

@@ -25,7 +25,7 @@ class TestHtmlExtractor:
     async def test_script_block_dropped(self) -> None:
         ex = HtmlExtractor()
         html = (
-            "<html><body><script>secret_token=\"abc123\"</script>"
+            '<html><body><script>secret_token="abc123"</script>'
             "<p>visible</p></body></html>"
         )
         frags = await collect(ex, Document(ref=_ref(), text=html))
@@ -76,10 +76,8 @@ class TestHtmlExtractor:
     async def test_meta_charset_honored(self) -> None:
         ex = HtmlExtractor()
         body = (
-            b"<html><head><meta charset=\"shift_jis\"></head>"
-            b"<body><p>"
-            + "山田".encode("shift_jis")
-            + b"</p></body></html>"
+            b'<html><head><meta charset="shift_jis"></head>'
+            b"<body><p>" + "山田".encode("shift_jis") + b"</p></body></html>"
         )
         frags = await collect(ex, Document(ref=_ref(), binary=body))
         assert "山田" in frags[0].text
@@ -88,7 +86,7 @@ class TestHtmlExtractor:
     async def test_unknown_meta_charset_falls_back(self) -> None:
         ex = HtmlExtractor()
         body = (
-            b"<html><head><meta charset=\"definitely-not-real\"></head>"
+            b'<html><head><meta charset="definitely-not-real"></head>'
             b"<body>x</body></html>"
         )
         frags = await collect(ex, Document(ref=_ref(), binary=body))

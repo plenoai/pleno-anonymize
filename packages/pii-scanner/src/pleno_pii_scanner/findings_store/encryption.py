@@ -106,9 +106,7 @@ class InMemoryKekProvider:
 
     async def wrap_dek(self, tenant_id: str, dek: bytes) -> bytes:
         if len(dek) != DEK_SIZE:
-            raise ValueError(
-                f"DEK must be {DEK_SIZE} bytes; got {len(dek)}"
-            )
+            raise ValueError(f"DEK must be {DEK_SIZE} bytes; got {len(dek)}")
         nonce = os.urandom(NONCE_SIZE)
         aad = tenant_id.encode("utf-8")
         ct = self._aead.encrypt(nonce, dek, aad)
@@ -187,9 +185,7 @@ def encrypt_payload(
         raise ValueError(f"DEK must be {DEK_SIZE} bytes; got {len(dek)}")
     aead = AESGCM(dek)
     nonce = os.urandom(NONCE_SIZE)
-    pt_bytes = json.dumps(plaintext, ensure_ascii=False, sort_keys=True).encode(
-        "utf-8"
-    )
+    pt_bytes = json.dumps(plaintext, ensure_ascii=False, sort_keys=True).encode("utf-8")
     aad = tenant_id.encode("utf-8")
     combined = aead.encrypt(nonce, pt_bytes, aad)
     # WHY: cryptography's AESGCM returns ciphertext||tag concatenated. We
@@ -208,9 +204,7 @@ def decrypt_payload(dek: bytes, payload: EncryptedPayload) -> dict[str, object]:
     aead = AESGCM(dek)
     aad = payload.tenant_id.encode("utf-8")
     try:
-        pt_bytes = aead.decrypt(
-            payload.nonce, payload.ciphertext + payload.tag, aad
-        )
+        pt_bytes = aead.decrypt(payload.nonce, payload.ciphertext + payload.tag, aad)
     except InvalidTag as exc:
         raise EncryptionError(
             "failed to decrypt payload: wrong DEK, tenant, or tampered ciphertext"

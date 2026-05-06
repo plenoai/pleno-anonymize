@@ -261,7 +261,9 @@ class ConfluenceConnector:
                 keys.append(key)
         return keys
 
-    async def _enumerate_pages(self, space_key: str) -> AsyncIterator[Mapping[str, Any]]:
+    async def _enumerate_pages(
+        self, space_key: str
+    ) -> AsyncIterator[Mapping[str, Any]]:
         """Page through `/space/{key}/content/page` for a space."""
         params = {
             "expand": _PAGE_EXPAND,
@@ -297,9 +299,7 @@ class ConfluenceConnector:
         ):
             return None
         title = page.get("title") or page_id
-        body = (
-            (page.get("body") or {}).get("storage") or {}
-        ).get("value") or ""
+        body = ((page.get("body") or {}).get("storage") or {}).get("value") or ""
         # Hydrate comments + attachments now (rather than in fetch())
         # because each page-listing entry is already a fully-expanded
         # payload — issuing the supplementary calls here keeps the
@@ -354,9 +354,7 @@ class ConfluenceConnector:
             params={"expand": "body.storage"},
             page_size=self._config.page_size,
         ):
-            body = (
-                (comment.get("body") or {}).get("storage") or {}
-            ).get("value")
+            body = ((comment.get("body") or {}).get("storage") or {}).get("value")
             if isinstance(body, str) and body:
                 out.append(storage_to_text(body))
         return out
@@ -578,7 +576,7 @@ def _host_from_base_url(base_url: str) -> str:
     host = base_url
     for prefix in ("https://", "http://"):
         if host.startswith(prefix):
-            host = host[len(prefix):]
+            host = host[len(prefix) :]
             break
     # Drop trailing path (`/wiki` on Cloud) so Cloud + DC ids stay
     # comparable on the host portion alone.
@@ -685,15 +683,12 @@ def _string_tuple(value: Any) -> tuple[str, ...]:
             "must be a list, not a bare string"
         )
     if not isinstance(value, Iterable):
-        raise ValueError(
-            "confluence connector list-typed configs must be iterable"
-        )
+        raise ValueError("confluence connector list-typed configs must be iterable")
     out: list[str] = []
     for item in value:
         if not isinstance(item, str) or not item:
             raise ValueError(
-                "confluence connector list-typed configs must contain "
-                "non-empty strings"
+                "confluence connector list-typed configs must contain non-empty strings"
             )
         out.append(item)
     return tuple(out)

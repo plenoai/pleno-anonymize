@@ -84,9 +84,7 @@ class ScanCache(Protocol):
         """
         ...
 
-    async def get_many(
-        self, lookups: Sequence[CacheLookup]
-    ) -> dict[str, bytes]:
+    async def get_many(self, lookups: Sequence[CacheLookup]) -> dict[str, bytes]:
         """Resolve every lookup against the store in a single round-trip.
 
         Returns a dict mapping `lookup.key` → `value` for every entry
@@ -182,16 +180,12 @@ class MemoryScanCache:
             return None
         return entry.value
 
-    async def get_many(
-        self, lookups: Sequence[CacheLookup]
-    ) -> dict[str, bytes]:
+    async def get_many(self, lookups: Sequence[CacheLookup]) -> dict[str, bytes]:
         if not lookups:
             return {}
         async with self._lock:
             self._raise_if_closed()
-            snapshot = {
-                lk.key: self._entries.get(lk.key) for lk in lookups
-            }
+            snapshot = {lk.key: self._entries.get(lk.key) for lk in lookups}
         out: dict[str, bytes] = {}
         for lk in lookups:
             entry = snapshot.get(lk.key)
@@ -231,7 +225,8 @@ class MemoryScanCache:
         async with self._lock:
             self._raise_if_closed()
             stale = [
-                k for k, e in self._entries.items()
+                k
+                for k, e in self._entries.items()
                 if e.schema_version != schema_version
             ]
             for k in stale:
@@ -323,8 +318,7 @@ class SqliteScanCache:
         async with self._lock:
             self._raise_if_closed()
             cur = await self._conn.execute(
-                "SELECT fingerprint, schema_version, value "
-                "FROM scan_cache WHERE key=?",
+                "SELECT fingerprint, schema_version, value FROM scan_cache WHERE key=?",
                 (key,),
             )
             try:
@@ -338,9 +332,7 @@ class SqliteScanCache:
             return None
         return bytes(value)
 
-    async def get_many(
-        self, lookups: Sequence[CacheLookup]
-    ) -> dict[str, bytes]:
+    async def get_many(self, lookups: Sequence[CacheLookup]) -> dict[str, bytes]:
         if not lookups:
             return {}
         # Single SELECT … WHERE key IN (?, ?, ...) so a sub-source pre-
@@ -361,9 +353,7 @@ class SqliteScanCache:
                 rows = await cur.fetchall()
             finally:
                 await cur.close()
-        rows_by_key = {
-            row[0]: (row[1], row[2], bytes(row[3])) for row in rows
-        }
+        rows_by_key = {row[0]: (row[1], row[2], bytes(row[3])) for row in rows}
         out: dict[str, bytes] = {}
         for lk in lookups:
             row = rows_by_key.get(lk.key)
@@ -400,9 +390,7 @@ class SqliteScanCache:
     async def delete(self, key: str) -> None:
         async with self._lock:
             self._raise_if_closed()
-            await self._conn.execute(
-                "DELETE FROM scan_cache WHERE key=?", (key,)
-            )
+            await self._conn.execute("DELETE FROM scan_cache WHERE key=?", (key,))
             await self._conn.commit()
 
     async def purge_other_schemas(self, schema_version: str) -> int:

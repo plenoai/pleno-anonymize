@@ -85,9 +85,7 @@ class PostgresConfig:
     tables: tuple[str, ...] = ()
     excluded_tables: tuple[str, ...] = ()
     sample_rows: int = field(
-        default_factory=lambda: reservoir_sample_size(
-            confidence=0.95, prevalence=0.01
-        )
+        default_factory=lambda: reservoir_sample_size(confidence=0.95, prevalence=0.01)
     )
     statement_timeout: str = "30s"
     pool_size: int = 2
@@ -279,9 +277,7 @@ class PostgresConnector:
         except ValueError:
             return None
         async with self._pool.acquire() as conn:  # type: ignore[union-attr]
-            rows = await conn.fetch(
-                _RELOAD_SQL, schema, table, list(_TEXTUAL_TYPES)
-            )
+            rows = await conn.fetch(_RELOAD_SQL, schema, table, list(_TEXTUAL_TYPES))
         if not rows:
             return None
         return _TableMeta(

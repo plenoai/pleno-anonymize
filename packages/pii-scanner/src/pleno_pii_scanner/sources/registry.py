@@ -107,8 +107,7 @@ class _Registry:
             return self._specs[kind]
         except KeyError:
             raise UnknownConnectorError(
-                f"unknown connector kind: {kind!r}. "
-                f"Available: {sorted(self._specs)}"
+                f"unknown connector kind: {kind!r}. Available: {sorted(self._specs)}"
             ) from None
 
     def list_kinds(self) -> tuple[str, ...]:

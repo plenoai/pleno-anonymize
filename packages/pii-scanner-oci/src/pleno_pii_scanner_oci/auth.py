@@ -21,7 +21,6 @@ tokens skip realm negotiation entirely via `StaticAuth`.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -68,8 +67,7 @@ class BasicAuth:
         token = body.get("token") or body.get("access_token")
         if not token:
             raise ValueError(
-                "registry token-realm response had neither 'token' nor "
-                "'access_token'"
+                "registry token-realm response had neither 'token' nor 'access_token'"
             )
         return token
 
@@ -88,8 +86,7 @@ class AnonymousAuth:
         token = body.get("token") or body.get("access_token")
         if not token:
             raise ValueError(
-                "anonymous token request returned neither 'token' nor "
-                "'access_token'"
+                "anonymous token request returned neither 'token' nor 'access_token'"
             )
         return token
 
@@ -102,10 +99,8 @@ def parse_challenge(www_authenticate: str) -> dict[str, str]:
     surfaces with a clear error rather than an empty params dict.
     """
     if not www_authenticate.lower().startswith("bearer "):
-        raise ValueError(
-            f"only Bearer challenges supported, got: {www_authenticate!r}"
-        )
-    rest = www_authenticate[len("Bearer "):]
+        raise ValueError(f"only Bearer challenges supported, got: {www_authenticate!r}")
+    rest = www_authenticate[len("Bearer ") :]
     out: dict[str, str] = {}
     for pair in _split_header(rest):
         if "=" not in pair:

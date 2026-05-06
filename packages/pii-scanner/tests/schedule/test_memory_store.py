@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-import pytest
 
 from pleno_pii_scanner.schedule.base import Schedule
 from pleno_pii_scanner.schedule.cron import CronExpression

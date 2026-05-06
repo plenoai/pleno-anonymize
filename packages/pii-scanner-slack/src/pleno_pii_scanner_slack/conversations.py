@@ -64,7 +64,7 @@ async def _paginate(
         # .get(); the test doubles below mirror that surface.
         yield dict(page.data) if hasattr(page, "data") else dict(page)
         next_cursor = ""
-        meta = (page.get("response_metadata") if hasattr(page, "get") else None)
+        meta = page.get("response_metadata") if hasattr(page, "get") else None
         if meta:
             next_cursor = meta.get("next_cursor", "") or ""
         if not next_cursor:
@@ -256,9 +256,7 @@ async def _yield_thread_replies(
         "ts": thread_ts,
         "limit": _HISTORY_PAGE,
     }
-    async for page in _paginate(
-        method=client.conversations_replies, base_kwargs=base
-    ):
+    async for page in _paginate(method=client.conversations_replies, base_kwargs=base):
         messages = page.get("messages", [])
         for message in sorted(messages, key=lambda m: float(m.get("ts", 0))):
             ts = str(message["ts"])

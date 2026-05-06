@@ -157,8 +157,12 @@ class TestCredentialBroker:
     async def test_returns_first_matching_resolver(self) -> None:
         target = Credential(kind="github-pat", payload={"token": "x"})
         r1 = StaticResolver("low", priority=10, match=None)
-        r2 = StaticResolver("hit", priority=50, match=("github-pat", "default"), cred=target)
-        r3 = StaticResolver("never", priority=5, match=("github-pat", "default"), cred=target)
+        r2 = StaticResolver(
+            "hit", priority=50, match=("github-pat", "default"), cred=target
+        )
+        r3 = StaticResolver(
+            "never", priority=5, match=("github-pat", "default"), cred=target
+        )
         broker = CredentialBroker([r1, r2, r3])
         got = await broker.get("github-pat")
         assert got is target
@@ -168,8 +172,12 @@ class TestCredentialBroker:
     async def test_priority_order_descending(self) -> None:
         target_high = Credential(kind="aws-iam", payload={"token": "high"})
         target_low = Credential(kind="aws-iam", payload={"token": "low"})
-        low = StaticResolver("low", priority=1, match=("aws-iam", "default"), cred=target_low)
-        high = StaticResolver("high", priority=99, match=("aws-iam", "default"), cred=target_high)
+        low = StaticResolver(
+            "low", priority=1, match=("aws-iam", "default"), cred=target_low
+        )
+        high = StaticResolver(
+            "high", priority=99, match=("aws-iam", "default"), cred=target_high
+        )
         broker = CredentialBroker([low, high])
         got = await broker.get("aws-iam")
         assert got is target_high
@@ -178,10 +186,14 @@ class TestCredentialBroker:
 
     async def test_register_resolver_re_sorts(self) -> None:
         existing = Credential(kind="github-pat", payload={"token": "old"})
-        r_old = StaticResolver("old", priority=10, match=("github-pat", "default"), cred=existing)
+        r_old = StaticResolver(
+            "old", priority=10, match=("github-pat", "default"), cred=existing
+        )
         broker = CredentialBroker([r_old])
         new_target = Credential(kind="github-pat", payload={"token": "new"})
-        r_new = StaticResolver("new", priority=99, match=("github-pat", "default"), cred=new_target)
+        r_new = StaticResolver(
+            "new", priority=99, match=("github-pat", "default"), cred=new_target
+        )
         broker.register_resolver(r_new)
         got = await broker.get("github-pat")
         assert got is new_target
@@ -213,7 +225,9 @@ class TestCredentialBroker:
 
     async def test_default_name_is_default(self) -> None:
         target = Credential(kind="slack-bot", payload={"token": "x"})
-        r = StaticResolver("env", priority=10, match=("slack-bot", "default"), cred=target)
+        r = StaticResolver(
+            "env", priority=10, match=("slack-bot", "default"), cred=target
+        )
         broker = CredentialBroker([r])
         await broker.get("slack-bot")
         assert r.calls == [("slack-bot", "default")]
@@ -236,8 +250,12 @@ class TestCredentialBroker:
     async def test_get_for_profile_delegates(self) -> None:
         from pleno_pii_scanner.credentials import CredentialProfile
 
-        target = Credential(kind="aws-iam", payload={"access_key_id": "x", "secret_access_key": "y"})
-        r = StaticResolver("env", priority=10, match=("aws-iam", "default"), cred=target)
+        target = Credential(
+            kind="aws-iam", payload={"access_key_id": "x", "secret_access_key": "y"}
+        )
+        r = StaticResolver(
+            "env", priority=10, match=("aws-iam", "default"), cred=target
+        )
         broker = CredentialBroker([r])
         profile = CredentialProfile(name="p", base="aws-iam:default")
         got = await broker.get_for_profile(profile)

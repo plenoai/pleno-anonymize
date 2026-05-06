@@ -29,7 +29,7 @@ import shutil
 import subprocess
 import tempfile
 import urllib.parse
-from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
+from collections.abc import AsyncIterator, Callable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -74,9 +74,7 @@ ProjectInfo = Mapping[str, Any]
 CloneFn = Callable[["GitlabConnector", ProjectInfo], Path]
 # Enumeration is async because it walks paginated REST. Tests inject an
 # AsyncIterable to drive the connector without touching the API client.
-EnumerateFn = Callable[
-    ["GitlabConnector"], AsyncIterator[ProjectInfo]
-]
+EnumerateFn = Callable[["GitlabConnector"], AsyncIterator[ProjectInfo]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -201,7 +199,8 @@ class GitlabConnector:
         # changed across GitLab versions; cheaper to re-enumerate.
         del cursor
         projects = (
-            self._enumerate_fn(self) if self._enumerate_fn is not None
+            self._enumerate_fn(self)
+            if self._enumerate_fn is not None
             else self._iter_projects()
         )
         async for project in projects:
@@ -255,9 +254,7 @@ class GitlabConnector:
         url: str = f"/groups/{encoded}/projects"
         first = True
         while True:
-            response = await self._api.get(
-                url, params=params if first else None
-            )
+            response = await self._api.get(url, params=params if first else None)
             if response.status_code != 200:
                 return
             page = response.json()
@@ -309,9 +306,7 @@ class GitlabConnector:
         if not isinstance(path_with_ns, str) or path_with_ns not in self._clones:
             return
         clone_path = self._clones[path_with_ns]
-        inner = DirConnector(
-            DirConfig(root=clone_path, id=f"{KIND}:{path_with_ns}")
-        )
+        inner = DirConnector(DirConfig(root=clone_path, id=f"{KIND}:{path_with_ns}"))
         try:
             inner_ref = self._unwrap_ref(ref)
             async for doc in inner.fetch(inner_ref):
@@ -363,11 +358,12 @@ class GitlabConnector:
             self._tempdirs.append(path)
         return path
 
-    def _wrap_ref(
-        self, inner: DocumentRef, project: ProjectInfo
-    ) -> DocumentRef:
+    def _wrap_ref(self, inner: DocumentRef, project: ProjectInfo) -> DocumentRef:
         path_with_ns = project["path_with_namespace"]
-        web_url = project.get("web_url") or f"{self._config.base_url.rstrip('/')}/{path_with_ns}"
+        web_url = (
+            project.get("web_url")
+            or f"{self._config.base_url.rstrip('/')}/{path_with_ns}"
+        )
         # Surface the project metadata enough that the FindingsStore
         # can render `<group>/<project>:<file>:<line>` without a second
         # API hop.
@@ -533,12 +529,16 @@ def _factory(config: Mapping[str, Any]) -> GitlabConnector:
         )
     return GitlabConnector(
         GitlabConfig(
-            project=str(config["project"]) if config.get("project") is not None else None,
+            project=str(config["project"])
+            if config.get("project") is not None
+            else None,
             group=str(config["group"]) if config.get("group") is not None else None,
             base_url=str(config.get("base_url", DEFAULT_BASE_URL)),
             include_archived=bool(config.get("include_archived", False)),
             visibility=(
-                str(config["visibility"]) if config.get("visibility") is not None else None
+                str(config["visibility"])
+                if config.get("visibility") is not None
+                else None
             ),
             ca_bundle_path=(
                 str(config["ca_bundle_path"])

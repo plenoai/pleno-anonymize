@@ -6,8 +6,14 @@ from pleno_pii_scanner.verify import verify
 
 def _f(entity, matched, file="a.txt"):
     return Finding(
-        entity=entity, file=file, line=1, col=1, score=0.5,
-        snippet=matched, matched=matched, pattern_name="p",
+        entity=entity,
+        file=file,
+        line=1,
+        col=1,
+        score=0.5,
+        snippet=matched,
+        matched=matched,
+        pattern_name="p",
     )
 
 
@@ -50,7 +56,9 @@ def test_verify_person_email_proximity_boosts_score():
         matched="Guido van Rossum",
         pattern_name="person_latin_multi_word",
     )
-    text = {"pep.rst": "| PEP: 8\n| Title: Style\n| Author: Guido van Rossum <guido@python.org>,\n"}
+    text = {
+        "pep.rst": "| PEP: 8\n| Title: Style\n| Author: Guido van Rossum <guido@python.org>,\n"
+    }
     out = verify([f], [JA_PERSON_LATIN], file_text_for=text)
     assert out[0].verification == "passed"
     assert out[0].score >= 0.7, out[0].score

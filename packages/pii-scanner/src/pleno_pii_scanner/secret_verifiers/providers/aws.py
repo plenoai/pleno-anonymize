@@ -34,9 +34,7 @@ class AwsVerifier:
     name = "aws"
     entities = frozenset({"AWS_ACCESS_KEY", "AWS_SECRET_KEY"})
 
-    async def verify(
-        self, value: str, *, ctx: VerifyContext
-    ) -> VerificationResult:
+    async def verify(self, value: str, *, ctx: VerifyContext) -> VerificationResult:
         secret_key = ctx.extra.get("aws_secret_access_key") if ctx.extra else None
         if not isinstance(secret_key, str) or not secret_key:
             return VerificationResult(
@@ -48,9 +46,17 @@ class AwsVerifier:
         if session_token is not None and not isinstance(session_token, str):
             session_token = None
         region_value = ctx.extra.get("aws_region") if ctx.extra else None
-        region = region_value if isinstance(region_value, str) and region_value else "us-east-1"
+        region = (
+            region_value
+            if isinstance(region_value, str) and region_value
+            else "us-east-1"
+        )
         now_value = ctx.extra.get("_aws_now") if ctx.extra else None
-        now = now_value if isinstance(now_value, _dt.datetime) else _dt.datetime.now(_dt.UTC)
+        now = (
+            now_value
+            if isinstance(now_value, _dt.datetime)
+            else _dt.datetime.now(_dt.UTC)
+        )
 
         host = _HOST_TEMPLATE.format(region=region)
         url = f"https://{host}/"
@@ -185,7 +191,9 @@ def sigv4_sign_post(
         ]
     )
     signing_key = _derive_signing_key(secret_access_key, date_stamp, region, _SERVICE)
-    signature = hmac.new(signing_key, string_to_sign.encode(), hashlib.sha256).hexdigest()
+    signature = hmac.new(
+        signing_key, string_to_sign.encode(), hashlib.sha256
+    ).hexdigest()
 
     authorization = (
         f"AWS4-HMAC-SHA256 "
@@ -221,5 +229,3 @@ def _derive_signing_key(
     k_region = hmac.new(k_date, region.encode(), hashlib.sha256).digest()
     k_service = hmac.new(k_region, service.encode(), hashlib.sha256).digest()
     return hmac.new(k_service, b"aws4_request", hashlib.sha256).digest()
-
-

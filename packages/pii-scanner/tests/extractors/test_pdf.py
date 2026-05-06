@@ -6,9 +6,9 @@ import pytest
 
 pdfium = pytest.importorskip("pypdfium2")
 
-from pleno_pii_scanner.extractors import collect
-from pleno_pii_scanner.extractors.pdf import PdfExtractor
-from pleno_pii_scanner.sources.base import Document, DocumentRef
+from pleno_pii_scanner.extractors import collect  # noqa: E402
+from pleno_pii_scanner.extractors.pdf import PdfExtractor  # noqa: E402
+from pleno_pii_scanner.sources.base import Document, DocumentRef  # noqa: E402
 
 
 def _ref() -> DocumentRef:

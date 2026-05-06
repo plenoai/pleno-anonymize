@@ -64,9 +64,7 @@ async def test_custom_method_post() -> None:
         captured["method"] = request.method
         return httpx.Response(200)
 
-    verifier = GenericBearerVerifier(
-        url="https://api.example.com/me", method="post"
-    )
+    verifier = GenericBearerVerifier(url="https://api.example.com/me", method="post")
     await verifier.verify("tok", ctx=_ctx(handler))
     assert captured["method"] == "POST"
 
