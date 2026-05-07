@@ -94,7 +94,7 @@ make sweep-threshold-org-v12
 ## Decision
 
 - Tag `model/v0.13.0` against `output/hf-ja-v02-tiny-aug-ext` with `inference.org_threshold = 0.99` recorded in artifact metadata.
-- Wire ORG threshold into pii-scanner consumer as a configurable knob (default 0.99 for DLP profile).
+- Wire ORG threshold into downstream DLP consumers as a configurable knob (default 0.99).
 - Trigger #79 HF Hub release pipeline.
 - Keep #48 open for the remaining per-entity precision ≥ 70 % goals (ADDRESS, DOB, BANK) — those need model-side work, not threshold tuning.
 

@@ -163,9 +163,7 @@ JA_POSTAL_CODE = PiiRecognizer(
     patterns=(
         PiiPattern("postal_code_with_symbol", r"〒\d{3}[‐\-ー]\d{4}", 0.9),
         PiiPattern("postal_code_half", r"\b\d{3}[‐\-ー]\d{4}\b", 0.3),
-        PiiPattern(
-            "postal_code_fullwidth", r"〒[０-９]{3}[‐\-ー－−][０-９]{4}", 0.9
-        ),
+        PiiPattern("postal_code_fullwidth", r"〒[０-９]{3}[‐\-ー－−][０-９]{4}", 0.9),
     ),
     context=("郵便番号", "〒", "zip", "postal"),
 )
@@ -180,18 +178,42 @@ JA_URL = PiiRecognizer(
 
 # --- 銀行口座 (BANK_ACCOUNT) ---
 _JA_BANK_NAMES = (
-    "三菱UFJ", "三井住友", "みずほ", "りそな", "埼玉りそな",
-    "三井住友信託", "三菱UFJ信託",
-    "楽天", "PayPay", "ソニー", "住信SBIネット", "auじぶん",
-    "セブン", "イオン", "GMOあおぞらネット", "あおぞら", "ローソン",
-    "横浜", "千葉", "静岡", "常陽", "京都", "広島",
-    "西日本シティ", "福岡", "北海道", "北陸", "群馬", "東邦",
-    "山陰合同", "新生", "シティバンク", "信金中央",
+    "三菱UFJ",
+    "三井住友",
+    "みずほ",
+    "りそな",
+    "埼玉りそな",
+    "三井住友信託",
+    "三菱UFJ信託",
+    "楽天",
+    "PayPay",
+    "ソニー",
+    "住信SBIネット",
+    "auじぶん",
+    "セブン",
+    "イオン",
+    "GMOあおぞらネット",
+    "あおぞら",
+    "ローソン",
+    "横浜",
+    "千葉",
+    "静岡",
+    "常陽",
+    "京都",
+    "広島",
+    "西日本シティ",
+    "福岡",
+    "北海道",
+    "北陸",
+    "群馬",
+    "東邦",
+    "山陰合同",
+    "新生",
+    "シティバンク",
+    "信金中央",
 )
 _JA_BANK_ALT = "|".join(sorted(_JA_BANK_NAMES, key=len, reverse=True))
-_JA_BANK_BRANCH_PART = (
-    r"(?:[一-龥ぁ-んァ-ヶー々〆\d]{0,12}支店|本店営業部|本店|[一-龥ぁ-んァ-ヶー]{1,8}営業部)"
-)
+_JA_BANK_BRANCH_PART = r"(?:[一-龥ぁ-んァ-ヶー々〆\d]{0,12}支店|本店営業部|本店|[一-龥ぁ-んァ-ヶー]{1,8}営業部)"
 
 # --- Latin-script personal names (recall booster, issue #102) ---
 # ja_ner_ja は日本語まじり文中のLatin文字人名 (Yosuke Furukawa, Guido van Rossum,
@@ -234,11 +256,21 @@ JA_PERSON_LATIN = PiiRecognizer(
         # a Latin-name candidate via the keyword boost. The remaining list
         # is restricted to attribution prefixes that almost never appear as
         # the *content* of a name span.
-        "Author", "Authored-by", "Authored by",
-        "Translator", "Translated by",
-        "Reviewed-by", "Signed-off-by", "Co-authored-by",
-        "Copyright", "©",
-        "翻訳", "監訳", "原著", "著者", "訳者",
+        "Author",
+        "Authored-by",
+        "Authored by",
+        "Translator",
+        "Translated by",
+        "Reviewed-by",
+        "Signed-off-by",
+        "Co-authored-by",
+        "Copyright",
+        "©",
+        "翻訳",
+        "監訳",
+        "原著",
+        "著者",
+        "訳者",
     ),
 )
 
@@ -248,7 +280,11 @@ JA_BANK_ACCOUNT = PiiRecognizer(
     patterns=(
         PiiPattern(
             "bank_account_branch",
-            r"(?:" + _JA_BANK_ALT + r")銀行" + _JA_BANK_BRANCH_PART + r"(?:普通|当座)\d{7,8}",
+            r"(?:"
+            + _JA_BANK_ALT
+            + r")銀行"
+            + _JA_BANK_BRANCH_PART
+            + r"(?:普通|当座)\d{7,8}",
             0.85,
         ),
         PiiPattern(
