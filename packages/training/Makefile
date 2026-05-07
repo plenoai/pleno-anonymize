@@ -717,7 +717,7 @@ export-onnx-en-v01-tiny:
 		--output output/hf-en-v01-tiny-onnx
 
 # Push to HF Hub. Repo `0xhikae/en-ner-onnx` is the en analogue of
-# `0xhikae/ja-ner-onnx@v0.13.0` consumed by pleno-pii-scanner's HF backend.
+# `0xhikae/ja-ner-onnx` consumed by downstream HF token-classification backends.
 push-hf-en-v01-tiny:
 	uv run python -m pleno_ner_training.export_onnx \
 		--model output/hf-en-v01-tiny \

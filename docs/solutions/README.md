@@ -9,9 +9,6 @@ production incident や PR review で得た学びを蓄積するディレクト�
 | 2026-05-03 | #53 | [Build-time spaCy model smoke test catches stale Dockerfile paths](./2026-05-03-build-time-model-smoke-test.md) |
 | 2026-05-03 | #54 | [uv sync prunes wheels not in uv.lock — Dockerfile ordering matters](./2026-05-03-uv-sync-wheel-install-ordering.md) |
 | 2026-05-03 | #55 | [NER 評価基準は metric triad (corpus, metric, aggregation) で語る](./2026-05-03-metric-triad-evaluation-criteria.md) |
-| 2026-05-04 | ADR-0007 | [Hermetic SourceConnector tests via httpx.MockTransport — 100% coverage without network](./2026-05-04-hermetic-connector-tests-mocktransport.md) |
-| 2026-05-04 | pii-scanner-oci #33 | [OCI registry token cache miss when challenge overrides scope](./2026-05-04-oci-token-cache-scope-key.md) |
-| 2026-05-04 | ADR-0007 | [並列 teammates の workspace pyproject conflict — alphabetical sort + small commits](./2026-05-04-parallel-teammates-workspace-conflicts.md) |
 
 ## 書き方
 

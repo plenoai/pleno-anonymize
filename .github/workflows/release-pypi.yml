@@ -1,32 +1,22 @@
 name: Release packages to PyPI
 
-# Trusted publishing for every wheel that ships from this monorepo.
+# Trusted publishing for the recognizer registry. Only `pleno-recognizers`
+# ships from this monorepo as a wheel — the server is delivered as a Docker
+# image, and NER models are released as Hugging Face artifacts.
 #
-# Tag conventions:
-#   recognizers/vX.Y.Z              -> packages/recognizers           (legacy alias)
-#   scanner/vX.Y.Z                  -> packages/pii-scanner           (legacy alias)
-#   pii-scanner-<connector>/vX.Y.Z  -> packages/pii-scanner-<connector>
+# Tag convention:
+#   recognizers/vX.Y.Z   -> packages/recognizers
 #
-# The connector form scales without editing this workflow — every new
-# `packages/pii-scanner-*` package gets PyPI release on first tag once
-# its Trusted Publisher is registered on PyPI.
-#
-# PyPI side: each project must have the GitHub Actions trusted publisher
-# configured (or a Pending Publisher for the very first release). See
+# PyPI side: the project must have a GitHub Actions trusted publisher
+# configured (or a Pending Publisher for the first release).
 # https://docs.pypi.org/trusted-publishers/
 
 on:
   push:
     tags:
       - 'recognizers/v*'
-      - 'scanner/v*'
-      - 'pii-scanner-*/v*'
   workflow_dispatch:
     inputs:
-      package:
-        description: 'Package directory under packages/ (e.g. pii-scanner-oci)'
-        required: true
-        type: string
       dry_run:
         description: 'Build wheel but skip PyPI upload'
         required: false
@@ -51,65 +41,30 @@ jobs:
 
       - uses: astral-sh/setup-uv@v5
 
-      - name: Resolve package directory and dry-run flag
+      - name: Resolve dry-run flag
         id: resolve
         env:
-          REF_NAME: ${{ github.ref_name }}
           EVENT_NAME: ${{ github.event_name }}
-          INPUT_PACKAGE: ${{ github.event.inputs.package }}
           INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
         run: |
           set -euo pipefail
           if [ "$EVENT_NAME" = "push" ]; then
-            # Strip "/vX.Y.Z" suffix to recover the tag-prefix.
-            prefix="${REF_NAME%/v*}"
-            case "$prefix" in
-              recognizers)        workdir="packages/recognizers" ;;
-              scanner)            workdir="packages/pii-scanner" ;;
-              pii-scanner-*)      workdir="packages/$prefix" ;;
-              *)
-                echo "::error::tag $REF_NAME does not match any known package prefix"
-                exit 1
-                ;;
-            esac
             dry_run="false"
           else
-            input="$INPUT_PACKAGE"
-            # Allow either a bare directory name ("pii-scanner-oci") or
-            # the legacy aliases ("scanner", "recognizers").
-            case "$input" in
-              recognizers)   workdir="packages/recognizers" ;;
-              scanner)       workdir="packages/pii-scanner" ;;
-              pii-scanner-*) workdir="packages/$input" ;;
-              *)
-                echo "::error::unknown package $input"
-                exit 1
-                ;;
-            esac
             dry_run="${INPUT_DRY_RUN:-true}"
           fi
-
-          if [ ! -f "$workdir/pyproject.toml" ]; then
-            echo "::error::no pyproject.toml under $workdir — refusing to build"
-            exit 1
-          fi
-
-          {
-            echo "workdir=$workdir"
-            echo "dry_run=$dry_run"
-          } >> "$GITHUB_OUTPUT"
-          echo "Resolved: workdir=$workdir dry_run=$dry_run"
+          echo "dry_run=$dry_run" >> "$GITHUB_OUTPUT"
 
       - name: Build wheel and sdist
-        working-directory: ${{ steps.resolve.outputs.workdir }}
+        working-directory: packages/recognizers
         run: uv build --out-dir dist
 
       - name: List build artifacts
-        working-directory: ${{ steps.resolve.outputs.workdir }}
+        working-directory: packages/recognizers
         run: ls -la dist
 
       - name: Publish to PyPI
         if: steps.resolve.outputs.dry_run != 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: ${{ steps.resolve.outputs.workdir }}/dist
+          packages-dir: packages/recognizers/dist

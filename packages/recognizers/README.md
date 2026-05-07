@@ -1,6 +1,6 @@
 # pleno-recognizers
 
-Pure-Python recognizer definitions (regex plus checksum validators) for Japanese PII. Shared by the [pleno-anonymize](https://github.com/plenoai/pleno-anonymize) HTTP server and the `pleno-pii-scanner` CLI so identical input yields identical entity sets across both surfaces.
+Pure-Python recognizer definitions (regex plus checksum validators) for Japanese PII. Backs the [pleno-anonymize](https://github.com/plenoai/pleno-anonymize) `/api/analyze` and `/api/redact` endpoints.
 
 ## Install
 
