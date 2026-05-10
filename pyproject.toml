@@ -2,6 +2,5 @@
 members = [
     "server",
     "packages/training",
-    "packages/recognizers",
     "packages/sdk",
 ]

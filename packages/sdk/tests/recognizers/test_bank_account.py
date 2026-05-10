@@ -12,7 +12,7 @@ import re
 
 import pytest
 
-from pleno_recognizers.ja import ALL_JA_RECOGNIZERS, JA_BANK_ACCOUNT
+from pleno_anonymize.recognizers.ja import ALL_JA_RECOGNIZERS, JA_BANK_ACCOUNT
 
 
 def test_bank_account_recognizer_registered():

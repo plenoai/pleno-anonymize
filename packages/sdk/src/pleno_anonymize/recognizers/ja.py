@@ -1,10 +1,11 @@
 """日本語PII パターンベース Recognizer 定義.
 
-presidio に依存しない純粋データ。サーバ側は `pleno_recognizers.presidio_adapter`
-経由で `PatternRecognizer` に変換し、scanner 側は raw regex として直接使う。
+presidio に依存しない純粋データ。サーバ/SDK は
+`pleno_anonymize.recognizers.presidio_adapter` 経由で `PatternRecognizer` に
+変換し、scanner 側は raw regex として直接使う。
 """
 
-from pleno_recognizers.types import PiiPattern, PiiRecognizer
+from pleno_anonymize.recognizers.types import PiiPattern, PiiRecognizer
 
 # --- 電話番号 (全角/半角対応) ---
 _SEP = r"[\-‐ー－−–―]"

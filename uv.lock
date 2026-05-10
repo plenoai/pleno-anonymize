@@ -27,7 +27,6 @@ members = [
     "pleno-anonymize",
     "pleno-anonymize-server",
     "pleno-ner-training",
-    "pleno-recognizers",
 ]
 
 [[package]]
@@ -2514,10 +2513,9 @@ wheels = [
 
 [[package]]
 name = "pleno-anonymize"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "packages/sdk" }
 dependencies = [
-    { name = "pleno-recognizers" },
     { name = "presidio-analyzer" },
     { name = "presidio-anonymizer" },
     { name = "spacy", extra = ["ja"] },
@@ -2537,7 +2535,6 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "httpx", marker = "extra == 'remote'", specifier = ">=0.27" },
-    { name = "pleno-recognizers", editable = "packages/recognizers" },
     { name = "presidio-analyzer", specifier = ">=2.2" },
     { name = "presidio-anonymizer", specifier = ">=2.2" },
     { name = "spacy", extras = ["ja"], specifier = ">=3.8" },
@@ -2557,7 +2554,7 @@ source = { virtual = "server" }
 dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
-    { name = "pleno-recognizers" },
+    { name = "pleno-anonymize" },
     { name = "presidio-analyzer" },
     { name = "presidio-anonymizer" },
     { name = "scalar-fastapi" },
@@ -2590,7 +2587,7 @@ requires-dist = [
     { name = "langchain-community", marker = "extra == 'proxy'", specifier = ">=0.3.27" },
     { name = "openai", marker = "extra == 'proxy'", specifier = ">=1.0.0" },
     { name = "pillow", marker = "extra == 'image'", specifier = ">=10.0.0" },
-    { name = "pleno-recognizers", editable = "packages/recognizers" },
+    { name = "pleno-anonymize", editable = "packages/sdk" },
     { name = "presidio-analyzer", specifier = ">=2.2" },
     { name = "presidio-anonymizer", specifier = ">=2.2" },
     { name = "presidio-image-redactor", marker = "extra == 'image'", specifier = ">=0.0.53" },
@@ -2665,28 +2662,6 @@ requires-dist = [
     { name = "transformers", marker = "extra == 'hf'", specifier = ">=4.40" },
 ]
 provides-extras = ["training", "hf", "bench"]
-
-[[package]]
-name = "pleno-recognizers"
-version = "0.1.1"
-source = { editable = "packages/recognizers" }
-
-[package.optional-dependencies]
-presidio = [
-    { name = "presidio-analyzer" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "presidio-analyzer", marker = "extra == 'presidio'", specifier = ">=2.2" }]
-provides-extras = ["presidio"]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "pluggy"

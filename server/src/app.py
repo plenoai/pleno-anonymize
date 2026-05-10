@@ -53,7 +53,7 @@ def _init_presidio():
     from presidio_analyzer import AnalyzerEngine
     from presidio_analyzer.nlp_engine import SpacyNlpEngine
     from presidio_anonymizer import AnonymizerEngine
-    from pleno_recognizers.presidio_adapter import all_ja_presidio
+    from pleno_anonymize.recognizers.presidio_adapter import all_ja_presidio
 
     class MultiLangSpacyNlpEngine(SpacyNlpEngine):
         def __init__(self, models: dict):

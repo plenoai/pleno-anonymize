@@ -1,4 +1,4 @@
-"""Local engine — Presidio + spaCy + pleno-recognizers, no network at scan time."""
+"""Local engine — Presidio + spaCy + bundled recognizers, no network at scan time."""
 
 from __future__ import annotations
 
@@ -115,7 +115,7 @@ class LocalEngine:
         import spacy
         from presidio_analyzer import AnalyzerEngine
         from presidio_analyzer.nlp_engine import SpacyNlpEngine
-        from pleno_recognizers.presidio_adapter import all_ja_presidio
+        from pleno_anonymize.recognizers.presidio_adapter import all_ja_presidio
 
         class _MultiLangSpacyNlpEngine(SpacyNlpEngine):
             def __init__(self, models: dict[str, "spacy.Language"]):

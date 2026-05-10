@@ -10,11 +10,11 @@ dependencies = [
     "spacy[ja]>=3.8",
     "uvicorn[standard]>=0.35.0",
     "scalar-fastapi>=1.6.0",
-    "pleno-recognizers",
+    "pleno-anonymize",
 ]
 
 [tool.uv.sources]
-pleno-recognizers = { workspace = true }
+pleno-anonymize = { workspace = true }
 
 [project.optional-dependencies]
 image = [

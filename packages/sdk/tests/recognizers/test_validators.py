@@ -1,4 +1,9 @@
-from pleno_recognizers.validators import luhn, my_number, corporate_number, validate
+from pleno_anonymize.recognizers.validators import (
+    luhn,
+    my_number,
+    corporate_number,
+    validate,
+)
 
 
 def test_luhn_valid():
