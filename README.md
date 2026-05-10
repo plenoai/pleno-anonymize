@@ -3,7 +3,7 @@
 Japanese-first PII analysis and redaction. The repository ships three artifacts that share a single recognizer registry and NER model:
 
 - **`pleno-anonymize` server** — HTTP API exposing `/api/analyze`, `/api/redact`, and OpenAI / Anthropic / Gemini proxies that mask PII before forwarding upstream.
-- **`pleno-anonymize` npm package** — TypeScript SDK + CLI (`npx pleno-anonymize scan .`) wrapping the same API. See [`packages/sdk-js`](packages/sdk-js).
+- **`pleno-anonymize` Python package** — SDK + CLI (`uvx pleno-anonymize scan .`) wrapping the same API. See [`packages/sdk`](packages/sdk).
 - **`ja_ner_ja` / `en_ner_en` models** — spaCy NER models trained from this repository's training pipeline.
 
 Endpoint: https://pleno-anonymize.fly.dev (API reference at `/docs`).
