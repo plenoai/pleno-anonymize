@@ -8,9 +8,10 @@ WORKDIR /workspace
 # graph, then sync only the server subset.
 COPY pyproject.toml uv.lock ./
 COPY packages/training/pyproject.toml packages/training/pyproject.toml
-# pleno-recognizers is a server dependency, so its source must be copied
-# (uv builds workspace members as wheels — pyproject alone is not enough).
-COPY packages/recognizers/ packages/recognizers/
+# pleno-anonymize is a server dependency (provides the recognizer registry),
+# so its source must be copied — uv builds workspace members as wheels and
+# pyproject alone is not enough.
+COPY packages/sdk/ packages/sdk/
 COPY server/pyproject.toml server/pyproject.toml
 # Server image excludes OSS baselines (ginza / ja-ginza / ja_core_news_trf)
 # to keep the image small. `bench` lives in packages/training's

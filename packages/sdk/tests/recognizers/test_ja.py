@@ -1,6 +1,6 @@
 import re
 
-from pleno_recognizers.ja import ALL_JA_RECOGNIZERS, JA_PHONE, JA_EMAIL
+from pleno_anonymize.recognizers.ja import ALL_JA_RECOGNIZERS, JA_PHONE, JA_EMAIL
 
 
 def test_all_recognizers_have_compilable_regexes():

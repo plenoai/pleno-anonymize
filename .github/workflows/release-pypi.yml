@@ -1,33 +1,24 @@
-name: Release packages to PyPI
+name: Release pleno-anonymize to PyPI
 
-# Trusted publishing for monorepo wheels. Two packages ship to PyPI:
-#   - pleno-recognizers (recognizer registry, used as a library)
-#   - pleno-anonymize   (SDK + CLI; depends on pleno-recognizers)
+# Trusted publishing for the unified SDK wheel.
+#
+#   pleno-anonymize (SDK + CLI; bundles the recognizer registry that used to
+#   ship as the separate pleno-recognizers package — merged in 0.2.0)
 #
 # Server is delivered as a Docker image; NER models live on Hugging Face.
 #
-# Tag conventions:
-#   recognizers/vX.Y.Z   -> packages/recognizers
-#   sdk/vX.Y.Z           -> packages/sdk (PyPI name: pleno-anonymize)
+# Tag convention:
+#   sdk/vX.Y.Z -> packages/sdk (PyPI name: pleno-anonymize)
 #
-# PyPI side: each project needs a GitHub Actions trusted publisher
-# configured (or a Pending Publisher for the first release).
+# PyPI side: the project needs a GitHub Actions trusted publisher configured.
 # https://docs.pypi.org/trusted-publishers/
 
 on:
   push:
     tags:
-      - 'recognizers/v*'
       - 'sdk/v*'
   workflow_dispatch:
     inputs:
-      package:
-        description: 'Which package to build'
-        required: true
-        type: choice
-        options:
-          - recognizers
-          - sdk
       dry_run:
         description: 'Build wheel but skip PyPI upload'
         required: false
@@ -52,42 +43,24 @@ jobs:
 
       - uses: astral-sh/setup-uv@v5
 
-      - name: Resolve package + dry-run flag
+      - name: Resolve dry-run flag
         id: resolve
         env:
           EVENT_NAME: ${{ github.event_name }}
-          REF_NAME: ${{ github.ref_name }}
-          INPUT_PACKAGE: ${{ github.event.inputs.package }}
           INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
         run: |
           set -euo pipefail
           if [ "$EVENT_NAME" = "push" ]; then
             dry_run="false"
-            case "$REF_NAME" in
-              recognizers/v*) package="recognizers" ;;
-              sdk/v*)         package="sdk" ;;
-              *)
-                echo "::error::unrecognized tag: $REF_NAME"
-                exit 1
-                ;;
-            esac
           else
             dry_run="${INPUT_DRY_RUN:-true}"
-            package="${INPUT_PACKAGE}"
           fi
-          case "$package" in
-            recognizers) directory="packages/recognizers" ;;
-            sdk)         directory="packages/sdk" ;;
-          esac
-          echo "package=$package" >> "$GITHUB_OUTPUT"
-          echo "directory=$directory" >> "$GITHUB_OUTPUT"
           echo "dry_run=$dry_run" >> "$GITHUB_OUTPUT"
 
       - name: Verify tag matches package version
         if: github.event_name == 'push'
         env:
           REF_NAME: ${{ github.ref_name }}
-          DIR: ${{ steps.resolve.outputs.directory }}
         run: |
           set -euo pipefail
           tag_version="${REF_NAME##*/v}"
@@ -95,22 +68,22 @@ jobs:
           import sys, tomllib
           with open(sys.argv[1], 'rb') as f:
               print(tomllib.load(f)['project']['version'])
-          " "${DIR}/pyproject.toml")
+          " packages/sdk/pyproject.toml)
           if [ "$tag_version" != "$pkg_version" ]; then
-            echo "::error::tag ${REF_NAME} does not match ${DIR}/pyproject.toml version ${pkg_version}"
+            echo "::error::tag ${REF_NAME} does not match packages/sdk/pyproject.toml version ${pkg_version}"
             exit 1
           fi
 
       - name: Build wheel and sdist
-        working-directory: ${{ steps.resolve.outputs.directory }}
+        working-directory: packages/sdk
         run: uv build --out-dir dist
 
       - name: List build artifacts
-        working-directory: ${{ steps.resolve.outputs.directory }}
+        working-directory: packages/sdk
         run: ls -la dist
 
       - name: Publish to PyPI
         if: steps.resolve.outputs.dry_run != 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: ${{ steps.resolve.outputs.directory }}/dist
+          packages-dir: packages/sdk/dist

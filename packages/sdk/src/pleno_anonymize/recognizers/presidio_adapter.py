@@ -2,12 +2,12 @@
 
 Importing this module pulls in `presidio-analyzer`. Scanner code MUST NOT
 import this module — it should consume the raw `PiiRecognizer` data from
-`pleno_recognizers.ja` directly.
+`pleno_anonymize.recognizers.ja` directly.
 """
 
 from presidio_analyzer import Pattern, PatternRecognizer
 
-from pleno_recognizers.types import PiiRecognizer
+from pleno_anonymize.recognizers.types import PiiRecognizer
 
 
 def to_presidio(recognizer: PiiRecognizer) -> PatternRecognizer:
@@ -20,6 +20,6 @@ def to_presidio(recognizer: PiiRecognizer) -> PatternRecognizer:
 
 
 def all_ja_presidio() -> list[PatternRecognizer]:
-    from pleno_recognizers.ja import ALL_JA_RECOGNIZERS
+    from pleno_anonymize.recognizers.ja import ALL_JA_RECOGNIZERS
 
     return [to_presidio(r) for r in ALL_JA_RECOGNIZERS]

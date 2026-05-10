@@ -39,8 +39,7 @@ Routing chat traffic through the LLM proxy masks PII before the request reaches 
 | Path | What it is |
 |---|---|
 | `server/` | FastAPI service — analyze / redact endpoints + LLM proxies |
-| `packages/sdk-js/` | TypeScript SDK + `npx pleno-anonymize` CLI (analyze / redact / scan) |
-| `packages/recognizers/` | Pure-Python Presidio recognizer registry (regex + checksum validators) |
+| `packages/sdk/` | Python SDK + `pleno-anonymize` CLI (analyze / redact / scan); bundles the Presidio recognizer registry under `pleno_anonymize.recognizers` |
 | `packages/training/` | spaCy / Hugging Face training pipeline for `ja_ner_ja` and `en_ner_en` |
 | `packages/models/` | Trained NER model artifacts |
 | `packages/wasm-tokenizer/` | Rust tokenizer compiled to WASM for browser-side preprocessing |
