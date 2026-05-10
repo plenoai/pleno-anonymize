@@ -1,0 +1,56 @@
+{
+  "name": "pleno-anonymize",
+  "version": "0.1.0",
+  "description": "TypeScript SDK and CLI for the pleno-anonymize PII detection / redaction API.",
+  "license": "AGPL-3.0",
+  "homepage": "https://github.com/plenoai/pleno-anonymize",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plenoai/pleno-anonymize.git",
+    "directory": "packages/sdk-js"
+  },
+  "bugs": {
+    "url": "https://github.com/plenoai/pleno-anonymize/issues"
+  },
+  "keywords": [
+    "pii",
+    "redaction",
+    "anonymize",
+    "presidio",
+    "japanese",
+    "ner",
+    "scanner",
+    "cli"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "pleno-anonymize": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "test": "node --test test/*.test.mjs",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.4.0"
+  }
+}

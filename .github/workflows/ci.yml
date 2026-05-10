@@ -39,6 +39,25 @@ jobs:
         working-directory: packages/recognizers
         run: uv run pytest -q
 
+  sdk-js:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/sdk-js
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: packages/sdk-js/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+      - run: pnpm test
+
   deploy:
     needs: [check, test, recognizers]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
