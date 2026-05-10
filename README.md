@@ -1,8 +1,9 @@
 # pleno-anonymize
 
-Japanese-first PII analysis and redaction. The repository ships two artifacts that share a single recognizer registry and NER model:
+Japanese-first PII analysis and redaction. The repository ships three artifacts that share a single recognizer registry and NER model:
 
 - **`pleno-anonymize` server** — HTTP API exposing `/api/analyze`, `/api/redact`, and OpenAI / Anthropic / Gemini proxies that mask PII before forwarding upstream.
+- **`pleno-anonymize` npm package** — TypeScript SDK + CLI (`npx pleno-anonymize scan .`) wrapping the same API. See [`packages/sdk-js`](packages/sdk-js).
 - **`ja_ner_ja` / `en_ner_en` models** — spaCy NER models trained from this repository's training pipeline.
 
 Endpoint: https://pleno-anonymize.fly.dev (API reference at `/docs`).
@@ -38,6 +39,7 @@ Routing chat traffic through the LLM proxy masks PII before the request reaches 
 | Path | What it is |
 |---|---|
 | `server/` | FastAPI service — analyze / redact endpoints + LLM proxies |
+| `packages/sdk-js/` | TypeScript SDK + `npx pleno-anonymize` CLI (analyze / redact / scan) |
 | `packages/recognizers/` | Pure-Python Presidio recognizer registry (regex + checksum validators) |
 | `packages/training/` | spaCy / Hugging Face training pipeline for `ja_ner_ja` and `en_ner_en` |
 | `packages/models/` | Trained NER model artifacts |
