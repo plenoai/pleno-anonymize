@@ -27,12 +27,50 @@ Routing chat traffic through the LLM proxy masks PII before the request reaches 
 | `POST /api/anthropic/*` | Anthropic Messages |
 | `POST /api/gemini/*` | Google Gemini |
 
+## Detection backends
+
+| Engine | Install | Speed | When |
+|---|---|---|---|
+| `builtin` (default) | `pip install pleno-anonymize` | ~50 ms/doc CPU | Japanese-first, regex + checksum for structured IDs, slim deps |
+| `openai-privacy-filter` | `pip install "pleno-anonymize[openai]"` | ~2 s/doc CPU, ~30 ms GPU | English-heavy text, secret detection, higher recall |
+
+```bash
+# default — builtin Presidio + ja_ner_ja
+pleno-anonymize analyze 'Alice Johnson, alice@example.com'
+
+# OPF (downloads ~3GB checkpoint to ~/.opf/privacy_filter on first call)
+pleno-anonymize analyze --engine openai-privacy-filter --language en \
+  'Alice Johnson, alice@example.com'
+```
+
+OPF's 8 native labels normalize into the same `entity_type` taxonomy
+(`private_person → PERSON`, `private_email → EMAIL_ADDRESS`, …); `secret`
+surfaces as a new `SECRET` class so anonymizer / scanner / proxy stay
+backend-agnostic.
+
+### Benchmark — ai4privacy/pii-masking-300k
+
+English validation split, 50 docs, character-IoU ≥ 0.5, label-agnostic.
+
+| Engine | Precision | Recall | F1 | Latency/doc (CPU) |
+|---|---|---|---|---|
+| `builtin` | 0.386 | 0.272 | 0.319 | 53 ms |
+| `openai-privacy-filter` | **0.915** | **0.788** | **0.847** | 2.2 s |
+
+```bash
+uv run --with datasets python packages/sdk/scripts/eval_pii_masking_300k.py \
+  --engines builtin openai-privacy-filter \
+  --language English --pleno-language en --limit 50 \
+  --output output/pii-300k-eval-en-50.json
+```
+
 ## Detected entities
 
 | Class | Backend | Entities |
 |---|---|---|
 | Free text | spaCy NER `ja_ner_ja` plus Presidio | `PERSON` `ADDRESS` `ORGANIZATION` `DATE_OF_BIRTH` `BANK_ACCOUNT` |
 | Structured | regex plus checksum (Luhn, My Number, corporate number) | `PHONE_NUMBER` `MY_NUMBER` `MY_NUMBER_CORPORATE` `CREDIT_CARD` `PASSPORT` `DRIVER_LICENSE` `HEALTH_INSURANCE` `RESIDENCE_CARD` `POSTAL_CODE` `EMAIL_ADDRESS` `IP_ADDRESS` `URL` |
+| OPF (opt-in) | `openai/privacy-filter` 1.5B (50M active MoE) | `PERSON` `ADDRESS` `EMAIL_ADDRESS` `PHONE_NUMBER` `URL` `DATE_OF_BIRTH` `BANK_ACCOUNT` `SECRET` |
 
 ## Repository layout
 

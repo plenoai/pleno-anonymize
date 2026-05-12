@@ -62,16 +62,23 @@ def PlenoAnonymize(  # noqa: N802 - factory disguised as a class for ergonomics
     languages: tuple[str, ...] = ("ja",),
     auto_download: bool = True,
     timeout: float = 30.0,
+    engine: str = "builtin",
+    opf_checkpoint: str | None = None,
+    opf_device: str | None = None,
 ) -> Engine:
     """Create an engine.
 
-    Default (``base_url=None``): :class:`LocalEngine` running Presidio +
+    ``engine="builtin"`` (default): :class:`LocalEngine` running Presidio +
     spaCy in-process. The first invocation per language downloads the
     matching NER wheel from Hugging Face when ``auto_download`` is True.
 
+    ``engine="openai-privacy-filter"``: :class:`OpfEngine` running the
+    open-source `openai/privacy-filter` checkpoint via the `opf` package.
+    Requires the ``[openai]`` extra; the model auto-downloads on first call.
+
     Pass ``base_url`` (e.g. ``"https://pleno-anonymize.fly.dev"``) to
-    instead use a hosted server via HTTP. The remote engine has no local
-    model footprint.
+    instead use a hosted server via HTTP. The remote engine takes
+    precedence over ``engine``.
     """
     resolved = base_url or os.environ.get("PLENO_ANONYMIZE_BASE_URL")
     if resolved:
@@ -81,6 +88,17 @@ def PlenoAnonymize(  # noqa: N802 - factory disguised as a class for ergonomics
             base_url=resolved,
             api_key=api_key or os.environ.get("PLENO_ANONYMIZE_API_KEY"),
             timeout=timeout,
+        )
+
+    if engine == "openai-privacy-filter":
+        from ._opf import OpfEngine
+
+        return OpfEngine(checkpoint=opf_checkpoint, device=opf_device)
+
+    if engine != "builtin":
+        raise ValueError(
+            f"unknown engine: {engine!r} "
+            "(expected 'builtin' or 'openai-privacy-filter')"
         )
 
     from ._local import LocalEngine

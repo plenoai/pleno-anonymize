@@ -33,3 +33,41 @@ def test_version_flag() -> None:
         assert e.code == 0
     else:  # pragma: no cover - argparse must SystemExit on --version
         raise AssertionError("expected SystemExit")
+
+
+def test_engine_flag_defaults_to_builtin() -> None:
+    parser = _build_parser()
+    ns = parser.parse_args(["analyze", "hello"])
+    assert ns.engine == "builtin"
+
+
+def test_engine_flag_accepts_openai_privacy_filter() -> None:
+    parser = _build_parser()
+    ns = parser.parse_args(["analyze", "--engine", "openai-privacy-filter", "x"])
+    assert ns.engine == "openai-privacy-filter"
+
+
+def test_engine_flag_rejects_unknown() -> None:
+    parser = _build_parser()
+    try:
+        parser.parse_args(["analyze", "--engine", "bogus", "x"])
+    except SystemExit as e:
+        assert e.code == 2
+    else:  # pragma: no cover - argparse must SystemExit on bad choice
+        raise AssertionError("expected SystemExit")
+
+
+def test_opf_engine_label_mapping_covers_all_native_labels() -> None:
+    from pleno_anonymize._opf import OPF_LABEL_TO_PLENO
+
+    expected_native = {
+        "account_number",
+        "private_address",
+        "private_email",
+        "private_person",
+        "private_phone",
+        "private_url",
+        "private_date",
+        "secret",
+    }
+    assert set(OPF_LABEL_TO_PLENO.keys()) == expected_native
