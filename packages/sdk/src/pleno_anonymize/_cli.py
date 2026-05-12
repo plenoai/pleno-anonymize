@@ -118,6 +118,27 @@ def _add_engine_args(p: argparse.ArgumentParser, *, include_io: bool) -> None:
         default=None,
         help="bearer token for --base-url (env: PLENO_ANONYMIZE_API_KEY)",
     )
+    p.add_argument(
+        "--engine",
+        default="builtin",
+        choices=("builtin", "openai-privacy-filter"),
+        help=(
+            "detection backend (default: builtin = Presidio + spaCy NER). "
+            "openai-privacy-filter uses the open-source OPF model "
+            "(requires `pip install pleno-anonymize[openai]`)"
+        ),
+    )
+    p.add_argument(
+        "--opf-device",
+        default=None,
+        choices=("cpu", "cuda"),
+        help="device for openai-privacy-filter (auto-detected by default)",
+    )
+    p.add_argument(
+        "--opf-checkpoint",
+        default=None,
+        help="override OPF checkpoint dir (env: OPF_CHECKPOINT; default: ~/.opf/privacy_filter)",
+    )
     p.add_argument("--language", default="ja", choices=("ja", "en"))
     p.add_argument(
         "--entities",
@@ -280,6 +301,9 @@ def _make_engine(args: argparse.Namespace) -> Engine:
         api_key=api_key,
         languages=(args.language,),
         auto_download=auto_download,
+        engine=getattr(args, "engine", "builtin"),
+        opf_checkpoint=getattr(args, "opf_checkpoint", None),
+        opf_device=getattr(args, "opf_device", None),
     )
 
 
