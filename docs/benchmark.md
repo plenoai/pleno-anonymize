@@ -20,17 +20,21 @@ examples and by the HF dataset card's `cardData.language` field). We
 therefore report English-only results and explicitly flag that the
 operationally decisive JP-first comparison cannot be made on this
 dataset. Using label-agnostic character-IoU ≥ 0.5 span matching on the
-English split (n = 50), OPF reaches **F1 = 0.847** (P = 0.915, R =
-0.788) against `builtin`'s **F1 = 0.319** (P = 0.386, R = 0.272), at
-roughly **40× higher per-document latency on CPU** (2.2 s vs 53 ms).
+English split (n = 300), OPF reaches **F1 = 0.818** (P = 0.904, R =
+0.747) against `builtin`'s **F1 = 0.315** (P = 0.390, R = 0.265). A
+50-document pilot agreed within 0.03 F1, so the estimate is stable.
+OPF runs roughly **200× slower per document on CPU** (2.2 s vs 11 ms).
 The gap is concentrated in (i) free-text person names where the
 in-house EN NER is not trained on the AI4Privacy label scheme, and (ii)
 locale-specific structured identifiers we ship no recognizer for. The
 findings justify shipping OPF as an **opt-in** backend (PR #140) but
 not changing the default until the Japanese comparison has been run on
-a dataset that actually contains Japanese — currently
-`ai4privacy/pii-masking-openpii-1m` (1.4 M, 23 languages) and pleno's
-internal held-out JP corpora are the candidates (§8).
+a dataset that actually contains Japanese. We additionally verified
+that the larger sibling release `ai4privacy/pii-masking-openpii-1m`
+(1.4 M rows) is also Japanese-free (23 European languages only), so
+the next JP-capable target is pleno's internal held-out JP corpora;
+sourcing or building an independent JP PII benchmark is called out
+as future work (§8).
 
 ## 1. Motivation
 
@@ -87,13 +91,17 @@ fine-grained PII classes (e.g. `LASTNAME1`, `LASTNAME2`, `POSTCODE`,
 `IP`, `EMAIL`, `USERNAME`, `TIME`); we use only the character span
 boundaries and ignore the labels for scoring (see §4).
 
-| Quantity | Value |
-|---|---|
-| Language filter | English |
-| Sample size, *n* | 50 documents |
-| Gold spans | 316 |
-| Mean spans / document | 6.32 |
-| Distinct gold labels observed | 27 |
+We report two sample sizes for the English split. The n = 50 result is
+retained for traceability against §5; the n = 300 result is the primary
+estimate. Numbers agree within 0.03 F1 across all engines (§5.4),
+indicating the 50-document estimate was not unstable.
+
+| Quantity | n = 50 | n = 300 |
+|---|---:|---:|
+| Language filter | English | English |
+| Gold spans | 316 | 1,776 |
+| Mean spans / document | 6.32 | 5.92 |
+| Distinct gold labels observed | 27 | 28 |
 
 ## 4. Evaluation Protocol
 
@@ -145,18 +153,41 @@ ourselves and flag this as future work.
 
 ## 5. Results
 
-### 5.1 Headline (n = 50, English, τ = 0.5)
+### 5.1 Headline (English, τ = 0.5)
+
+Primary estimate (n = 300):
+
+| Engine | Precision | Recall | F1 | Latency / doc | TP | FP | FN |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `builtin` | 0.390 | 0.265 | 0.315 | 11 ms | 470 | 734 | 1,306 |
+| `openai-privacy-filter` | **0.904** | **0.747** | **0.818** | 2,239 ms | 1,327 | 141 | 449 |
+
+Original pilot (n = 50), retained for traceability:
 
 | Engine | Precision | Recall | F1 | Latency / doc | TP | FP | FN |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | `builtin` | 0.386 | 0.272 | 0.319 | 53 ms | 86 | 137 | 230 |
-| `openai-privacy-filter` | **0.915** | **0.788** | **0.847** | 2,203 ms | 249 | 23 | 67 |
+| `openai-privacy-filter` | 0.915 | 0.788 | 0.847 | 2,203 ms | 249 | 23 | 67 |
 
-OPF dominates on all three quality metrics by a wide margin. The
-**precision** gap (+0.53) shows OPF is not buying recall with false
-positives; the **recall** gap (+0.52) shows the in-house EN NER simply
-does not cover the dataset's vocabulary. The latency gap (≈41×) is
-expected: OPF runs a 1.5B-parameter transformer per call.
+OPF dominates on all three quality metrics by a wide margin at both
+sample sizes. The **precision** gap (+0.51 at n = 300) shows OPF is not
+buying recall with false positives; the **recall** gap (+0.48) shows the
+in-house EN NER simply does not cover the dataset's vocabulary. The
+latency gap (≈200× at n = 300, partly inflated by `builtin` running
+warmer on the larger sample) remains qualitatively the same: OPF runs a
+1.5B-parameter transformer per call.
+
+### 5.4 Sample-size sensitivity
+
+| Engine | F1 (n = 50) | F1 (n = 300) | |Δ| |
+|---|---:|---:|---:|
+| `builtin` | 0.319 | 0.315 | 0.004 |
+| `openai-privacy-filter` | 0.847 | 0.818 | 0.029 |
+
+The pilot's headline numbers held to within 0.03 F1 at 6× the sample
+size. OPF's slight regression (0.847 → 0.818) is consistent with the
+pilot landing on an easier slice of the iteration order; we treat the
+n = 300 estimate as the operating number.
 
 ### 5.2 Span counts
 
@@ -246,10 +277,15 @@ or H100 pod. Until that lands, the operational recommendation is:
   Japanese rows. For a JP-first product, this is not a "low-coverage"
   caveat — it is a categorical absence. The headline numbers here
   characterize OPF's lift on English text only; they cannot be
-  extrapolated to the production Japanese hot path. The natural
-  follow-up is `ai4privacy/pii-masking-openpii-1m` (1.4 M rows, 23
-  languages) which may include Japanese, and/or pleno's internal
-  benchmark corpora under `packages/training/data/benchmark/`.
+  extrapolated to the production Japanese hot path. We additionally
+  verified that the larger sibling release
+  `ai4privacy/pii-masking-openpii-1m` (1.4 M rows) is also Japanese-free
+  (23 European languages only), so the AI4Privacy ecosystem as a whole
+  cannot answer the JP question. The remaining options for JP
+  evaluation are pleno's internal benchmark corpora under
+  `packages/training/data/benchmark/v0.13.0-held-out/ja/` (with the
+  caveat that we authored the labels) or sourcing/building an
+  independent JP PII benchmark (§8).
 * **Single IoU threshold (τ = 0.5).** Stricter thresholds (0.75, 1.0)
   would penalize span-boundary drift; we expect both engines to degrade
   but OPF's BIOES Viterbi decoder is designed for boundary stability and
@@ -300,20 +336,28 @@ report characterizes only OPF's English lift. The decisive comparison
 for a JP-first product remains open. Concrete follow-up, in priority
 order:
 
-1. Verify whether `ai4privacy/pii-masking-openpii-1m` (1.4 M rows, 23
-   languages) includes Japanese, and if so, re-run §5 on the Japanese
-   subset. This is the highest-value next step.
-2. Run on pleno's internal held-out JP corpora
-   (`packages/training/data/benchmark/v0.13.0-held-out/ja/`) for a
-   product-aligned comparison, accepting that the labels were defined
-   by us and the comparison is therefore not fully independent.
-3. Replicate the English run on a larger sample (in progress, 300 docs)
-   and tighter IoU thresholds (0.75, 1.0) to characterize boundary
-   stability.
-4. Measure OPF GPU latency on RunPod to validate the model card's ~30
-   ms/doc claim and quantify the operational latency-quality frontier.
-5. Explore fine-tuning OPF on JP-first data to potentially retire the
-   dual-backend architecture.
+1. **Run on pleno's internal held-out JP corpora**
+   (`packages/training/data/benchmark/v0.13.0-held-out/ja/`). This is
+   now the only path to a JP comparison, because we verified that
+   `ai4privacy/pii-masking-openpii-1m` (1.4 M rows) is also a
+   European-only release (23 languages, none Asian). The internal
+   corpora carry the caveat that we defined the labels, so OPF is at a
+   structural disadvantage; we will mitigate by scoring label-agnostic
+   spans (same protocol as §4) and by spot-checking OPF false positives
+   for whether they are *correct masks we did not annotate*.
+2. **Replicate at tighter IoU thresholds (0.75, 1.0)** to characterize
+   boundary stability. OPF's BIOES Viterbi decoder is built for span
+   coherence; we expect its advantage to widen.
+3. **Measure OPF GPU latency on RunPod** to validate the model card's
+   ~30 ms/doc claim and quantify the operational latency-quality
+   frontier.
+4. **Source or build an independent JP PII benchmark.** The absence of
+   any third-party JP-labeled PII corpus in the obvious places
+   (AI4Privacy, common HF leaderboards) is itself a finding worth
+   acting on — building or commissioning one would benefit the
+   community and unblock honest JP evaluations beyond our own labels.
+5. **Explore fine-tuning OPF on JP-first data** to potentially retire
+   the dual-backend architecture once (1) lands and confirms the gap.
 
 ## References
 
