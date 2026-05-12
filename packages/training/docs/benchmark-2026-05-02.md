@@ -1,4 +1,13 @@
-# Benchmark Report — 2026-05-02
+# Benchmark Report — 2026-05-02 (FROZEN)
+
+> **Frozen (2026-05-12).** This report compares the custom NER against
+> OSS variants on the self-made corpora `v0.12.1-leak-fixed` and
+> `v0.13.0-held-out`. Those corpora are now frozen and are **not** the
+> development baseline anymore. The active baseline is
+> [`ai4privacy/pii-masking-300k`](https://huggingface.co/datasets/ai4privacy/pii-masking-300k);
+> see `docs/benchmark.md` (repo root) and
+> `.claude/skills/ner-improve/SKILL.md`. The numbers below are kept for
+> historical traceability only.
 
 GiNZA + Presidio (OSS hybrid) vs custom NER (pleno-anonymize) honest baseline comparison.
 

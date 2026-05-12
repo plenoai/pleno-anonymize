@@ -1,5 +1,14 @@
 # Training CHANGELOG
 
+> **Baseline switch (2026-05-12).** Development moves to
+> [`ai4privacy/pii-masking-300k`](https://huggingface.co/datasets/ai4privacy/pii-masking-300k)
+> as the primary, externally verifiable baseline. The self-made benchmarks
+> under `data/benchmark/v0.*/` (v0.2.0 – v0.13.0) are **frozen** as
+> historical record; no new versions will be generated and no scores below
+> this line will reference them as the verdict-bearing metric. See
+> `docs/benchmark.md` (repo root) and `.claude/skills/ner-improve/SKILL.md`
+> for the new evaluation contract.
+
 ## [v0.13.0] - 2026-05-04 — `hf-ja-v02-tiny-aug-ext` + ORG=0.99 confidence floor
 
 ### Added

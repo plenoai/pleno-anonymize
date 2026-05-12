@@ -48,9 +48,18 @@ OPF's 8 native labels normalize into the same `entity_type` taxonomy
 surfaces as a new `SECRET` class so anonymizer / scanner / proxy stay
 backend-agnostic.
 
-### Benchmark — ai4privacy/pii-masking-300k
+### Development baseline — ai4privacy/pii-masking-300k
 
-English validation split, 50 docs, character-IoU ≥ 0.5, label-agnostic.
+`ai4privacy/pii-masking-300k` (validation split, character-IoU ≥ 0.5,
+label-agnostic) is the **single development baseline** for the NER /
+recognizer pipeline. Every backend change is gated on this dataset; the
+prior self-made benchmark under `packages/training/data/benchmark/v0.*/`
+is **frozen as of v0.13.0** and kept only for historical traceability.
+See [`docs/benchmark.md`](docs/benchmark.md) for the full methodology
+and [`/ner-improve`](.claude/skills/ner-improve/SKILL.md) for the
+improvement loop.
+
+English validation split, 50 docs.
 
 | Engine | Precision | Recall | F1 | Latency/doc (CPU) |
 |---|---|---|---|---|
