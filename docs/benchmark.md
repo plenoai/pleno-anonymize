@@ -9,21 +9,28 @@
 
 We compare two interchangeable detection backends shipped with
 `pleno-anonymize` — the default `builtin` engine (Microsoft Presidio +
-in-house spaCy NER `en_ner_en`) against `openai-privacy-filter` (OPF, the
-open-source `openai/privacy-filter` checkpoint, 1.5B parameters / 50M active
-mixture-of-experts) [\[1\]](#references) — on the English validation split of
-`ai4privacy/pii-masking-300k` [\[2\]](#references). Using label-agnostic
-character-IoU ≥ 0.5 span matching, OPF reaches **F1 = 0.847** (P = 0.915,
-R = 0.788) against `builtin`'s **F1 = 0.319** (P = 0.386, R = 0.272) on a
-50-document sample, at roughly **40× higher per-document latency on CPU**
-(2.2 s vs 53 ms). The gap is concentrated in two regions: (i) free-text
-person names (`LASTNAME{1,2,3}`, `GIVENNAME{1,2}`) where the in-house EN NER
-is not trained on the AI4Privacy label scheme; and (ii) locale-specific
-structured identifiers (`POSTCODE`, `STREET`, `BUILDING`, `SECADDRESS`) for
-which we currently ship no recognizer. We argue the result motivates a
-**tiered routing policy** rather than wholesale replacement: keep `builtin`
-on the latency-sensitive Japanese hot path, and offer OPF as an opt-in
-backend for accuracy-sensitive or English-heavy traffic.
+in-house spaCy NER) against `openai-privacy-filter` (OPF, the open-source
+`openai/privacy-filter` checkpoint, 1.5B parameters / 50M active
+mixture-of-experts) [\[1\]](#references). Our intended evaluation target
+was the Japanese subset of `ai4privacy/pii-masking-300k`
+[\[2\]](#references), since pleno-anonymize is a JP-first product; we
+verified empirically that **the dataset contains zero Japanese rows**
+(en/fr/de/it/es/nl only, confirmed by enumerating all 47,728 validation
+examples and by the HF dataset card's `cardData.language` field). We
+therefore report English-only results and explicitly flag that the
+operationally decisive JP-first comparison cannot be made on this
+dataset. Using label-agnostic character-IoU ≥ 0.5 span matching on the
+English split (n = 50), OPF reaches **F1 = 0.847** (P = 0.915, R =
+0.788) against `builtin`'s **F1 = 0.319** (P = 0.386, R = 0.272), at
+roughly **40× higher per-document latency on CPU** (2.2 s vs 53 ms).
+The gap is concentrated in (i) free-text person names where the
+in-house EN NER is not trained on the AI4Privacy label scheme, and (ii)
+locale-specific structured identifiers we ship no recognizer for. The
+findings justify shipping OPF as an **opt-in** backend (PR #140) but
+not changing the default until the Japanese comparison has been run on
+a dataset that actually contains Japanese — currently
+`ai4privacy/pii-masking-openpii-1m` (1.4 M, 23 languages) and pleno's
+internal held-out JP corpora are the candidates (§8).
 
 ## 1. Motivation
 
@@ -50,16 +57,39 @@ factory.
 
 ## 3. Dataset
 
-**`ai4privacy/pii-masking-300k`** [\[2\]](#references), validation split,
-streamed and filtered to `language == "English"`. The first 50 examples
-that satisfy the filter are retained (deterministic ordering from the HF
-streaming iterator). The dataset annotates 27 fine-grained PII classes
-(e.g. `LASTNAME1`, `LASTNAME2`, `POSTCODE`, `IP`, `EMAIL`, `USERNAME`,
-`TIME`); we use only the character span boundaries and ignore the labels
-for scoring (see §4).
+**`ai4privacy/pii-masking-300k`** [\[2\]](#references). We verified the
+language inventory by streaming the entire validation split (n =
+47,728): the dataset contains six European languages and **does not
+contain Japanese**.
+
+| Language | Validation rows |
+|---|---:|
+| French | 8,413 |
+| German | 8,120 |
+| Italian | 7,976 |
+| English | 7,946 |
+| Spanish | 7,816 |
+| Dutch | 7,457 |
+| **Japanese** | **0** |
+
+The HF dataset card's `cardData.language` field independently confirms
+`["en", "fr", "de", "it", "es", "nl"]` only. This is a **fundamental
+limitation for this study**: pleno-anonymize is JP-first and OPF's model
+card explicitly notes "primarily English; selected multilingual
+robustness evaluation reported" [\[1\]](#references), so the operationally
+most important comparison — JP-first vs OPF on Japanese — is not
+possible on this dataset. See §6.3 and §8 for our follow-up plan.
+
+For this report we therefore evaluate on the dataset's English subset.
+The first 50 English validation rows are retained (deterministic
+ordering from the HF streaming iterator). The dataset annotates 27
+fine-grained PII classes (e.g. `LASTNAME1`, `LASTNAME2`, `POSTCODE`,
+`IP`, `EMAIL`, `USERNAME`, `TIME`); we use only the character span
+boundaries and ignore the labels for scoring (see §4).
 
 | Quantity | Value |
 |---|---|
+| Language filter | English |
 | Sample size, *n* | 50 documents |
 | Gold spans | 316 |
 | Mean spans / document | 6.32 |
@@ -212,10 +242,14 @@ or H100 pod. Until that lands, the operational recommendation is:
   These intervals do not overlap, so the ranking is robust, but
   individual per-label numbers in §5.3 should be read as directional.
   A 300-document run is in progress and will be appended.
-* **Single language (English).** OPF is trained primarily on English
-  [\[1\]](#references); pleno's `builtin` is JP-first. AI4Privacy's
-  Japanese coverage is sparse, so we cannot run the symmetric experiment
-  on this dataset.
+* **No Japanese coverage.** As enumerated in §3, the dataset has zero
+  Japanese rows. For a JP-first product, this is not a "low-coverage"
+  caveat — it is a categorical absence. The headline numbers here
+  characterize OPF's lift on English text only; they cannot be
+  extrapolated to the production Japanese hot path. The natural
+  follow-up is `ai4privacy/pii-masking-openpii-1m` (1.4 M rows, 23
+  languages) which may include Japanese, and/or pleno's internal
+  benchmark corpora under `packages/training/data/benchmark/`.
 * **Single IoU threshold (τ = 0.5).** Stricter thresholds (0.75, 1.0)
   would penalize span-boundary drift; we expect both engines to degrade
   but OPF's BIOES Viterbi decoder is designed for boundary stability and
@@ -254,15 +288,32 @@ output JSON for the headline result is `output/pii-300k-eval-en-50.json`
 ## 8. Conclusion
 
 OpenAI Privacy Filter substantially outperforms our in-house Presidio +
-spaCy EN NER pipeline on a recognized English PII benchmark, at the cost
-of ~40× CPU latency. The result justifies shipping OPF as an opt-in
+spaCy EN NER pipeline on a recognized **English** PII benchmark, at the
+cost of ~40× CPU latency. The result justifies shipping OPF as an opt-in
 backend (now done in PR #140) but not making it the default — the
 latency profile is incompatible with the LLM proxy hot path until GPU
-inference is on the operational menu. Future work: (i) replicate on a
-larger sample and tighter IoU thresholds; (ii) measure GPU latency on
-RunPod; (iii) evaluate the symmetric Japanese case once a comparable
-dataset exists; (iv) explore fine-tuning OPF on JP-first data to retire
-the dual-backend architecture entirely.
+inference is on the operational menu.
+
+**The result does not yet speak to pleno's primary use case.** Because
+`ai4privacy/pii-masking-300k` contains no Japanese rows (§3), this
+report characterizes only OPF's English lift. The decisive comparison
+for a JP-first product remains open. Concrete follow-up, in priority
+order:
+
+1. Verify whether `ai4privacy/pii-masking-openpii-1m` (1.4 M rows, 23
+   languages) includes Japanese, and if so, re-run §5 on the Japanese
+   subset. This is the highest-value next step.
+2. Run on pleno's internal held-out JP corpora
+   (`packages/training/data/benchmark/v0.13.0-held-out/ja/`) for a
+   product-aligned comparison, accepting that the labels were defined
+   by us and the comparison is therefore not fully independent.
+3. Replicate the English run on a larger sample (in progress, 300 docs)
+   and tighter IoU thresholds (0.75, 1.0) to characterize boundary
+   stability.
+4. Measure OPF GPU latency on RunPod to validate the model card's ~30
+   ms/doc claim and quantify the operational latency-quality frontier.
+5. Explore fine-tuning OPF on JP-first data to potentially retire the
+   dual-backend architecture.
 
 ## References
 
