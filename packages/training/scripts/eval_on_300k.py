@@ -2,17 +2,16 @@
 
 Uses the exact char-IoU >= 0.5, label-agnostic scoring protocol that
 `packages/sdk/scripts/eval_pii_masking_300k.py` applies to the
-SDK-shipped engines. Lets us compare `ja_ner_ja-v2` (or any HF NER
-model) against the public ruler **without** plumbing it through the
-SDK first.
+SDK-shipped engines. Lets us compare any HF NER model against the
+public ruler without plumbing it through the SDK first.
 
 Example:
     uv run --extra training --extra hf python \\
-        scripts/eval_mechanism_on_300k.py \\
-        --model plenoai/ja_ner_ja-v2 \\
+        scripts/eval_on_300k.py \\
+        --model 0xhikae/pleno_anonymize_ja \\
         --dataset 0xhikae/pii-masking-300k-ja \\
         --language Japanese --limit 300 \\
-        --output ../../output/pii-300k-ja-mechanism-v1.json
+        --output ../../output/pii-300k-ja-eval.json
 """
 
 from __future__ import annotations

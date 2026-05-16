@@ -27,6 +27,20 @@ import numpy as np
 
 PII_RELEVANT = {"人名", "地名"}
 
+# Label-aware merge: collapse contiguous v2 sub-spans only when both
+# labels map to the same coarse equivalence class.
+COARSE_CLASSES: dict[str, set[str]] = {
+    "PERSON":        {"LASTNAME1", "LASTNAME2", "LASTNAME3", "GIVENNAME1", "GIVENNAME2", "TITLE", "USERNAME"},
+    "ADDRESS":       {"STREET", "CITY", "STATE", "POSTCODE", "BUILDING", "SECADDRESS", "COUNTRY", "GEOCOORD"},
+    "DATE_OF_BIRTH": {"BOD", "DATE", "TIME"},
+    "PHONE":         {"TEL"},
+    "EMAIL":         {"EMAIL"},
+    "ID_CARD":       {"IDCARD", "DRIVERLICENSE", "PASSPORT", "PASS", "SOCIALNUMBER"},
+    "CARD":          {"CARDISSUER"},
+    "IP":            {"IP"},
+    "SEX":           {"SEX"},
+}
+
 
 def iou(a, b):
     s = max(a[0], b[0]); e = min(a[1], b[1])
@@ -147,9 +161,6 @@ def main():
 
     from datasets import load_dataset
     from transformers import AutoModelForTokenClassification, AutoTokenizer
-    import sys
-    sys.path.insert(0, str(Path(__file__).parent))
-    from eval_ood_span_merged import COARSE_CLASSES
 
     tok = AutoTokenizer.from_pretrained(args.model)
     mdl = AutoModelForTokenClassification.from_pretrained(args.model).eval()

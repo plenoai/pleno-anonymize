@@ -1,6 +1,6 @@
 """Run a classic JP NER (spaCy / GiNZA) against a JSONL test set.
 
-Same char-IoU >= 0.5 label-agnostic protocol as eval_ood_jsonl.py.
+Same char-IoU >= 0.5 label-agnostic protocol as eval_on_300k.py.
 Reviewer asked for >=1 non-PII-specific JP NER baseline to widen the
 comparison set.
 

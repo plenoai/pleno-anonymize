@@ -17,11 +17,7 @@
        convert-hf-en-v01-tiny convert-hf-en-v01-tiny-hardneg-ext convert-hf-en-v01-tiny-aug-ext \
        train-hf-en-v01-tiny train-hf-en-v01-tiny-hardneg-ext train-hf-en-v01-tiny-aug-ext \
        export-onnx-en-v01-tiny push-hf-en-v01-tiny all-hf-en-v01-tiny \
-       build-taxonomy build-taxonomy-enrich build-meta-prompts \
-       score-difficulty score-difficulty-elo \
-       generate-mechanism-smoke generate-mechanism-v1 \
-       train-mechanism-smoke train-mechanism push-dataset-hf push-model-hf \
-       eval-mechanism-300k-ja
+       train-supervised-ja eval-300k-ja eval-stockmark-ja push-model-hf
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
@@ -741,111 +737,40 @@ clean:
 
 all: generate convert train evaluate package
 
-# Simula 1/8 — Global Diversification. Deterministic seed taxonomy is
-# committed; the enrich variant additively widens it via an LLM. See
-# docs/mechanism-design.md.
-TAXONOMY_OUT ?= data/taxonomies/jp_pii_taxonomy.yaml
-TAXONOMY_JSON_OUT ?= data/taxonomies/jp_pii_taxonomy.json
-TAXONOMY_MODEL ?= gpt-4o-mini
-TAXONOMY_MAX_NEW ?= 50
+# Supervised JP NER on 0xhikae/pii-masking-300k-ja train split.
+# Dataset is private; dump to local JSONL first, then scp to RunPod.
+SUPERVISED_DATA ?= data/raw/ja-300k-supervised
+SUPERVISED_OUT  ?= output/ja-ner-supervised-v2
+SUPERVISED_BASE ?= FacebookAI/xlm-roberta-base
+SUPERVISED_EPOCHS ?= 2
+SUPERVISED_SEED ?= 42
 
-build-taxonomy:
-	uv run --extra training python scripts/build_taxonomy.py \
-		--output $(TAXONOMY_OUT) \
-		--json-output $(TAXONOMY_JSON_OUT)
+train-supervised-ja:
+	uv run --extra training --extra hf python scripts/train_supervised_300k_ja.py \
+		--data-dir $(SUPERVISED_DATA) \
+		--output-dir $(SUPERVISED_OUT) \
+		--base-model $(SUPERVISED_BASE) \
+		--epochs $(SUPERVISED_EPOCHS) \
+		--seed $(SUPERVISED_SEED)
 
-build-taxonomy-enrich:
-	$(DOTENVX) uv run --extra training python scripts/build_taxonomy.py \
-		--output $(TAXONOMY_OUT) \
-		--json-output $(TAXONOMY_JSON_OUT) \
-		--enrich --model $(TAXONOMY_MODEL) \
-		--max-new-scenarios $(TAXONOMY_MAX_NEW)
-
-# Simula 2/8 — Local Diversification. Five canonical lenses per leaf.
-META_PROMPTS_OUT ?= data/meta_prompts/jp/all.jsonl
-
-build-meta-prompts:
-	uv run --extra training python scripts/build_meta_prompts.py \
-		--taxonomy $(TAXONOMY_OUT) \
-		--output $(META_PROMPTS_OUT)
-
-# Simula 3/8 — Complexification. Score difficulty + optionally
-# harden a fraction of generated samples to hit target bucket ratios.
-DIFFICULTY_IN ?= data/processed/ja-mechanism-v1/raw.jsonl
-DIFFICULTY_OUT ?= data/processed/ja-mechanism-v1/scored.jsonl
-DIFFICULTY_HIST ?= output/difficulty_hist.json
-
-score-difficulty:
-	uv run --extra training python scripts/score_difficulty.py \
-		--input  $(DIFFICULTY_IN) \
-		--output $(DIFFICULTY_OUT) \
-		--histogram $(DIFFICULTY_HIST) \
-		--apply-operators
-
-score-difficulty-elo:
-	$(DOTENVX) uv run --extra training python scripts/score_difficulty.py \
-		--input  $(DIFFICULTY_IN) \
-		--output $(DIFFICULTY_OUT) \
-		--histogram $(DIFFICULTY_HIST) \
-		--apply-operators --llm-elo
-
-# Simula 5/8 — full pipeline (taxonomy + meta-prompts + LLM + critics).
-MECHANISM_DIR ?= data/raw/ja-mechanism-v1
-MECHANISM_SAMPLES_PER_PROMPT ?= 8
-MECHANISM_WORKERS ?= 32
-MECHANISM_MODEL ?= gpt-4o-mini
-
-generate-mechanism-smoke:
-	$(DOTENVX) uv run --extra training python scripts/generate_mechanism_dataset.py --smoke
-
-generate-mechanism-v1:
-	$(DOTENVX) uv run --extra training python scripts/generate_mechanism_dataset.py \
-		--meta-prompts data/meta_prompts/jp/all.jsonl \
-		--output-dir $(MECHANISM_DIR) \
-		--samples-per-prompt $(MECHANISM_SAMPLES_PER_PROMPT) \
-		--max-workers $(MECHANISM_WORKERS) \
-		--model $(MECHANISM_MODEL)
-
-# Simula 6/8 — local CPU smoke training (full GPU training runs on RunPod).
-MECHANISM_OUT ?= output/ja-ner-mechanism-v1
-MECHANISM_BASE ?= cl-tohoku/bert-base-japanese-v3
-MECHANISM_EPOCHS ?= 3
-
-train-mechanism-smoke:
-	uv run --extra training --extra hf python scripts/train_mechanism.py \
-		--data-dir $(MECHANISM_DIR) \
-		--output-dir $(MECHANISM_OUT) \
-		--base-model $(MECHANISM_BASE) \
-		--epochs 1 --batch-size 8
-
-train-mechanism:
-	uv run --extra training --extra hf python scripts/train_mechanism.py \
-		--data-dir $(MECHANISM_DIR) \
-		--output-dir $(MECHANISM_OUT) \
-		--base-model $(MECHANISM_BASE) \
-		--epochs $(MECHANISM_EPOCHS)
-
-# Simula 8/8 — HF Hub push helpers (used by RunPod pod startup script too).
-HF_DATASET_REPO ?= plenoai/pii-masking-jp-mechanism-v1
-HF_MODEL_REPO ?= plenoai/ja_ner_ja-v2
-
-push-dataset-hf:
-	uv run --extra training --extra hf python scripts/push_dataset_to_hf.py \
-		--data-dir $(MECHANISM_DIR) --repo $(HF_DATASET_REPO)
-
+HF_MODEL_REPO ?= 0xhikae/pleno_anonymize_ja
 push-model-hf:
 	uv run --extra training --extra hf python scripts/push_model_to_hf.py \
-		--model-dir $(MECHANISM_OUT)/model-best --repo $(HF_MODEL_REPO)
+		--model-dir $(SUPERVISED_OUT)/model-best --repo $(HF_MODEL_REPO)
 
-# Simula 7/8 — benchmark against ai4privacy/pii-masking-300k-ja.
 BENCH_MODEL ?= $(HF_MODEL_REPO)
 BENCH_DATASET ?= 0xhikae/pii-masking-300k-ja
 BENCH_LIMIT ?= 300
-BENCH_OUT ?= ../../output/pii-300k-ja-mechanism-v1.json
+BENCH_OUT ?= ../../output/pii-300k-ja-eval.json
 
-eval-mechanism-300k-ja:
-	uv run --extra training --extra hf python scripts/eval_mechanism_on_300k.py \
+eval-300k-ja:
+	uv run --extra training --extra hf python scripts/eval_on_300k.py \
 		--model $(BENCH_MODEL) \
 		--dataset $(BENCH_DATASET) \
 		--language Japanese --limit $(BENCH_LIMIT) \
 		--output $(BENCH_OUT)
+
+eval-stockmark-ja:
+	uv run --extra training --extra hf python scripts/eval_stockmark_jp_real.py \
+		--model $(BENCH_MODEL) --limit 300 \
+		--output ../../output/stockmark-ja-eval.json
