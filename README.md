@@ -73,6 +73,9 @@ Japanese validation split (`0xhikae/pii-masking-300k-ja`), 50 docs.
 | `builtin` | 0.453 | 0.275 | 0.342 | 55 ms |
 | `openai-privacy-filter` | **0.899** | **0.576** | **0.702** | 2.3 s |
 
+`ja_ner_ja-v2` (mechanism-v1, 300 docs, 2k synthetic samples): P 0.612 / R 0.247 / F1 0.352, 37 ms/doc.
+See [`docs/benchmark-mechanism-v1.md`](docs/benchmark-mechanism-v1.md) for the full breakdown and per-label recall.
+
 ```bash
 uv run --with datasets --package pleno-anonymize --extra openai \
   python packages/sdk/scripts/eval_pii_masking_300k.py \
