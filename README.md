@@ -65,6 +65,9 @@ English validation split (`ai4privacy/pii-masking-300k`), 50 docs.
 |---|---|---|---|---|
 | `builtin` | 0.386 | 0.272 | 0.319 | 53 ms |
 | `openai-privacy-filter` | **0.915** | **0.788** | **0.847** | 2.2 s |
+| [`pleno_anonymize_en`](https://huggingface.co/0xhikae/pleno_anonymize_en) (300 docs) | 0.955 | **0.982** | **0.968** | 91 ms (GPU) |
+
+\* `pleno_anonymize_en` is a lightweight (distilbert-base-uncased, ~66M params) EN PII NER trained on `ai4privacy/pii-masking-300k` train split. In-distribution upper bound, not a production estimate. Real-text eval not run yet.
 
 Japanese validation split (`0xhikae/pii-masking-300k-ja`), 50 docs.
 
