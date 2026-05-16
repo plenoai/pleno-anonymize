@@ -1,6 +1,6 @@
 # Simula-style mechanism-design pipeline (epic #147)
 
-Status: Stages 1–3 committed (taxonomy → meta-prompts → complexification). Stages 4–8 in progress.
+Status: Stages 1–4 committed (taxonomy → meta-prompts → complexification → dual-critic). Stages 5–8 in progress.
 
 ## Rationale
 
@@ -170,9 +170,35 @@ make score-difficulty DIFFICULTY_IN=path/to/raw.jsonl
 uv run --extra training --with pytest pytest tests/test_complexify.py -v
 ```
 
-## Stage 4 — Dual-critic loop (planned, issue #151)
+## Stage 4 — Dual-critic loop (Simula 4/8, issue #151)
 
-Two LLM critics (label correctness, realism + coverage) on every sample, with auto-correction → re-check or rejection.
+Code:     `packages/training/src/pleno_ner_training/mechanism/critics.py`
+
+### Critics
+
+- **`LocalLabelCritic` / `OpenAILabelCritic`** — verify each (text, span, label) triple. The LLM variant returns `verdict: PASS` or `verdict: FIX, fixed_spans: [...]` so the pipeline can auto-correct once before rejecting. The LLM uses a different model SKU from the generator (per Simula §3.4 dual-population critique).
+- **`LocalRealismCritic` / `OpenAIRealismCritic`** — verify scenario plausibility, length, entity density, and presence of at least one expected entity per the taxonomy leaf.
+
+### Pipeline
+
+`CriticPipeline.verify(sample, leaf) → (sample, verdict ∈ {pass, fixed, rejected})`. Stats (seen, label_pass, label_fixed, label_rejected, realism_pass, realism_rejected, reject_reasons) are recorded for the generator (#152) to log to `experiments/log.jsonl`.
+
+### Acceptance criteria (issue #151)
+
+| Criterion | Status |
+|---|---|
+| Two independent critics behind protocols | yes (LabelCritic / RealismCritic) |
+| Local + OpenAI implementations | yes |
+| Auto-correct path | yes (`fixed_spans` round-trip) |
+| Golden false-pass < 5 % (rule-based, on synthetic golden set) | yes (`tests/test_critics.py::test_pipeline_golden_false_pass_on_bad_data_above_threshold`) |
+| Acceptance rate logged in `CriticStats` | yes |
+
+### Reproducibility
+
+```bash
+cd packages/training
+uv run --extra training --with pytest pytest tests/test_critics.py -v
+```
 
 ## Downstream
 
