@@ -68,9 +68,54 @@ make build-taxonomy-enrich          # additive LLM expansion (requires OPENAI_AP
 uv run --extra training --with pytest pytest tests/test_taxonomy.py -v
 ```
 
-## Stage 2 — Local Diversification (planned, issue #149)
+## Stage 2 — Local Diversification (Simula 2/8, issue #149)
 
-Will consume the taxonomy YAML to emit N distinct meta-prompts per leaf, written to `packages/training/data/meta_prompts/jp/<scenario_id>.jsonl`. The legacy `prompts/ja/*.j2` will be retained for traceability but no longer be the default generation entrypoint.
+Artefact: `packages/training/data/meta_prompts/jp/all.jsonl`
+Builder:  `packages/training/scripts/build_meta_prompts.py`
+Code:     `packages/training/src/pleno_ner_training/mechanism/meta_prompts.py`
+
+### Mechanism
+
+Each taxonomy leaf is fanned out into ≥ 5 meta-prompts via five
+canonical **lenses** that span orthogonal axes:
+
+| Axis | Values |
+|---|---|
+| perspective | self · third_party · neutral |
+| length_hint | short (<200) · medium (200-700) · long (700-1500) |
+| opening_cue | mid_thread · header · salutation · abrupt · form_label |
+| vocabulary | plain · jargon · dialect · mixed_script |
+| twist | straight · redaction_attempt · partial_ocr · code_switch |
+
+Registers from the leaf are cycled through the five lens applications.
+The axes were chosen because they alter the **surface form** of the
+generated sample without redefining the underlying scenario — Simula
+prescribes that local diversification varies form while global
+diversification varies semantics.
+
+### Relationship to legacy `prompts/ja/*.j2`
+
+The Jinja templates under `packages/training/src/pleno_ner_training/prompts/ja/`
+remain on disk for historical traceability but **no longer drive the
+default generation flow**. The new pipeline (Stages 1 → 4) replaces
+them in `make generate`-style targets that will be wired up in #152.
+They will be removed once the v2 model on RunPod has shipped (#155).
+
+### Acceptance criteria (issue #149)
+
+| Criterion | Target | Actual |
+|---|---|---|
+| Meta-prompts per leaf | ≥ 5 | 5 |
+| Duplicate rate (lens fingerprint) | < 5 % | 0 % |
+| Documented relationship to legacy `.j2` | yes | this section |
+
+### Reproducibility
+
+```bash
+cd packages/training
+make build-meta-prompts
+uv run --extra training --with pytest pytest tests/test_meta_prompts.py -v
+```
 
 ## Stage 3 — Complexification (planned, issue #150)
 
