@@ -1,6 +1,6 @@
-# `ja_ner_ja-v2-supervised` — benchmark + methodological accounting
+# `pleno_anonymize_ja` — benchmark + methodological accounting
 
-Released at [`0xhikae/ja_ner_ja-v2-supervised`](https://huggingface.co/0xhikae/ja_ner_ja-v2-supervised).
+Released at [`0xhikae/pleno_anonymize_ja`](https://huggingface.co/0xhikae/pleno_anonymize_ja).
 
 This is the **R2 revision** of the benchmark doc. The previous
 revision passed Smoke and (synthetic-OOD) Parity but the peer
@@ -52,9 +52,9 @@ Validation split of `0xhikae/pii-masking-300k-ja`, 300 docs.
 | `ja_ner_ja-v2-mechanism` (v1, synthetic only) | 0.352 | — | 0.612 | 0.247 | 37 ms |
 | spaCy `ja_core_news_lg` | 0.274 | [0.250, 0.297] | 0.205 | 0.411 | 22 ms |
 | `openai-privacy-filter` v0.13.0 | 0.702 | — | 0.899 | 0.576 | 2.3 s |
-| **`ja_ner_ja-v2-supervised` (seed 42)** | **0.957** | [0.935, 0.973] | 0.933 | 0.983 | 43 ms |
-| `ja_ner_ja-v2-supervised` (seed 7) | 0.954 | — | 0.927 | 0.982 | — |
-| `ja_ner_ja-v2-supervised` (seed 1337) | 0.954 | — | 0.926 | 0.983 | — |
+| **`pleno_anonymize_ja` (seed 42)** | **0.957** | [0.935, 0.973] | 0.933 | 0.983 | 43 ms |
+| `pleno_anonymize_ja` (seed 7) | 0.954 | — | 0.927 | 0.982 | — |
+| `pleno_anonymize_ja` (seed 1337) | 0.954 | — | 0.926 | 0.983 | — |
 | **3-seed mean ± std** | **0.955 ± 0.002** | | | | |
 
 **Caveat unchanged from R1:** v2 was trained on the **train split**
