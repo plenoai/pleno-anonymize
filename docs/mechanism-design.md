@@ -1,6 +1,6 @@
 # Simula-style mechanism-design pipeline (epic #147)
 
-Status: scaffolding (Simula 1/8 — taxonomy — committed)
+Status: Stages 1–2 committed (taxonomy → meta-prompts). Stages 3–8 in progress.
 
 ## Rationale
 
@@ -128,6 +128,6 @@ Two LLM critics (label correctness, realism + coverage) on every sample, with au
 ## Downstream
 
 - Stage 5 (#152): generate ≥ 30k JP samples via the full pipeline.
-- Stage 6 (#153): train `ja_ner_ja` v2 on RunPod (no local training per CLAUDE.md).
+- Stage 6 (#153): train `ja_ner_ja` v2 on RunPod via the RunPod MCP (`mcp__runpod__*`; no local training per CLAUDE.md).
 - Stage 7 (#154): benchmark vs `0xhikae/pii-masking-300k-ja` validation (n=300, IoU ≥ 0.5).
 - Stage 8 (#155): release to HF Hub (model + dataset).

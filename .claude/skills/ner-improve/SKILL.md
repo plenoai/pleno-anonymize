@@ -146,7 +146,7 @@ Log the hypothesis to the experiment log, then proceed immediately. Do NOT ask f
    ```bash
    cd packages/training && make train-en   # or the appropriate Makefile target
    ```
-   Use the CNN config for rapid iteration (~5–10 min). Use RunPod / chrome-mcp for GPU training (per CLAUDE.md: do **not** train on the local machine).
+   Use the CNN config for rapid iteration (~5–10 min). Use RunPod via the `mcp__runpod__*` MCP tools (`create-pod`, `start-pod`, `get-pod`, `delete-pod`) for GPU training (per CLAUDE.md: do **not** train on the local machine).
 
 4. **Evaluate against the baseline** (the only metric that gates Phase 3):
    ```bash
@@ -244,6 +244,6 @@ Next steps:
 - Working directory for training commands: `packages/training/`.
 - Use `dotenvx run -f ../../.env --` for commands that call the OpenAI API.
 - Use `uv run` for all Python commands.
-- Train on **RunPod** (use chrome-mcp). Do not train on the local machine (per project CLAUDE.md).
+- Train on **RunPod** via the RunPod MCP (`mcp__runpod__create-pod` / `start-pod` / `get-pod` / `delete-pod`). Do not train on the local machine (per project CLAUDE.md).
 - Each experiment should complete in < 15 minutes of training time. If a hypothesis cannot be evaluated in that budget, split it.
 - Always report the public baseline number when claiming an improvement.
