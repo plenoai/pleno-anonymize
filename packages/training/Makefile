@@ -17,7 +17,8 @@
        convert-hf-en-v01-tiny convert-hf-en-v01-tiny-hardneg-ext convert-hf-en-v01-tiny-aug-ext \
        train-hf-en-v01-tiny train-hf-en-v01-tiny-hardneg-ext train-hf-en-v01-tiny-aug-ext \
        export-onnx-en-v01-tiny push-hf-en-v01-tiny all-hf-en-v01-tiny \
-       build-taxonomy build-taxonomy-enrich build-meta-prompts
+       build-taxonomy build-taxonomy-enrich build-meta-prompts \
+       score-difficulty score-difficulty-elo
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
@@ -764,3 +765,23 @@ build-meta-prompts:
 	uv run --extra training python scripts/build_meta_prompts.py \
 		--taxonomy $(TAXONOMY_OUT) \
 		--output $(META_PROMPTS_OUT)
+
+# Simula 3/8 — Complexification. Score difficulty + optionally
+# harden a fraction of generated samples to hit target bucket ratios.
+DIFFICULTY_IN ?= data/processed/ja-mechanism-v1/raw.jsonl
+DIFFICULTY_OUT ?= data/processed/ja-mechanism-v1/scored.jsonl
+DIFFICULTY_HIST ?= output/difficulty_hist.json
+
+score-difficulty:
+	uv run --extra training python scripts/score_difficulty.py \
+		--input  $(DIFFICULTY_IN) \
+		--output $(DIFFICULTY_OUT) \
+		--histogram $(DIFFICULTY_HIST) \
+		--apply-operators
+
+score-difficulty-elo:
+	$(DOTENVX) uv run --extra training python scripts/score_difficulty.py \
+		--input  $(DIFFICULTY_IN) \
+		--output $(DIFFICULTY_OUT) \
+		--histogram $(DIFFICULTY_HIST) \
+		--apply-operators --llm-elo
