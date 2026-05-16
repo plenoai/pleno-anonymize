@@ -19,7 +19,8 @@
        export-onnx-en-v01-tiny push-hf-en-v01-tiny all-hf-en-v01-tiny \
        build-taxonomy build-taxonomy-enrich build-meta-prompts \
        score-difficulty score-difficulty-elo \
-       generate-mechanism-smoke generate-mechanism-v1
+       generate-mechanism-smoke generate-mechanism-v1 \
+       train-mechanism-smoke train-mechanism push-dataset-hf push-model-hf
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
@@ -803,3 +804,34 @@ generate-mechanism-v1:
 		--samples-per-prompt $(MECHANISM_SAMPLES_PER_PROMPT) \
 		--max-workers $(MECHANISM_WORKERS) \
 		--model $(MECHANISM_MODEL)
+
+# Simula 6/8 — local CPU smoke training (full GPU training runs on RunPod).
+MECHANISM_OUT ?= output/ja-ner-mechanism-v1
+MECHANISM_BASE ?= cl-tohoku/bert-base-japanese-v3
+MECHANISM_EPOCHS ?= 3
+
+train-mechanism-smoke:
+	uv run --extra training --extra hf python scripts/train_mechanism.py \
+		--data-dir $(MECHANISM_DIR) \
+		--output-dir $(MECHANISM_OUT) \
+		--base-model $(MECHANISM_BASE) \
+		--epochs 1 --batch-size 8
+
+train-mechanism:
+	uv run --extra training --extra hf python scripts/train_mechanism.py \
+		--data-dir $(MECHANISM_DIR) \
+		--output-dir $(MECHANISM_OUT) \
+		--base-model $(MECHANISM_BASE) \
+		--epochs $(MECHANISM_EPOCHS)
+
+# Simula 8/8 — HF Hub push helpers (used by RunPod pod startup script too).
+HF_DATASET_REPO ?= plenoai/pii-masking-jp-mechanism-v1
+HF_MODEL_REPO ?= plenoai/ja_ner_ja-v2
+
+push-dataset-hf:
+	uv run --extra training --extra hf python scripts/push_dataset_to_hf.py \
+		--data-dir $(MECHANISM_DIR) --repo $(HF_DATASET_REPO)
+
+push-model-hf:
+	uv run --extra training --extra hf python scripts/push_model_to_hf.py \
+		--model-dir $(MECHANISM_OUT)/model-best --repo $(HF_MODEL_REPO)

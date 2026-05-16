@@ -268,8 +268,42 @@ dotenvx run -f ../../.env -- uv run --extra training python \
 uv run --extra training --with pytest pytest tests/test_generate.py -v
 ```
 
-## Downstream
+## Stage 6 — Training (Simula 6/8, issue #153)
 
-- Stage 6 (#153): train `ja_ner_ja` v2 on RunPod via the RunPod MCP (`mcp__runpod__*`; no local training per CLAUDE.md).
-- Stage 7 (#154): benchmark vs `0xhikae/pii-masking-300k-ja` validation (n=300, IoU ≥ 0.5).
-- Stage 8 (#155): release to HF Hub (model + dataset).
+Code:     `packages/training/src/pleno_ner_training/mechanism/train.py`
+Runner:   `packages/training/scripts/train_mechanism.py`
+RunPod:   `docs/training-runpod-mechanism.md`
+
+### Pipeline
+
+1. Load `data/raw/ja-mechanism-v1/{train,dev,test}.jsonl`.
+2. Tokenise with the base model's fast tokenizer (`return_offsets_mapping=True`).
+3. Align char-offset spans to token-level **BIO** labels (`_bio_labels_for_tokens`).
+4. Fine-tune via HuggingFace `Trainer` with `seqeval` metrics.
+5. Save `model-best/` + `metrics.json`.
+
+Base model default: `cl-tohoku/bert-base-japanese-v3` (~110M params, fast tokenizer required). The legacy `train_hf.py` uses `ku-nlp/deberta-v2-base-japanese`; both are interchangeable through `--base-model`.
+
+### Where it runs
+
+Per CLAUDE.md, training **must not run locally**. The RunPod orchestration in [`docs/training-runpod-mechanism.md`](training-runpod-mechanism.md) creates a self-contained pod that:
+
+- pulls the dataset from `plenoai/pii-masking-jp-mechanism-v1` (HF Hub),
+- runs `scripts/train_mechanism.py`,
+- pushes the result to `plenoai/ja_ner_ja-v2` (HF Hub),
+- self-terminates.
+
+The pod is launched via the **RunPod MCP** (`mcp__runpod__create-pod` / `get-pod` / `delete-pod`), **not** chrome MCP.
+
+Local Makefile targets `train-mechanism-smoke` / `train-mechanism` exist solely as a sanity check on the wiring; they will be deleted once the v2 model has shipped.
+
+## Stage 7 — Benchmark (Simula 7/8, issue #154)
+
+Eval driver: `packages/sdk/scripts/eval_pii_masking_300k.py` (do not modify; public ruler is fixed)
+Target:     F1 ≥ Smoke (0.50), aim for Parity (0.82) vs `openai-privacy-filter`.
+
+## Stage 8 — HF release (Simula 8/8, issue #155)
+
+- `scripts/push_dataset_to_hf.py` — uploads JSONL splits + dataset card.
+- `scripts/push_model_to_hf.py` — uploads model + tokenizer + model card.
+- `make push-dataset-hf` / `make push-model-hf` wrappers.
