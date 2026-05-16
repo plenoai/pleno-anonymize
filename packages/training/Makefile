@@ -20,7 +20,8 @@
        build-taxonomy build-taxonomy-enrich build-meta-prompts \
        score-difficulty score-difficulty-elo \
        generate-mechanism-smoke generate-mechanism-v1 \
-       train-mechanism-smoke train-mechanism push-dataset-hf push-model-hf
+       train-mechanism-smoke train-mechanism push-dataset-hf push-model-hf \
+       eval-mechanism-300k-ja
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
@@ -835,3 +836,16 @@ push-dataset-hf:
 push-model-hf:
 	uv run --extra training --extra hf python scripts/push_model_to_hf.py \
 		--model-dir $(MECHANISM_OUT)/model-best --repo $(HF_MODEL_REPO)
+
+# Simula 7/8 — benchmark against ai4privacy/pii-masking-300k-ja.
+BENCH_MODEL ?= $(HF_MODEL_REPO)
+BENCH_DATASET ?= 0xhikae/pii-masking-300k-ja
+BENCH_LIMIT ?= 300
+BENCH_OUT ?= ../../output/pii-300k-ja-mechanism-v1.json
+
+eval-mechanism-300k-ja:
+	uv run --extra training --extra hf python scripts/eval_mechanism_on_300k.py \
+		--model $(BENCH_MODEL) \
+		--dataset $(BENCH_DATASET) \
+		--language Japanese --limit $(BENCH_LIMIT) \
+		--output $(BENCH_OUT)
