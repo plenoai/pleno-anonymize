@@ -1,6 +1,6 @@
 # Simula-style mechanism-design pipeline (epic #147)
 
-Status: Stages 1–5 infrastructure committed; v1 dataset generation in flight. Stages 6–8 next.
+Status: Stages 1–8 infrastructure all committed. Final 4 manual steps documented in [docs/release-mechanism-v1.md](release-mechanism-v1.md) — gated on HF + RunPod credentials.
 
 ## Rationale
 
