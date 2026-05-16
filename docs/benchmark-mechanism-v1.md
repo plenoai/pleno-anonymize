@@ -1,6 +1,6 @@
 # `ja_ner_ja-v2` (mechanism-v1) — baseline benchmark
 
-**Status:** infrastructure ready (#154 PR landed). Numbers will appear here after the RunPod training run completes and `make eval-mechanism-300k-ja` is executed against the resulting checkpoint.
+**Status:** initial training run complete (2,014 samples, RPD-limited). Numbers below are from `make eval-mechanism-300k-ja` on the resulting checkpoint pushed to `0xhikae/ja_ner_ja-v2-mechanism` (private).
 
 ## Methodology
 
@@ -19,7 +19,20 @@ published v0.13.0 baseline:
 |---|---:|---:|---:|
 | `builtin` v0.13.0 | 0.342 | 0.453 | 0.275 |
 | `openai-privacy-filter` v0.13.0 | 0.702 | 0.899 | 0.576 |
-| **`ja_ner_ja-v2` (mechanism-v1)** | **TBD** | **TBD** | **TBD** |
+| **`ja_ner_ja-v2` (mechanism-v1, 2k samples)** | **0.352** | **0.612** | **0.247** |
+
+Latency: 36.77 ms/doc avg (CPU). Source: `output/pii-300k-ja-mechanism-v1.json`.
+
+The first run lands marginally above the `builtin` floor (+0.010 F1) with
+substantially higher precision (0.612 vs 0.453) but lower recall. Recall is
+the obvious target: the model was trained on only 2,014 samples (OpenAI
+RPD-limited) vs the ≥15k target. Top per-label recall gaps:
+
+- `TIME` 0.6% — model effectively does not predict time spans
+- `COUNTRY`, `SECADDRESS`, `PASS`, `GEOCOORD` 0% — out of taxonomy
+- `STATE` 3.3%, `SEX` 7.4%, `BUILDING` 5.6%, `IP` 7.6% — under-represented in 2k samples
+
+Strong labels (recall): `TEL` 0.765, `BOD` 0.729, `EMAIL` 0.638, `USERNAME` 0.444.
 
 ## Eval driver
 
