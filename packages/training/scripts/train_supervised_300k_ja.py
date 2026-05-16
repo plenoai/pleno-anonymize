@@ -1,15 +1,19 @@
-"""Supervised v2: train on 0xhikae/pii-masking-300k-ja train split (Japanese).
+"""Supervised v2: train on local JSONL dump of 0xhikae/pii-masking-300k-ja JP split.
 
 Iteration 1 trained on 2,014 synthetic samples and hit F1 0.352 on the
 validation split — domain-shift-limited. This script trains directly
 on the train split of the same dataset (label-agnostic IoU eval on
 validation is still fair: train/validation are disjoint by construction).
 
-Usage on RunPod (one-shot, dataset is public):
+The dataset is private; we dump it locally (where the user's HF auth
+works) and scp the JSONL to the pod. No token leaves the local box.
+
+Usage on RunPod:
     python scripts/train_supervised_300k_ja.py \\
+        --data-dir data/raw/ja-300k-supervised \\
         --base-model FacebookAI/xlm-roberta-base \\
         --output-dir output/ja-ner-supervised-v2 \\
-        --epochs 2 --max-train 50000
+        --epochs 2
 """
 
 from __future__ import annotations
@@ -62,17 +66,16 @@ def _bio_labels(text: str, entities, offset_mapping, label2id, ignore_index=-100
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--data-dir", type=Path, default=Path("data/raw/ja-300k-supervised"),
+                        help="dir containing train.jsonl and dev.jsonl (pre-dumped locally)")
     parser.add_argument("--base-model", default="FacebookAI/xlm-roberta-base")
     parser.add_argument("--output-dir", type=Path, default=Path("output/ja-ner-supervised-v2"))
     parser.add_argument("--epochs", type=int, default=2)
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=5e-5)
-    parser.add_argument("--max-train", type=int, default=50_000)
-    parser.add_argument("--max-dev", type=int, default=500)
-    parser.add_argument("--dataset", default="0xhikae/pii-masking-300k-ja")
     args = parser.parse_args()
 
-    from datasets import Dataset, load_dataset
+    from datasets import Dataset
     from transformers import (
         AutoModelForTokenClassification,
         AutoTokenizer,
@@ -81,39 +84,22 @@ def main() -> None:
         TrainingArguments,
     )
 
-    print(f"[load] {args.dataset} train split (streaming, language=Japanese)")
-    ds_iter = load_dataset(args.dataset, split="train", streaming=True)
-    train_rows: list[dict] = []
-    for row in ds_iter:
-        if row.get("language") != "Japanese":
-            continue
-        text = row.get("source_text") or row.get("text")
-        if not text:
-            continue
-        spans = _parse_spans(row.get("span_labels"))
-        if not spans:
-            continue
-        train_rows.append({"text": text, "entities": spans})
-        if len(train_rows) >= args.max_train:
-            break
-    print(f"[load] train: {len(train_rows)} JP rows")
+    def _read_jsonl(path: Path) -> list[dict]:
+        rows: list[dict] = []
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            r = json.loads(line)
+            ents = [(e["start"], e["end"], e["label"]) for e in r["entities"]]
+            rows.append({"text": r["text"], "entities": ents})
+        return rows
 
-    print(f"[load] {args.dataset} validation split")
-    ds_dev = load_dataset(args.dataset, split="validation", streaming=True)
-    dev_rows: list[dict] = []
-    for row in ds_dev:
-        if row.get("language") != "Japanese":
-            continue
-        text = row.get("source_text") or row.get("text")
-        if not text:
-            continue
-        spans = _parse_spans(row.get("span_labels"))
-        if not spans:
-            continue
-        dev_rows.append({"text": text, "entities": spans})
-        if len(dev_rows) >= args.max_dev:
-            break
-    print(f"[load] dev: {len(dev_rows)} JP rows")
+    print(f"[load] {args.data_dir}/train.jsonl")
+    train_rows = _read_jsonl(args.data_dir / "train.jsonl")
+    print(f"[load] train: {len(train_rows)} rows")
+    print(f"[load] {args.data_dir}/dev.jsonl")
+    dev_rows = _read_jsonl(args.data_dir / "dev.jsonl")
+    print(f"[load] dev: {len(dev_rows)} rows")
 
     labels = sorted({e[2] for r in train_rows + dev_rows for e in r["entities"]})
     bio = ["O"] + [f"{p}-{l}" for l in labels for p in ("B", "I")]
