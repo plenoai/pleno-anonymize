@@ -18,7 +18,8 @@
        train-hf-en-v01-tiny train-hf-en-v01-tiny-hardneg-ext train-hf-en-v01-tiny-aug-ext \
        export-onnx-en-v01-tiny push-hf-en-v01-tiny all-hf-en-v01-tiny \
        build-taxonomy build-taxonomy-enrich build-meta-prompts \
-       score-difficulty score-difficulty-elo
+       score-difficulty score-difficulty-elo \
+       generate-mechanism-smoke generate-mechanism-v1
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
@@ -785,3 +786,20 @@ score-difficulty-elo:
 		--output $(DIFFICULTY_OUT) \
 		--histogram $(DIFFICULTY_HIST) \
 		--apply-operators --llm-elo
+
+# Simula 5/8 — full pipeline (taxonomy + meta-prompts + LLM + critics).
+MECHANISM_DIR ?= data/raw/ja-mechanism-v1
+MECHANISM_SAMPLES_PER_PROMPT ?= 8
+MECHANISM_WORKERS ?= 32
+MECHANISM_MODEL ?= gpt-4o-mini
+
+generate-mechanism-smoke:
+	$(DOTENVX) uv run --extra training python scripts/generate_mechanism_dataset.py --smoke
+
+generate-mechanism-v1:
+	$(DOTENVX) uv run --extra training python scripts/generate_mechanism_dataset.py \
+		--meta-prompts data/meta_prompts/jp/all.jsonl \
+		--output-dir $(MECHANISM_DIR) \
+		--samples-per-prompt $(MECHANISM_SAMPLES_PER_PROMPT) \
+		--max-workers $(MECHANISM_WORKERS) \
+		--model $(MECHANISM_MODEL)

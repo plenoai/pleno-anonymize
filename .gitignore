@@ -1,3 +1,5 @@
+packages/training/data/raw/ja-mechanism-v1/
+packages/training/output/generate-v1.log
 # Project-specific
 CLAUDE.md
 **/.claude/*
