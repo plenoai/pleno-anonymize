@@ -17,7 +17,8 @@
        convert-hf-en-v01-tiny convert-hf-en-v01-tiny-hardneg-ext convert-hf-en-v01-tiny-aug-ext \
        train-hf-en-v01-tiny train-hf-en-v01-tiny-hardneg-ext train-hf-en-v01-tiny-aug-ext \
        export-onnx-en-v01-tiny push-hf-en-v01-tiny all-hf-en-v01-tiny \
-       train-supervised-ja eval-300k-ja eval-stockmark-ja push-model-hf
+       train-supervised-ja eval-300k-ja eval-stockmark-ja push-model-hf \
+       dump-supervised-en train-supervised-en eval-300k-en push-model-hf-en
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
@@ -774,3 +775,42 @@ eval-stockmark-ja:
 	uv run --extra training --extra hf python scripts/eval_stockmark_jp_real.py \
 		--model $(BENCH_MODEL) --limit 300 \
 		--output ../../output/stockmark-ja-eval.json
+
+# Supervised EN NER on ai4privacy/pii-masking-300k English split.
+# Dataset is public; dump locally for reproducible inputs and scp to pod.
+SUPERVISED_EN_DATA  ?= data/raw/en-300k-supervised
+SUPERVISED_EN_OUT   ?= output/en-ner-supervised-v2
+SUPERVISED_EN_BASE  ?= distilbert-base-uncased
+SUPERVISED_EN_EPOCHS ?= 2
+SUPERVISED_EN_SEED  ?= 42
+
+dump-supervised-en:
+	uv run --extra training --extra hf python scripts/dump_pii_300k.py \
+		--dataset ai4privacy/pii-masking-300k \
+		--language English \
+		--output-dir $(SUPERVISED_EN_DATA)
+
+train-supervised-en:
+	uv run --extra training --extra hf python scripts/train_supervised_300k_en.py \
+		--data-dir $(SUPERVISED_EN_DATA) \
+		--output-dir $(SUPERVISED_EN_OUT) \
+		--base-model $(SUPERVISED_EN_BASE) \
+		--epochs $(SUPERVISED_EN_EPOCHS) \
+		--seed $(SUPERVISED_EN_SEED)
+
+HF_MODEL_REPO_EN ?= 0xhikae/pleno_anonymize_en
+push-model-hf-en:
+	uv run --extra training --extra hf python scripts/push_model_to_hf.py \
+		--model-dir $(SUPERVISED_EN_OUT)/model-best --repo $(HF_MODEL_REPO_EN)
+
+BENCH_MODEL_EN ?= $(HF_MODEL_REPO_EN)
+BENCH_DATASET_EN ?= ai4privacy/pii-masking-300k
+BENCH_LIMIT_EN ?= 300
+BENCH_OUT_EN ?= ../../output/pii-300k-en-eval.json
+
+eval-300k-en:
+	uv run --extra training --extra hf python scripts/eval_on_300k.py \
+		--model $(BENCH_MODEL_EN) \
+		--dataset $(BENCH_DATASET_EN) \
+		--language English --limit $(BENCH_LIMIT_EN) \
+		--output $(BENCH_OUT_EN)

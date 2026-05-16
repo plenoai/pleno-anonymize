@@ -24,6 +24,10 @@ packages/training/data/hf/
 # Re-dumpable via the snippet in scripts/train_supervised_300k_ja.py header.
 packages/training/data/raw/ja-300k-supervised/
 
+# Local JSONL dump of the public ai4privacy/pii-masking-300k EN slice.
+# Re-dumpable via `make dump-supervised-en`.
+packages/training/data/raw/en-300k-supervised/
+
 # External hardneg mining outputs (#64) — reproducible via
 # `make mine-external-hardneg-ja`, large (~MB), not committed.
 packages/training/data/raw/ja-v02/external_hardneg.json
