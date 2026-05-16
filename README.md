@@ -48,29 +48,45 @@ OPF's 8 native labels normalize into the same `entity_type` taxonomy
 surfaces as a new `SECRET` class so anonymizer / scanner / proxy stay
 backend-agnostic.
 
-### Development baseline — ai4privacy/pii-masking-300k
+### Development baselines — AI4Privacy-style PII datasets
 
 `ai4privacy/pii-masking-300k` (validation split, character-IoU ≥ 0.5,
-label-agnostic) is the **single development baseline** for the NER /
-recognizer pipeline. Every backend change is gated on this dataset; the
-prior self-made benchmark under `packages/training/data/benchmark/v0.*/`
-is **frozen as of v0.13.0** and kept only for historical traceability.
-See [`docs/benchmark.md`](docs/benchmark.md) for the full methodology
-and [`/ner-improve`](.claude/skills/ner-improve/SKILL.md) for the
-improvement loop.
+label-agnostic) is the development baseline for the EN NER / recognizer
+pipeline. `0xhikae/pii-masking-300k-ja` uses the same schema and protocol
+for the Japanese pipeline. The prior self-made benchmark under
+`packages/training/data/benchmark/v0.*/` is **frozen as of v0.13.0** and
+kept only for historical traceability. See [`docs/benchmark.md`](docs/benchmark.md)
+for the full methodology and [`/ner-improve`](.claude/skills/ner-improve/SKILL.md)
+for the improvement loop.
 
-English validation split, 50 docs.
+English validation split (`ai4privacy/pii-masking-300k`), 50 docs.
 
 | Engine | Precision | Recall | F1 | Latency/doc (CPU) |
 |---|---|---|---|---|
 | `builtin` | 0.386 | 0.272 | 0.319 | 53 ms |
 | `openai-privacy-filter` | **0.915** | **0.788** | **0.847** | 2.2 s |
 
+Japanese validation split (`0xhikae/pii-masking-300k-ja`), 50 docs.
+
+| Engine | Precision | Recall | F1 | Latency/doc (CPU) |
+|---|---|---|---|---|
+| `builtin` | 0.453 | 0.275 | 0.342 | 55 ms |
+| `openai-privacy-filter` | **0.899** | **0.576** | **0.702** | 2.3 s |
+
 ```bash
-uv run --with datasets python packages/sdk/scripts/eval_pii_masking_300k.py \
+uv run --with datasets --package pleno-anonymize --extra openai \
+  python packages/sdk/scripts/eval_pii_masking_300k.py \
   --engines builtin openai-privacy-filter \
+  --dataset ai4privacy/pii-masking-300k \
   --language English --pleno-language en --limit 50 \
   --output output/pii-300k-eval-en-50.json
+
+uv run --with datasets --package pleno-anonymize --extra openai \
+  python packages/sdk/scripts/eval_pii_masking_300k.py \
+  --engines builtin openai-privacy-filter \
+  --dataset 0xhikae/pii-masking-300k-ja \
+  --language Japanese --pleno-language ja --limit 50 --opf-device cpu \
+  --output output/pii-300k-ja-eval-ja-50.json
 ```
 
 ## Detected entities

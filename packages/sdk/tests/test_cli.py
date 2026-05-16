@@ -25,6 +25,25 @@ def test_models_status_lists_all_known_models() -> None:
     assert "en_ner_en" in output
 
 
+def test_model_install_command_falls_back_to_uv(monkeypatch) -> None:
+    from pleno_anonymize import _models
+
+    monkeypatch.setattr(_models.importlib.util, "find_spec", lambda name: None)
+    monkeypatch.setattr(_models.shutil, "which", lambda name: "/opt/bin/uv")
+
+    cmd = _models._install_command("https://example.test/model.whl", quiet=True)
+
+    assert cmd == [
+        "/opt/bin/uv",
+        "pip",
+        "install",
+        "--python",
+        _models.sys.executable,
+        "--quiet",
+        "https://example.test/model.whl",
+    ]
+
+
 def test_version_flag() -> None:
     parser = _build_parser()
     try:

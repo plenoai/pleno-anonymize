@@ -11,6 +11,7 @@ from __future__ import annotations
 import importlib
 import importlib.util
 import logging
+import shutil
 import subprocess
 import sys
 from typing import Literal
@@ -43,15 +44,34 @@ def is_installed(model_name: str) -> bool:
     return importlib.util.find_spec(model_name) is not None
 
 
+def _install_command(url: str, *, quiet: bool = False) -> list[str]:
+    if importlib.util.find_spec("pip") is not None:
+        cmd = [sys.executable, "-m", "pip", "install", "--no-cache-dir"]
+        if quiet:
+            cmd.append("--quiet")
+        cmd.append(url)
+        return cmd
+
+    uv = shutil.which("uv")
+    if uv:
+        cmd = [uv, "pip", "install", "--python", sys.executable]
+        if quiet:
+            cmd.append("--quiet")
+        cmd.append(url)
+        return cmd
+
+    raise RuntimeError(
+        "cannot install model wheel: neither pip nor uv is available in "
+        f"{sys.executable}"
+    )
+
+
 def install(model_name: str, *, quiet: bool = False) -> None:
-    """Install a model wheel via pip into the running interpreter."""
+    """Install a model wheel into the running interpreter."""
     if model_name not in MODEL_WHEELS:
         raise ValueError(f"unknown model: {model_name!r}")
     url = MODEL_WHEELS[model_name]
-    cmd = [sys.executable, "-m", "pip", "install", "--no-cache-dir"]
-    if quiet:
-        cmd.append("--quiet")
-    cmd.append(url)
+    cmd = _install_command(url, quiet=quiet)
     logger.info("installing %s from %s", model_name, url)
     subprocess.run(cmd, check=True)
     importlib.invalidate_caches()

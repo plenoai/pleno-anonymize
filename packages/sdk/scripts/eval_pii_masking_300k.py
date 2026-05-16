@@ -1,8 +1,9 @@
-"""Benchmark pleno-anonymize backends against ai4privacy/pii-masking-300k.
+"""Benchmark pleno-anonymize backends against AI4Privacy-style PII datasets.
 
 Compares the default `builtin` engine (Presidio + spaCy NER) against
-`openai-privacy-filter` (the OPF open-source model) on the validation split
-of https://huggingface.co/datasets/ai4privacy/pii-masking-300k.
+`openai-privacy-filter` (the OPF open-source model) on Hugging Face
+datasets that expose the `source_text`, `span_labels`, and `language`
+columns used by https://huggingface.co/datasets/ai4privacy/pii-masking-300k.
 
 Span-level scoring is label-agnostic: a predicted span counts as a true
 positive if it overlaps a gold span with character IoU >= ``--iou`` (default
@@ -14,6 +15,7 @@ proxy actually cares about.
 Usage:
     uv run python scripts/eval_pii_masking_300k.py \
         --engines builtin openai-privacy-filter \
+        --dataset ai4privacy/pii-masking-300k \
         --language English \
         --limit 1000 \
         --output ../../output/pii-300k-eval.json
@@ -147,12 +149,15 @@ def _score(
     counts.fp += len(pred) - len(matched_pred)
 
 
-def _iter_dataset(language: str, limit: int) -> Iterable[dict]:
+def _iter_dataset(
+    dataset: str,
+    split: str,
+    language: str,
+    limit: int,
+) -> Iterable[dict]:
     from datasets import load_dataset  # type: ignore[import-not-found]
 
-    ds = load_dataset(
-        "ai4privacy/pii-masking-300k", split="validation", streaming=True
-    )
+    ds = load_dataset(dataset, split=split, streaming=True)
     yielded = 0
     for row in ds:
         if language and row.get("language") != language:
@@ -191,7 +196,7 @@ def _eval_engine(
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(
-        description="Benchmark pleno engines on ai4privacy/pii-masking-300k"
+        description="Benchmark pleno engines on AI4Privacy-style PII datasets"
     )
     p.add_argument(
         "--engines",
@@ -199,6 +204,12 @@ def main(argv: list[str] | None = None) -> int:
         default=["builtin", "openai-privacy-filter"],
         choices=("builtin", "openai-privacy-filter"),
     )
+    p.add_argument(
+        "--dataset",
+        default="ai4privacy/pii-masking-300k",
+        help="Hugging Face dataset id",
+    )
+    p.add_argument("--split", default="validation", help="dataset split")
     p.add_argument("--language", default="English", help="dataset language filter")
     p.add_argument(
         "--pleno-language",
@@ -218,9 +229,10 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
 
     sys.stderr.write(
-        f"loading up to {args.limit} {args.language!r} validation rows ...\n"
+        f"loading up to {args.limit} {args.language!r} rows from "
+        f"{args.dataset!r} split {args.split!r} ...\n"
     )
-    rows = list(_iter_dataset(args.language, args.limit))
+    rows = list(_iter_dataset(args.dataset, args.split, args.language, args.limit))
     sys.stderr.write(f"loaded {len(rows)} rows\n")
 
     results: dict[str, dict[str, object]] = {}
@@ -239,8 +251,8 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     payload = {
-        "dataset": "ai4privacy/pii-masking-300k",
-        "split": "validation",
+        "dataset": args.dataset,
+        "split": args.split,
         "language": args.language,
         "limit": args.limit,
         "iou_threshold": args.iou,

@@ -2232,6 +2232,19 @@ wheels = [
 ]
 
 [[package]]
+name = "opf"
+version = "0.1.0"
+source = { git = "https://github.com/openai/privacy-filter?rev=main#f7f00ca7fb869683eb732c010299d901457f19c3" }
+dependencies = [
+    { name = "huggingface-hub" },
+    { name = "numpy" },
+    { name = "packaging" },
+    { name = "safetensors" },
+    { name = "tiktoken" },
+    { name = "torch" },
+]
+
+[[package]]
 name = "optimum"
 version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2522,6 +2535,9 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+openai = [
+    { name = "opf" },
+]
 remote = [
     { name = "httpx" },
 ]
@@ -2535,11 +2551,12 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "httpx", marker = "extra == 'remote'", specifier = ">=0.27" },
+    { name = "opf", marker = "extra == 'openai'", git = "https://github.com/openai/privacy-filter?rev=main" },
     { name = "presidio-analyzer", specifier = ">=2.2" },
     { name = "presidio-anonymizer", specifier = ">=2.2" },
     { name = "spacy", extras = ["ja"], specifier = ">=3.8" },
 ]
-provides-extras = ["remote"]
+provides-extras = ["remote", "openai"]
 
 [package.metadata.requires-dev]
 dev = [
