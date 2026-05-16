@@ -1,6 +1,6 @@
 # `ja_ner_ja-v2` (mechanism-v1) — baseline benchmark
 
-**Status:** initial training run complete (2,014 samples, RPD-limited). Numbers below are from `make eval-mechanism-300k-ja` on the resulting checkpoint pushed to `0xhikae/ja_ner_ja-v2-mechanism` (private).
+**Status:** v1 baseline released publicly at [`0xhikae/ja_ner_ja-v2-mechanism`](https://huggingface.co/0xhikae/ja_ner_ja-v2-mechanism). Numbers below are from `make eval-mechanism-300k-ja`. Above the `builtin` floor, below the Smoke tier (0.50) — iteration 2 tracked in [#166](https://github.com/plenoai/pleno-anonymize/issues/166).
 
 ## Methodology
 
