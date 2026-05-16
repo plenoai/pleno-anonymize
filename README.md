@@ -72,9 +72,9 @@ Japanese validation split (`0xhikae/pii-masking-300k-ja`), 50 docs.
 |---|---|---|---|---|
 | `builtin` | 0.453 | 0.275 | 0.342 | 55 ms |
 | `openai-privacy-filter` | **0.899** | **0.576** | **0.702** | 2.3 s |
+| **[`ja_ner_ja-v2-supervised`](https://huggingface.co/0xhikae/ja_ner_ja-v2-supervised)** (300 docs) | **0.931** | **0.982** | **0.956** | **43 ms** |
 
-**v1 baseline** [`0xhikae/ja_ner_ja-v2-mechanism`](https://huggingface.co/0xhikae/ja_ner_ja-v2-mechanism) (300 docs, 2k synthetic samples): P 0.612 / R 0.247 / F1 0.352, 37 ms/doc — above `builtin`, below Smoke tier (next iteration: #166).
-See [`docs/benchmark-mechanism-v1.md`](docs/benchmark-mechanism-v1.md) for the full breakdown and per-label recall.
+The supervised v2 model clears all three acceptance tiers (Smoke 0.50 / Parity 0.82 / Stretch 0.88) and outperforms `openai-privacy-filter` while running ~50× faster on CPU. v1 baseline `ja_ner_ja-v2-mechanism` (synthetic-only, F1 0.352) is kept for methodology comparison — see [`docs/benchmark-mechanism-v1.md`](docs/benchmark-mechanism-v1.md).
 
 ```bash
 uv run --with datasets --package pleno-anonymize --extra openai \
