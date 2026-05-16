@@ -73,7 +73,7 @@ Japanese validation split (`0xhikae/pii-masking-300k-ja`), 50 docs.
 | `builtin` | 0.453 | 0.275 | 0.342 | 55 ms |
 | `openai-privacy-filter` | 0.899 | 0.576 | 0.702 | 2.3 s |
 
-[`ja_ner_ja-v2-supervised`](https://huggingface.co/0xhikae/ja_ner_ja-v2-supervised) numbers below — 3-seed mean ± std (seeds 42 / 7 / 1337), 1000-iter bootstrap CIs on the seed-42 run. See [`docs/benchmark-supervised-v2.md`](docs/benchmark-supervised-v2.md) for the full methodology, span-merge derivation, real-text caveats, and open gaps.
+[`pleno_anonymize_ja`](https://huggingface.co/0xhikae/pleno_anonymize_ja) numbers below — 3-seed mean ± std (seeds 42 / 7 / 1337), 1000-iter bootstrap CIs on the seed-42 run. See [`docs/benchmark-supervised-v2.md`](docs/benchmark-supervised-v2.md) for the full methodology, span-merge derivation, real-text caveats, and open gaps.
 
 | Eval set | F1 | F1 95% CI | P | R | Latency |
 |---|---:|---|---:|---:|---:|
