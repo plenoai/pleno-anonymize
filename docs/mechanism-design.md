@@ -1,6 +1,6 @@
 # Simula-style mechanism-design pipeline (epic #147)
 
-Status: Stages 1–4 committed (taxonomy → meta-prompts → complexification → dual-critic). Stages 5–8 in progress.
+Status: Stages 1–5 infrastructure committed; v1 dataset generation in flight. Stages 6–8 next.
 
 ## Rationale
 
@@ -200,9 +200,76 @@ cd packages/training
 uv run --extra training --with pytest pytest tests/test_critics.py -v
 ```
 
+## Stage 5 — Pipeline integration (Simula 5/8, issue #152)
+
+Artefact: `packages/training/data/raw/ja-mechanism-v1/{all,train,dev,test}.jsonl` (generated; gitignored)
+Builder:  `packages/training/scripts/generate_mechanism_dataset.py`
+Code:     `packages/training/src/pleno_ner_training/mechanism/generate.py`
+
+### Pipeline
+
+```
+meta-prompts.jsonl  ─▶  LLM (gpt-4o-mini default)
+                         ▼
+                       parse_xml_tagged  ─▶  Sample(text, entities)
+                         ▼
+                       CriticPipeline.verify (label + realism)
+                         ▼
+                       apply_with_ratio   (target {easy: .5, medium: .3, hard: .2})
+                         ▼
+                       jsonl + stratified train/dev/test split
+```
+
+The generator parallelises across meta-prompts with `--max-workers`
+threads, retries with exponential backoff on API errors, and writes
+incrementally so a long run is recoverable. Smoke runs (`--smoke`,
+50 prompts × 2 samples) validate the wiring end-to-end in seconds.
+
+### Schema (per accepted sample)
+
+```json
+{
+  "text": "...",
+  "entities": [{"start": int, "end": int, "label": str}, ...],
+  "scenario_id": "med.clinical.kanja_chart",
+  "meta_prompt_id": "med.clinical.kanja_chart#00",
+  "register": "formal",
+  "document_type": "doc_export",
+  "entity_density": "dense",
+  "lens": {"perspective": ..., "length_hint": ..., ...},
+  "difficulty": 0.39,
+  "difficulty_bucket": "medium",
+  "operators_applied": ["obfuscate"],
+  "verdict": "pass"
+}
+```
+
+### Cost
+
+| Run | meta_prompts | samples/prompt | API calls | est. cost | est. wall-clock |
+|---|---:|---:|---:|---:|---:|
+| smoke | 50 | 2 | 100 | $0.05 | < 1 min |
+| v1 default | 1,910 | 8 | 15,280 | ~$4 | ~2 hr |
+| v1 stretch | 1,910 | 16 | 30,560 | ~$15 | ~4 hr |
+
+### Reproducibility
+
+```bash
+cd packages/training
+dotenvx run -f ../../.env -- uv run --extra training python \
+  scripts/generate_mechanism_dataset.py --smoke
+
+# Full run
+dotenvx run -f ../../.env -- uv run --extra training python \
+  scripts/generate_mechanism_dataset.py \
+    --samples-per-prompt 8 --max-workers 32 \
+    --output-dir data/raw/ja-mechanism-v1
+
+uv run --extra training --with pytest pytest tests/test_generate.py -v
+```
+
 ## Downstream
 
-- Stage 5 (#152): generate ≥ 30k JP samples via the full pipeline.
 - Stage 6 (#153): train `ja_ner_ja` v2 on RunPod via the RunPod MCP (`mcp__runpod__*`; no local training per CLAUDE.md).
 - Stage 7 (#154): benchmark vs `0xhikae/pii-masking-300k-ja` validation (n=300, IoU ≥ 0.5).
 - Stage 8 (#155): release to HF Hub (model + dataset).
