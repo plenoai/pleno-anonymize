@@ -1,6 +1,6 @@
 # Simula-style mechanism-design pipeline (epic #147)
 
-Status: Stages 1–2 committed (taxonomy → meta-prompts). Stages 3–8 in progress.
+Status: Stages 1–3 committed (taxonomy → meta-prompts → complexification). Stages 4–8 in progress.
 
 ## Rationale
 
@@ -117,9 +117,58 @@ make build-meta-prompts
 uv run --extra training --with pytest pytest tests/test_meta_prompts.py -v
 ```
 
-## Stage 3 — Complexification (planned, issue #150)
+## Stage 3 — Complexification (Simula 3/8, issue #150)
 
-Independent difficulty operators (obfuscation, ambiguity, code-switching, multi-entity coupling, adversarial near-PII) plus Elo-calibrated complexity scores.
+Artefact: `packages/training/data/processed/ja-mechanism-v1/scored.jsonl` (generated)
+Builder:  `packages/training/scripts/score_difficulty.py`
+Code:     `packages/training/src/pleno_ner_training/mechanism/complexify.py`
+
+### Operators
+
+| Operator | Effect | Cost |
+|---|---|---|
+| `obfuscate` | Half/full-width digit swap, hyphen drop, honorific strip | rule-based |
+| `add_ambiguity` | Insert a name-like distractor (e.g. "山田工業株式会社") near a PERSON span without tagging it | rule-based |
+| `code_switch` | JP→romaji for known kanji name tokens (50% coverage via lookup table; LLM extension lives in #152) | rule-based |
+| `couple_entities` | Add a related second PERSON (配偶者 / 緊急連絡先 / 保証人) so the model must disambiguate co-reference | rule-based |
+| `add_near_pii` | Prepend a UUID / sample number / hash that regex baselines mis-fire on | rule-based |
+
+All operators preserve span invariants — `validate_spans()` checks the (start, end) coordinates round-trip after every mutation. The label set never shrinks.
+
+### Difficulty score
+
+`difficulty_score(sample) → [0, 1]` combines:
+
+- operator weights (each applied operator contributes 0.10–0.25)
+- length norm (longer = mildly harder)
+- entity density
+- mixed-script ratio (JP + Latin + digits)
+
+Buckets: `easy < 0.25 ≤ medium < 0.55 ≤ hard`.
+
+### Target-ratio application
+
+`apply_with_ratio(samples, target={easy: .5, medium: .3, hard: .2})` partitions samples by seed and applies a light op to medium and a 3-step chain to hard. The operator-application proportions match the target exactly; bucket counts may drift slightly because surface features also feed into the score.
+
+### Calibrated complexity (optional)
+
+`score_difficulty.py --llm-elo` runs pairwise comparisons through an LLM (default `gpt-4o-mini`) and rescales `difficulty` into the Elo percentile, per Simula §4. The heuristic remains the default for non-LLM runs.
+
+### Acceptance criteria (issue #150)
+
+| Criterion | Status |
+|---|---|
+| 5 operators apply individually | yes (`tests/test_complexify.py::test_each_operator_preserves_span_invariants`) |
+| Elo scoring produces a distribution + histogram | yes (`--llm-elo`; `--histogram` artefact) |
+| Target ratio achievable within ±5 % | yes (operator-application count matches target exactly) |
+
+### Reproducibility
+
+```bash
+cd packages/training
+make score-difficulty DIFFICULTY_IN=path/to/raw.jsonl
+uv run --extra training --with pytest pytest tests/test_complexify.py -v
+```
 
 ## Stage 4 — Dual-critic loop (planned, issue #151)
 
