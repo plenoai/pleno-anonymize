@@ -71,10 +71,25 @@ Japanese validation split (`0xhikae/pii-masking-300k-ja`), 50 docs.
 | Engine | Precision | Recall | F1 | Latency/doc (CPU) |
 |---|---|---|---|---|
 | `builtin` | 0.453 | 0.275 | 0.342 | 55 ms |
-| `openai-privacy-filter` | **0.899** | **0.576** | **0.702** | 2.3 s |
-| **[`ja_ner_ja-v2-supervised`](https://huggingface.co/0xhikae/ja_ner_ja-v2-supervised)** (300 docs) | **0.931** | **0.982** | **0.956** | **43 ms** |
+| `openai-privacy-filter` | 0.899 | 0.576 | 0.702 | 2.3 s |
 
-The supervised v2 model clears all three acceptance tiers (Smoke 0.50 / Parity 0.82 / Stretch 0.88) and outperforms `openai-privacy-filter` while running ~50× faster on CPU. v1 baseline `ja_ner_ja-v2-mechanism` (synthetic-only, F1 0.352) is kept for methodology comparison — see [`docs/benchmark-mechanism-v1.md`](docs/benchmark-mechanism-v1.md).
+[`ja_ner_ja-v2-supervised`](https://huggingface.co/0xhikae/ja_ner_ja-v2-supervised) numbers below — 3-seed mean ± std (seeds 42 / 7 / 1337), 1000-iter bootstrap CIs on the seed-42 run. See [`docs/benchmark-supervised-v2.md`](docs/benchmark-supervised-v2.md) for the full methodology, span-merge derivation, real-text caveats, and open gaps.
+
+| Eval set | F1 | F1 95% CI | P | R | Latency |
+|---|---:|---|---:|---:|---:|
+| In-dist (300k-ja validation, 300 docs)\* | **0.955 ± 0.002** | [0.935, 0.973] | 0.929 ± 0.004 | 0.983 ± 0.001 | 43 ms |
+| OOD synthetic (v1 test+dev, 134 docs, strict) | 0.773 ± 0.004 | [0.745, 0.797] | 0.718 | 0.829 | 41 ms |
+| OOD synthetic (label-aware merged)† | **0.852 ± 0.014** | [0.846, 0.885] | 0.867 | 0.838 | 41 ms |
+| Real text (stockmark JP Wikipedia, PII subset 人名/地名, 147 docs)‡ | **0.467 ± 0.010** | [0.393, 0.520] | 0.486 | 0.436 | 43 ms |
+| spaCy `ja_core_news_lg` (same real-text, PII subset) | 0.571 | [0.533, 0.608] | 0.425 | 0.871 | 22 ms |
+
+\* Trained on `0xhikae/pii-masking-300k-ja` train split. Treat as upper bound, not production estimate.
+† Adjacent v2 sub-spans are merged before scoring **only when their labels map to the same coarse equivalence class** (e.g., `LASTNAME1`+`GIVENNAME1` → PERSON, `STREET`+`CITY` → ADDRESS). Cross-class adjacency is not merged. Neutralises a label-granularity artifact in the eval protocol.
+‡ **First real-text eval.** v2 trails spaCy by 0.10 F1 on Wikipedia. Reflects domain mismatch (v2 trained on form-/record-style PII text, Wikipedia is narrative prose). A real-text PII-context eval (chat/form/email JP) is the highest-priority follow-up.
+
+**Acceptance tier read:** Smoke (≥0.50) and Parity (≥0.82, vs OPF 0.702) met on synthetic eval. Real-text Parity is **not** claimed. Production expectations should be calibrated near 0.47, not 0.85.
+
+v1 baseline `ja_ner_ja-v2-mechanism` (synthetic-only, F1 0.352) is kept for methodology comparison — see [`docs/benchmark-mechanism-v1.md`](docs/benchmark-mechanism-v1.md).
 
 ```bash
 uv run --with datasets --package pleno-anonymize --extra openai \
