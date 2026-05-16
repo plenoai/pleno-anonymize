@@ -1,202 +1,233 @@
 # `ja_ner_ja-v2-supervised` — benchmark + methodological accounting
 
 Released at [`0xhikae/ja_ner_ja-v2-supervised`](https://huggingface.co/0xhikae/ja_ner_ja-v2-supervised).
-Closes the goal opened by [#168](https://github.com/plenoai/pleno-anonymize/issues/168).
 
-This document reports both the optimistic in-distribution number and
-the more honest out-of-distribution numbers, surfaces a non-obvious
-eval-protocol artifact, and lists the methodological limitations a
-peer reviewer would (and did) flag.
+This is the **R2 revision** of the benchmark doc. The previous
+revision passed Smoke and (synthetic-OOD) Parity but the peer
+reviewer flagged three blocking concerns:
 
-## TL;DR
+- (R1-C1) Label-blind span merging inflated the OOD number
+- (R1-C2) No real-text Japanese in the eval suite
+- (R1-C3) Single training run — no variance estimate
 
-- **In-distribution F1: 0.957** [0.935, 0.973] — on the validation
-  split of the same dataset whose train split was used to train v2.
-  Treat as an upper bound, **not** a generalisation estimate.
-- **OOD F1 (strict): 0.770** [0.745, 0.797] — on the Simula v1
-  synthetic test set (separate generator, different label schema, never
-  seen at training). Penalised by label granularity (see below).
-- **OOD F1 (schema-intersection): 0.807** [0.782, 0.834] — restricting
-  gold to labels with a v2 vocabulary analogue.
-- **OOD F1 (span-merged): 0.862** [0.841, 0.881] — collapses contiguous
-  v2 sub-spans, neutralising the label-granularity artifact. This is
-  the most defensible single number.
-- **Classic baseline (spaCy `ja_core_news_lg`) OOD: 0.855** [0.832,
-  0.878]. v2 (merged) edges it, but the bootstrap CIs overlap.
+This revision addresses all three. Real-text performance is **worse
+than v2's synthetic OOD numbers suggested**, and the reviewer's
+caveat ("calibrate below 0.862, not at it") was correct.
+
+## TL;DR with 3-seed mean ± std
+
+3 training seeds (42, 7, 1337), identical recipe; 1000-iter
+document-level bootstrap CIs on the seed-42 run for the ranges.
+
+| Eval set | Mean F1 | Std | Seed-42 CI 95% | Smoke ≥ 0.50 | Parity ≥ 0.82 |
+|---|---:|---:|---|:---:|:---:|
+| In-dist (300k-ja val, 300 docs) | **0.955** | 0.002 | [0.935, 0.973] | ✅ | ✅ |
+| OOD synthetic (v1 test+dev, 134 docs, strict) | **0.773** | 0.004 | [0.745, 0.797] | ✅ | ❌ |
+| OOD synthetic (label-aware merged) | **0.852** | 0.014 | [0.846, 0.885] | ✅ | ✅ (with span-class merging) |
+| **Real text (stockmark JP Wikipedia, PII subset, 147 docs)** | **0.467** | 0.010 | [0.393, 0.520] | ❌ | ❌ |
+| Real text (stockmark, all 8 categories, 276 docs) | 0.395 | 0.009 | [0.343, 0.430] | ❌ | ❌ |
+
+**Honest reading:** v2 dominates in-distribution. On synthetic OOD
+it matches Parity under label-aware merging. **On real Japanese
+text (Wikipedia), v2 falls below Smoke.** spaCy `ja_core_news_lg`
+beats v2 on the same real-text set (see baselines below).
 
 ## Methodology
 
-Identical to [`docs/benchmark.md`](benchmark.md) §4 (the public ruler):
+Char-IoU ≥ 0.5, label-agnostic. 1000-iter document-level bootstrap
+with fixed seed=42 for CIs.
 
-- Scoring: char-IoU ≥ 0.5, label-agnostic span matching.
-- Driver: `packages/training/scripts/eval_mechanism_on_300k.py` and
-  `packages/training/scripts/eval_ood_jsonl.py`.
-- 1000-iteration document-level bootstrap, seed 42, for 95% CIs.
+Training: same recipe across all 3 seeds: `FacebookAI/xlm-roberta-base`,
+25,082 JP rows from `0xhikae/pii-masking-300k-ja` train split, 2 epochs,
+batch 16, lr 5e-5, fp16. Per-seed evaluation runs use the seed's own
+checkpoint.
 
 ## In-distribution evaluation
 
 Validation split of `0xhikae/pii-masking-300k-ja`, 300 docs.
 
-| Engine | F1 | F1 95% CI | Precision | Recall | Latency/doc (CPU) |
+| Model | F1 | F1 95% CI | P | R | Latency |
 |---|---:|---|---:|---:|---:|
 | `builtin` v0.13.0 | 0.342 | — | 0.453 | 0.275 | 55 ms |
 | `ja_ner_ja-v2-mechanism` (v1, synthetic only) | 0.352 | — | 0.612 | 0.247 | 37 ms |
 | spaCy `ja_core_news_lg` | 0.274 | [0.250, 0.297] | 0.205 | 0.411 | 22 ms |
 | `openai-privacy-filter` v0.13.0 | 0.702 | — | 0.899 | 0.576 | 2.3 s |
-| **`ja_ner_ja-v2-supervised`** | **0.957** | **[0.935, 0.973]** | **0.933** | **0.983** | 43 ms |
+| **`ja_ner_ja-v2-supervised` (seed 42)** | **0.957** | [0.935, 0.973] | 0.933 | 0.983 | 43 ms |
+| `ja_ner_ja-v2-supervised` (seed 7) | 0.954 | — | 0.927 | 0.982 | — |
+| `ja_ner_ja-v2-supervised` (seed 1337) | 0.954 | — | 0.926 | 0.983 | — |
+| **3-seed mean ± std** | **0.955 ± 0.002** | | | | |
 
-**Caveat:** v2 was trained on the **train split** of the same
-dataset. Per template-overlap analysis (below) the splits are
-0.4% surface-overlapping but cannot be assumed fully independent.
-Use OOD numbers for production expectations.
+**Caveat unchanged from R1:** v2 was trained on the **train split**
+of the same dataset. Per template-overlap analysis (below) the
+splits share only 0.4 % of char-level surface skeletons, so this is
+not pure template memorisation — but template-disjoint does not
+imply pipeline-disjoint. Read this as "supervised fit on the
+methodology", not production performance.
 
-## Train/val template overlap (reviewer concern: split leakage)
+## Train/val template overlap (split-leakage probe)
 
-`0xhikae/pii-masking-300k-ja` is a JP-translated fork of
-`ai4privacy/pii-masking-300k`. A common failure mode is that train
-and validation share generation templates, so a model can memorise
-the template skeleton and predict spans by position rather than
-context. Two probes on a 20k-row train / 1.5k-row val sample:
+`0xhikae/pii-masking-300k-ja` is a JP fork of
+`ai4privacy/pii-masking-300k`. Two probes on 20k train / 1.5k val
+rows:
 
-| Signature | Distinct in train | Distinct in val | Train-val overlap |
+| Signature | Train distinct | Val distinct | Train-val overlap |
 |---|---:|---:|---:|
-| Char-level skeleton (first 150 chars with PII tags replaced by labels) | 19,961 / 20,000 | 1,497 / 1,500 | 0.4 % (6 of 1,500 val rows) |
-| Label-sequence only (tuple of label types per row) | 13,952 | 1,223 | 36.1 % |
+| Char-level (150 char skeleton, labels in place of PII surface) | 19,961 / 20,000 | 1,497 / 1,500 | **0.4 %** (6 / 1,500) |
+| Label-sequence only (tuple of label types) | 13,952 | 1,223 | 36.1 % |
 
-Char-level: surface forms in train and val are essentially disjoint;
-template memorisation is not a credible explanation for the 0.957
-in-dist F1. Label-sequence overlap of 36% is expected for any
-fixed-vocabulary NER task and does not by itself imply leakage —
-distinct documents can share label sequences without sharing text.
+The char-level result rules out wholesale surface-form memorisation;
+label-sequence overlap of 36 % is expected for any fixed-vocabulary
+NER and does not by itself imply leakage.
 
-This does not prove zero leakage. AI4Privacy could have shared
-*scenario seeds* across splits before instantiation. But the
-character-level evidence makes wholesale template memorisation
-unlikely.
+## Out-of-distribution evaluation — Simula synthetic v1, 134 docs
 
-## Out-of-distribution evaluation
+Combined dev+test of the v1 (Simula) synthetic dataset:
+`packages/training/data/raw/ja-mechanism-v1/{dev,test}.jsonl`.
+Different pipeline, different label schema (17 pleno vs 28
+ai4privacy v2 emits), zero overlap with v2 training data.
 
-Combined dev+test from the v1 (Simula / synthetic) dataset:
-`packages/training/data/raw/ja-mechanism-v1/{dev,test}.jsonl`,
-n=134 docs. Different generator pipeline (Simula meta-prompts,
-complexification operators, dual-critic loop), different label
-schema (17 pleno labels vs 28 ai4privacy v2 emits), zero overlap
-with v2 training data.
+### Strict char-IoU ≥ 0.5 (no merging)
 
-| Engine | F1 | F1 95% CI | Precision | Recall | Latency/doc (CPU) |
-|---|---:|---|---:|---:|---:|
-| spaCy `ja_core_news_lg` | 0.855 | [0.832, 0.878] | 0.787 | 0.937 | 26 ms |
-| **v2-supervised (strict)** | 0.770 | [0.745, 0.797] | 0.718 | 0.829 | 41 ms |
-| v2-supervised (schema-intersection) | 0.807 | [0.782, 0.834] | 0.708 | 0.940 | 41 ms |
-| **v2-supervised (span-merged)** | **0.862** | **[0.841, 0.881]** | 0.888 | 0.837 | 41 ms |
+| Model | F1 | F1 95% CI | P | R |
+|---|---:|---|---:|---:|
+| spaCy `ja_core_news_lg` | 0.855 | [0.832, 0.878] | 0.787 | 0.937 |
+| **v2-supervised (seed 42)** | 0.770 | [0.745, 0.797] | 0.718 | 0.829 |
+| v2-supervised (seed 7) | 0.778 | — | — | — |
+| v2-supervised (seed 1337) | 0.771 | — | — | — |
+| **3-seed mean ± std** | **0.773 ± 0.004** | | | |
 
-### Why v2 (strict) < spaCy on OOD — the label-granularity artifact
+### Label-aware merged (R1-C1 fix)
 
-The v1 OOD set uses **coarse** labels (e.g., `PERSON` covering an
-entire 「山田太郎」 span). v2 was trained on **fine-grained**
-ai4privacy labels and emits `LASTNAME1` + `GIVENNAME1` as two
-adjacent narrow spans. With char-IoU ≥ 0.5, neither narrow
-prediction reaches the threshold against the wide gold span; both
-become FP and the gold becomes FN.
+v2 emits fine-grained ai4privacy labels (`LASTNAME1`, `GIVENNAME1`,
+`STREET`, `CITY`, ...) while the v1 OOD set uses coarse pleno
+labels (`PERSON`, `ADDRESS`, ...). `eval_ood_span_merged.py`
+defines explicit equivalence classes:
 
-Concrete example from `/tmp/v2-ood-extended.jsonl[1]`:
+- `PERSON` ← `{LASTNAME1/2/3, GIVENNAME1/2, TITLE, USERNAME}`
+- `ADDRESS` ← `{STREET, CITY, STATE, POSTCODE, BUILDING, SECADDRESS, COUNTRY, GEOCOORD}`
+- `DATE_OF_BIRTH` ← `{BOD, DATE, TIME}`
+- `PHONE` ← `{TEL}`, `EMAIL` ← `{EMAIL}`, `IP` ← `{IP}`, `SEX` ← `{SEX}`
+- `ID_CARD` ← `{IDCARD, DRIVERLICENSE, PASSPORT, PASS, SOCIALNUMBER}`
 
-- Gold `ADDRESS` (33, 48) — 15 chars
-- v2 predicts: `STREET` (33, 36), `CITY` (36, 40), `STREET` (40, 48) — three fragments
-- IoU values: 0.20, 0.27, 0.53 → only the last one barely matches
+Adjacent v2 sub-spans are merged into one super-span **only when
+both labels map to the same coarse class**. Cross-class adjacency
+(e.g., `LASTNAME1` next to `TEL` in form text) is NOT collapsed.
 
-`eval_ood_span_merged.py` re-runs the same eval after merging any
-contiguous non-O v2 spans into one. F1 climbs from 0.770 to 0.862.
-The model's underlying span predictions are correct; the strict
-scoring penalises the schema mismatch.
+| Model | F1 | F1 95% CI | P | R |
+|---|---:|---|---:|---:|
+| **v2-supervised (seed 42)** | **0.867** | [0.846, 0.885] | 0.883 | 0.851 |
+| v2-supervised (seed 7) | 0.857 | — | 0.860 | 0.853 |
+| v2-supervised (seed 1337) | 0.833 | — | 0.858 | 0.810 |
+| **3-seed mean ± std** | **0.852 ± 0.014** | | | |
+| spaCy `ja_core_news_lg` (no merge applicable) | 0.855 | [0.832, 0.878] | 0.787 | 0.937 |
 
-**The 0.862 (merged) number is the most defensible OOD figure.**
+Mean OOD-merged 0.852 is statistically indistinguishable from
+spaCy's 0.855 — overlapping CIs and seed std 0.014 dominates the
+difference.
 
-### Why this isn't a real "OOD" test
+## Real-text evaluation (R1-C2 fix) — stockmark JP Wikipedia NER
 
-Both training data and "OOD" data are LLM-synthesised. A genuine
-out-of-distribution test would be hand-annotated real Japanese text
-(chat logs, scanned forms, call-centre transcripts). We do not
-have one yet, so all reported OOD numbers should be read as
-"synthetic-to-synthetic generalisation upper bound for the
-production target". Production expectations should be calibrated
-below 0.862, not at it.
+Real Japanese Wikipedia sentences with 8 entity categories:
+人名, 法人名, 政治的組織名, その他の組織名, 地名, 施設名, 製品名, イベント名.
+Sourced from `stockmark/ner-wikipedia-dataset`, n=300 sampled rows.
 
-### Schema-intersection per-label recall (OOD, strict)
+Reported two ways: (a) all 8 categories, and (b) restricted to the
+**PII-relevant subset** `{人名, 地名}` since the other six categories
+(corporations, products, events, facilities) are out-of-scope for
+a PII NER like v2 by design.
 
-`PHONE_NUMBER` 1.00 · `EMAIL_ADDRESS` 1.00 · `POSTAL_CODE` 1.00 ·
-`CREDIT_CARD` 1.00 · `PERSON` 0.96 · `BANK_ACCOUNT` 0.94 · `ADDRESS`
-0.87 · `DATE_OF_BIRTH` 0.82.
+| Model | Subset | F1 | F1 95% CI | P | R |
+|---|---|---:|---|---:|---:|
+| **spaCy `ja_core_news_lg`** | All 8 | **0.709** | [0.679, 0.736] | 0.642 | 0.792 |
+| spaCy `ja_core_news_lg` | PII-subset | 0.571 | [0.533, 0.608] | 0.425 | 0.871 |
+| **v2-supervised (3-seed mean)** | PII-subset | **0.467 ± 0.010** | [0.393, 0.520] | 0.486 | 0.436 |
+| v2-supervised (3-seed mean) | All 8 | 0.395 ± 0.009 | [0.343, 0.430] | 0.616 | 0.281 |
 
-`HEALTH_INSURANCE` (0.05) and `ORGANIZATION` (0.00) are excluded —
-those labels have no analogue in v2's 28-label ai4privacy output
-vocabulary, so v2 structurally cannot emit them. Production
-deployments needing these classes should stack Presidio pattern
-recognizers on top.
+**v2 loses to spaCy by 0.10 F1 on real-text PII subset.** This is
+the honest result, and it reflects:
 
-## Acceptance tiers from [`SKILL.md`](../.claude/skills/ner-improve/SKILL.md)
+1. **Domain mismatch.** v2 was trained on form-/record-/chat-style
+   PII text (ai4privacy generation methodology). Wikipedia narrative
+   prose is a very different distribution.
+2. **Schema mismatch.** v2 is trained to find specific PII categories
+   (phones, emails, postcodes, ID numbers). Wikipedia entities are
+   often legal entities (`法人名`) and facilities that v2 was never
+   trained to recognise.
+3. **spaCy's home turf.** `ja_core_news_lg` was trained on Wikipedia-
+   derived data and benefits structurally.
 
-| Tier | F1 floor | In-dist | OOD (strict) | OOD (merged) |
-|---|---:|:---:|:---:|:---:|
-| Smoke | 0.50 | ✅ | ✅ | ✅ |
-| Parity | 0.82 | ✅ | ❌ (0.770) | ✅ (0.862) |
-| Stretch | 0.88 | ✅ | ❌ | ❌ (CI upper 0.881) |
+**A truly fair real-text PII eval would use hand-annotated
+chat/form/email Japanese.** That dataset does not exist publicly.
+Building one (~50–100 samples) is the highest-priority follow-up.
 
-Honest reading: **Smoke and Parity are met under the merged OOD
-protocol; Stretch is not.**
+The stockmark result should be read as: "on this kind of text,
+in this kind of context, with this kind of schema, v2 trails
+spaCy". It is not a verdict on v2's PII performance in production
+PII contexts.
 
-## Training recipe
+## Seed variance summary
 
-- Base: `FacebookAI/xlm-roberta-base` (270M params)
-- Data: 25,082 Japanese rows from `0xhikae/pii-masking-300k-ja` train
-  split (dumped locally then scp'd to RunPod since the dataset is
-  private; no token leaves the operator's machine)
-- 2 epochs, batch size 16, lr 5e-5, fp16, **seed 42**
-- ~5 min on a single RTX A6000 (RunPod), ~$0.05 compute
-- Reproducibility caveats below
+3 seeds × 4 eval sets:
+
+| Eval | seed 42 | seed 7 | seed 1337 | Mean | Std |
+|---|---:|---:|---:|---:|---:|
+| In-dist | 0.957 | 0.954 | 0.954 | 0.955 | 0.002 |
+| OOD strict | 0.770 | 0.778 | 0.771 | 0.773 | 0.004 |
+| OOD merged | 0.867 | 0.857 | 0.833 | 0.852 | 0.014 |
+| Real (PII) | 0.460 | 0.460 | 0.482 | 0.467 | 0.010 |
+| Real (full) | 0.386 | 0.392 | 0.407 | 0.395 | 0.009 |
+
+Variance is consistent across eval sets — small and well below the
+CI widths of the eval-set-side bootstrap.
+
+## Acceptance tiers — final read
+
+| Tier | F1 floor | In-dist | OOD strict | OOD merged | Real (PII) | Real (full) |
+|---|---:|:---:|:---:|:---:|:---:|:---:|
+| Smoke | 0.50 | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Parity | 0.82 | ✅ | ❌ | ✅ | ❌ | ❌ |
+| Stretch | 0.88 | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+The honest read: **Smoke and Parity are met on synthetic eval. Real-
+text performance is below Smoke even on PII-relevant categories**, so
+real-text Parity is not claimed.
+
+Production deployment expectations should be calibrated to the
+real-text number (~0.47), not the synthetic OOD number (~0.85).
 
 ## Reproducibility
 
-- Training script `packages/training/scripts/train_supervised_300k_ja.py`
-  pins seed via `--seed`, `TrainingArguments(seed=, data_seed=)`,
-  `random.seed`, `numpy.random.seed`, `torch.manual_seed`,
-  `PYTHONHASHSEED`.
-- 1000-iter bootstrap CIs use seed 42.
-- The training dataset is private (`0xhikae/pii-masking-300k-ja`).
-  Third-party reproduction requires the dataset owner granting
-  access. The training script reads from a local JSONL dump.
-- Library versions: not pinned in `pyproject.toml`. Recorded only
-  loosely in CLAUDE.md as "transformers>=4.45,<5". Pinning is a
-  follow-up.
-- Replicate runs across multiple seeds: not done. Reported numbers
-  are from a single training run.
+- All scripts in `packages/training/scripts/`:
+  - `train_supervised_300k_ja.py` (seed pinned)
+  - `eval_mechanism_on_300k.py` (in-dist, char-IoU ≥ 0.5)
+  - `eval_ood_jsonl.py` (OOD strict)
+  - `eval_ood_span_merged.py` (OOD label-aware merge)
+  - `eval_stockmark_jp_real.py` (real-text)
+  - `eval_classic_baseline.py` (spaCy / GiNZA)
+  - `compute_ci_bootstrap.py` (1000-iter bootstrap CIs)
+- Seed pinning: python/numpy/torch/`PYTHONHASHSEED`/HF `TrainingArguments(seed, data_seed)`
+- Library versions: ranged in `pyproject.toml` extras; not fully pinned (Minor open item)
+- Training dataset is private; the script reads from a local JSONL
+  dump, scp'd to RunPod. Third-party reproduction needs dataset access.
 
-## Open methodological gaps (reviewer feedback, R1 round)
+## What's still open (would block top-venue Accept)
 
 Resolved in this revision:
-- ✅ Train/val template overlap quantified (R1)
-- ✅ Bootstrap 95% CIs on every reported number (R3)
-- ✅ Schema-intersection OOD F1 reported (R3)
-- ✅ Span-merged OOD F1 reported, label-granularity artifact called out (R3)
-- ✅ Classic baseline added (spaCy `ja_core_news_lg`) (R4)
-- ✅ Seed pinned in training script (R5)
-- ✅ Headline tables include CIs and avoid bold-comparing in-dist to OPF (R2)
+- ✅ R1-C1: label-aware span merge (replaces label-blind merge)
+- ✅ R1-C2: real-text eval added (stockmark Wikipedia)
+- ✅ R1-C3: 3-seed variance reported (std on every cell)
+- ✅ Reviewer's R0 #1–10 either resolved or downgraded to Minor
 
-Still outstanding (would block top-venue Accept):
-- ❌ **No real Japanese text in evaluation.** Both training and OOD
-  are LLM-synthesised. Adding ≥100 hand-annotated real-text samples
-  is the highest-priority follow-up.
-- ❌ **No multi-seed replicate runs.** Single training run, single
-  bootstrap of that run. Variance across seeds unknown.
-- ❌ **No v1↔v2 ablation isolating base model from data.** v1 used
-  `xlm-roberta-base` after a switch from `cl-tohoku/bert-base-japanese-v3`
-  (which lacked a fast tokenizer); v2 also uses `xlm-roberta-base`,
-  so the v1→v2 jump is attributable to data only. But the v1
-  config used 3 epochs, v2 uses 2 epochs — minor confound.
-- ❌ **AI4Privacy split-protocol still partially opaque.** The
-  template-overlap probe is necessary but not sufficient; dataset
-  card does not document the splitting strategy at the scenario or
-  seed level.
-- ❌ **Library versions not pinned in package manifests.**
-- ❌ **Only one classic baseline (spaCy).** GiNZA would be a natural
-  second.
+Still open:
+- ❌ **No PII-context real-text eval.** Wikipedia is real but
+  off-domain. ≥50 hand-annotated JP chat/form/email samples would
+  resolve this. Highest-priority follow-up.
+- ❌ Library versions not pinned in `pyproject.toml`.
+- ❌ Only one classic baseline (spaCy). GiNZA would be natural #2.
+- ❌ AI4Privacy upstream split-protocol still not fully documented.
+- ❌ v1→v2 epoch confound (2 vs 3 epochs).
+
+The single highest-impact follow-up is hand-annotating ≥50 real
+JP PII samples. Until then, real-text production performance is
+estimated from the stockmark Wikipedia result with the caveat that
+PII-context is a different distribution.
