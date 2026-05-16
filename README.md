@@ -71,11 +71,22 @@ Japanese validation split (`0xhikae/pii-masking-300k-ja`), 50 docs.
 | Engine | Precision | Recall | F1 | Latency/doc (CPU) |
 |---|---|---|---|---|
 | `builtin` | 0.453 | 0.275 | 0.342 | 55 ms |
-| `openai-privacy-filter` | **0.899** | **0.576** | **0.702** | 2.3 s |
-| **[`ja_ner_ja-v2-supervised`](https://huggingface.co/0xhikae/ja_ner_ja-v2-supervised)** (300 docs, in-dist) | **0.931** | **0.982** | **0.956** | **43 ms** |
-| **[`ja_ner_ja-v2-supervised`](https://huggingface.co/0xhikae/ja_ner_ja-v2-supervised)** (67 docs, OOD synthetic) | 0.710 | 0.823 | 0.762 | 41 ms |
+| `openai-privacy-filter` | 0.899 | 0.576 | 0.702 | 2.3 s |
 
-The supervised v2 model was trained on the train split of `0xhikae/pii-masking-300k-ja`, so the 0.956 figure on its validation split is an in-distribution upper bound (treat with appropriate skepticism — splits are disjoint by construction but share generation methodology). The OOD row evaluates against a completely separate synthetic test set the model has never seen, with a different label schema, and is the more honest generalisation estimate. v1 baseline `ja_ner_ja-v2-mechanism` (synthetic-only, F1 0.352) is kept for methodology comparison — see [`docs/benchmark-mechanism-v1.md`](docs/benchmark-mechanism-v1.md) and [`docs/benchmark-supervised-v2.md`](docs/benchmark-supervised-v2.md).
+[`ja_ner_ja-v2-supervised`](https://huggingface.co/0xhikae/ja_ner_ja-v2-supervised) numbers below.
+Read [`docs/benchmark-supervised-v2.md`](docs/benchmark-supervised-v2.md) for full methodology, CIs, and caveats.
+
+| Eval set | F1 | 95% CI | P | R | Latency |
+|---|---:|---|---:|---:|---:|
+| In-dist (300k-ja validation, 300 docs)\* | 0.957 | [0.935, 0.973] | 0.933 | 0.983 | 43 ms |
+| OOD synthetic v1 test (134 docs, strict scoring) | 0.770 | [0.745, 0.797] | 0.718 | 0.829 | 41 ms |
+| OOD synthetic v1 test (134 docs, **span-merged**)† | **0.862** | [0.841, 0.881] | 0.888 | 0.837 | 41 ms |
+| spaCy `ja_core_news_lg` OOD baseline | 0.855 | [0.832, 0.878] | 0.787 | 0.937 | 26 ms |
+
+\* Trained on `0xhikae/pii-masking-300k-ja` train split. Use OOD numbers for production expectations.
+† Adjacent v2 sub-spans are merged before scoring, neutralising a label-granularity artifact (gold uses coarse `PERSON`/`ADDRESS`; v2 emits fine-grained `LASTNAME1`+`GIVENNAME1` / `STREET`+`CITY`+`STREET`). See benchmark doc for the artifact diagnosis.
+
+v1 baseline `ja_ner_ja-v2-mechanism` (synthetic-only, F1 0.352) is kept for methodology comparison — see [`docs/benchmark-mechanism-v1.md`](docs/benchmark-mechanism-v1.md).
 
 ```bash
 uv run --with datasets --package pleno-anonymize --extra openai \

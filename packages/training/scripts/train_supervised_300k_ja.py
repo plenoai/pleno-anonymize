@@ -73,7 +73,21 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=2)
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=5e-5)
+    parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
+
+    # Reproducibility: fix all RNGs we touch.
+    import os, random
+    import numpy as _np
+    random.seed(args.seed); _np.random.seed(args.seed)
+    os.environ["PYTHONHASHSEED"] = str(args.seed)
+    try:
+        import torch as _torch
+        _torch.manual_seed(args.seed)
+        if _torch.cuda.is_available():
+            _torch.cuda.manual_seed_all(args.seed)
+    except ImportError:
+        pass
 
     from datasets import Dataset
     from transformers import (
@@ -157,6 +171,8 @@ def main() -> None:
         save_total_limit=2,
         report_to=[],
         fp16=True,
+        seed=args.seed,
+        data_seed=args.seed,
     )
 
     def compute_metrics(eval_preds):
