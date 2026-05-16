@@ -16,7 +16,8 @@
        mine-external-hardneg-en mine-external-hardneg-en-dry-run \
        convert-hf-en-v01-tiny convert-hf-en-v01-tiny-hardneg-ext convert-hf-en-v01-tiny-aug-ext \
        train-hf-en-v01-tiny train-hf-en-v01-tiny-hardneg-ext train-hf-en-v01-tiny-aug-ext \
-       export-onnx-en-v01-tiny push-hf-en-v01-tiny all-hf-en-v01-tiny
+       export-onnx-en-v01-tiny push-hf-en-v01-tiny all-hf-en-v01-tiny \
+       build-taxonomy build-taxonomy-enrich
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
@@ -735,3 +736,23 @@ clean:
 	rm -rf $(OUTPUT_DIR) $(DATA_RAW) $(DATA_PROCESSED)
 
 all: generate convert train evaluate package
+
+# Simula 1/8 — Global Diversification. Deterministic seed taxonomy is
+# committed; the enrich variant additively widens it via an LLM. See
+# docs/mechanism-design.md.
+TAXONOMY_OUT ?= data/taxonomies/jp_pii_taxonomy.yaml
+TAXONOMY_JSON_OUT ?= data/taxonomies/jp_pii_taxonomy.json
+TAXONOMY_MODEL ?= gpt-4o-mini
+TAXONOMY_MAX_NEW ?= 50
+
+build-taxonomy:
+	uv run --extra training python scripts/build_taxonomy.py \
+		--output $(TAXONOMY_OUT) \
+		--json-output $(TAXONOMY_JSON_OUT)
+
+build-taxonomy-enrich:
+	$(DOTENVX) uv run --extra training python scripts/build_taxonomy.py \
+		--output $(TAXONOMY_OUT) \
+		--json-output $(TAXONOMY_JSON_OUT) \
+		--enrich --model $(TAXONOMY_MODEL) \
+		--max-new-scenarios $(TAXONOMY_MAX_NEW)
