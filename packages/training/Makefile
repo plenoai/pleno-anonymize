@@ -17,7 +17,7 @@
        convert-hf-en-v01-tiny convert-hf-en-v01-tiny-hardneg-ext convert-hf-en-v01-tiny-aug-ext \
        train-hf-en-v01-tiny train-hf-en-v01-tiny-hardneg-ext train-hf-en-v01-tiny-aug-ext \
        export-onnx-en-v01-tiny push-hf-en-v01-tiny all-hf-en-v01-tiny \
-       build-taxonomy build-taxonomy-enrich
+       build-taxonomy build-taxonomy-enrich build-meta-prompts
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
@@ -756,3 +756,11 @@ build-taxonomy-enrich:
 		--json-output $(TAXONOMY_JSON_OUT) \
 		--enrich --model $(TAXONOMY_MODEL) \
 		--max-new-scenarios $(TAXONOMY_MAX_NEW)
+
+# Simula 2/8 — Local Diversification. Five canonical lenses per leaf.
+META_PROMPTS_OUT ?= data/meta_prompts/jp/all.jsonl
+
+build-meta-prompts:
+	uv run --extra training python scripts/build_meta_prompts.py \
+		--taxonomy $(TAXONOMY_OUT) \
+		--output $(META_PROMPTS_OUT)
