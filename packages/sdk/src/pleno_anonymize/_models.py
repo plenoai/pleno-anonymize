@@ -25,7 +25,10 @@ Language = Literal["ja", "en"]
 # runtime, the SDK must work standalone.
 MODEL_WHEELS: dict[str, str] = {
     "pleno_anonymize_ja": "https://huggingface.co/0xhikae/pleno_anonymize_ja/resolve/main/pleno_anonymize_ja-0.2.0-py3-none-any.whl",
-    "pleno_anonymize_en": "https://huggingface.co/0xhikae/pleno_anonymize_en/resolve/main/pleno_anonymize_en-0.2.0-py3-none-any.whl",
+    # 0.2.1 = tok2vec retrain mirroring the JA recipe (F1=0.973, ~35MB wheel).
+    # 0.2.0 was a transformer build that dragged in torch + spacy-transformers;
+    # bumping past it keeps the SDK slim.
+    "pleno_anonymize_en": "https://huggingface.co/0xhikae/pleno_anonymize_en/resolve/main/pleno_anonymize_en-0.2.1-py3-none-any.whl",
 }
 
 LANGUAGE_TO_MODEL: dict[Language, str] = {

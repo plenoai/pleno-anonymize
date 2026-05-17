@@ -64,17 +64,10 @@ def _init_presidio():
     # resolve via spaCy entry_point lookup, not filesystem path.
     _nlp_ja = spacy.load("pleno_anonymize_ja")
 
-    # pleno_anonymize_en v0.2.0 is transformer-based and inflates the image
-    # past fly's 8GB rootfs limit (torch + nvidia CUDA libs). Server image
-    # ships the lightweight tok2vec en_ner_en-0.1.0 instead; SDK users still
-    # get pleno_anonymize_en via the auto-download path.
     try:
         _nlp_en = spacy.load("pleno_anonymize_en")
     except OSError:
-        try:
-            _nlp_en = spacy.load("en_ner_en")
-        except OSError:
-            _nlp_en = None
+        _nlp_en = None
 
     models = {"ja": _nlp_ja}
     if _nlp_en is not None:
