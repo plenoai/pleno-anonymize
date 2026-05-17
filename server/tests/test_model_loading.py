@@ -10,8 +10,8 @@ import pytest
 
 
 def test_init_presidio_loads_real_ja_model():
-    """`_init_presidio()` must succeed when ja_ner_ja wheel is installed."""
-    pytest.importorskip("ja_ner_ja")
+    """`_init_presidio()` must succeed when pleno_anonymize_ja wheel is installed."""
+    pytest.importorskip("pleno_anonymize_ja")
 
     import server.src.app as app
 

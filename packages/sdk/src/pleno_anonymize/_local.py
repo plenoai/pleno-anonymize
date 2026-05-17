@@ -16,7 +16,7 @@ class LocalEngine:
     """Run Presidio analyzer/anonymizer in-process.
 
     For each requested language we try to load the matching NER wheel
-    (``ja_ner_ja`` / ``en_ner_en``). When the wheel is unavailable and
+    (``pleno_anonymize_ja`` / ``pleno_anonymize_en``). When the wheel is unavailable and
     ``auto_download`` is False, we fall back to a tokenizer-only blank
     spaCy pipeline — pattern recognizers (regex + checksum) still run, but
     free-text NER classes (``PERSON``, ``ADDRESS``, ``ORGANIZATION`` …)

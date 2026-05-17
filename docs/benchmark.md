@@ -52,7 +52,7 @@ answers that question quantitatively.
 
 | System | Version | Components |
 |---|---|---|
-| `builtin` | `pleno-anonymize` 0.2.0 | Presidio Analyzer 2.2; spaCy 3.8; `en_ner_en` 0.1.0 (proprietary, trained on JP-first data with English augmentation); 12 regex + checksum recognizers (Luhn, mynumber, etc.) |
+| `builtin` | `pleno-anonymize` 0.2.0 | Presidio Analyzer 2.2; spaCy 3.8; `pleno_anonymize_en` 0.2.0 (proprietary, trained on JP-first data with English augmentation); 12 regex + checksum recognizers (Luhn, mynumber, etc.) |
 | `openai-privacy-filter` | `opf` @ `f7f00ca` (main, 2026-05-12 snapshot) | 1.5B-parameter pre-norm transformer encoder, 8 layers, GQA (14Q/2KV), 128-expert sparse MoE (top-4), 128k context, BIOES Viterbi decoding [\[1\]](#references). Checkpoint `openai/privacy-filter`, 2.8 GB safetensors |
 
 Both engines expose the same `analyze(text) -> list[Finding]` interface in
@@ -240,7 +240,7 @@ considers identifying.
 
 ### 6.1 Why does `builtin` underperform here?
 
-The proprietary `en_ner_en` model is a small spaCy NER head trained on the
+The proprietary `pleno_anonymize_en` model is a small spaCy NER head trained on the
 pleno entity taxonomy (PERSON, ADDRESS, ORGANIZATION, DATE_OF_BIRTH,
 BANK_ACCOUNT). The AI4Privacy gold spans use a different decomposition
 (`LASTNAME1` vs `LASTNAME2` for first/last name positions; separate

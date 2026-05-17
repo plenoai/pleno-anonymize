@@ -15,10 +15,10 @@ try:
 
     _models_dir = Path(__file__).parent.parent.parent / "packages" / "models"
     _model_path = None
-    # Search for latest en_ner_en model version
-    for candidate in sorted(_models_dir.glob("en_ner_en-*"), reverse=True):
+    # Search for latest pleno_anonymize_en model version
+    for candidate in sorted(_models_dir.glob("pleno_anonymize_en-*"), reverse=True):
         version = candidate.name.split("-", 1)[1]
-        inner = candidate / "en_ner_en" / f"en_ner_en-{version}"
+        inner = candidate / "pleno_anonymize_en" / f"pleno_anonymize_en-{version}"
         if inner.exists():
             _model_path = inner
             break

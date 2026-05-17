@@ -32,7 +32,7 @@ primary_region = 'nrt'
     path = "/health"
 
 [[vm]]
-  # 2gb (was 1gb) — model footprint (ja_ner_ja + en_core_web_sm + Presidio
+  # 2gb (was 1gb) — model footprint (pleno_anonymize_ja + en_core_web_sm + Presidio
   # recognizers + AnonymizerEngine + Pillow + httpx) leaves <100MB headroom on
   # 1gb, risking OOM-kill during proxy request handling. 2gb gives margin.
   memory = '2gb'

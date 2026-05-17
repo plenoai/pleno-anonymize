@@ -10,7 +10,7 @@ tags: [docker, uv, packaging, dependency-management, fail-fast]
 
 ## 何が起きたか
 
-production の `/ready` が 503 を返す状態に。`spacy.load('ja_ner_ja')` が runtime で `E050` (model not found) を返していた。image build は **成功** しており、CI も green。
+production の `/ready` が 503 を返す状態に。`spacy.load('pleno_anonymize_ja')` が runtime で `E050` (model not found) を返していた。image build は **成功** しており、CI も green。
 
 ## なぜ起きたか (root cause)
 
@@ -20,14 +20,14 @@ PR #34 時点の Dockerfile はこの順:
 
 ```dockerfile
 RUN uv sync --frozen --no-dev --no-install-project   # 1. base deps
-RUN uv pip install /tmp/ja_ner_ja-*.whl              # 2. project-local wheel
+RUN uv pip install /tmp/pleno_anonymize_ja-*.whl              # 2. project-local wheel
 RUN uv sync --frozen --no-dev                        # 3. project install
                                                      #    ← ここで 2. の wheel が prune される
 ```
 
-ja_ner_ja wheel は uv.lock に登録されていない (project-local wheel) ため、3 行目の `uv sync` が「lock にないので不要」と判断して削除した。結果:
+pleno_anonymize_ja wheel は uv.lock に登録されていない (project-local wheel) ため、3 行目の `uv sync` が「lock にないので不要」と判断して削除した。結果:
 
-- `/opt/.venv/lib/python*/site-packages/ja_ner_ja/` が消える
+- `/opt/.venv/lib/python*/site-packages/pleno_anonymize_ja/` が消える
 - import 自体は別パスから通る場合でも、spaCy の data path resolver が壊れて `E050`
 - image build は副作用なく成功 → registry に push → production で初めて顕在化
 
@@ -48,7 +48,7 @@ constraint file 経由で uv.lock に project-local wheel を登録する:
 ```toml
 # pyproject.toml
 [tool.uv.sources]
-ja_ner_ja = { path = "./wheels/ja_ner_ja-0.13.0-py3-none-any.whl" }
+pleno_anonymize_ja = { path = "./wheels/pleno_anonymize_ja-0.13.0-py3-none-any.whl" }
 ```
 
 これにより `uv sync` は wheel を「正規 dependency」として扱い、prune しない。
@@ -57,7 +57,7 @@ ja_ner_ja = { path = "./wheels/ja_ner_ja-0.13.0-py3-none-any.whl" }
 
 ```dockerfile
 RUN uv sync --frozen --no-dev          # FINAL sync — anything after this won't be pruned
-RUN uv pip install /tmp/ja_ner_ja-*.whl  # MUST come after the final uv sync
+RUN uv pip install /tmp/pleno_anonymize_ja-*.whl  # MUST come after the final uv sync
 ```
 
 ### (c) CI structural check (将来)

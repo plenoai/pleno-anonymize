@@ -24,13 +24,13 @@ Language = Literal["ja", "en"]
 # bumping this dict — never read pleno-anonymize-server's Dockerfile at
 # runtime, the SDK must work standalone.
 MODEL_WHEELS: dict[str, str] = {
-    "ja_ner_ja": "https://huggingface.co/0xhikae/ja-ner-ja/resolve/main/ja_ner_ja-0.2.0-py3-none-any.whl",
-    "en_ner_en": "https://huggingface.co/0xhikae/en-ner-en/resolve/main/en_ner_en-0.1.0.tar.gz",
+    "pleno_anonymize_ja": "https://huggingface.co/0xhikae/pleno_anonymize_ja/resolve/main/pleno_anonymize_ja-0.2.0-py3-none-any.whl",
+    "pleno_anonymize_en": "https://huggingface.co/0xhikae/pleno_anonymize_en/resolve/main/pleno_anonymize_en-0.2.0-py3-none-any.whl",
 }
 
 LANGUAGE_TO_MODEL: dict[Language, str] = {
-    "ja": "ja_ner_ja",
-    "en": "en_ner_en",
+    "ja": "pleno_anonymize_ja",
+    "en": "pleno_anonymize_en",
 }
 
 

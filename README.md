@@ -4,7 +4,7 @@ Japanese-first PII analysis and redaction. The repository ships three artifacts 
 
 - **`pleno-anonymize` server** — HTTP API exposing `/api/analyze`, `/api/redact`, and OpenAI / Anthropic / Gemini proxies that mask PII before forwarding upstream.
 - **`pleno-anonymize` Python package** — SDK + CLI (`uvx pleno-anonymize scan .`) wrapping the same API. See [`packages/sdk`](packages/sdk).
-- **`ja_ner_ja` / `en_ner_en` models** — spaCy NER models trained from this repository's training pipeline.
+- **`pleno_anonymize_ja` / `pleno_anonymize_en` models** — spaCy NER models trained from this repository's training pipeline.
 
 Endpoint: https://pleno-anonymize.fly.dev (API reference at `/docs`).
 Playground: https://plenoai.com/pleno-anonymize/playground
@@ -35,7 +35,7 @@ Routing chat traffic through the LLM proxy masks PII before the request reaches 
 | `openai-privacy-filter` | `pip install "pleno-anonymize[openai]"` | ~2 s/doc CPU, ~30 ms GPU | English-heavy text, secret detection, higher recall |
 
 ```bash
-# default — builtin Presidio + ja_ner_ja
+# default — builtin Presidio + pleno_anonymize_ja
 pleno-anonymize analyze 'Alice Johnson, alice@example.com'
 
 # OPF (downloads ~3GB checkpoint to ~/.opf/privacy_filter on first call)
@@ -117,7 +117,7 @@ uv run --with datasets --package pleno-anonymize --extra openai \
 
 | Class | Backend | Entities |
 |---|---|---|
-| Free text | spaCy NER `ja_ner_ja` plus Presidio | `PERSON` `ADDRESS` `ORGANIZATION` `DATE_OF_BIRTH` `BANK_ACCOUNT` |
+| Free text | spaCy NER `pleno_anonymize_ja` plus Presidio | `PERSON` `ADDRESS` `ORGANIZATION` `DATE_OF_BIRTH` `BANK_ACCOUNT` |
 | Structured | regex plus checksum (Luhn, My Number, corporate number) | `PHONE_NUMBER` `MY_NUMBER` `MY_NUMBER_CORPORATE` `CREDIT_CARD` `PASSPORT` `DRIVER_LICENSE` `HEALTH_INSURANCE` `RESIDENCE_CARD` `POSTAL_CODE` `EMAIL_ADDRESS` `IP_ADDRESS` `URL` |
 | OPF (opt-in) | `openai/privacy-filter` 1.5B (50M active MoE) | `PERSON` `ADDRESS` `EMAIL_ADDRESS` `PHONE_NUMBER` `URL` `DATE_OF_BIRTH` `BANK_ACCOUNT` `SECRET` |
 
@@ -127,7 +127,7 @@ uv run --with datasets --package pleno-anonymize --extra openai \
 |---|---|
 | `server/` | FastAPI service — analyze / redact endpoints + LLM proxies |
 | `packages/sdk/` | Python SDK + `pleno-anonymize` CLI (analyze / redact / scan); bundles the Presidio recognizer registry under `pleno_anonymize.recognizers` |
-| `packages/training/` | spaCy / Hugging Face training pipeline for `ja_ner_ja` and `en_ner_en` |
+| `packages/training/` | spaCy / Hugging Face training pipeline for `pleno_anonymize_ja` and `pleno_anonymize_en` |
 | `packages/models/` | Trained NER model artifacts |
 | `packages/wasm-tokenizer/` | Rust tokenizer compiled to WASM for browser-side preprocessing |
 | `website/` | Vite + React playground hosted at plenoai.com |

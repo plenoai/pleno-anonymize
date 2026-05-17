@@ -217,7 +217,7 @@ _JA_BANK_ALT = "|".join(sorted(_JA_BANK_NAMES, key=len, reverse=True))
 _JA_BANK_BRANCH_PART = r"(?:[一-龥ぁ-んァ-ヶー々〆\d]{0,12}支店|本店営業部|本店|[一-龥ぁ-んァ-ヶー]{1,8}営業部)"
 
 # --- Latin-script personal names (recall booster, issue #102) ---
-# ja_ner_ja は日本語まじり文中のLatin文字人名 (Yosuke Furukawa, Guido van Rossum,
+# pleno_anonymize_ja は日本語まじり文中のLatin文字人名 (Yosuke Furukawa, Guido van Rossum,
 # Barry Warsaw など) を PERSON として検出できないため、低スコアの正規表現
 # recognizer を追加してリコールを補う。precision を犠牲にしないよう、
 # noise_filters.py が author-context (email隣接, "(Name) [#PR]", "Author:" 等) を
