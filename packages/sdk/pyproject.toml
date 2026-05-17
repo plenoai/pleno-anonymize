@@ -1,6 +1,6 @@
 [project]
 name = "pleno-anonymize"
-version = "0.2.1"
+version = "0.2.2"
 description = "Local-first Japanese PII detection and redaction. SDK + `pleno-anonymize` CLI sharing the same recognizer registry and NER pipeline as the pleno-anonymize server."
 readme = "README.md"
 license = { text = "AGPL-3.0-or-later" }
@@ -25,11 +25,13 @@ dependencies = [
 
 [project.optional-dependencies]
 remote = ["httpx>=0.27"]
-# OpenAI Privacy Filter (openai/privacy-filter, Apache 2.0). Not on PyPI
-# yet, so install direct from GitHub. Adds torch (~2GB) plus a
-# ~1.5B-parameter checkpoint download on first use; kept out of the
-# default install to preserve the slim local-first footprint.
-openai = ["opf @ git+https://github.com/openai/privacy-filter@main"]
+# OPF (openai/privacy-filter) isn't on PyPI yet — and PyPI rejects wheels
+# whose extras carry direct URL deps (`Can't have direct dependency: opf @
+# git+...`, 400 from upload.pypi.org). Users who want the OPF engine install
+# it themselves alongside this package:
+#   pip install pleno-anonymize 'opf @ git+https://github.com/openai/privacy-filter@main'
+# Once OPF ships to PyPI we can restore an `openai` extra. The engine code
+# in src/pleno_anonymize/engines/opf.py stays — it just imports opf lazily.
 
 [project.scripts]
 pleno-anonymize = "pleno_anonymize._cli:main"
@@ -51,10 +53,6 @@ testpaths = ["tests"]
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.hatch.metadata]
-# `openai` extra references a git URL until OpenAI publishes `opf` to PyPI.
-allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pleno_anonymize"]
