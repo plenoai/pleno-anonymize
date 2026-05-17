@@ -11,6 +11,19 @@ Playground: https://plenoai.com/pleno-anonymize/playground
 
 For scanning SaaS sources or filesystems for PII, use [`pleno-dlp`](https://github.com/plenoai/pleno-secret-scanner) — it talks to this server's `/api/analyze` endpoint over HTTP.
 
+## Use the CLI
+
+```bash
+# one-shot scan via uvx (no install) — fail CI on any finding
+uvx pleno-anonymize scan . --fail-on-findings
+
+# analyze / redact stdin in-process (downloads the NER wheel on first run)
+echo "連絡先 山田太郎 090-1234-5678" | uvx pleno-anonymize analyze --language ja
+echo "連絡先 山田太郎 090-1234-5678" | uvx pleno-anonymize redact  --language ja
+```
+
+Defaults to local execution (Presidio + `pleno_anonymize_{ja,en}` in-process). Add `--base-url https://pleno-anonymize.fly.dev` to offload to the hosted server. Full flag reference: [`packages/sdk`](packages/sdk).
+
 ## Use the API
 
 ```bash
@@ -26,6 +39,26 @@ Routing chat traffic through the LLM proxy masks PII before the request reaches 
 | `POST /api/openai/*` | OpenAI Chat Completions / Responses |
 | `POST /api/anthropic/*` | Anthropic Messages |
 | `POST /api/gemini/*` | Google Gemini |
+
+## Use the SDK
+
+```python
+from pleno_anonymize import PlenoAnonymize, scan_paths
+
+# default: local engine, auto-downloads pleno_anonymize_ja on first call
+engine = PlenoAnonymize()
+engine.analyze("山田太郎 090-1234-5678", language="ja")
+engine.redact("Contact john@example.com", language="en")
+
+# walk paths, aggregate findings per entity
+summary = scan_paths(engine, ["src", "docs"], language="ja")
+print(summary.by_entity, summary.total_findings)
+
+# remote mode — same surface, no local model footprint
+PlenoAnonymize(base_url="https://pleno-anonymize.fly.dev").analyze("...")
+```
+
+Full API surface: [`packages/sdk`](packages/sdk).
 
 ## Detection backends
 
