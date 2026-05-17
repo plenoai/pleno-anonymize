@@ -115,7 +115,9 @@ def _predict(model, tokenizer, text: str) -> list[tuple[int, int, str]]:
         return_tensors="pt",
     )
     offsets = enc.pop("offset_mapping")[0].tolist()
-    enc = {k: v.to(model.device) for k, v in enc.items()}
+    import inspect
+    accepted = set(inspect.signature(model.forward).parameters)
+    enc = {k: v.to(model.device) for k, v in enc.items() if k in accepted}
     with torch.inference_mode():
         logits = model(**enc).logits[0]
     pred_ids = logits.argmax(-1).tolist()

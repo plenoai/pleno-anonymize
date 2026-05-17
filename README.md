@@ -65,9 +65,17 @@ English validation split (`ai4privacy/pii-masking-300k`), 50 docs.
 |---|---|---|---|---|
 | `builtin` | 0.386 | 0.272 | 0.319 | 53 ms |
 | `openai-privacy-filter` | **0.915** | **0.788** | **0.847** | 2.2 s |
-| [`pleno_anonymize_en`](https://huggingface.co/0xhikae/pleno_anonymize_en) (300 docs) | 0.955 | **0.982** | **0.968** | 91 ms (GPU) |
 
-\* `pleno_anonymize_en` is a lightweight (distilbert-base-uncased, ~66M params) EN PII NER trained on `ai4privacy/pii-masking-300k` train split. In-distribution upper bound, not a production estimate. Real-text eval not run yet.
+[`pleno_anonymize_en`](https://huggingface.co/0xhikae/pleno_anonymize_en) — lightweight (distilbert-base-uncased, ~66M params) EN PII NER, single-seed (seed 42), 1000-iter bootstrap CIs. See [`docs/benchmark-pleno-anonymize-en.md`](docs/benchmark-pleno-anonymize-en.md) for full methodology.
+
+| Eval set | F1 | F1 95% CI | P | R | Latency |
+|---|---:|---|---:|---:|---:|
+| In-dist (300k-en validation, 300 docs)\* | **0.968** | — | 0.955 | 0.982 | 19 ms |
+| Real text (CoNLL-2003 test, PII subset PER/LOC, 272 docs)† | 0.470 | [0.403, 0.542] | 0.682 | 0.358 | 19 ms |
+| spaCy `en_core_web_lg` (same real-text, PII subset) | 0.666 | [0.627, 0.704] | 0.542 | 0.863 | 3 ms |
+
+\* Trained on `ai4privacy/pii-masking-300k` EN train split. Treat as upper bound, not production estimate.
+† Real-text eval: `pleno_anonymize_en` trails spaCy by 0.20 F1 on Reuters news. Same domain-mismatch story as JP — the model is trained on form-/record-style PII; CoNLL is news prose.
 
 Japanese validation split (`0xhikae/pii-masking-300k-ja`), 50 docs.
 
