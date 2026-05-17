@@ -62,10 +62,10 @@ def _init_presidio():
 
     # Models are installed as Python packages from HF wheels (see Dockerfile);
     # resolve via spaCy entry_point lookup, not filesystem path.
-    _nlp_ja = spacy.load("ja_ner_ja")
+    _nlp_ja = spacy.load("pleno_anonymize_ja")
 
     try:
-        _nlp_en = spacy.load("en_ner_en")
+        _nlp_en = spacy.load("pleno_anonymize_en")
     except OSError:
         _nlp_en = None
 

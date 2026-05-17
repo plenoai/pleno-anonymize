@@ -4,7 +4,7 @@ Local-first Japanese PII detection and redaction — SDK + CLI.
 
 The package ships:
 
-- A `PlenoAnonymize` factory that defaults to running Presidio + the spaCy `ja_ner_ja` / `en_ner_en` models **in-process** (no network at scan time).
+- A `PlenoAnonymize` factory that defaults to running Presidio + the spaCy `pleno_anonymize_ja` / `pleno_anonymize_en` models **in-process** (no network at scan time).
 - An optional remote mode (`--base-url` / `base_url=`) that talks to a hosted `pleno-anonymize` server — same wire protocol as `https://pleno-anonymize.fly.dev`.
 - A filesystem **scanner** (`scan_paths`) that walks paths and reports PII per file.
 - The `pleno-anonymize` CLI installed as a `[project.scripts]` entry — run with `uvx pleno-anonymize`, `pipx run pleno-anonymize`, or after `pip install pleno-anonymize`.
@@ -23,7 +23,7 @@ pip install pleno-anonymize
 Requires Python **3.12+**.
 
 The first time you scan a language, the matching NER wheel
-(`ja_ner_ja` / `en_ner_en`, hosted on Hugging Face) is fetched and pip-installed
+(`pleno_anonymize_ja` / `pleno_anonymize_en`, hosted on Hugging Face) is fetched and pip-installed
 into the active environment. Pre-install with:
 
 ```bash
@@ -89,7 +89,7 @@ uvx pleno-anonymize scan src --json | jq '.byEntity'
 ```python
 from pleno_anonymize import PlenoAnonymize, scan_paths
 
-# default: local engine, auto-downloads ja_ner_ja on first call
+# default: local engine, auto-downloads pleno_anonymize_ja on first call
 engine = PlenoAnonymize()
 findings = engine.analyze("山田太郎 090-1234-5678", language="ja")
 # [Finding(entity_type='PERSON', start=0, end=4, score=0.85, text='山田太郎'), ...]

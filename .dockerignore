@@ -16,4 +16,4 @@ packages/training/docs
 packages/training/CHANGELOG.md
 packages/training/__pycache__
 packages/training/**/__pycache__
-packages/models/ja_ner_ja-0.2.0/ja_ner_ja/__pycache__
+packages/models/pleno_anonymize_ja-0.2.0/pleno_anonymize_ja/__pycache__

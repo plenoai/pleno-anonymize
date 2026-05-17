@@ -44,7 +44,7 @@ build-time smoke test を追加すべき対象:
 
 ```dockerfile
 # Stage: smoke test (image build を fail-fast させる)
-RUN python -c "import spacy; nlp = spacy.load('/opt/models/ja_ner_ja'); assert nlp.pipe_names"
+RUN python -c "import spacy; nlp = spacy.load('/opt/models/pleno_anonymize_ja'); assert nlp.pipe_names"
 ```
 
 注意点:

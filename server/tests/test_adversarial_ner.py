@@ -17,9 +17,9 @@ try:
         Path(__file__).parent.parent
         / "packages"
         / "models"
-        / "ja_ner_ja-0.2.0"
-        / "ja_ner_ja"
-        / "ja_ner_ja-0.2.0"
+        / "pleno_anonymize_ja-0.2.0"
+        / "pleno_anonymize_ja"
+        / "pleno_anonymize_ja-0.2.0"
     )
     if _model_path.exists():
         _nlp = spacy.load(str(_model_path))

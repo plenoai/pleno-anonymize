@@ -31,7 +31,7 @@ DOTENVX = dotenvx run -f ../../.env --
 # Default mirrors the ja side which uses $(OUTPUT_DIR)/model-best — i.e. the
 # locally trained output. Use the existing en transformer pipeline target so
 # it lines up with `train-en` (`configs/train_transformer_en.cfg`).
-# Override with EN_MODEL=en_ner_en (pip-installed wheel) or any other path
+# Override with EN_MODEL=pleno_anonymize_en (pip-installed wheel) or any other path
 # when evaluating a published / packaged model instead.
 EN_MODEL ?= $(OUTPUT_DIR)/en-transformer/model-best
 
@@ -91,10 +91,12 @@ benchmark-huggingface:
 
 package:
 	mkdir -p $(MODELS_DIR)
-	uv run python -m spacy package $(OUTPUT_DIR)/model-best $(MODELS_DIR) \
-		--name ner_ja \
+	uv run python scripts/package_anonymize_model.py \
+		--model $(OUTPUT_DIR)/model-best \
+		--output $(MODELS_DIR) \
+		--language ja \
 		--version 0.1.0 \
-		--build wheel
+		--build-wheel
 
 # === 日本語 v0.2.0 ===
 
@@ -139,10 +141,12 @@ benchmark-v02-evaluate-ja-v02:
 
 package-v02:
 	mkdir -p $(MODELS_DIR)
-	uv run python -m spacy package $(OUTPUT_DIR)/ja-v02/model-best $(MODELS_DIR) \
-		--name ner_ja \
+	uv run python scripts/package_anonymize_model.py \
+		--model $(OUTPUT_DIR)/ja-v02/model-best \
+		--output $(MODELS_DIR) \
+		--language ja \
 		--version 0.2.0 \
-		--build wheel
+		--build-wheel
 
 all-ja-v02: generate-v02 augment-ja convert-v02 train-v02 evaluate-v02 benchmark-v02-evaluate-ja-v02 package-v02
 
@@ -198,10 +202,12 @@ benchmark-external-en:
 
 package-en:
 	mkdir -p $(MODELS_DIR)
-	uv run python -m spacy package $(OUTPUT_DIR)/en/model-best $(MODELS_DIR) \
-		--name ner_en \
+	uv run python scripts/package_anonymize_model.py \
+		--model $(OUTPUT_DIR)/en/model-best \
+		--output $(MODELS_DIR) \
+		--language en \
 		--version 0.1.1 \
-		--build wheel
+		--build-wheel
 
 all-en: generate-en augment-en convert-en train-en evaluate-en package-en
 
@@ -671,7 +677,7 @@ json.dump(a+b,open('data/raw/en/generated_with_external.json','w',encoding='utf-
 # en-v01-tiny + augmented (DOB / BANK / ORG / short-name diverse via
 # augment_en_data) + Wikipedia hardneg (#64 analogue). Mirrors ja's
 # convert-hf-v02-tiny-aug-ext. Required for the en model to break past the
-# v0.10 collapse (ADDR/DOB/BANK 0% F1 with the wheel-installed en_ner_en).
+# v0.10 collapse (ADDR/DOB/BANK 0% F1 with the wheel-installed pleno_anonymize_en).
 convert-hf-en-v01-tiny-aug-ext: augment-en mine-external-hardneg-en
 	uv run python -c "import json; \
 a=json.load(open('data/raw/en/augmented.json',encoding='utf-8')); \

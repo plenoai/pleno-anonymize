@@ -21,8 +21,8 @@ def test_models_status_lists_all_known_models() -> None:
         rc = main(["models", "status"])
     assert rc == 0
     output = buf.getvalue()
-    assert "ja_ner_ja" in output
-    assert "en_ner_en" in output
+    assert "pleno_anonymize_ja" in output
+    assert "pleno_anonymize_en" in output
 
 
 def test_model_install_command_falls_back_to_uv(monkeypatch) -> None:
