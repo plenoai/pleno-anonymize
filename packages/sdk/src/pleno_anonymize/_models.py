@@ -44,8 +44,23 @@ def is_installed(model_name: str) -> bool:
     return importlib.util.find_spec(model_name) is not None
 
 
+def _pip_works() -> bool:
+    # `find_spec("pip")` lies inside uvx-managed envs: a stale `pip*.dist-info`
+    # makes the spec discoverable even though the module fails to import
+    # (`No module named pip`). Actually invoke pip to confirm.
+    try:
+        subprocess.run(
+            [sys.executable, "-m", "pip", "--version"],
+            check=True,
+            capture_output=True,
+        )
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+
 def _install_command(url: str, *, quiet: bool = False) -> list[str]:
-    if importlib.util.find_spec("pip") is not None:
+    if _pip_works():
         cmd = [sys.executable, "-m", "pip", "install", "--no-cache-dir"]
         if quiet:
             cmd.append("--quiet")
