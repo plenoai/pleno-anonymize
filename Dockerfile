@@ -25,14 +25,18 @@ RUN uv sync --frozen --no-dev --package pleno-anonymize-server
 # placed them between syncs, and `uv sync --frozen` pruned wheels not in the
 # lockfile, breaking production (caught by build-time smoke).
 RUN uv pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
+# EN model: pleno_anonymize_en-0.2.0 is transformer-based (438MB wheel +
+# torch + nvidia CUDA libs → 15.7GB image, over fly's 8GB rootfs limit).
+# Server image ships the legacy tok2vec en_ner_en-0.1.0 for /api/?lang=en;
+# pleno_anonymize_en stays SDK-only for local users who can absorb the size.
 RUN uv pip install \
     https://huggingface.co/0xhikae/pleno_anonymize_ja/resolve/main/pleno_anonymize_ja-0.2.0-py3-none-any.whl \
-    https://huggingface.co/0xhikae/pleno_anonymize_en/resolve/main/pleno_anonymize_en-0.2.0-py3-none-any.whl
+    https://huggingface.co/0xhikae/en-ner-en/resolve/main/en_ner_en-0.1.0.tar.gz
 
 # Build-time smoke test surfaces model-load failures at image build instead of
 # runtime. `--no-sync` is required: `uv run` defaults to re-syncing the
 # workspace, which would clobber the wheels we just installed.
-RUN uv run --no-sync python -c "import spacy; spacy.load('pleno_anonymize_ja'); spacy.load('pleno_anonymize_en'); print('models loadable')"
+RUN uv run --no-sync python -c "import spacy; spacy.load('pleno_anonymize_ja'); spacy.load('en_ner_en'); print('models loadable')"
 
 FROM python:3.12-slim
 
