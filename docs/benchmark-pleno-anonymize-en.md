@@ -2,6 +2,13 @@
 
 Released at [`0xhikae/pleno_anonymize_en`](https://huggingface.co/0xhikae/pleno_anonymize_en).
 
+> **Note — version mismatch:** this document describes the **v0.2.0 transformer**
+> build (`distilbert-base-uncased`, 418MB wheel). The currently-shipped artifact
+> is **v0.2.1 tok2vec** (~35MB wheel, mirrors the JA recipe; training-time
+> F1=0.973 on the same EN val split). Real-text re-eval against CoNLL-2003 is
+> pending — until then, treat the real-text numbers below as upper bounds for
+> v0.2.1 (tok2vec typically trails transformer slightly on cross-domain prose).
+
 EN counterpart of [`pleno_anonymize_ja`](./benchmark-pleno-anonymize-ja.md).
 Same recipe template, same eval protocol, same honest-reading guarantees —
 read the JP benchmark doc first if you want the protocol rationale; this

@@ -81,70 +81,9 @@ OPF's 8 native labels normalize into the same `entity_type` taxonomy
 surfaces as a new `SECRET` class so anonymizer / scanner / proxy stay
 backend-agnostic.
 
-### Development baselines — AI4Privacy-style PII datasets
+### Quality
 
-`ai4privacy/pii-masking-300k` (validation split, character-IoU ≥ 0.5,
-label-agnostic) is the development baseline for the EN NER / recognizer
-pipeline. `0xhikae/pii-masking-300k-ja` uses the same schema and protocol
-for the Japanese pipeline. The prior self-made benchmark under
-`packages/training/data/benchmark/v0.*/` is **frozen as of v0.13.0** and
-kept only for historical traceability. See [`docs/benchmark.md`](docs/benchmark.md)
-for the full methodology and [`/ner-improve`](.claude/skills/ner-improve/SKILL.md)
-for the improvement loop.
-
-English validation split (`ai4privacy/pii-masking-300k`), 50 docs.
-
-| Engine | Precision | Recall | F1 | Latency/doc (CPU) |
-|---|---|---|---|---|
-| `builtin` | 0.386 | 0.272 | 0.319 | 53 ms |
-| `openai-privacy-filter` | **0.915** | **0.788** | **0.847** | 2.2 s |
-
-[`pleno_anonymize_en`](https://huggingface.co/0xhikae/pleno_anonymize_en) — lightweight (distilbert-base-uncased, ~66M params) EN PII NER, single-seed (seed 42), 1000-iter bootstrap CIs. See [`docs/benchmark-pleno-anonymize-en.md`](docs/benchmark-pleno-anonymize-en.md) for full methodology.
-
-| Eval set | F1 | F1 95% CI | P | R | Latency |
-|---|---:|---|---:|---:|---:|
-| In-dist (300k-en validation, 300 docs)\* | **0.968** | — | 0.955 | 0.982 | 19 ms |
-| Real text (CoNLL-2003 test, PII subset PER/LOC, 272 docs)† | 0.470 | [0.403, 0.542] | 0.682 | 0.358 | 19 ms |
-| spaCy `en_core_web_lg` (same real-text, PII subset) | 0.666 | [0.627, 0.704] | 0.542 | 0.863 | 3 ms |
-
-\* Trained on `ai4privacy/pii-masking-300k` EN train split. Treat as upper bound, not production estimate.
-† Real-text eval: `pleno_anonymize_en` trails spaCy by 0.20 F1 on Reuters news. Same domain-mismatch story as JP — the model is trained on form-/record-style PII; CoNLL is news prose.
-
-Japanese validation split (`0xhikae/pii-masking-300k-ja`), 50 docs.
-
-| Engine | Precision | Recall | F1 | Latency/doc (CPU) |
-|---|---|---|---|---|
-| `builtin` | 0.453 | 0.275 | 0.342 | 55 ms |
-| `openai-privacy-filter` | 0.899 | 0.576 | 0.702 | 2.3 s |
-
-[`pleno_anonymize_ja`](https://huggingface.co/0xhikae/pleno_anonymize_ja) — 3-seed mean ± std (seeds 42 / 7 / 1337), 1000-iter bootstrap CIs on the seed-42 run. See [`docs/benchmark-pleno-anonymize-ja.md`](docs/benchmark-pleno-anonymize-ja.md) for full methodology, real-text caveats, and open gaps.
-
-| Eval set | F1 | F1 95% CI | P | R | Latency |
-|---|---:|---|---:|---:|---:|
-| In-dist (300k-ja validation, 300 docs)\* | **0.955 ± 0.002** | [0.935, 0.973] | 0.929 ± 0.004 | 0.983 ± 0.001 | 43 ms |
-| Real text (stockmark JP Wikipedia, PII subset 人名/地名, 147 docs)† | 0.467 ± 0.010 | [0.393, 0.520] | 0.486 | 0.436 | 43 ms |
-| spaCy `ja_core_news_lg` (same real-text, PII subset) | 0.571 | [0.533, 0.608] | 0.425 | 0.871 | 22 ms |
-
-\* Trained on `0xhikae/pii-masking-300k-ja` train split. Treat as upper bound, not production estimate.
-† Real-text eval: `pleno_anonymize_ja` trails spaCy by 0.10 F1 on Wikipedia. Domain mismatch — the model is trained on form-/record-style PII text; Wikipedia is narrative prose. A real-text PII-context eval (chat / form / email JP) is the highest-priority follow-up.
-
-**Acceptance tier read:** Smoke (≥0.50) and Parity (≥0.82, vs OPF 0.702) met in-distribution. Real-text Parity is **not** claimed. Production expectations should be calibrated near 0.47, not 0.96.
-
-```bash
-uv run --with datasets --package pleno-anonymize --extra openai \
-  python packages/sdk/scripts/eval_pii_masking_300k.py \
-  --engines builtin openai-privacy-filter \
-  --dataset ai4privacy/pii-masking-300k \
-  --language English --pleno-language en --limit 50 \
-  --output output/pii-300k-eval-en-50.json
-
-uv run --with datasets --package pleno-anonymize --extra openai \
-  python packages/sdk/scripts/eval_pii_masking_300k.py \
-  --engines builtin openai-privacy-filter \
-  --dataset 0xhikae/pii-masking-300k-ja \
-  --language Japanese --pleno-language ja --limit 50 --opf-device cpu \
-  --output output/pii-300k-ja-eval-ja-50.json
-```
+Both models are spaCy tok2vec NER trained on `ai4privacy/pii-masking-300k` (EN) and `0xhikae/pii-masking-300k-ja` (JA). In-distribution F1 ≈ 0.96–0.97; on real-text news (CoNLL-2003 EN, stockmark JP Wikipedia) F1 drops to ≈ 0.47 — the models are tuned for form-/record-style PII, not narrative prose. For higher recall on English prose, use the `openai-privacy-filter` engine. Full numbers, CIs, and methodology: [`docs/benchmark-pleno-anonymize-en.md`](docs/benchmark-pleno-anonymize-en.md), [`docs/benchmark-pleno-anonymize-ja.md`](docs/benchmark-pleno-anonymize-ja.md).
 
 ## Detected entities
 
