@@ -83,7 +83,7 @@ backend-agnostic.
 
 ### Quality
 
-Both models are spaCy tok2vec NER trained on `ai4privacy/pii-masking-300k` (EN) and `0xhikae/pii-masking-300k-ja` (JA). In-distribution F1 ≈ 0.96–0.97; on real-text news (CoNLL-2003 EN, stockmark JP Wikipedia) F1 drops to ≈ 0.47 — the models are tuned for form-/record-style PII, not narrative prose. For higher recall on English prose, use the `openai-privacy-filter` engine. Full numbers, CIs, and methodology: [`docs/benchmark-pleno-anonymize-en.md`](docs/benchmark-pleno-anonymize-en.md), [`docs/benchmark-pleno-anonymize-ja.md`](docs/benchmark-pleno-anonymize-ja.md).
+Both models are spaCy tok2vec NER trained on `ai4privacy/pii-masking-300k` (EN) and `0xhikae/pii-masking-300k-ja` (JA). In-distribution F1 ≈ 0.96–0.97; on real-text news (CoNLL-2003 EN F1 ≈ 0.57, stockmark JP Wikipedia F1 ≈ 0.47) the models trail spaCy's `*_core_web_lg` baselines because they are tuned for form-/record-style PII, not narrative prose. For higher recall on English prose, use the `openai-privacy-filter` engine. Full numbers, CIs, and methodology: [`docs/benchmark-pleno-anonymize-en.md`](docs/benchmark-pleno-anonymize-en.md), [`docs/benchmark-pleno-anonymize-ja.md`](docs/benchmark-pleno-anonymize-ja.md).
 
 ## Detected entities
 
