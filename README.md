@@ -65,7 +65,7 @@ Full API surface: [`packages/sdk`](packages/sdk).
 | Engine | Install | Speed | When |
 |---|---|---|---|
 | `builtin` (default) | `pip install pleno-anonymize` | ~50 ms/doc CPU | Japanese-first, regex + checksum for structured IDs, slim deps |
-| `openai-privacy-filter` | `pip install "pleno-anonymize[openai]"` | ~2 s/doc CPU, ~30 ms GPU | English-heavy text, secret detection, higher recall |
+| `openai-privacy-filter` | `pip install pleno-anonymize 'opf @ git+https://github.com/openai/privacy-filter@main'` | ~2 s/doc CPU, ~30 ms GPU | English-heavy text, secret detection, higher recall |
 
 ```bash
 # default — builtin Presidio + pleno_anonymize_ja
