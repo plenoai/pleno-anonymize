@@ -21,7 +21,7 @@
     "react-router-dom": "^7.1.1",
     "rollup": "4.60.1",
     "storybook": "10.3.4",
-    "unhead": "3.0.2",
+    "unhead": "3.0.3",
     "yaml": "2.8.3"
   },
   "devDependencies": {
