@@ -9,7 +9,7 @@ Japanese-first PII analysis and redaction. The repository ships three artifacts 
 Endpoint: https://pleno-anonymize.fly.dev (API reference at `/docs`).
 Playground: https://plenoai.com/pleno-anonymize/playground
 
-For scanning SaaS sources or filesystems for PII, use [`pleno-dlp`](https://github.com/plenoai/pleno-secret-scanner) — it talks to this server's `/api/analyze` endpoint over HTTP.
+For scanning SaaS sources or filesystems for PII, use [`pleno-dlp`](https://github.com/plenoai/pleno-dlp) — it talks to this server's `/api/analyze` endpoint over HTTP.
 
 ## Use the CLI
 
