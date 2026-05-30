@@ -529,7 +529,6 @@ def _build_doc(template: str, **kwargs) -> dict | None:
     import re
     placeholders = list(re.finditer(r"\{(\w+)\}", template))
 
-    offset_adjust = 0
     for m in placeholders:
         key = m.group(1)
         if key not in kwargs or not kwargs[key]:

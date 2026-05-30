@@ -206,7 +206,6 @@ SHORT_NAME_TEMPLATES = [
 def _build_doc(template: str, **kwargs) -> dict | None:
     """Build a document with proper entity offsets from a template."""
     entities = []
-    text_parts = []
     remaining = template
 
     # Simple tag-based approach: replace {key} with value and track offsets

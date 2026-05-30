@@ -82,8 +82,8 @@ def evaluate_external(model_name: str, test_path: Path, language: str = "en") ->
                 pred_ents.add((ent.start_char, ent.end_char, mapped))
 
         for label in TARGET_LABELS:
-            gold_set = {(s, e) for s, e, l in gold_ents if l == label}
-            pred_set = {(s, e) for s, e, l in pred_ents if l == label}
+            gold_set = {(s, e) for s, e, lbl in gold_ents if lbl == label}
+            pred_set = {(s, e) for s, e, lbl in pred_ents if lbl == label}
             counts[label]["tp"] += len(gold_set & pred_set)
             counts[label]["fp"] += len(pred_set - gold_set)
             counts[label]["fn"] += len(gold_set - pred_set)

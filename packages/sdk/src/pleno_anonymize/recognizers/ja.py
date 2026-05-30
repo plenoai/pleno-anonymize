@@ -44,7 +44,7 @@ JA_MY_NUMBER = PiiRecognizer(
     entity="MY_NUMBER",
     language="ja",
     patterns=(
-        PiiPattern("my_number_spaced", r"\b\d{4}[\s\-]\d{4}[\s\-]\d{4}\b", 0.5),
+        PiiPattern("my_number_spaced", r"\b\d{4}[ 　\-]\d{4}[ 　\-]\d{4}\b", 0.5),
         PiiPattern("my_number_continuous", r"\b\d{12}\b", 0.3),
     ),
     context=("マイナンバー", "個人番号", "my number", "通知カード"),
@@ -57,7 +57,7 @@ JA_CREDIT_CARD = PiiRecognizer(
     patterns=(
         PiiPattern(
             "credit_card_dashed",
-            r"\b\d{4}[\s\-]\d{4}[\s\-]\d{4}[\s\-]\d{4}\b",
+            r"\b\d{4}[ 　\-]\d{4}[ 　\-]\d{4}[ 　\-]\d{4}\b",
             0.6,
         ),
         PiiPattern(
@@ -119,7 +119,9 @@ JA_CORPORATE_NUMBER = PiiRecognizer(
     language="ja",
     patterns=(
         PiiPattern(
-            "corporate_number_spaced", r"\b\d[\s\-]\d{4}[\s\-]\d{4}[\s\-]\d{4}\b", 0.5
+            "corporate_number_spaced",
+            r"\b\d[ 　\-]\d{4}[ 　\-]\d{4}[ 　\-]\d{4}\b",
+            0.5,
         ),
         PiiPattern("corporate_number_continuous", r"\b\d{13}\b", 0.3),
     ),
@@ -134,7 +136,7 @@ JA_HEALTH_INSURANCE = PiiRecognizer(
         PiiPattern("insurer_number", r"\b\d{8}\b", 0.1),
         PiiPattern(
             "insurance_symbol_number",
-            r"記号[\s　]*\d{1,6}[\s　]*番号[\s　]*\d{1,7}",
+            r"記号[ 　]*\d{1,6}[ 　]*番号[ 　]*\d{1,7}",
             0.8,
         ),
     ),

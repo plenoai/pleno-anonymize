@@ -39,10 +39,10 @@ def compute_metrics(eval_preds, id2label: dict[int, str]):
     for pred_seq, label_seq in zip(predictions, labels):
         true_label = []
         true_pred = []
-        for p, l in zip(pred_seq, label_seq):
-            if l == IGNORE_INDEX:
+        for p, lbl in zip(pred_seq, label_seq):
+            if lbl == IGNORE_INDEX:
                 continue
-            true_label.append(id2label[l])
+            true_label.append(id2label[lbl])
             true_pred.append(id2label[p])
         true_labels.append(true_label)
         true_predictions.append(true_pred)

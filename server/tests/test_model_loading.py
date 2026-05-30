@@ -13,7 +13,7 @@ def test_init_presidio_loads_real_ja_model():
     """`_init_presidio()` must succeed when pleno_anonymize_ja wheel is installed."""
     pytest.importorskip("pleno_anonymize_ja")
 
-    import server.src.app as app
+    import src.app as app
 
     # Reset module-level singletons so this test sees a clean init.
     app._nlp_ja = None

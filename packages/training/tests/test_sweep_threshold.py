@@ -32,7 +32,7 @@ from pleno_ner_training.sweep_threshold import (
 def _id2label() -> dict[int, str]:
     # Mirrors convert_to_hf_dataset.BIO_LABELS shape.
     labels = ["O", "B-ORGANIZATION", "I-ORGANIZATION", "B-PERSON", "I-PERSON"]
-    return {i: l for i, l in enumerate(labels)}
+    return {i: lbl for i, lbl in enumerate(labels)}
 
 
 def test_decoder_emits_single_span_with_min_score():

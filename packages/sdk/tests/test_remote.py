@@ -98,6 +98,56 @@ def test_remote_http_error_becomes_pleno_error() -> None:
     assert exc.value.body == {"detail": "bad"}
 
 
+def test_remote_analyze_missing_field_raises_pleno_error() -> None:
+    def fake_urlopen(req, timeout):  # noqa: ARG001
+        return _ok([{"entity_type": "EMAIL_ADDRESS", "start": 0, "end": 5}])
+
+    engine = RemoteEngine(base_url="https://example.test")
+    with patch("urllib.request.urlopen", side_effect=fake_urlopen):
+        with pytest.raises(PlenoAnonymizeError) as exc:
+            engine.analyze("hello")
+    assert "score" in str(exc.value)
+
+
+def test_remote_analyze_invalid_field_type_raises_pleno_error() -> None:
+    def fake_urlopen(req, timeout):  # noqa: ARG001
+        return _ok(
+            [
+                {
+                    "entity_type": "EMAIL_ADDRESS",
+                    "start": "not-an-int",
+                    "end": 5,
+                    "score": 1.0,
+                }
+            ]
+        )
+
+    engine = RemoteEngine(base_url="https://example.test")
+    with patch("urllib.request.urlopen", side_effect=fake_urlopen):
+        with pytest.raises(PlenoAnonymizeError):
+            engine.analyze("hello")
+
+
+def test_remote_analyze_non_object_item_raises_pleno_error() -> None:
+    def fake_urlopen(req, timeout):  # noqa: ARG001
+        return _ok(["not-a-dict"])
+
+    engine = RemoteEngine(base_url="https://example.test")
+    with patch("urllib.request.urlopen", side_effect=fake_urlopen):
+        with pytest.raises(PlenoAnonymizeError):
+            engine.analyze("hello")
+
+
+def test_remote_redact_missing_text_raises_pleno_error() -> None:
+    def fake_urlopen(req, timeout):  # noqa: ARG001
+        return _ok({"items": []})
+
+    engine = RemoteEngine(base_url="https://example.test")
+    with patch("urllib.request.urlopen", side_effect=fake_urlopen):
+        with pytest.raises(PlenoAnonymizeError):
+            engine.redact("a@b.example")
+
+
 def test_remote_trailing_slash_normalized() -> None:
     seen: list[str] = []
 
