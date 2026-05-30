@@ -54,16 +54,40 @@ class RemoteEngine:
             raise PlenoAnonymizeError(
                 "unexpected analyze response (not a list)", body=data
             )
-        return [
-            Finding(
-                entity_type=str(item["entity_type"]),
-                start=int(item["start"]),
-                end=int(item["end"]),
-                score=float(item["score"]),
-                text=str(item.get("text", text[int(item["start"]) : int(item["end"])])),
-            )
-            for item in data
-        ]
+        findings: list[Finding] = []
+        for i, item in enumerate(data):
+            if not isinstance(item, dict):
+                raise PlenoAnonymizeError(
+                    f"unexpected analyze response: item {i} is not an object",
+                    body=item,
+                )
+            # The server contract guarantees entity_type/start/end/score on
+            # every finding. A malformed or mismatched response must raise a
+            # typed PlenoAnonymizeError, not leak a raw KeyError/ValueError to
+            # the caller.
+            try:
+                start = int(item["start"])
+                end = int(item["end"])
+                findings.append(
+                    Finding(
+                        entity_type=str(item["entity_type"]),
+                        start=start,
+                        end=end,
+                        score=float(item["score"]),
+                        text=str(item.get("text", text[start:end])),
+                    )
+                )
+            except KeyError as e:
+                raise PlenoAnonymizeError(
+                    f"unexpected analyze response: item {i} missing field {e}",
+                    body=item,
+                ) from e
+            except (TypeError, ValueError) as e:
+                raise PlenoAnonymizeError(
+                    f"unexpected analyze response: item {i} has invalid field type: {e}",
+                    body=item,
+                ) from e
+        return findings
 
     def redact(
         self,
@@ -83,7 +107,14 @@ class RemoteEngine:
             raise PlenoAnonymizeError(
                 "unexpected redact response (not an object)", body=data
             )
-        return RedactResult(text=str(data.get("text", "")))
+        # `.get("text", "")` would silently turn a malformed response into an
+        # empty redaction — a fail-open we cannot accept for a privacy tool.
+        if not isinstance(data.get("text"), str):
+            raise PlenoAnonymizeError(
+                "unexpected redact response: missing or non-string 'text'",
+                body=data,
+            )
+        return RedactResult(text=data["text"])
 
     def health(self) -> dict[str, Any]:
         result = self._get("/health")

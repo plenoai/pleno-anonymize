@@ -118,8 +118,17 @@ class OpfEngine:
             replacement = f"<{f.entity_type}>"
             if operators and f.entity_type in operators:
                 cfg = operators[f.entity_type]
-                if cfg.get("type", "replace") == "replace":
-                    replacement = str(cfg.get("new_value", replacement))
+                op_type = cfg.get("type", "replace")
+                # OpfEngine only implements "replace". Silently ignoring an
+                # unsupported operator (e.g. "mask"/"hash") would emit the
+                # default placeholder while the caller believes their operator
+                # was applied — fail loudly instead.
+                if op_type != "replace":
+                    raise ValueError(
+                        f"OpfEngine supports only the 'replace' operator, "
+                        f"got {op_type!r} for {f.entity_type}"
+                    )
+                replacement = str(cfg.get("new_value", replacement))
             out = out[: f.start] + replacement + out[f.end :]
         return RedactResult(text=out)
 
