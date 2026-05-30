@@ -32,7 +32,12 @@ from pleno_ner_training.baselines_ja import BaselineSpec, Predictor
 
 
 def _nfc_sha256(text: str) -> str:
-    n = unicodedata.normalize("NFC", text).replace("\r\n", "\n").replace("\r", "\n").strip()
+    n = (
+        unicodedata.normalize("NFC", text)
+        .replace("\r\n", "\n")
+        .replace("\r", "\n")
+        .strip()
+    )
     return hashlib.sha256(n.encode("utf-8")).hexdigest()
 
 
@@ -136,7 +141,11 @@ def _stub_specs(score_bearing: dict[str, bool]) -> dict[str, BaselineSpec]:
 def test_f0a_clean_passes(tmp_path: Path) -> None:
     corpus = _make_corpus(
         [
-            {"text": "ABC会社の太郎", "template": "t1", "entities": [{"start": 0, "end": 4, "label": "ORGANIZATION"}]},
+            {
+                "text": "ABC会社の太郎",
+                "template": "t1",
+                "entities": [{"start": 0, "end": 4, "label": "ORGANIZATION"}],
+            },
         ]
     )
     corpus_path = _write_corpus(tmp_path, corpus)
@@ -185,7 +194,9 @@ def test_f0a_template_overlap_aborts(tmp_path: Path) -> None:
 
 
 def test_f0a_missing_manifest_aborts(tmp_path: Path) -> None:
-    corpus_path = _write_corpus(tmp_path, _make_corpus([{"text": "x", "template": "t"}]))
+    corpus_path = _write_corpus(
+        tmp_path, _make_corpus([{"text": "x", "template": "t"}])
+    )
     with pytest.raises(FileNotFoundError):
         cb.f0a_data_leakage_check(corpus_path, tmp_path / "missing.json")
 
@@ -330,7 +341,9 @@ def test_f1_failure_records_in_failed_variants() -> None:
         {"oss_a": {"x": []}, "custom_a": {"x": []}},
         fail={"custom_a"},
     )
-    out = cb.f1_measurement(["oss_a", "custom_a"], corpus, "cpu", predictor_factory=factory)
+    out = cb.f1_measurement(
+        ["oss_a", "custom_a"], corpus, "cpu", predictor_factory=factory
+    )
     assert "custom_a" in out["failed_variants"]
     assert "oss_a" in out["predictions_by_variant"]
 
@@ -362,9 +375,13 @@ def _build_synthetic_balanced_corpus(
         for si in range(spans_per_template):
             offset = offset_base + si * 4
             if ti < n_org_templates:
-                ents.append({"start": offset, "end": offset + 2, "label": "ORGANIZATION"})
+                ents.append(
+                    {"start": offset, "end": offset + 2, "label": "ORGANIZATION"}
+                )
             if ti < n_dob_templates:
-                ents.append({"start": offset + 2, "end": offset + 4, "label": "DATE_OF_BIRTH"})
+                ents.append(
+                    {"start": offset + 2, "end": offset + 4, "label": "DATE_OF_BIRTH"}
+                )
         docs.append({"text": text, "template": tname, "entities": ents})
     return _make_corpus(docs)
 
@@ -536,7 +553,9 @@ def test_ae5_partial_kill_org_kill_dob_commit() -> None:
         n_org_templates=5, n_dob_templates=5, spans_per_template=5
     )
 
-    def filter_label(table: dict[str, list[tuple]], label: str) -> dict[str, list[tuple]]:
+    def filter_label(
+        table: dict[str, list[tuple]], label: str
+    ) -> dict[str, list[tuple]]:
         return {t: [p for p in preds if p[2] == label] for t, preds in table.items()}
 
     full = _predictions_from_gold(corpus, coverage=1.0)
@@ -637,7 +656,9 @@ def test_f1_partial_to_f2_omits_aggregates() -> None:
         {"oss_a": _predictions_from_gold(corpus, coverage=1.0)},
         fail={"custom_a"},
     )
-    f1_out = cb.f1_measurement(["oss_a", "custom_a"], corpus, "cpu", predictor_factory=factory)
+    f1_out = cb.f1_measurement(
+        ["oss_a", "custom_a"], corpus, "cpu", predictor_factory=factory
+    )
     partial = bool(f1_out["failed_variants"]) or f1_out["time_box_exceeded"]
     assert partial is True
     spec_lookup = _stub_specs({"oss_a": True, "custom_a": False})
@@ -649,3 +670,71 @@ def test_f1_partial_to_f2_omits_aggregates() -> None:
     )
     with pytest.raises(KeyError):
         _ = artifact["verdict_per_entity"]
+
+
+# ============================================================================
+# Artifact metadata population (U6 variant_versions, U7 anchor, U4 rows,
+# noise_floor_hash). Regression guards for the silently-empty-field bugs.
+# ============================================================================
+
+
+def test_noise_floor_hash_present_and_stable_across_carry_forward(
+    tmp_path: Path,
+) -> None:
+    nf_path = tmp_path / "noise_floor.json"
+    first = cb.f0b_noise_floor_pin(
+        predictions_by_variant={},
+        output_path=nf_path,
+        corpus_version="v1",
+        variant_set_hash="vh",
+        manifest_hash="mh",
+    )
+    assert len(first["noise_floor_hash"]) == 64
+    second = cb.f0b_noise_floor_pin(
+        predictions_by_variant={},
+        output_path=nf_path,
+        corpus_version="v1",
+        variant_set_hash="vh",
+        manifest_hash="mh",
+    )
+    assert second["carried_forward"] is True
+    # Carry-forward must hash identically to the run that computed the pin.
+    assert second["noise_floor_hash"] == first["noise_floor_hash"]
+
+
+def test_variant_versions_reports_score_availability_from_registry() -> None:
+    names = ["ja_core_news_trf", "custom_cnn"]
+    vv = cb._variant_versions(names)
+    assert set(vv) == set(names)
+    # score_availability is authoritative (read from the real registry spec).
+    assert vv["ja_core_news_trf"]["score_availability"] is True
+    assert vv["custom_cnn"]["score_availability"] is False
+    for entry in vv.values():
+        assert set(entry) == {"version", "wheel_sha256", "score_availability"}
+
+
+def test_build_measurement_rows_emits_exact_span_tp_fp_fn() -> None:
+    predictions_by_variant = {
+        "custom_a": [
+            {
+                "doc_idx": 0,
+                "template": "t1",
+                "predictions": [(0, 4, "ORGANIZATION", None, 0)],
+                "gold": [(0, 4, "ORGANIZATION"), (10, 14, "ORGANIZATION")],
+            }
+        ]
+    }
+    specs = _stub_specs({"custom_a": False})
+    rows = cb._build_measurement_rows(predictions_by_variant, specs)
+    org_rows = [r for r in rows if r["entity"] == "ORGANIZATION"]
+    assert org_rows == [
+        {
+            "variant": "custom_a",
+            "k_percentile": 100,
+            "entity": "ORGANIZATION",
+            "template": "t1",
+            "tp": 1,
+            "fp": 0,
+            "fn": 1,
+        }
+    ]

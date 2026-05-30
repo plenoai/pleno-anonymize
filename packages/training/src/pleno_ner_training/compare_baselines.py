@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.metadata
 import json
 import subprocess
 import sys
@@ -68,7 +69,12 @@ PodMode = Literal["cpu", "gpu"]
 
 def _nfc_sha256(text: str) -> str:
     """SHA256 of NFC-normalized + LF-normalized + stripped UTF-8 text."""
-    normalized = unicodedata.normalize("NFC", text).replace("\r\n", "\n").replace("\r", "\n").strip()
+    normalized = (
+        unicodedata.normalize("NFC", text)
+        .replace("\r\n", "\n")
+        .replace("\r", "\n")
+        .strip()
+    )
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
@@ -127,7 +133,9 @@ def f0a_data_leakage_check(
         )
 
     doc_overlap = sum(1 for h in bench_doc_hashes if h in training_doc_hashes)
-    template_overlap = sum(1 for fp in bench_template_fps if fp in training_template_fps)
+    template_overlap = sum(
+        1 for fp in bench_template_fps if fp in training_template_fps
+    )
 
     passed = doc_overlap == 0 and template_overlap == 0
     return {
@@ -147,7 +155,9 @@ def _bench_corpus_version(corpus_path: Path) -> str:
     try:
         corpus = json.loads(corpus_path.read_text("utf-8"))
         if corpus and "_meta" in corpus[0]:
-            return str(corpus[0]["_meta"].get("version", corpus_path.parent.parent.name))
+            return str(
+                corpus[0]["_meta"].get("version", corpus_path.parent.parent.name)
+            )
     except (OSError, json.JSONDecodeError, IndexError):
         pass
     return corpus_path.parent.parent.name
@@ -156,6 +166,54 @@ def _bench_corpus_version(corpus_path: Path) -> str:
 def _variant_set_hash(baselines: list[str]) -> str:
     payload = "|".join(sorted(baselines))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _noise_floor_hash(pin: dict[str, Any]) -> str:
+    """Stable SHA256 over the noise-floor *content*.
+
+    Excludes the volatile ``carried_forward`` flag and the self-referential
+    ``noise_floor_hash`` field so a carried-forward pin hashes identically to
+    the run that first computed it.
+    """
+    payload = {
+        k: pin[k]
+        for k in (
+            "algorithm",
+            "corpus_version",
+            "variant_set_hash",
+            "manifest_hash",
+            "per_entity_floor",
+        )
+        if k in pin
+    }
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, ensure_ascii=False).encode("utf-8")
+    ).hexdigest()
+
+
+def _variant_versions(baselines: list[str]) -> dict[str, dict[str, Any]]:
+    """Per-variant {version, wheel_sha256, score_availability} for artifact pin.
+
+    ``score_availability`` is authoritative (read from the registry spec).
+    ``version`` is best-effort: OSS spaCy variants are installed as pip packages
+    under their registry name, so ``importlib.metadata.version`` resolves them;
+    custom filesystem variants are not packages and resolve to "". ``wheel_sha256``
+    is left empty — it is not derivable from an installed distribution without
+    the original wheel artifact.
+    """
+    out: dict[str, dict[str, Any]] = {}
+    for name in baselines:
+        spec = BASELINE_REGISTRY.get(name)
+        try:
+            version = importlib.metadata.version(name)
+        except importlib.metadata.PackageNotFoundError:
+            version = ""
+        out[name] = {
+            "version": version,
+            "wheel_sha256": "",
+            "score_availability": bool(spec.score_bearing) if spec else False,
+        }
+    return out
 
 
 def f0b_noise_floor_pin(
@@ -187,6 +245,7 @@ def f0b_noise_floor_pin(
         )
         if same:
             existing["carried_forward"] = True
+            existing["noise_floor_hash"] = _noise_floor_hash(existing)
             return existing
 
     # Recompute: bootstrap-derived per-entity standard error of recall, used as
@@ -223,6 +282,7 @@ def f0b_noise_floor_pin(
         "per_entity_floor": per_entity,
         "carried_forward": False,
     }
+    pin["noise_floor_hash"] = _noise_floor_hash(pin)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(pin, indent=2, ensure_ascii=False), "utf-8")
     return pin
@@ -453,6 +513,49 @@ def _build_template_rows(
     return rows
 
 
+def _build_measurement_rows(
+    predictions_by_variant: dict[str, list[dict]],
+    spec_lookup: dict[str, BaselineSpec],
+) -> list[dict[str, Any]]:
+    """Per-(variant, k, entity, template) TP/FP/FN rows for the artifact (U4).
+
+    Reuses ``_build_template_rows`` so the rows are derived from the exact same
+    top-k slicing the verdict path uses; TP/FP/FN are exact-span counts,
+    matching the span-set semantics of the noise-floor computation. Only cells
+    with at least one gold or predicted span are emitted (empty templates add
+    no information and would bloat the artifact).
+    """
+    rows: list[dict[str, Any]] = []
+    for name, var_rows in predictions_by_variant.items():
+        spec = spec_lookup.get(name)
+        if spec is None:
+            continue
+        ks = K_VALUES if spec.score_bearing else [100]
+        for entity in ENTITIES:
+            for k in ks:
+                cells = _build_template_rows(var_rows, entity, k, spec.score_bearing)
+                for template, cell in cells.items():
+                    gold_set = {(s, e) for s, e, _lbl in cell["gold_spans"]}
+                    pred_set = {(s, e) for s, e, _lbl in cell["pred_spans"]}
+                    tp = len(gold_set & pred_set)
+                    fp = len(pred_set - gold_set)
+                    fn = len(gold_set - pred_set)
+                    if tp == 0 and fp == 0 and fn == 0:
+                        continue
+                    rows.append(
+                        {
+                            "variant": name,
+                            "k_percentile": k,
+                            "entity": entity,
+                            "template": template,
+                            "tp": tp,
+                            "fp": fp,
+                            "fn": fn,
+                        }
+                    )
+    return rows
+
+
 def _per_entity_best(
     predictions_by_variant: dict[str, list[dict]],
     entity: str,
@@ -562,8 +665,12 @@ def _entity_verdict(
 
     # R8(c) dual-metric agreement: token-overlap and strict-span agree on sign.
     # Recompute strict-span recall for the best cells.
-    strict_oss = _strict_recall_for_best(predictions_by_variant, entity, oss_best, spec_lookup)
-    strict_custom = _strict_recall_for_best(predictions_by_variant, entity, custom_best, spec_lookup)
+    strict_oss = _strict_recall_for_best(
+        predictions_by_variant, entity, oss_best, spec_lookup
+    )
+    strict_custom = _strict_recall_for_best(
+        predictions_by_variant, entity, custom_best, spec_lookup
+    )
     strict_diff = strict_oss - strict_custom
     if diff_sign == "oss_better":
         r8c = strict_diff > 0
@@ -775,10 +882,14 @@ def main(argv: list[str] | None = None) -> int:
     )
     run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%SZ")
 
-    # U5 wiring: build typed ComparisonArtifact and write via artifact.write_artifact.
-    # Some metadata fields (corpus_hash, anchor_pr_sha, variant_versions wheel_sha256
-    # etc.) will be populated by upstream units (F0a/F0c/U6) once available; for
-    # the transitional state they default to empty per ArtifactMetadata defaults.
+    # U5 wiring: build the typed ComparisonArtifact and persist it. Every
+    # pre-registration metadata field is now populated from data computed
+    # upstream this run:
+    #   corpus_hash               — SHA256-NFC of the benchmark corpus file (F0a input)
+    #   noise_floor_hash          — content hash of the F0b pin
+    #   recognizers_pack_git_sha  — HEAD commit SHA from F0c
+    #   variant_versions          — pip version + score availability per variant (U6)
+    #   anchor_pr_sha             — anchor_sha.txt if present, else HEAD (U7)
     leakage_check_model = LeakageCheck(
         algorithm="SHA256-NFC",
         manifest_hash=leakage["manifest_hash"],
@@ -786,12 +897,18 @@ def main(argv: list[str] | None = None) -> int:
         template_overlap_count=leakage["template_overlap_count"],
         passed=leakage["passed"],
     )
+    anchor_sha_file = Path(__file__).resolve().parents[4] / "anchor_sha.txt"
+    anchor_pr_sha = (
+        anchor_sha_file.read_text("utf-8").strip()
+        if anchor_sha_file.exists()
+        else rec_meta.get("git_commit_sha", "")
+    )
     metadata = ArtifactMetadata(
-        corpus_hash=leakage.get("corpus_hash", ""),
+        corpus_hash=_nfc_sha256(corpus_path.read_text("utf-8")),
         noise_floor_hash=noise_floor.get("noise_floor_hash", ""),
-        recognizers_pack_git_sha=rec_meta.get("git_sha", ""),
+        recognizers_pack_git_sha=rec_meta.get("git_commit_sha", ""),
         recognizers_pack_content_sha256=rec_meta.get("content_sha256", ""),
-        variant_versions={},  # TODO(U6): populate from pip metadata + wheel sha
+        variant_versions=_variant_versions(baselines),
         bootstrap_seed=42,
         tie_break_rule=(
             "(score, doc_id, span_start) for score-bearing; "
@@ -799,10 +916,12 @@ def main(argv: list[str] | None = None) -> int:
         ),
         k_values=K_VALUES,
         leakage_check=leakage_check_model,
-        anchor_pr_sha="",  # TODO(U7): populate from anchor_sha.txt post-merge
+        anchor_pr_sha=anchor_pr_sha,
     )
 
-    measurements: list[dict[str, Any]] = []  # TODO(U4 follow-up): per-row rows
+    measurements = _build_measurement_rows(
+        measurement["predictions_by_variant"], BASELINE_REGISTRY
+    )
     aggregates = artifact.get("aggregates")
     verdict_per_entity = artifact.get("verdict_per_entity")
     comparison = ComparisonArtifact(
