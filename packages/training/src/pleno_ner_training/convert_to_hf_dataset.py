@@ -117,7 +117,6 @@ def align_labels_with_tokens(
     attention_mask = encoding["attention_mask"]
 
     # 文字位置 → エンティティラベルのマッピングを構築
-    char_labels: list[tuple[str, bool]] = []  # (label, is_start)
     char_to_entity: dict[int, tuple[str, bool]] = {}
     for ent in entities:
         start, end, label = ent["start"], ent["end"], ent["label"]
