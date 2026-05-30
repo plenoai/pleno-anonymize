@@ -3,6 +3,7 @@ import logging
 import os
 import json
 import base64
+import binascii
 import io
 import time
 import uuid
@@ -10,10 +11,10 @@ from contextlib import asynccontextmanager
 from functools import lru_cache, partial
 from typing import List, Optional, Dict, Any, Tuple
 import httpx
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from presidio_anonymizer.entities import OperatorConfig
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from scalar_fastapi import get_scalar_api_reference
 
 # Structured JSON logging
@@ -257,6 +258,19 @@ class RedactRequest(BaseModel):
     operators: Optional[Dict[str, Dict[str, Any]]] = None
     fill_color: Optional[List[int]] = [0, 0, 0]  # RGB for image redaction
 
+    @field_validator("fill_color")
+    @classmethod
+    def _validate_fill_color(cls, v: Optional[List[int]]) -> Optional[List[int]]:
+        # PIL silently wraps out-of-range channel values (mod 256), so a
+        # request like [256, -1, 999] would redact with an unexpected colour
+        # instead of failing. Reject malformed colours up front; pydantic turns
+        # the ValueError into a 422 before any image work starts.
+        if v is None:
+            return v
+        if len(v) != 3 or any(not (0 <= c <= 255) for c in v):
+            raise ValueError("fill_color must be 3 ints in range [0, 255]")
+        return v
+
 
 @app.post("/api/analyze", tags=["PII Detection"])
 async def analyze(req: AnalyzeRequest):
@@ -363,20 +377,38 @@ async def redact(req: RedactRequest):
         result["items"] = [it.operator for it in out.items]
 
     if req.image:
-        image_data = req.image
-        if image_data.startswith("data:"):
-            header, data = image_data.split(",", 1)
-            image_bytes = base64.b64decode(data)
-            mime_type = (
-                header.split(";")[0].split(":")[1] if ":" in header else "image/png"
-            )
-        else:
-            image_bytes = base64.b64decode(image_data)
-            mime_type = "image/png"
+        # Client-supplied data URL / base64. Malformed input (missing comma,
+        # invalid base64, non-image bytes) must surface as 400, not a 500 — an
+        # unhandled ValueError/binascii.Error/PIL.UnidentifiedImageError here
+        # would otherwise leak a stack trace and read as a server fault.
+        # Decode first (no heavy deps), then open with PIL — so malformed input
+        # is rejected even on a build without the optional [image] extra.
+        try:
+            image_data = req.image
+            if image_data.startswith("data:"):
+                header, data = image_data.split(",", 1)
+                image_bytes = base64.b64decode(data, validate=True)
+                mime_type = (
+                    header.split(";")[0].split(":")[1] if ":" in header else "image/png"
+                )
+            else:
+                image_bytes = base64.b64decode(image_data, validate=True)
+                mime_type = "image/png"
+        except (ValueError, binascii.Error) as e:
+            raise HTTPException(
+                status_code=400, detail=f"invalid image data: {e}"
+            ) from e
 
-        from PIL import Image
+        from PIL import Image, UnidentifiedImageError
 
-        img = Image.open(io.BytesIO(image_bytes))
+        try:
+            img = Image.open(io.BytesIO(image_bytes))
+            img.load()
+        except (UnidentifiedImageError, OSError, ValueError) as e:
+            raise HTTPException(
+                status_code=400, detail=f"invalid image data: {e}"
+            ) from e
+
         fill = tuple(req.fill_color) if req.fill_color else (0, 0, 0)
         redacted_img = get_image_redactor().redact(img, fill=fill)
 
