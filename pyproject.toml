@@ -1,4 +1,6 @@
 [tool.uv.workspace]
+# `packages/recognizers` was merged into `packages/sdk` as
+# `pleno_anonymize.recognizers` (PR #138) and is intentionally not a member.
 members = [
     "server",
     "packages/training",
