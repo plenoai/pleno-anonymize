@@ -1,11 +1,19 @@
 import base64
 import io
 
-from fastapi.testclient import TestClient
-from PIL import Image
+import pytest
 
-import src.app as app_module
-from src.face_redactor import redact_faces
+# The face path needs the `image` extra (opencv + pillow + presidio-image-redactor).
+# CI installs it (uv sync --extra image); skip cleanly anywhere it is absent so a
+# bare `uv sync` never breaks collection.
+pytest.importorskip("cv2")
+pytest.importorskip("PIL")
+
+from fastapi.testclient import TestClient  # noqa: E402
+from PIL import Image  # noqa: E402
+
+import src.app as app_module  # noqa: E402
+from src.face_redactor import redact_faces  # noqa: E402
 
 client = TestClient(app_module.app)
 
