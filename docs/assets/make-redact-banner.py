@@ -69,11 +69,23 @@ def font(path: str, size: int) -> ImageFont.FreeTypeFont:
 def compose(before: Image.Image, after: Image.Image) -> Image.Image:
     # Fixed 1280x640 banner — the size GitHub/social cards render best at.
     W, H = 1280, 640
-    PAD, GAP = 40, 48
+    PAD, GAP = 32, 36
+    # The banner is 2:1 but the source photo is 1.5:1, so two side-by-side
+    # panels at full aspect leave a ~160px vertical void. Center-crop each photo
+    # to a slightly taller 1.26:1 so the panels fill the height — the pizza box
+    # and its text sit dead-center and are fully preserved by the crop.
+    AR = 1.26
     DW = (W - 2 * PAD - GAP) // 2
-    DH = round(DW * before.height / before.width)
-    before = before.resize((DW, DH), Image.LANCZOS)
-    after = after.resize((DW, DH), Image.LANCZOS)
+    DH = round(DW / AR)
+
+    def fit(img: Image.Image) -> Image.Image:
+        crop_w = round(img.height * AR)
+        left = (img.width - crop_w) // 2
+        return img.crop((left, 0, left + crop_w, img.height)).resize(
+            (DW, DH), Image.LANCZOS
+        )
+
+    before, after = fit(before), fit(after)
 
     BG, FG = (13, 17, 23), (230, 237, 243)
     RED, GREEN, BLUE = (248, 81, 73), (63, 185, 80), (88, 166, 255)
@@ -81,23 +93,18 @@ def compose(before: Image.Image, after: Image.Image) -> Image.Image:
     canvas = Image.new("RGB", (W, H), BG)
     d = ImageDraw.Draw(canvas)
 
-    # Brand wordmark only — small explanatory text is dropped so the photos
-    # carry the banner.
-    d.text((PAD, 40), "pleno", font=font(ARIAL_B, 46), fill=FG)
-    w = d.textlength("pleno", font=font(ARIAL_B, 46))
-    d.text((PAD + w, 40), "-anonymize", font=font(ARIAL_B, 46), fill=GREEN)
+    # Left-aligned brand wordmark. Small explanatory text is dropped so the
+    # photos carry the banner.
+    f_title = font(ARIAL_B, 44)
+    ty = 34
+    d.text((PAD, ty), "pleno", font=f_title, fill=FG)
+    w1 = d.textlength("pleno", font=f_title)
+    d.text((PAD + w1, ty), "-anonymize", font=f_title, fill=GREEN)
 
     lx, rx = PAD, PAD + DW + GAP
-    LABEL_Y = 152
-    DOC_Y = LABEL_Y + 48
-
-    def label(x: int, text: str, color: tuple[int, int, int]) -> None:
-        cy = LABEL_Y + 13
-        d.ellipse((x, cy - 9, x + 18, cy + 9), fill=color)
-        d.text((x + 30, LABEL_Y), text, font=font(ARIAL_B, 26), fill=FG)
-
-    label(lx, "BEFORE", RED)
-    label(rx, "AFTER", GREEN)
+    # Sit the panels just below the wordmark — a tight, deliberate gap rather
+    # than the large void left by removing the sub-headline.
+    DOC_Y = ty + 44 + 26
 
     def paste_doc(img: Image.Image, x: int) -> None:
         mask = Image.new("L", img.size, 0)
@@ -114,6 +121,19 @@ def compose(before: Image.Image, after: Image.Image) -> Image.Image:
 
     paste_doc(before, lx)
     paste_doc(after, rx)
+
+    # BEFORE / AFTER as overlay chips inside each panel — no separate label row.
+    def chip(x: int, text: str, color: tuple[int, int, int]) -> None:
+        f = font(ARIAL_B, 20)
+        tw = d.textlength(text, font=f)
+        px, py, pdx, pdy = x + 14, DOC_Y + 14, 12, 7
+        d.rounded_rectangle(
+            (px, py, px + tw + 2 * pdx, py + 20 + 2 * pdy), radius=9, fill=color
+        )
+        d.text((px + pdx, py + pdy), text, font=f, fill=BG)
+
+    chip(lx, "BEFORE", RED)
+    chip(rx, "AFTER", GREEN)
 
     ay = DOC_Y + DH // 2
     cx = lx + DW + GAP // 2
