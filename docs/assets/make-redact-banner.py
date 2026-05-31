@@ -67,51 +67,47 @@ def font(path: str, size: int) -> ImageFont.FreeTypeFont:
 
 
 def compose(before: Image.Image, after: Image.Image) -> Image.Image:
-    DW = 560
+    # Fixed 1280x640 banner — the size GitHub/social cards render best at.
+    W, H = 1280, 640
+    PAD, GAP = 40, 48
+    DW = (W - 2 * PAD - GAP) // 2
     DH = round(DW * before.height / before.width)
     before = before.resize((DW, DH), Image.LANCZOS)
     after = after.resize((DW, DH), Image.LANCZOS)
 
-    PAD, GAP, HEADER, FOOT, LABEL_H = 40, 120, 150, 64, 34
-    W = PAD + DW + GAP + DW + PAD
-    DOC_Y = HEADER + LABEL_H
-    H = DOC_Y + DH + FOOT
-
-    BG, FG, MUTED = (13, 17, 23), (230, 237, 243), (139, 148, 158)
+    BG, FG = (13, 17, 23), (230, 237, 243)
     RED, GREEN, BLUE = (248, 81, 73), (63, 185, 80), (88, 166, 255)
 
     canvas = Image.new("RGB", (W, H), BG)
     d = ImageDraw.Draw(canvas)
 
-    d.text((PAD, 44), "pleno", font=font(ARIAL_B, 38), fill=FG)
-    w = d.textlength("pleno", font=font(ARIAL_B, 38))
-    d.text((PAD + w, 44), "-anonymize", font=font(ARIAL_B, 38), fill=GREEN)
-    d.text(
-        (PAD, 96),
-        "Image redaction — location-revealing text is OCR-detected and blacked out",
-        font=font(ARIAL, 19),
-        fill=MUTED,
-    )
+    # Brand wordmark only — small explanatory text is dropped so the photos
+    # carry the banner.
+    d.text((PAD, 40), "pleno", font=font(ARIAL_B, 46), fill=FG)
+    w = d.textlength("pleno", font=font(ARIAL_B, 46))
+    d.text((PAD + w, 40), "-anonymize", font=font(ARIAL_B, 46), fill=GREEN)
 
     lx, rx = PAD, PAD + DW + GAP
+    LABEL_Y = 152
+    DOC_Y = LABEL_Y + 48
 
     def label(x: int, text: str, color: tuple[int, int, int]) -> None:
-        cy = HEADER + LABEL_H // 2
-        d.ellipse((x, cy - 6, x + 12, cy + 6), fill=color)
-        d.text((x + 22, HEADER + 4), text, font=font(ARIAL_B, 18), fill=FG)
+        cy = LABEL_Y + 13
+        d.ellipse((x, cy - 9, x + 18, cy + 9), fill=color)
+        d.text((x + 30, LABEL_Y), text, font=font(ARIAL_B, 26), fill=FG)
 
-    label(lx, "BEFORE  original photo", RED)
-    label(rx, "AFTER  text redacted", GREEN)
+    label(lx, "BEFORE", RED)
+    label(rx, "AFTER", GREEN)
 
     def paste_doc(img: Image.Image, x: int) -> None:
         mask = Image.new("L", img.size, 0)
         ImageDraw.Draw(mask).rounded_rectangle(
-            (0, 0, img.width, img.height), radius=14, fill=255
+            (0, 0, img.width, img.height), radius=16, fill=255
         )
         canvas.paste(img, (x, DOC_Y), mask)
         d.rounded_rectangle(
             (x, DOC_Y, x + img.width, DOC_Y + img.height),
-            radius=14,
+            radius=16,
             outline=(48, 54, 61),
             width=2,
         )
@@ -120,19 +116,10 @@ def compose(before: Image.Image, after: Image.Image) -> Image.Image:
     paste_doc(after, rx)
 
     ay = DOC_Y + DH // 2
-    ax0, ax1 = lx + DW + 28, rx - 28
-    d.line((ax0, ay, ax1 - 14, ay), fill=BLUE, width=4)
-    d.polygon([(ax1, ay), (ax1 - 16, ay - 10), (ax1 - 16, ay + 10)], fill=GREEN)
-    cap = "OCR redact"
-    cw = d.textlength(cap, font=font(MENLO, 14))
-    d.text(((ax0 + ax1) / 2 - cw / 2, ay - 34), cap, font=font(MENLO, 14), fill=BLUE)
+    cx = lx + DW + GAP // 2
+    d.line((cx - 18, ay, cx + 8, ay), fill=BLUE, width=5)
+    d.polygon([(cx + 22, ay), (cx + 6, ay - 12), (cx + 6, ay + 12)], fill=GREEN)
 
-    d.text(
-        (PAD, H - FOOT + 18),
-        "POST /api/redact  ·  image OCR redaction  ·  presidio + Tesseract",
-        font=font(MENLO, 14),
-        fill=MUTED,
-    )
     return canvas
 
 
