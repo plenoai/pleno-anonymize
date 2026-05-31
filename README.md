@@ -1,7 +1,7 @@
 # pleno-anonymize
 
 <p align="center">
-  <img src="docs/assets/redact-banner.png" alt="Before/after face redaction: an original photo on the left; the same photo with every detected face boxed in black on the right. Real OpenCV YuNet detector output via POST /api/redact with redact_faces=true." width="100%">
+  <img src="docs/assets/redact-banner.png" alt="Before/after image redaction: an original photo on the left; the same photo with location-revealing text blacked out on the right. Real presidio ImageRedactorEngine OCR output via POST /api/redact." width="100%">
 </p>
 
 Japanese-first PII analysis and redaction. The repository ships three artifacts that share a single recognizer registry and NER model:
@@ -36,15 +36,15 @@ curl -X POST https://pleno-anonymize.fly.dev/api/analyze \
   -d '{"text":"連絡先 山田太郎 090-1234-5678","language":"ja"}'
 ```
 
-`POST /api/redact` also redacts **images**. Set `redact_faces: true` to detect and
-black-box every face with the OpenCV YuNet detector (the banner above is real output);
-omit it to redact OCR-detected text PII instead.
+`POST /api/redact` also redacts **images**: presidio's `ImageRedactorEngine` OCRs
+the image with Tesseract and blacks out detected PII text (the banner above is real
+output — location-revealing text on the photo is OCR-detected and covered).
 
 ```bash
-# black-box every face in a photo
+# black-box OCR-detected PII text in a photo
 curl -X POST https://pleno-anonymize.fly.dev/api/redact \
   -H "content-type: application/json" \
-  -d "{\"image\":\"data:image/webp;base64,$(base64 -i photo.webp)\",\"redact_faces\":true}"
+  -d "{\"image\":\"data:image/webp;base64,$(base64 -i photo.webp)\",\"language\":\"en\"}"
 ```
 
 Routing chat traffic through the LLM proxy masks PII before the request reaches the upstream provider, then restores the original values in the response.

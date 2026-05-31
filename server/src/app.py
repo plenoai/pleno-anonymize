@@ -271,10 +271,6 @@ class RedactRequest(BaseModel):
             raise ValueError("fill_color must be 3 ints in range [0, 255]")
         return v
 
-    # When true, the image path covers detected faces with a filled box instead
-    # of running presidio's OCR text redaction (which presidio cannot do).
-    redact_faces: bool = Field(default=False)
-
 
 @app.post("/api/analyze", tags=["PII Detection"])
 async def analyze(req: AnalyzeRequest):
@@ -414,12 +410,7 @@ async def redact(req: RedactRequest):
             ) from e
 
         fill = tuple(req.fill_color) if req.fill_color else (0, 0, 0)
-        if req.redact_faces:
-            from .face_redactor import redact_faces as _redact_faces
-
-            redacted_img = _redact_faces(img, fill=fill)
-        else:
-            redacted_img = get_image_redactor().redact(img, fill=fill)
+        redacted_img = get_image_redactor().redact(img, fill=fill)
 
         output_buffer = io.BytesIO()
         fmt = "PNG"

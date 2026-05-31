@@ -37,22 +37,21 @@ RUN uv pip install \
 # workspace, which would clobber the wheels we just installed.
 RUN uv run --no-sync python -c "import spacy; spacy.load('pleno_anonymize_ja'); spacy.load('pleno_anonymize_en'); print('models loadable')"
 
-# Image-redaction smoke: fail the build (not production) if the `image` extra
-# did not ship or the bundled YuNet model is unreadable. Mirrors the spacy
-# smoke above; `--no-sync` keeps the wheels installed in the previous layers.
-RUN uv run --no-sync python -c "import cv2; from server.src.face_redactor import _get_yunet; assert _get_yunet() is not None, 'YuNet detector failed to load'; print('face redactor loadable')"
-
 FROM python:3.12-slim
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Runtime system libraries:
-# - libglib2.0-0 / libgl1: shared libs required by opencv-python-headless
-#   (used by the face-redaction path). libgl1 is the Debian bookworm/trixie
-#   package name; fall back to the older libgl1-mesa-glx on bases that predate
-#   the rename so the build does not break.
-# - tesseract-ocr (+ jpn): required by presidio-image-redactor's OCR path so
-#   the non-face image redaction route stops returning HTTP 500 in prod.
+# Runtime system libraries for POST /api/redact's image OCR path. All are
+# required even after dropping face redaction, because presidio-image-redactor
+# imports cv2 at package-import time and depends on opencv-python (the
+# non-headless build):
+# - tesseract-ocr (+ jpn): presidio's OCR backend; without it the image route
+#   returns HTTP 500 in prod.
+# - libgl1 / libglib2.0-0: shared libs opencv-python links against
+#   (libGL.so.1, libglib-2.0.so.0). Missing either makes `import
+#   presidio_image_redactor` fail with ImportError, breaking the OCR path.
+#   libgl1 is the Debian bookworm/trixie name; fall back to libgl1-mesa-glx on
+#   bases that predate the rename so the build does not break.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libglib2.0-0 \
