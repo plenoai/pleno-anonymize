@@ -16,10 +16,10 @@ COPY server/pyproject.toml server/pyproject.toml
 # Server image excludes OSS baselines (ginza / ja-ginza / ja_core_news_trf)
 # to keep the image small. `bench` lives in packages/training's
 # `[project.optional-dependencies]`, so without `--extra bench` it is skipped.
-RUN uv sync --frozen --no-dev --no-install-project --package pleno-anonymize-server
+RUN uv sync --frozen --no-dev --no-install-project --extra image --package pleno-anonymize-server
 
 COPY server/ server/
-RUN uv sync --frozen --no-dev --package pleno-anonymize-server
+RUN uv sync --frozen --no-dev --extra image --package pleno-anonymize-server
 
 # spaCy / NER model wheels install AFTER the last uv sync. A prior layout
 # placed them between syncs, and `uv sync --frozen` pruned wheels not in the
@@ -37,9 +37,30 @@ RUN uv pip install \
 # workspace, which would clobber the wheels we just installed.
 RUN uv run --no-sync python -c "import spacy; spacy.load('pleno_anonymize_ja'); spacy.load('pleno_anonymize_en'); print('models loadable')"
 
+# Image-redaction smoke: fail the build (not production) if the `image` extra
+# did not ship or the bundled YuNet model is unreadable. Mirrors the spacy
+# smoke above; `--no-sync` keeps the wheels installed in the previous layers.
+RUN uv run --no-sync python -c "import cv2; from server.src.face_redactor import _get_yunet; assert _get_yunet() is not None, 'YuNet detector failed to load'; print('face redactor loadable')"
+
 FROM python:3.12-slim
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Runtime system libraries:
+# - libglib2.0-0 / libgl1: shared libs required by opencv-python-headless
+#   (used by the face-redaction path). libgl1 is the Debian bookworm/trixie
+#   package name; fall back to the older libgl1-mesa-glx on bases that predate
+#   the rename so the build does not break.
+# - tesseract-ocr (+ jpn): required by presidio-image-redactor's OCR path so
+#   the non-face image redaction route stops returning HTTP 500 in prod.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libglib2.0-0 \
+        tesseract-ocr \
+        tesseract-ocr-jpn \
+    && (apt-get install -y --no-install-recommends libgl1 \
+        || apt-get install -y --no-install-recommends libgl1-mesa-glx) \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspace
 COPY --from=builder /workspace /workspace
