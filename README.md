@@ -4,16 +4,16 @@
   <img src="docs/assets/redact-banner.png" alt="Before/after image redaction: an original photo on the left; the same photo with location-revealing text blacked out on the right. Real presidio ImageRedactorEngine OCR output via POST /api/redact." width="100%">
 </p>
 
-Japanese-first PII analysis and redaction. The repository ships three artifacts that share a single recognizer registry and NER model:
+PII analysis and redaction for Japanese and English text.
 
-- **`pleno-anonymize` server** — HTTP API exposing `/api/analyze`, `/api/redact`, and OpenAI / Anthropic / Gemini proxies that mask PII before forwarding upstream.
-- **`pleno-anonymize` Python package** — SDK + CLI (`uvx pleno-anonymize scan .`) wrapping the same API. See [`packages/sdk`](packages/sdk).
-- **`pleno_anonymize_ja` / `pleno_anonymize_en` models** — spaCy NER models trained from this repository's training pipeline.
+- **`pleno-anonymize` server** — HTTP API with `/api/analyze`, `/api/redact`, and OpenAI / Anthropic / Gemini proxies that mask PII before forwarding to upstream providers.
+- **`pleno-anonymize` Python package** — SDK and CLI (`uvx pleno-anonymize scan .`). See [`packages/sdk`](packages/sdk).
+- **`pleno_anonymize_ja` / `pleno_anonymize_en` models** — spaCy NER models for Japanese and English PII.
 
 Endpoint: https://pleno-anonymize.fly.dev (API reference at `/docs`).
 Playground: https://plenoai.com/pleno-anonymize/playground
 
-For scanning SaaS sources or filesystems for PII, use [`pleno-dlp`](https://github.com/plenoai/pleno-dlp) — it talks to this server's `/api/analyze` endpoint over HTTP.
+For scanning SaaS sources or filesystems for PII, use [`pleno-dlp`](https://github.com/plenoai/pleno-dlp). It talks to this server's `/api/analyze` endpoint over HTTP.
 
 ## Use the CLI
 
@@ -36,9 +36,7 @@ curl -X POST https://pleno-anonymize.fly.dev/api/analyze \
   -d '{"text":"連絡先 山田太郎 090-1234-5678","language":"ja"}'
 ```
 
-`POST /api/redact` also redacts **images**: presidio's `ImageRedactorEngine` OCRs
-the image with Tesseract and blacks out detected PII text (the banner above is real
-output — location-revealing text on the photo is OCR-detected and covered).
+`POST /api/redact` also redacts **images**: presidio's `ImageRedactorEngine` OCRs the image with Tesseract and blacks out detected PII text (the banner above is real output — location-revealing text on the photo is OCR-detected and covered).
 
 ```bash
 # black-box OCR-detected PII text in a photo
@@ -47,7 +45,7 @@ curl -X POST https://pleno-anonymize.fly.dev/api/redact \
   -d "{\"image\":\"data:image/webp;base64,$(base64 -i photo.webp)\",\"language\":\"en\"}"
 ```
 
-Routing chat traffic through the LLM proxy masks PII before the request reaches the upstream provider, then restores the original values in the response.
+Route chat traffic through the LLM proxy to mask PII before the request reaches the upstream provider; original values are restored in the response.
 
 | Endpoint | Upstream |
 |---|---|
@@ -77,10 +75,10 @@ Full API surface: [`packages/sdk`](packages/sdk).
 
 ## Detection backends
 
-| Engine | Install | Speed | When |
+| Engine | Install | Speed | Notes |
 |---|---|---|---|
-| `builtin` (default) | `pip install pleno-anonymize` | ~50 ms/doc CPU | Japanese-first, regex + checksum for structured IDs, slim deps |
-| `openai-privacy-filter` | `pip install pleno-anonymize 'opf @ git+https://github.com/openai/privacy-filter@main'` | ~2 s/doc CPU, ~30 ms GPU | English-heavy text, secret detection, higher recall |
+| `builtin` (default) | `pip install pleno-anonymize` | ~50 ms/doc CPU | Regex + checksum validators for structured IDs; slim deps |
+| `openai-privacy-filter` | `pip install pleno-anonymize 'opf @ git+https://github.com/openai/privacy-filter@main'` | ~2 s/doc CPU, ~30 ms GPU | English prose, secret detection, higher recall |
 
 ```bash
 # default — builtin Presidio + pleno_anonymize_ja
@@ -91,14 +89,11 @@ pleno-anonymize analyze --engine openai-privacy-filter --language en \
   'Alice Johnson, alice@example.com'
 ```
 
-OPF's 8 native labels normalize into the same `entity_type` taxonomy
-(`private_person → PERSON`, `private_email → EMAIL_ADDRESS`, …); `secret`
-surfaces as a new `SECRET` class so anonymizer / scanner / proxy stay
-backend-agnostic.
+OPF adds a `SECRET` class not covered by the builtin engine.
 
 ### Quality
 
-Both models are spaCy tok2vec NER trained on `ai4privacy/pii-masking-300k` (EN) and `0xhikae/pii-masking-300k-ja` (JA). In-distribution F1 ≈ 0.96–0.97; on real-text news (CoNLL-2003 EN F1 ≈ 0.57, stockmark JP Wikipedia F1 ≈ 0.47) the models trail spaCy's `*_core_web_lg` baselines because they are tuned for form-/record-style PII, not narrative prose. For higher recall on English prose, use the `openai-privacy-filter` engine. Full numbers, CIs, and methodology: [`docs/benchmark-pleno-anonymize-en.md`](docs/benchmark-pleno-anonymize-en.md), [`docs/benchmark-pleno-anonymize-ja.md`](docs/benchmark-pleno-anonymize-ja.md).
+Both models are spaCy tok2vec NER trained on `ai4privacy/pii-masking-300k` (EN) and `0xhikae/pii-masking-300k-ja` (JA). In-distribution F1 ≈ 0.96–0.97. On real-text news (CoNLL-2003 EN F1 ≈ 0.57, stockmark JP Wikipedia F1 ≈ 0.47) the models trail spaCy's `*_core_web_lg` baselines because they are tuned for form- and record-style PII, not narrative prose. For higher recall on English prose, use the `openai-privacy-filter` engine. Full numbers, CIs, and methodology: [`docs/benchmark-pleno-anonymize-en.md`](docs/benchmark-pleno-anonymize-en.md), [`docs/benchmark-pleno-anonymize-ja.md`](docs/benchmark-pleno-anonymize-ja.md).
 
 ## Detected entities
 
@@ -107,17 +102,6 @@ Both models are spaCy tok2vec NER trained on `ai4privacy/pii-masking-300k` (EN) 
 | Free text | spaCy NER `pleno_anonymize_ja` plus Presidio | `PERSON` `ADDRESS` `ORGANIZATION` `DATE_OF_BIRTH` `BANK_ACCOUNT` |
 | Structured | regex plus checksum (Luhn, My Number, corporate number) | `PHONE_NUMBER` `MY_NUMBER` `MY_NUMBER_CORPORATE` `CREDIT_CARD` `PASSPORT` `DRIVER_LICENSE` `HEALTH_INSURANCE` `RESIDENCE_CARD` `POSTAL_CODE` `EMAIL_ADDRESS` `IP_ADDRESS` `URL` |
 | OPF (opt-in) | `openai/privacy-filter` 1.5B (50M active MoE) | `PERSON` `ADDRESS` `EMAIL_ADDRESS` `PHONE_NUMBER` `URL` `DATE_OF_BIRTH` `BANK_ACCOUNT` `SECRET` |
-
-## Repository layout
-
-| Path | What it is |
-|---|---|
-| `server/` | FastAPI service — analyze / redact endpoints + LLM proxies |
-| `packages/sdk/` | Python SDK + `pleno-anonymize` CLI (analyze / redact / scan); bundles the Presidio recognizer registry under `pleno_anonymize.recognizers` |
-| `packages/training/` | spaCy / Hugging Face training pipeline for `pleno_anonymize_ja` and `pleno_anonymize_en` |
-| `packages/models/` | Trained NER model artifacts |
-| `packages/wasm-tokenizer/` | Rust tokenizer compiled to WASM for browser-side preprocessing |
-| `website/` | Vite + React playground hosted at plenoai.com |
 
 ## Self-host
 
