@@ -20,8 +20,6 @@ pleno-anonymize = { workspace = true }
 image = [
     "presidio-image-redactor>=0.0.53",
     "pillow>=10.0.0",
-    "numpy>=1.24.0",
-    "opencv-python-headless>=4.9.0",
 ]
 proxy = [
     "openai>=1.0.0",
