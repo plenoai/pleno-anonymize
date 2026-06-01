@@ -476,8 +476,11 @@ def _is_disallowed_ip(ip: ipaddress._BaseAddress) -> bool:
         or ip.is_reserved
         or ip.is_unspecified
         # IPv4-mapped IPv6 (e.g. ::ffff:169.254.169.254) must be unwrapped and re-checked.
-        or (isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped is not None
-            and _is_disallowed_ip(ip.ipv4_mapped))
+        or (
+            isinstance(ip, ipaddress.IPv6Address)
+            and ip.ipv4_mapped is not None
+            and _is_disallowed_ip(ip.ipv4_mapped)
+        )
     )
 
 
@@ -500,19 +503,27 @@ def _assert_fetchable_url(image_url: str) -> None:
     try:
         infos = socket.getaddrinfo(host, parts.port or None, proto=socket.IPPROTO_TCP)
     except socket.gaierror:
-        raise HTTPException(status_code=400, detail="Image URL host could not be resolved")
+        raise HTTPException(
+            status_code=400, detail="Image URL host could not be resolved"
+        )
 
     addrs = {info[4][0] for info in infos}
     if not addrs:
-        raise HTTPException(status_code=400, detail="Image URL host could not be resolved")
+        raise HTTPException(
+            status_code=400, detail="Image URL host could not be resolved"
+        )
 
     for addr in addrs:
         try:
             ip = ipaddress.ip_address(addr)
         except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid resolved image URL address")
+            raise HTTPException(
+                status_code=400, detail="Invalid resolved image URL address"
+            )
         if _is_disallowed_ip(ip):
-            raise HTTPException(status_code=400, detail="Image URL resolves to a disallowed address")
+            raise HTTPException(
+                status_code=400, detail="Image URL resolves to a disallowed address"
+            )
 
 
 async def redact_image(image_url: str, http_client: httpx.AsyncClient) -> str:
