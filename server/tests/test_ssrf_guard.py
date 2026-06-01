@@ -26,13 +26,13 @@ def _patch_resolve(monkeypatch, ip: str) -> None:
 @pytest.mark.parametrize(
     "ip",
     [
-        "127.0.0.1",       # loopback
-        "10.0.0.5",        # RFC1918
-        "192.168.1.1",     # RFC1918
-        "169.254.169.254", # cloud metadata link-local
-        "::1",             # IPv6 loopback
+        "127.0.0.1",  # loopback
+        "10.0.0.5",  # RFC1918
+        "192.168.1.1",  # RFC1918
+        "169.254.169.254",  # cloud metadata link-local
+        "::1",  # IPv6 loopback
         "::ffff:127.0.0.1",  # IPv4-mapped IPv6 loopback
-        "0.0.0.0",         # unspecified
+        "0.0.0.0",  # unspecified
     ],
 )
 def test_rejects_private_and_internal_targets(monkeypatch, ip) -> None:
