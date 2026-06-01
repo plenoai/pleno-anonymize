@@ -5,8 +5,11 @@ import json
 import base64
 import binascii
 import io
+import ipaddress
+import socket
 import time
 import uuid
+from urllib.parse import urlsplit
 from contextlib import asynccontextmanager
 from functools import lru_cache, partial
 from typing import List, Optional, Dict, Any, Tuple
@@ -226,7 +229,7 @@ async def readiness():
     except Exception as e:
         logger.error(json.dumps({"event": "readiness_check_failed", "error": str(e)}))
         return Response(
-            content=json.dumps({"status": "not_ready", "error": str(e)}),
+            content=json.dumps({"status": "not_ready"}),
             status_code=503,
             media_type="application/json",
         )
@@ -463,12 +466,62 @@ def deanonymize_text(text: str, mapping: Dict[str, str]) -> str:
     return result
 
 
+def _is_disallowed_ip(ip: ipaddress._BaseAddress) -> bool:
+    """Reject any address that could reach internal/cloud-metadata infrastructure."""
+    return (
+        ip.is_private
+        or ip.is_loopback
+        or ip.is_link_local
+        or ip.is_multicast
+        or ip.is_reserved
+        or ip.is_unspecified
+        # IPv4-mapped IPv6 (e.g. ::ffff:169.254.169.254) must be unwrapped and re-checked.
+        or (isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped is not None
+            and _is_disallowed_ip(ip.ipv4_mapped))
+    )
+
+
+def _assert_fetchable_url(image_url: str) -> None:
+    """SSRF guard: only allow http(s) URLs whose every resolved IP is public.
+
+    Raises HTTPException(400) on any violation. Validating *all* getaddrinfo
+    results blocks direct internal targets (localhost, RFC1918, 169.254.169.254,
+    etc.). httpx clients here use the default follow_redirects=False, so a
+    validated host cannot be bounced to an internal one via a 3xx redirect.
+    """
+    parts = urlsplit(image_url)
+    if parts.scheme not in ("http", "https"):
+        raise HTTPException(status_code=400, detail="Unsupported image URL scheme")
+
+    host = parts.hostname
+    if not host:
+        raise HTTPException(status_code=400, detail="Invalid image URL host")
+
+    try:
+        infos = socket.getaddrinfo(host, parts.port or None, proto=socket.IPPROTO_TCP)
+    except socket.gaierror:
+        raise HTTPException(status_code=400, detail="Image URL host could not be resolved")
+
+    addrs = {info[4][0] for info in infos}
+    if not addrs:
+        raise HTTPException(status_code=400, detail="Image URL host could not be resolved")
+
+    for addr in addrs:
+        try:
+            ip = ipaddress.ip_address(addr)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid resolved image URL address")
+        if _is_disallowed_ip(ip):
+            raise HTTPException(status_code=400, detail="Image URL resolves to a disallowed address")
+
+
 async def redact_image(image_url: str, http_client: httpx.AsyncClient) -> str:
     if image_url.startswith("data:"):
         header, data = image_url.split(",", 1)
         image_bytes = base64.b64decode(data)
         mime_type = header.split(";")[0].split(":")[1] if ":" in header else "image/png"
     else:
+        _assert_fetchable_url(image_url)
         response = await http_client.get(image_url)
         response.raise_for_status()
         image_bytes = response.content
