@@ -24,6 +24,11 @@
     "unhead": "3.0.3",
     "yaml": "2.8.3"
   },
+  "pnpm": {
+    "overrides": {
+      "unhead": ">=2.1.13"
+    }
+  },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
     "@types/react": "^18.2.0",
