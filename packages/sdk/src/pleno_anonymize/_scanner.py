@@ -238,7 +238,8 @@ def _collect(
 
 
 def _ext_match(path: Path, allow: frozenset[str]) -> bool:
-    ext = path.suffix.lower()
+    # suffix is "" for dotfiles (e.g. .env); fall back to name for those
+    ext = path.suffix.lower() or path.name.lower()
     return ext in allow
 
 

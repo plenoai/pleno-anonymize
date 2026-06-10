@@ -69,3 +69,13 @@ def test_scan_respects_include_extensions(tmp_path: Path) -> None:
     summary = scan_paths(_FakeEngine(), [str(tmp_path)], include_extensions=[".md"])
     assert summary.scanned_files == 1
     assert summary.files[0].path.endswith("keep.md")
+
+
+def test_scan_dotenv_files_are_scanned(tmp_path: Path) -> None:
+    """Dotfiles like .env must be scanned; pathlib.Path('.env').suffix == ''."""
+    (tmp_path / ".env").write_text("SECRET=a@b.example", encoding="utf-8")
+    (tmp_path / "prod.env").write_text("KEY=c@d.example", encoding="utf-8")
+    summary = scan_paths(_FakeEngine(), [str(tmp_path)])
+    scanned = {Path(f.path).name for f in summary.files}
+    assert ".env" in scanned, ".env dotfile was not scanned"
+    assert "prod.env" in scanned
