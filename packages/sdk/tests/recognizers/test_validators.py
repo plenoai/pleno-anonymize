@@ -33,15 +33,16 @@ def test_my_number_invalid():
 
 
 def test_corporate_number_valid():
-    # body=123456789012, weights=(1,2,1,2,1,2,1,2,1,2,1,2)
-    # s = 1+4+3+8+5+12+7+16+9+0+1+4 = 70
-    # check = 9 - (70 % 9) = 9 - 7 = 2
-    assert corporate_number("2123456789012") is True
+    # Real public corporate numbers (NTA registry)
+    assert corporate_number("1180301018771") is True   # トヨタ自動車
+    assert corporate_number("5010401067252") is True   # ソニーグループ
+    assert corporate_number("7000012050002") is True   # 国税庁
 
 
 def test_corporate_number_invalid():
     assert corporate_number("1123456789012") is False
-    assert corporate_number("123456789012") is False  # too short
+    assert corporate_number("123456789012") is False   # too short
+    assert corporate_number("2123456789012") is False  # wrong check digit
 
 
 def test_validate_dispatch():

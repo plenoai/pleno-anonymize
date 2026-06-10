@@ -47,7 +47,7 @@ def my_number(value: str) -> bool:
     return expected == check
 
 
-_CORP_NUMBER_WEIGHTS = (1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2)
+_CORP_NUMBER_WEIGHTS = (2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1)  # high→low position left-to-right
 
 
 def corporate_number(value: str) -> bool:
