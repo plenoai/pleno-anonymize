@@ -475,6 +475,33 @@ def deanonymize_text(text: str, mapping: Dict[str, str]) -> str:
     return result
 
 
+_HOP_BY_HOP_HEADERS = frozenset(
+    [
+        "content-length",
+        "content-encoding",
+        "transfer-encoding",
+        "connection",
+        "keep-alive",
+        "proxy-authenticate",
+        "proxy-authorization",
+        "te",
+        "trailers",
+        "upgrade",
+    ]
+)
+
+
+def _safe_response_headers(headers) -> dict:
+    """Return upstream headers with hop-by-hop and body-framing headers stripped.
+
+    The proxy mutates the response body (de-anonymization), so the upstream
+    Content-Length / Content-Encoding / Transfer-Encoding no longer apply.
+    Starlette uses the caller-provided content-length as-is and does not
+    recompute it, so forwarding stale values causes client decode failures.
+    """
+    return {k: v for k, v in headers.items() if k.lower() not in _HOP_BY_HOP_HEADERS}
+
+
 def _is_disallowed_ip(ip: ipaddress._BaseAddress) -> bool:
     """Reject any address that could reach internal/cloud-metadata infrastructure."""
     return (
@@ -1163,7 +1190,7 @@ async def openai_proxy(request: Request, path: str):
     return Response(
         content=response_content,
         status_code=response.status_code,
-        headers=dict(response.headers),
+        headers=_safe_response_headers(response.headers),
         media_type=response.headers.get("content-type"),
     )
 
@@ -1232,7 +1259,7 @@ async def anthropic_proxy(request: Request, path: str):
     return Response(
         content=response_content,
         status_code=response.status_code,
-        headers=dict(response.headers),
+        headers=_safe_response_headers(response.headers),
         media_type=response.headers.get("content-type"),
     )
 
@@ -1299,6 +1326,6 @@ async def gemini_proxy(request: Request, path: str):
     return Response(
         content=response_content,
         status_code=response.status_code,
-        headers=dict(response.headers),
+        headers=_safe_response_headers(response.headers),
         media_type=response.headers.get("content-type"),
     )
