@@ -621,8 +621,15 @@ async def redact_openai_request(
                                     "detail"
                                 ]
                             redacted_parts.append(redacted_part)
-                        except Exception:
-                            redacted_parts.append(part)
+                        except Exception as e:
+                            logger.error(
+                                json.dumps(
+                                    {"event": "image_redaction_failed", "error": str(e)}
+                                )
+                            )
+                            raise HTTPException(
+                                status_code=500, detail="image redaction failed"
+                            )
                     else:
                         redacted_parts.append(part)
                 else:
@@ -720,8 +727,18 @@ async def redact_anthropic_request(
                                     "data": redacted_data,
                                 }
                                 redacted_parts.append(redacted_part)
-                            except Exception:
-                                redacted_parts.append(part)
+                            except Exception as e:
+                                logger.error(
+                                    json.dumps(
+                                        {
+                                            "event": "image_redaction_failed",
+                                            "error": str(e),
+                                        }
+                                    )
+                                )
+                                raise HTTPException(
+                                    status_code=500, detail="image redaction failed"
+                                )
                         else:
                             redacted_parts.append(part)
                     else:
@@ -852,8 +869,18 @@ async def redact_responses_api_request(
                                     redacted_part = part.copy()
                                     redacted_part["image_url"] = redacted_url
                                     redacted_parts.append(redacted_part)
-                                except Exception:
-                                    redacted_parts.append(part)
+                                except Exception as e:
+                                    logger.error(
+                                        json.dumps(
+                                            {
+                                                "event": "image_redaction_failed",
+                                                "error": str(e),
+                                            }
+                                        )
+                                    )
+                                    raise HTTPException(
+                                        status_code=500, detail="image redaction failed"
+                                    )
                             else:
                                 redacted_parts.append(part)
                         else:
@@ -965,8 +992,18 @@ async def redact_gemini_request(
                                     "data": redacted_data,
                                 }
                                 redacted_parts.append(redacted_part)
-                            except Exception:
-                                redacted_parts.append(part)
+                            except Exception as e:
+                                logger.error(
+                                    json.dumps(
+                                        {
+                                            "event": "image_redaction_failed",
+                                            "error": str(e),
+                                        }
+                                    )
+                                )
+                                raise HTTPException(
+                                    status_code=500, detail="image redaction failed"
+                                )
                         else:
                             redacted_parts.append(part)
                     else:
