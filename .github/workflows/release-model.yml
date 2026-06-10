@@ -107,6 +107,7 @@ jobs:
           if [ "$DRY_RUN" = "true" ]; then
             echo "::warning::$full not present; dry-run continues without artifact"
             echo "artifact_present=false" >> "$GITHUB_OUTPUT"
+            echo "skip_export=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
