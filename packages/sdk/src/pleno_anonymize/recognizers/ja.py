@@ -44,7 +44,9 @@ JA_MY_NUMBER = PiiRecognizer(
     entity="MY_NUMBER",
     language="ja",
     patterns=(
-        PiiPattern("my_number_spaced", r"(?<!\d)\d{4}[ 　\-]\d{4}[ 　\-]\d{4}(?!\d)", 0.5),
+        PiiPattern(
+            "my_number_spaced", r"(?<!\d)\d{4}[ 　\-]\d{4}[ 　\-]\d{4}(?!\d)", 0.5
+        ),
         PiiPattern("my_number_continuous", r"(?<!\d)\d{12}(?!\d)", 0.3),
     ),
     context=("マイナンバー", "個人番号", "my number", "通知カード"),
@@ -73,7 +75,9 @@ JA_CREDIT_CARD = PiiRecognizer(
 JA_PASSPORT = PiiRecognizer(
     entity="PASSPORT",
     language="ja",
-    patterns=(PiiPattern("ja_passport", r"(?<![A-Za-z])[A-Z]{2}\d{7}(?!\d)", 0.4),),
+    patterns=(
+        PiiPattern("ja_passport", r"(?<![A-Za-z])[A-Z]{2}\d{7}(?![A-Za-z0-9])", 0.4),
+    ),
     context=("パスポート", "旅券", "passport", "旅券番号"),
 )
 
@@ -155,7 +159,11 @@ JA_HEALTH_INSURANCE = PiiRecognizer(
 JA_RESIDENCE_CARD = PiiRecognizer(
     entity="RESIDENCE_CARD",
     language="ja",
-    patterns=(PiiPattern("residence_card", r"(?<![A-Za-z])[A-Z]{2}\d{8}[A-Z]{2}(?![A-Za-z])", 0.6),),
+    patterns=(
+        PiiPattern(
+            "residence_card", r"(?<![A-Za-z])[A-Z]{2}\d{8}[A-Z]{2}(?![A-Za-z])", 0.6
+        ),
+    ),
     context=("在留カード", "在留番号", "residence card", "在留資格"),
 )
 
