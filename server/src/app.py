@@ -441,10 +441,25 @@ GEMINI_API_BASE = os.getenv(
 _placeholder_counter: itertools.count = itertools.count(0)
 
 
+def _detect_language(text: str) -> str:
+    """Heuristic: return 'ja' when Japanese script characters are present, else 'en'."""
+    for ch in text:
+        cp = ord(ch)
+        if (
+            0x3040 <= cp <= 0x30FF  # Hiragana + Katakana
+            or 0x4E00 <= cp <= 0x9FFF  # CJK Unified Ideographs (basic)
+            or 0x3400 <= cp <= 0x4DBF  # CJK Extension A
+        ):
+            return "ja"
+    return "en"
+
+
 def redact_text_with_mapping(
-    text: str, language: str = "en"
+    text: str, language: str | None = None
 ) -> Tuple[str, Dict[str, str]]:
     """Redact PII from text and return mapping for de-anonymization."""
+    if language is None:
+        language = _detect_language(text)
     results = _cached_analyze(text=text, language=language)
 
     # Sort by start position descending to replace from end
