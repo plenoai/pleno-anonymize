@@ -7,6 +7,7 @@ import binascii
 import io
 import ipaddress
 import socket
+import threading
 import time
 import uuid
 from urllib.parse import urlsplit
@@ -44,53 +45,65 @@ _nlp_en = None
 _analyzer = None
 _anonymizer = None
 _image_redactor = None
+_init_lock = threading.Lock()
 
 
 def _init_presidio():
     """Lazy initialization of Presidio components."""
-    global _nlp_ja, _nlp_en, _analyzer, _anonymizer, _image_redactor
+    global _nlp_ja, _nlp_en, _analyzer, _anonymizer
 
     if _analyzer is not None:
         return
 
-    import spacy
-    from presidio_analyzer import AnalyzerEngine
-    from presidio_analyzer.nlp_engine import SpacyNlpEngine
-    from presidio_anonymizer import AnonymizerEngine
-    from pleno_anonymize.recognizers.presidio_adapter import all_ja_presidio
+    with _init_lock:
+        if _analyzer is not None:  # double-checked: another thread may have won the race
+            return
 
-    class MultiLangSpacyNlpEngine(SpacyNlpEngine):
-        def __init__(self, models: dict):
-            super().__init__()
-            self.nlp = models
+        import spacy
+        from presidio_analyzer import AnalyzerEngine
+        from presidio_analyzer.nlp_engine import SpacyNlpEngine
+        from presidio_anonymizer import AnonymizerEngine
+        from pleno_anonymize.recognizers.presidio_adapter import all_ja_presidio
 
-    # Models are installed as Python packages from HF wheels (see Dockerfile);
-    # resolve via spaCy entry_point lookup, not filesystem path.
-    _nlp_ja = spacy.load("pleno_anonymize_ja")
+        class MultiLangSpacyNlpEngine(SpacyNlpEngine):
+            def __init__(self, models: dict):
+                super().__init__()
+                self.nlp = models
 
-    try:
-        _nlp_en = spacy.load("pleno_anonymize_en")
-    except OSError:
-        _nlp_en = None
+        # Models are installed as Python packages from HF wheels (see Dockerfile);
+        # resolve via spaCy entry_point lookup, not filesystem path.
+        nlp_ja = spacy.load("pleno_anonymize_ja")
 
-    models = {"ja": _nlp_ja}
-    if _nlp_en is not None:
-        models["en"] = _nlp_en
+        try:
+            nlp_en = spacy.load("pleno_anonymize_en")
+        except OSError:
+            nlp_en = None
 
-    supported_languages = list(models.keys())
-    engine = MultiLangSpacyNlpEngine(models)
-    _analyzer = AnalyzerEngine(
-        nlp_engine=engine,
-        supported_languages=supported_languages,
-    )
+        models = {"ja": nlp_ja}
+        if nlp_en is not None:
+            models["en"] = nlp_en
 
-    for recognizer in all_ja_presidio():
-        _analyzer.registry.add_recognizer(recognizer)
+        supported_languages = list(models.keys())
+        engine = MultiLangSpacyNlpEngine(models)
+        analyzer = AnalyzerEngine(
+            nlp_engine=engine,
+            supported_languages=supported_languages,
+        )
 
-    if "en" in supported_languages:
-        _analyzer.registry.load_predefined_recognizers(languages=["en"])
+        for recognizer in all_ja_presidio():
+            analyzer.registry.add_recognizer(recognizer)
 
-    _anonymizer = AnonymizerEngine()
+        if "en" in supported_languages:
+            analyzer.registry.load_predefined_recognizers(languages=["en"])
+
+        anonymizer = AnonymizerEngine()
+
+        # Assign module globals only after fully configured so concurrent
+        # get_analyzer() callers never observe a partially-initialised engine.
+        _nlp_ja = nlp_ja
+        _nlp_en = nlp_en
+        _anonymizer = anonymizer
+        _analyzer = analyzer  # publish last — acts as the visibility fence
 
 
 def get_analyzer():
