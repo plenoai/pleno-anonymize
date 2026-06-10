@@ -1,4 +1,5 @@
 import asyncio
+import itertools
 import logging
 import os
 import json
@@ -437,6 +438,9 @@ GEMINI_API_BASE = os.getenv(
 )
 
 
+_placeholder_counter: itertools.count = itertools.count(0)
+
+
 def redact_text_with_mapping(
     text: str, language: str = "en"
 ) -> Tuple[str, Dict[str, str]]:
@@ -451,7 +455,12 @@ def redact_text_with_mapping(
 
     for r in results_sorted:
         original = text[r.start : r.end]
-        placeholder = f"<{r.entity_type}_{r.start}>"
+        # Use a global counter so placeholders are unique across all texts in
+        # a single proxy request.  A key of (entity_type, offset) collides when
+        # two different messages contain the same entity type at the same byte
+        # offset, causing combined_mapping.update() to silently overwrite the
+        # first value and restore the wrong PII in the response.
+        placeholder = f"<{r.entity_type}_{next(_placeholder_counter)}>"
         mapping[placeholder] = original
         redacted_text = redacted_text[: r.start] + placeholder + redacted_text[r.end :]
 
