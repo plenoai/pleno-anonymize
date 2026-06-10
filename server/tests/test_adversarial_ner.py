@@ -14,7 +14,7 @@ try:
     import spacy
 
     _model_path = (
-        Path(__file__).parent.parent
+        Path(__file__).parent.parent.parent
         / "packages"
         / "models"
         / "pleno_anonymize_ja-0.2.0"
@@ -279,7 +279,7 @@ class TestBankAccountEdgeCases:
         # 銀行名だけなら ORGANIZATION であって BANK_ACCOUNT ではない
         bank_accounts = entities.get("BANK_ACCOUNT", [])
         # 口座番号がないのに BANK_ACCOUNT と検出するのは偽陽性
-        # ただし銀行名自体がORGとして検出されるのはOK
+        assert bank_accounts == [], f"口座番号なしなのに BANK_ACCOUNT が検出された: {bank_accounts}"
 
 
 # ============================================================

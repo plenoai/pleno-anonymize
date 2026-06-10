@@ -280,7 +280,7 @@ class TestBankAccountEdgeCases:
         text = "Chase Bank offers excellent customer service"
         entities = _ner_entities(text)
         bank_accounts = entities.get("BANK_ACCOUNT", [])
-        # Bank name alone without account details is not BANK_ACCOUNT
+        assert bank_accounts == [], f"Bank name alone incorrectly flagged as BANK_ACCOUNT: {bank_accounts}"
 
 
 # ============================================================
