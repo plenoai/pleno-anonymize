@@ -467,9 +467,18 @@ def deanonymize_text(text: str, mapping: Dict[str, str]) -> str:
 
 
 _HOP_BY_HOP_HEADERS = frozenset(
-    ["content-length", "content-encoding", "transfer-encoding", "connection",
-     "keep-alive", "proxy-authenticate", "proxy-authorization", "te", "trailers",
-     "upgrade"]
+    [
+        "content-length",
+        "content-encoding",
+        "transfer-encoding",
+        "connection",
+        "keep-alive",
+        "proxy-authenticate",
+        "proxy-authorization",
+        "te",
+        "trailers",
+        "upgrade",
+    ]
 )
 
 
