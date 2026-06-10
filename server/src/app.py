@@ -56,7 +56,9 @@ def _init_presidio():
         return
 
     with _init_lock:
-        if _analyzer is not None:  # double-checked: another thread may have won the race
+        if (
+            _analyzer is not None
+        ):  # double-checked: another thread may have won the race
             return
 
         import spacy
