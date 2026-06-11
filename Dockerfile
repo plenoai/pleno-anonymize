@@ -63,7 +63,11 @@ RUN apt-get update \
 
 WORKDIR /workspace
 COPY --from=builder /workspace /workspace
-COPY --from=builder /root /root
+# NOTE: /root is intentionally NOT copied from builder — it contains only the
+# uv download cache (/root/.cache/uv) which is not needed at runtime: the venv
+# is already fully installed in /workspace/.venv and CMD uses --no-sync.
+# Copying it added hundreds of MB of duplicated wheel bytes against the 8GB
+# fly.io rootfs limit (#226 item 4).
 
 EXPOSE 8080
 # `--no-sync` mirrors the build-time smoke: the runtime image already has all

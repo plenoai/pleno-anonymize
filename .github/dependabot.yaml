@@ -5,7 +5,11 @@ updates:
     schedule:
       interval: weekly
 
-  - package-ecosystem: pip
+  # uv replaces the no-op pip entry: root pyproject.toml has no direct deps
+  # (only [tool.uv.workspace]); pip doesn't recurse into workspace members so
+  # presidio/fastapi/etc. were never scanned. uv ecosystem reads uv.lock which
+  # covers all workspace members transitively.
+  - package-ecosystem: uv
     directory: "/"
     schedule:
       interval: weekly
