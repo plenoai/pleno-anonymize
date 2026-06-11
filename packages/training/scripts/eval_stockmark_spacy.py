@@ -19,8 +19,13 @@ def score(rows, iou_thr, gold_filter=None):
     for r in rows:
         gold = [(s[0], s[1], s[2]) for s in r["gold"]
                 if gold_filter is None or s[2] in gold_filter]
-        if not gold: continue
-        pred = r["pred"]
+        pred = r["pred"] if gold_filter is None else [
+            p for p in r["pred"] if p[2] in gold_filter
+        ]
+        if not gold:
+            if pred:
+                per_doc.append((0, len(pred), 0))
+            continue
         matched = set(); tp = fn = 0
         for g_s, g_e, _ in gold:
             best_i, best_iou = -1, 0.0
