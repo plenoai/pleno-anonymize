@@ -16,9 +16,10 @@
 
 set -euo pipefail
 
-LANG="${1:-ja}"
+TARGET_LANG="${1:-ja}"
 MODE="improve"
 MAX_ITER="3"
+EXIT_CODE=0
 
 # 引数パース
 shift || true
@@ -52,11 +53,11 @@ BANNER
 print_scores() {
   local label="$1"
   local latest_scores
-  latest_scores=$(find "$TRAINING_DIR/data/benchmark" -name "scores.json" -path "*/$LANG/*" 2>/dev/null \
-    | sort -V | tail -1)
+  latest_scores=$(find "$TRAINING_DIR/data/benchmark" -name "scores.json" -path "*/$TARGET_LANG/*" 2>/dev/null \
+    | sort -V | tail -1) || true
   if [ -n "$latest_scores" ] && [ -f "$latest_scores" ]; then
     local version
-    version=$(echo "$latest_scores" | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
+    version=$(echo "$latest_scores" | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+') || true
     echo "$label (benchmark $version):"
     python3 -c "
 import json
@@ -91,7 +92,7 @@ run_claude() {
 # --- Main ---
 
 print_banner
-echo "Language:    $LANG"
+echo "Language:    $TARGET_LANG"
 echo "Mode:        $MODE"
 echo "Iterations:  $MAX_ITER"
 echo "Log:         $LOG_FILE"
@@ -103,44 +104,42 @@ echo "---"
 
 case "$MODE" in
   improve)
-    run_claude "/ner-improve $LANG $MAX_ITER" "Model Improvement"
+    run_claude "/ner-improve $TARGET_LANG $MAX_ITER" "Model Improvement" || EXIT_CODE=$?
     ;;
 
   resume)
     PREV_COUNT=$(wc -l < "$LOG_DIR/log.jsonl" | tr -d ' ')
-    run_claude "/ner-improve $LANG $MAX_ITER
+    run_claude "/ner-improve $TARGET_LANG $MAX_ITER
 
 前回の実験ログ ($PREV_COUNT 件) が packages/training/experiments/log.jsonl にあります。
 前回の結果を踏まえて、まだ試していないアプローチから改善を続けてください。" \
-      "Model Improvement (resume)"
+      "Model Improvement (resume)" || EXIT_CODE=$?
     ;;
 
   evolve)
-    run_claude "/benchmark-evolve $LANG" "Benchmark Evolution"
+    run_claude "/benchmark-evolve $TARGET_LANG" "Benchmark Evolution" || EXIT_CODE=$?
     ;;
 
   full)
     echo "=== Phase 1/3: Model Improvement ==="
-    run_claude "/ner-improve $LANG $MAX_ITER" "Model Improvement" || true
+    run_claude "/ner-improve $TARGET_LANG $MAX_ITER" "Model Improvement" || true
     echo ""
     print_scores "After improvement"
     echo ""
 
     echo "=== Phase 2/3: Benchmark Evolution ==="
-    run_claude "/benchmark-evolve $LANG" "Benchmark Evolution" || true
+    run_claude "/benchmark-evolve $TARGET_LANG" "Benchmark Evolution" || true
     echo ""
 
     echo "=== Phase 3/3: Model Improvement (vs new benchmark) ==="
     PREV_COUNT=$(wc -l < "$LOG_DIR/log.jsonl" | tr -d ' ')
-    run_claude "/ner-improve $LANG $MAX_ITER
+    run_claude "/ner-improve $TARGET_LANG $MAX_ITER
 
 ベンチマークが進化しました。新しいベンチマークに対して改善を続けてください。
 実験ログ ($PREV_COUNT 件) が packages/training/experiments/log.jsonl にあります。" \
       "Model Improvement (vs evolved benchmark)" || true
     ;;
 esac
-
-EXIT_CODE=${PIPESTATUS[0]:-0}
 
 echo ""
 echo "---"
