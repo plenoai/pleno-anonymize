@@ -104,9 +104,13 @@ def score(rows, pred_fn, iou_thr, gold_filter=None):
     for r in rows:
         gold = [(int(s[0]), int(s[1]), str(s[2])) for s in r["gold"]
                 if gold_filter is None or s[2] in gold_filter]
+        pred = r["pred"] if gold_filter is None else [
+            p for p in r["pred"] if p[2] in gold_filter
+        ]
         if not gold:
+            if pred:
+                per_doc.append((0, len(pred), 0))
             continue
-        pred = r["pred"]
         matched = set()
         tp = fn = 0
         for g_s, g_e, _ in gold:

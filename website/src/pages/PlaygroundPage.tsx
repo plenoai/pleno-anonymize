@@ -138,19 +138,38 @@ const Header = memo(function Header() {
   );
 });
 
+// Build a mapping from Unicode codepoint index → UTF-16 code-unit index.
+// The server returns Python (codepoint) offsets; JS String.slice uses UTF-16 units.
+// Astral chars (emoji, some CJK) are 1 codepoint but 2 UTF-16 units, so a direct
+// slice with server offsets would misalign highlights for any text containing them.
+function buildCpToUtf16Map(text: string): number[] {
+  const map: number[] = [0];
+  let u = 0;
+  for (const cp of text) {
+    u += cp.length;
+    map.push(u);
+  }
+  return map;
+}
+
 function buildHighlightedText(text: string, entities: AnalyzeResult[]) {
   if (entities.length === 0) return [{ text, type: null as string | null, score: 0 }];
+
+  const cpMap = buildCpToUtf16Map(text);
+  const toU16 = (cp: number) => cpMap[cp] ?? text.length;
 
   const sorted = [...entities].sort((a, b) => a.start - b.start);
   const segments: { text: string; type: string | null; score: number }[] = [];
   let cursor = 0;
 
   for (const entity of sorted) {
-    if (entity.start > cursor) {
-      segments.push({ text: text.slice(cursor, entity.start), type: null, score: 0 });
+    const start = toU16(entity.start);
+    const end = toU16(entity.end);
+    if (start > cursor) {
+      segments.push({ text: text.slice(cursor, start), type: null, score: 0 });
     }
-    segments.push({ text: text.slice(entity.start, entity.end), type: entity.entity_type, score: entity.score });
-    cursor = entity.end;
+    segments.push({ text: text.slice(start, end), type: entity.entity_type, score: entity.score });
+    cursor = end;
   }
   if (cursor < text.length) {
     segments.push({ text: text.slice(cursor), type: null, score: 0 });

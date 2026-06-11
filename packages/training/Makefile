@@ -170,8 +170,7 @@ augment-en:
 convert-en:
 	uv run python -m pleno_ner_training.convert_to_docbin \
 		--language en \
-		--input $(DATA_RAW)/en/generated.json \
-		--augment $(DATA_RAW)/en/augmented.json \
+		--input $(DATA_RAW)/en/augmented.json \
 		--output-dir $(DATA_PROCESSED)/en
 
 train-en:
