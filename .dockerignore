@@ -5,6 +5,10 @@ docs
 flake.nix
 flake.lock
 .gitmodules
+.env
+.env.*
+.venv
+website/
 # packages/training is needed (recognizers_ja.py + workspace pyproject), but
 # heavy data / outputs / artifacts are excluded to keep image small.
 packages/training/data

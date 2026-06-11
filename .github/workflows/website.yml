@@ -6,6 +6,10 @@ on:
     paths:
       - 'website/**'
       - 'packages/training/output/scores.json'
+      - 'packages/training/output/en-transformer/scores.json'
+      - 'packages/training/output/en/scores.json'
+      - 'packages/training/output/ja/external_scores.json'
+      - 'packages/training/output/en/external_scores.json'
       - '.github/workflows/website.yml'
 
 permissions:
