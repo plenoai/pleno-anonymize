@@ -459,15 +459,32 @@ def _aggregate_recall(
     entity: str,
 ) -> dict[str, float | None]:
     """Per-template recall (token-overlap) for one entity, given pre-sliced
-    rows with `pred_spans` and `gold_spans` already entity-filtered. Returns
-    None for templates with < MIN_SPANS[entity] gold spans of that label."""
+    rows keyed by template.  Each value has a ``docs`` list of per-doc
+    ``{"pred_spans": [...], "gold_spans": [...]}`` dicts.
+
+    Matching is performed **per document** to avoid cross-doc span collisions
+    (spans are bare char-offset tuples with no doc identity; pooling them
+    allows a prediction at (0,4) in doc-17 to match gold at (0,4) in doc-3).
+    TP/FP/FN are summed across docs; recall = TP / (TP+FN).
+
+    Returns None for templates with < MIN_SPANS[entity] total gold spans."""
     out: dict[str, float | None] = {}
     for tmpl, row in rows_by_template.items():
-        gold = row["gold_spans"]
-        if len(gold) < MIN_SPANS[entity]:
+        total_gold = sum(len(d["gold_spans"]) for d in row["docs"])
+        if total_gold < MIN_SPANS[entity]:
             out[tmpl] = None
             continue
-        _, recall, _ = metrics.token_overlap_f1(row["pred_spans"], gold)
+        tp_total = fn_total = 0
+        for doc in row["docs"]:
+            n_gold = len(doc["gold_spans"])
+            if n_gold == 0:
+                continue
+            _p, r, _f = metrics.token_overlap_f1(doc["pred_spans"], doc["gold_spans"])
+            # recall = tp / (tp + fn)  →  tp = r * n_gold  (fn = (1-r)*n_gold)
+            tp = round(r * n_gold)
+            tp_total += tp
+            fn_total += n_gold - tp
+        recall = tp_total / (tp_total + fn_total) if (tp_total + fn_total) else 0.0
         out[tmpl] = recall
     return out
 
@@ -478,7 +495,16 @@ def _build_template_rows(
     k: int,
     score_bearing: bool,
 ) -> dict[str, dict]:
-    """Group per-template predictions+gold for one (variant, k, entity) cell."""
+    """Group per-template, per-doc predictions+gold for one (variant, k, entity) cell.
+
+    Returns ``{template: {"docs": [{"pred_spans": [...], "gold_spans": [...]}, ...]}}``
+
+    Spans are stored **per document** rather than pooled into flat per-template
+    lists.  Pooling was the root cause of cross-doc span matching: bare
+    ``(start, end, label)`` char offsets carry no doc identity, so a prediction
+    at ``(0, 4, ORGANIZATION)`` in doc-17 could match gold at ``(0, 4)`` in
+    doc-3, inflating TP and deflating FN (issue #217).
+    """
     # Collect (doc_idx, prediction) pairs filtered to entity.
     indexed_preds: list[tuple[int, tuple]] = []
     for row in var_rows:
@@ -499,7 +525,8 @@ def _build_template_rows(
     for doc_idx, pred in indexed_preds:
         keep_doc_pred.setdefault(doc_idx, []).append(pred)
 
-    # Build per-template rows.
+    # Build per-template, per-doc rows.  Each template gets a list of per-doc
+    # dicts so callers can match within a doc before aggregating counts.
     rows: dict[str, dict] = {}
     for row in var_rows:
         tmpl = row["template"]
@@ -507,9 +534,8 @@ def _build_template_rows(
         preds_kept = keep_doc_pred.get(row["doc_idx"], [])
         pred_spans = [(p[0], p[1], p[2]) for p in preds_kept]
         if tmpl not in rows:
-            rows[tmpl] = {"pred_spans": [], "gold_spans": []}
-        rows[tmpl]["pred_spans"].extend(pred_spans)
-        rows[tmpl]["gold_spans"].extend(gold)
+            rows[tmpl] = {"docs": []}
+        rows[tmpl]["docs"].append({"pred_spans": pred_spans, "gold_spans": gold})
     return rows
 
 
@@ -535,11 +561,18 @@ def _build_measurement_rows(
             for k in ks:
                 cells = _build_template_rows(var_rows, entity, k, spec.score_bearing)
                 for template, cell in cells.items():
-                    gold_set = {(s, e) for s, e, _lbl in cell["gold_spans"]}
-                    pred_set = {(s, e) for s, e, _lbl in cell["pred_spans"]}
-                    tp = len(gold_set & pred_set)
-                    fp = len(pred_set - gold_set)
-                    fn = len(gold_set - pred_set)
+                    # Aggregate exact-span TP/FP/FN **per document** to avoid
+                    # cross-doc deduplication: converting a pooled list to a set
+                    # collapsed identical offsets from different docs, undercounting
+                    # TP/FN when two gold spans have the same (start, end) in
+                    # different documents sharing a template (#217).
+                    tp = fp = fn = 0
+                    for doc in cell["docs"]:
+                        gold_set = {(s, e) for s, e, _lbl in doc["gold_spans"]}
+                        pred_set = {(s, e) for s, e, _lbl in doc["pred_spans"]}
+                        tp += len(gold_set & pred_set)
+                        fp += len(pred_set - gold_set)
+                        fn += len(gold_set - pred_set)
                     if tp == 0 and fp == 0 and fn == 0:
                         continue
                     rows.append(
@@ -717,10 +750,22 @@ def _strict_recall_for_best(
         return 0.0
     recalls: list[float] = []
     for row in rows.values():
-        gold = row["gold_spans"]
-        if len(gold) < MIN_SPANS[entity]:
+        # Aggregate strict-recall per doc to avoid cross-doc span collisions
+        # (same fix as _aggregate_recall / _build_measurement_rows: #217).
+        total_gold = sum(len(d["gold_spans"]) for d in row["docs"])
+        if total_gold < MIN_SPANS[entity]:
             continue
-        _, recall, _ = metrics.strict_span_f1(row["pred_spans"], gold)
+        tp_total = fn_total = 0
+        for doc in row["docs"]:
+            n_gold = len(doc["gold_spans"])
+            if n_gold == 0:
+                fp_doc = len(doc["pred_spans"])
+                continue
+            _p, r, _f = metrics.strict_span_f1(doc["pred_spans"], doc["gold_spans"])
+            tp = round(r * n_gold)
+            tp_total += tp
+            fn_total += n_gold - tp
+        recall = tp_total / (tp_total + fn_total) if (tp_total + fn_total) else 0.0
         recalls.append(recall)
     return sum(recalls) / len(recalls) if recalls else 0.0
 
