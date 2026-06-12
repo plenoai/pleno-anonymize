@@ -438,6 +438,8 @@ async def redact(req: RedactRequest):
         elif "webp" in mime_type:
             fmt = "WEBP"
 
+        if fmt == "JPEG" and redacted_img.mode in ("RGBA", "P", "LA"):
+            redacted_img = redacted_img.convert("RGB")
         redacted_img.save(output_buffer, format=fmt)
         output_buffer.seek(0)
         encoded = base64.b64encode(output_buffer.read()).decode("utf-8")
@@ -619,6 +621,8 @@ async def redact_image(image_url: str, http_client: httpx.AsyncClient) -> str:
     elif "gif" in mime_type:
         fmt = "GIF"
 
+    if fmt == "JPEG" and redacted_image.mode in ("RGBA", "P", "LA"):
+        redacted_image = redacted_image.convert("RGB")
     redacted_image.save(output_buffer, format=fmt)
     output_buffer.seek(0)
     encoded = base64.b64encode(output_buffer.read()).decode("utf-8")
