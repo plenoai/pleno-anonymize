@@ -76,7 +76,7 @@ JA_PASSPORT = PiiRecognizer(
     entity="PASSPORT",
     language="ja",
     patterns=(
-        PiiPattern("ja_passport", r"(?<![A-Za-z])[A-Z]{2}\d{7}(?![A-Za-z0-9])", 0.4),
+        PiiPattern("ja_passport", r"(?<![A-Za-z])(?-i:[A-Z]{2})\d{7}(?![A-Za-z0-9])", 0.4),
     ),
     context=("パスポート", "旅券", "passport", "旅券番号"),
 )
@@ -161,7 +161,7 @@ JA_RESIDENCE_CARD = PiiRecognizer(
     language="ja",
     patterns=(
         PiiPattern(
-            "residence_card", r"(?<![A-Za-z])[A-Z]{2}\d{8}[A-Z]{2}(?![A-Za-z])", 0.6
+            "residence_card", r"(?<![A-Za-z])(?-i:[A-Z]{2}\d{8}[A-Z]{2})(?![A-Za-z])", 0.6
         ),
     ),
     context=("在留カード", "在留番号", "residence card", "在留資格"),

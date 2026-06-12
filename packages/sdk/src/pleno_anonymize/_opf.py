@@ -1,9 +1,10 @@
 """OpenAI Privacy Filter (OPF) engine — wraps the open-source `opf` package.
 
 Backed by the `openai/privacy-filter` HuggingFace checkpoint (Apache 2.0,
-1.5B params, 50M active). Requires the `[openai]` optional dependency:
+1.5B params, 50M active). The `[openai]` extra was removed (PyPI rejects
+direct-URL extras). Install the dependency separately:
 
-    pip install "pleno-anonymize[openai]"
+    pip install pleno-anonymize 'opf @ git+https://github.com/openai/privacy-filter@main'
 
 Model weights auto-download to ``~/.opf/privacy_filter`` (or ``$OPF_CHECKPOINT``)
 on first call. CPU is supported but GPU is recommended for any non-trivial
@@ -141,8 +142,8 @@ class OpfEngine:
             from opf import OPF  # type: ignore[import-not-found]
         except ImportError as exc:
             raise RuntimeError(
-                "OpenAI Privacy Filter requires the `[openai]` extra: "
-                'pip install "pleno-anonymize[openai]"'
+                "OpenAI Privacy Filter requires the `opf` package. "
+                "Install it with: pip install 'opf @ git+https://github.com/openai/privacy-filter@main'"
             ) from exc
         device = self._device or _default_device()
         kwargs: dict[str, object] = {"device": device, "output_mode": "typed"}

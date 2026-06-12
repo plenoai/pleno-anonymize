@@ -362,7 +362,7 @@ async def redact(req: RedactRequest):
     The response will contain a redacted image with PII blacked out.
     """
     if not req.text and not req.image:
-        return {"error": "Either 'text' or 'image' must be provided"}
+        raise HTTPException(status_code=400, detail="Either 'text' or 'image' must be provided")
 
     result = {}
 
