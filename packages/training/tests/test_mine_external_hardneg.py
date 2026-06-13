@@ -70,6 +70,21 @@ def test_accumulate_chunks_respects_bounds():
         assert MIN_CHARS <= len(c) <= MAX_CHARS
 
 
+def test_accumulate_chunks_does_not_discard_over_max():
+    # Two sentences whose individual length exceeds MAX_CHARS; together
+    # they would overflow. Bug: the old code dropped the buffer silently
+    # instead of cutting and starting fresh, losing both sentences.
+    s1 = "a" * (MAX_CHARS - 1)  # just below MAX_CHARS, above MIN_CHARS
+    s2 = "b" * (MAX_CHARS - 1)
+
+    chunks = list(_accumulate_chunks([s1, s2]))
+    assert len(chunks) == 2, (
+        f"both sentences must be emitted separately; got {len(chunks)} chunk(s)"
+    )
+    for c in chunks:
+        assert MIN_CHARS <= len(c) <= MAX_CHARS, f"chunk out of bounds: len={len(c)}"
+
+
 # ---------- end-to-end dry-run ----------
 
 
