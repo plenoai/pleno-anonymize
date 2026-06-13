@@ -165,6 +165,7 @@ function buildHighlightedText(text: string, entities: AnalyzeResult[]) {
   for (const entity of sorted) {
     const start = toU16(entity.start);
     const end = toU16(entity.end);
+    if (end <= cursor) continue;
     if (start > cursor) {
       segments.push({ text: text.slice(cursor, start), type: null, score: 0 });
     }
@@ -257,6 +258,10 @@ export default function PlaygroundPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scanInterval = useRef<ReturnType<typeof setInterval>>();
 
+  useEffect(() => {
+    return () => clearInterval(scanInterval.current);
+  }, []);
+
   const resetResults = useCallback(() => {
     dispatch({ type: 'RESET_RESULTS' });
   }, []);
@@ -278,13 +283,17 @@ export default function PlaygroundPage() {
         if (!res.ok) throw new Error(`API error: ${res.status}`);
         dispatch({ type: 'ANALYZE_SUCCESS', payload: { entities: await res.json() } });
       } else {
-        const [redactRes, analyzeRes] = await Promise.all([
+        const [redactResult, analyzeResult] = await Promise.allSettled([
           fetch(`${API_BASE}/api/redact`, { method: 'POST', headers, body }),
           fetch(`${API_BASE}/api/analyze`, { method: 'POST', headers, body }),
         ]);
-        if (!redactRes.ok) throw new Error(`API error: ${redactRes.status}`);
-        const redacted = (await redactRes.json() as RedactResult).text;
-        const analyzedEntities = analyzeRes.ok ? await analyzeRes.json() : [];
+        if (redactResult.status === 'rejected') throw new Error('Network error');
+        if (!redactResult.value.ok) throw new Error(`API error: ${redactResult.value.status}`);
+        const redacted = (await redactResult.value.json() as RedactResult).text;
+        const analyzedEntities =
+          analyzeResult.status === 'fulfilled' && analyzeResult.value.ok
+            ? await analyzeResult.value.json()
+            : [];
         dispatch({ type: 'REDACT_SUCCESS', payload: { redactedText: redacted, entities: analyzedEntities } });
       }
     } catch (e) {
@@ -298,9 +307,10 @@ export default function PlaygroundPage() {
 
   const handleCopy = useCallback(() => {
     const text = mode === 'redact' && redactedText ? redactedText : JSON.stringify(entities, null, 2);
-    navigator.clipboard.writeText(text);
-    dispatch({ type: 'SET_COPIED', payload: true });
-    setTimeout(() => dispatch({ type: 'SET_COPIED', payload: false }), 2000);
+    navigator.clipboard.writeText(text).then(() => {
+      dispatch({ type: 'SET_COPIED', payload: true });
+      setTimeout(() => dispatch({ type: 'SET_COPIED', payload: false }), 2000);
+    }).catch(() => {});
   }, [mode, redactedText, entities]);
 
   const segments = useMemo(
