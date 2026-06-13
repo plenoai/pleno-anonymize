@@ -104,19 +104,22 @@ def _accumulate_chunks(sentences: Iterable[str]) -> Iterator[str]:
         # tables / list-prose dumped without periods.
         if len(sent) > MAX_CHARS * 2:
             continue
-        buf.append(sent)
-        buf_len += len(sent)
-        if buf_len >= MIN_CHARS:
-            joined = "".join(buf)
-            if len(joined) <= MAX_CHARS:
-                yield joined
-            buf = []
-            buf_len = 0
+        # If adding this sentence would exceed MAX_CHARS, cut here first.
+        if buf and buf_len + len(sent) > MAX_CHARS:
+            if buf_len >= MIN_CHARS:
+                yield "".join(buf)
+            buf = [sent]
+            buf_len = len(sent)
+        else:
+            buf.append(sent)
+            buf_len += len(sent)
+            if buf_len >= MIN_CHARS:
+                yield "".join(buf)
+                buf = []
+                buf_len = 0
     # tail: only emit if it on its own clears MIN_CHARS
     if buf_len >= MIN_CHARS:
-        joined = "".join(buf)
-        if len(joined) <= MAX_CHARS:
-            yield joined
+        yield "".join(buf)
 
 
 def is_safe_negative(text: str) -> bool:
