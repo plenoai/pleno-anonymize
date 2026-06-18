@@ -198,13 +198,13 @@ JA_DATE_OF_BIRTH = PiiRecognizer(
     patterns=(
         PiiPattern(
             "ja_dob_jp_era",
-            r"(?<!\d)(?:昭和|平成|令和)\d{1,2}年\d{1,2}月\d{1,2}日(?!\d)",
+            r"(?<!\d)(?:昭和|平成|令和)(?:\d{1,2}|元)年\d{1,2}月\d{1,2}日(?!\d)",
             0.8,
         ),
         PiiPattern(
             "ja_dob_western_year",
             r"(?<!\d)\d{4}年\d{1,2}月\d{1,2}日(?!\d)",
-            0.5,
+            0.4,
         ),
         PiiPattern(
             "ja_dob_slash",
