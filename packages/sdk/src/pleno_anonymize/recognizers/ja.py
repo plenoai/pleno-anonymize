@@ -212,7 +212,15 @@ JA_DATE_OF_BIRTH = PiiRecognizer(
             0.3,
         ),
     ),
-    context=("生年月日", "誕生日", "生まれ", "birthday", "birth date", "date of birth", "生年月"),
+    context=(
+        "生年月日",
+        "誕生日",
+        "生まれ",
+        "birthday",
+        "birth date",
+        "date of birth",
+        "生年月",
+    ),
 )
 
 # --- 銀行口座 (BANK_ACCOUNT) ---
