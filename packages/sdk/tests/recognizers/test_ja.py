@@ -23,4 +23,5 @@ def test_email_matches():
 def test_recognizer_count():
     # Bumped to 14 in issue #102: PERSON_LATIN recognizer added as a recall
     # booster for Latin-script names in Japanese-mixed text.
-    assert len(ALL_JA_RECOGNIZERS) == 14
+    # Bumped to 15 in issue #204: JA_DATE_OF_BIRTH recognizer added.
+    assert len(ALL_JA_RECOGNIZERS) == 15
