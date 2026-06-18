@@ -583,3 +583,60 @@ class TestNewEntityCoexistence:
         text = "〒150-0001 東京都渋谷区神宮前1-2-3"
         results = analyzer.analyze(text=text, language="ja", entities=["POSTAL_CODE"])
         assert len(results) >= 1
+
+
+# ============================================================
+# 郵便番号 vs 電話番号フラグメント
+# ============================================================
+
+
+class TestPostalCodePhoneConflict:
+    """POSTAL_CODE が電話番号フラグメントに誤検出しないことを確認."""
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "電話番号は090-1234-5678です",
+            "携帯: 080-9876-5432",
+            "TEL 070-1111-2222",
+        ],
+        ids=["mobile_090", "mobile_080", "mobile_070"],
+    )
+    def test_phone_not_postal(self, analyzer, text: str):
+        """電話番号中の NNN-NNNN パターンを郵便番号として検出しない."""
+        results = analyzer.analyze(text=text, language="ja", entities=["POSTAL_CODE"])
+        # 誤検出がなければ空リスト、または全て 0.5 未満
+        high_confidence = [r for r in results if r.score >= 0.5]
+        assert len(high_confidence) == 0
+
+
+# ============================================================
+# 生年月日 (DATE_OF_BIRTH)
+# ============================================================
+
+
+class TestDateOfBirth:
+    """DATE_OF_BIRTH 認識器."""
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "生年月日: 1985年4月12日",
+            "誕生日: 2000年1月1日",
+            "生年月日: 昭和60年4月12日",
+            "生年月日: 平成元年3月15日",
+        ],
+        ids=["western_context", "birthday_context", "showa_era", "heisei_era"],
+    )
+    def test_basic_detection(self, analyzer, text: str):
+        assert _detected(analyzer, text, "DATE_OF_BIRTH")
+
+    def test_no_context_low_score(self, analyzer):
+        """文脈なしの日付は低スコアであるべき."""
+        results = analyzer.analyze(
+            text="会議は2024年3月15日に開催",
+            language="ja",
+            entities=["DATE_OF_BIRTH"],
+        )
+        if results:
+            assert all(r.score < 0.5 for r in results)

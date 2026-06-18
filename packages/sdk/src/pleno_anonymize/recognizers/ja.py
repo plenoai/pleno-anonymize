@@ -177,7 +177,7 @@ JA_POSTAL_CODE = PiiRecognizer(
     language="ja",
     patterns=(
         PiiPattern("postal_code_with_symbol", r"〒\d{3}[‐\-ー]\d{4}", 0.9),
-        PiiPattern("postal_code_half", r"(?<!\d)\d{3}[‐\-ー]\d{4}(?!\d)", 0.3),
+        PiiPattern("postal_code_half", r"(?<!\d)\d{3}[‐\-ー]\d{4}(?![‐\-ー\d])", 0.3),
         PiiPattern("postal_code_fullwidth", r"〒[０-９]{3}[‐\-ー－−][０-９]{4}", 0.9),
     ),
     context=("郵便番号", "〒", "zip", "postal"),
@@ -189,6 +189,30 @@ JA_URL = PiiRecognizer(
     language="ja",
     patterns=(PiiPattern("url_with_scheme", r"https?://[^\s<>\"']+", 0.8),),
     context=("URL", "リンク", "サイト", "ホームページ"),
+)
+
+# --- 生年月日 (DATE_OF_BIRTH) ---
+JA_DATE_OF_BIRTH = PiiRecognizer(
+    entity="DATE_OF_BIRTH",
+    language="ja",
+    patterns=(
+        PiiPattern(
+            "ja_dob_jp_era",
+            r"(?<!\d)(?:昭和|平成|令和)\d{1,2}年\d{1,2}月\d{1,2}日(?!\d)",
+            0.8,
+        ),
+        PiiPattern(
+            "ja_dob_western_year",
+            r"(?<!\d)\d{4}年\d{1,2}月\d{1,2}日(?!\d)",
+            0.5,
+        ),
+        PiiPattern(
+            "ja_dob_slash",
+            r"(?<!\d)\d{4}[/／]\d{1,2}[/／]\d{1,2}(?!\d)",
+            0.3,
+        ),
+    ),
+    context=("生年月日", "誕生日", "生まれ", "birthday", "birth date", "date of birth", "生年月"),
 )
 
 # --- 銀行口座 (BANK_ACCOUNT) ---
@@ -324,6 +348,7 @@ ALL_JA_RECOGNIZERS: tuple[PiiRecognizer, ...] = (
     JA_RESIDENCE_CARD,
     JA_POSTAL_CODE,
     JA_URL,
+    JA_DATE_OF_BIRTH,
     JA_BANK_ACCOUNT,
     JA_PERSON_LATIN,
 )
