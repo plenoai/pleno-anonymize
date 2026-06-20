@@ -41,13 +41,7 @@ OPF_LABEL_TO_PLENO: dict[str, str] = {
 
 
 def _default_device() -> str:
-    """Pick the best available accelerator: ``cuda`` > ``cpu``.
-
-    MPS is supported (``--opf-device mps``) but not auto-selected: OPF's
-    pure-PyTorch MoE fallback (Triton is unavailable on macOS) runs ~40 %
-    slower on MPS than on CPU due to kernel-launch overhead on many small
-    expert matmuls.
-    """
+    """Pick `cuda` if available, else `cpu`. Keeps the CLI usable on laptops."""
     try:
         import torch  # type: ignore[import-not-found]
 
@@ -152,10 +146,6 @@ class OpfEngine:
                 "Install it with: pip install 'opf @ git+https://github.com/openai/privacy-filter@main'"
             ) from exc
         device = self._device or _default_device()
-        if device == "mps":
-            import os
-
-            os.environ.setdefault("OPF_MOE_TRITON", "0")
         kwargs: dict[str, object] = {"device": device, "output_mode": "typed"}
         if self._checkpoint is not None:
             kwargs["model"] = self._checkpoint
