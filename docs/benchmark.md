@@ -205,12 +205,11 @@ on CPU for non-CUDA devices, introducing MPS→CPU synchronization stalls;
 overhead of dispatching to MPS exceeds the compute benefit for this model
 shape.
 
-MPS is therefore supported (`--opf-device mps`) but **not auto-selected**
-by the device detection logic. The operational recommendation for macOS
-remains `--opf-device cpu` (or omit the flag — CPU is the default on
-non-CUDA machines). MPS may become competitive if OPF upstream ships a
-Metal-native or fused MoE kernel, or if a future PyTorch version improves
-MPS dispatch overhead for sparse workloads.
+MPS is therefore **not supported** as a device option. The operational
+recommendation for macOS is `--opf-device cpu` (the default on non-CUDA
+machines). MPS may become viable if OPF upstream ships a Metal-native or
+fused MoE kernel, or if a future PyTorch version improves MPS dispatch
+overhead for sparse workloads.
 
 ### 5.4 Sample-size sensitivity
 
@@ -299,9 +298,8 @@ that runs on a RunPod A100 or H100 pod.
 (§5.1a). The root cause is OPF's 128-expert sparse MoE architecture: the
 Triton-optimized kernel is unavailable on macOS, and the pure-PyTorch
 fallback generates many small per-expert matmuls that do not amortize MPS
-dispatch overhead. MPS is supported as an explicit opt-in
-(`--opf-device mps`) for experimentation but is not recommended for
-production use. Until CUDA GPU inference is on the operational menu, the
+dispatch overhead. MPS is not offered as a device option. Until CUDA GPU
+inference is on the operational menu, the
 recommendation is:
 
 * **Latency-bound traffic (Japanese proxy hot path, default):** `builtin`
