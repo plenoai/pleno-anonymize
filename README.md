@@ -78,7 +78,7 @@ Full API surface: [`packages/sdk`](packages/sdk).
 | Engine | Install | Speed | Notes |
 |---|---|---|---|
 | `builtin` (default) | `pip install pleno-anonymize` | ~50 ms/doc CPU | Regex + checksum validators for structured IDs; slim deps |
-| `openai-privacy-filter` | `pip install pleno-anonymize 'opf @ git+https://github.com/openai/privacy-filter@main'` | ~2 s/doc CPU, ~30 ms GPU | English prose, secret detection, higher recall |
+| `openai-privacy-filter` | `pip install pleno-anonymize 'opf @ git+https://github.com/openai/privacy-filter@main'` | ~1.2 s/doc CPU, ~30 ms CUDA GPU | English prose, secret detection, higher recall |
 
 ```bash
 # default — builtin Presidio + pleno_anonymize_ja
@@ -90,6 +90,8 @@ pleno-anonymize analyze --engine openai-privacy-filter --language en \
 ```
 
 OPF adds a `SECRET` class not covered by the builtin engine.
+Apple MPS is supported (`--opf-device mps`) but CPU is faster on macOS
+due to MoE kernel dispatch overhead — see [`docs/benchmark.md`](docs/benchmark.md) §5.1a.
 
 ### Quality
 

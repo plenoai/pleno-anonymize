@@ -131,7 +131,7 @@ def _add_engine_args(p: argparse.ArgumentParser, *, include_io: bool) -> None:
     p.add_argument(
         "--opf-device",
         default=None,
-        choices=("cpu", "cuda"),
+        choices=("cpu", "cuda", "mps"),
         help="device for openai-privacy-filter (auto-detected by default)",
     )
     p.add_argument(

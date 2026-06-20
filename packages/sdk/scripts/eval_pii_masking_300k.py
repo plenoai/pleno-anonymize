@@ -223,7 +223,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument(
         "--opf-device",
         default=None,
-        choices=("cpu", "cuda"),
+        choices=("cpu", "cuda", "mps"),
         help="device hint for openai-privacy-filter (auto-detected if omitted)",
     )
     args = p.parse_args(argv)
