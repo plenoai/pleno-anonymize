@@ -125,25 +125,35 @@ const ENTITY_COLORS: Record<string, { bg: string; text: string; border: string; 
 
 const getEntityColor = (type: string) => ENTITY_COLORS[type] || ENTITY_COLORS.DEFAULT;
 
-type Engine = 'default' | 'appi';
+interface ModelDef {
+  engine: string;
+  name: string;
+  description: string;
+  samples: string[];
+}
 
-const ENGINE_LABELS: Record<Engine, string> = {
-  default: 'Default',
-  appi: 'APPI 要配慮',
-};
-
-const SAMPLE_TEXTS: Record<Engine, string[]> = {
-  default: [
-    '山田太郎さんの電話番号は090-1234-5678です。メールはtaro@example.comまでお願いします。',
-    'John Doe lives at 123 Main Street, New York. His email is john.doe@company.com and phone is 555-0123.',
-    '田中花子（hanako.tanaka@gmail.com）に連絡してください。電話は03-1234-5678です。',
-  ],
-  appi: [
-    '患者 山田太郎はうつ病と診断され、2023年より通院中である。',
-    '佐藤花子様の健康診断結果: HbA1c 7.2%、血圧 152/96mmHg。要精密検査。',
-    '被告人 渡辺健は窃盗罪で懲役1年6月の判決を受けた。',
-  ],
-};
+const MODELS: ModelDef[] = [
+  {
+    engine: 'default',
+    name: 'pleno_anonymize_ja (spaCy tok2vec)',
+    description: 'Standard PII — PERSON, ADDRESS, EMAIL, PHONE etc.',
+    samples: [
+      '山田太郎さんの電話番号は090-1234-5678です。メールはtaro@example.comまでお願いします。',
+      'John Doe lives at 123 Main Street, New York. His email is john.doe@company.com and phone is 555-0123.',
+      '田中花子（hanako.tanaka@gmail.com）に連絡してください。電話は03-1234-5678です。',
+    ],
+  },
+  {
+    engine: 'appi',
+    name: 'ja-ner-appi-v1 (DeBERTa v2)',
+    description: 'APPI Art. 2(3) 要配慮個人情報',
+    samples: [
+      '患者 山田太郎はうつ病と診断され、2023年より通院中である。',
+      '佐藤花子様の健康診断結果: HbA1c 7.2%、血圧 152/96mmHg。要精密検査。',
+      '被告人 渡辺健は窃盗罪で懲役1年6月の判決を受けた。',
+    ],
+  },
+];
 
 type Mode = 'analyze' | 'redact';
 
@@ -243,7 +253,7 @@ function buildHighlightedText(text: string, entities: AnalyzeResult[]) {
 interface PlaygroundState {
   inputText: string;
   mode: Mode;
-  engine: Engine;
+  modelIndex: number;
   entities: AnalyzeResult[];
   redactedText: string;
   loading: boolean;
@@ -257,7 +267,7 @@ interface PlaygroundState {
 type PlaygroundAction =
   | { type: 'SET_INPUT_TEXT'; payload: string }
   | { type: 'SET_MODE'; payload: Mode }
-  | { type: 'SET_ENGINE'; payload: Engine }
+  | { type: 'SET_MODEL'; payload: number }
   | { type: 'RESET_RESULTS' }
   | { type: 'START_SCAN' }
   | { type: 'ADVANCE_SCAN_PROGRESS'; payload: number }
@@ -272,7 +282,7 @@ type PlaygroundAction =
 const initialState: PlaygroundState = {
   inputText: '',
   mode: 'analyze',
-  engine: 'default',
+  modelIndex: 0,
   entities: [],
   redactedText: '',
   loading: false,
@@ -289,8 +299,8 @@ function playgroundReducer(state: PlaygroundState, action: PlaygroundAction): Pl
       return { ...state, inputText: action.payload };
     case 'SET_MODE':
       return { ...state, mode: action.payload };
-    case 'SET_ENGINE':
-      return { ...state, engine: action.payload };
+    case 'SET_MODEL':
+      return { ...state, modelIndex: action.payload };
     case 'RESET_RESULTS':
       return { ...state, entities: [], redactedText: '', hasResult: false, error: '' };
     case 'START_SCAN':
@@ -321,7 +331,9 @@ function playgroundReducer(state: PlaygroundState, action: PlaygroundAction): Pl
 
 export default function PlaygroundPage() {
   const [state, dispatch] = useReducer(playgroundReducer, initialState);
-  const { inputText, mode, engine, entities, redactedText, loading, error, hasResult, copied, scanProgress, sampleOpen } = state;
+  const { inputText, mode, modelIndex, entities, redactedText, loading, error, hasResult, copied, scanProgress, sampleOpen } = state;
+  const selectedModel = MODELS[modelIndex];
+  const engine = selectedModel.engine;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scanInterval = useRef<ReturnType<typeof setInterval>>();
 
@@ -471,7 +483,7 @@ export default function PlaygroundPage() {
                             aria-label="サンプルテキスト一覧"
                             className="absolute top-full left-0 mt-2 w-80 z-20 rounded-lg border border-[#2a2a2a] bg-[#161616] shadow-2xl overflow-hidden"
                           >
-                            {SAMPLE_TEXTS[engine].map((sample, i) => (
+                            {selectedModel.samples.map((sample, i) => (
                               <button
                                 key={i}
                                 role="option"
@@ -541,26 +553,22 @@ export default function PlaygroundPage() {
                   ))}
                 </div>
 
-                <div className="flex items-center rounded-lg border border-[#1f1f1f] bg-[#111] p-0.5" role="radiogroup" aria-label="検出エンジン">
-                  {(['default', 'appi'] as Engine[]).map((e) => (
-                    <button
-                      key={e}
-                      role="radio"
-                      aria-checked={engine === e}
-                      onClick={() => {
-                        dispatch({ type: 'SET_ENGINE', payload: e });
-                        resetResults();
-                      }}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-all focus-visible:ring-2 focus-visible:ring-emerald-500/50 ${
-                        engine === e
-                          ? 'bg-[#1f1f1f] text-[#ededed]'
-                          : 'text-[#666] hover:text-[#999]'
-                      }`}
-                    >
-                      {ENGINE_LABELS[e]}
-                    </button>
+                <select
+                  value={modelIndex}
+                  onChange={(e) => {
+                    dispatch({ type: 'SET_MODEL', payload: Number(e.target.value) });
+                    resetResults();
+                  }}
+                  aria-label="検出モデル"
+                  className="px-3 py-2 text-sm font-mono rounded-lg border border-[#1f1f1f] bg-[#111] text-[#ededed] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 appearance-none cursor-pointer"
+                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath d=\'M3 4.5L6 7.5L9 4.5\' stroke=\'%23666\' fill=\'none\' stroke-width=\'1.5\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center', paddingRight: '28px' }}
+                >
+                  {MODELS.map((m, i) => (
+                    <option key={m.engine} value={i}>
+                      {m.name}
+                    </option>
                   ))}
-                </div>
+                </select>
 
                 <button
                   onClick={runAnalysis}
