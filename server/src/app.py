@@ -47,8 +47,10 @@ _analyzer = None
 _anonymizer = None
 _image_redactor = None
 _appi_pipeline = None
+_openai_pf_pipeline = None
 _init_lock = threading.Lock()
 _appi_lock = threading.Lock()
+_openai_pf_lock = threading.Lock()
 
 
 def _init_presidio():
@@ -214,6 +216,80 @@ def _analyze_appi(text: str) -> list[dict]:
     return entities
 
 
+# openai/privacy-filter — Apache-2.0 token-classification model.
+# 8 categories with BIOES tags: account_number, private_address, private_email,
+# private_person, private_phone, private_url, private_date, secret.
+_OPENAI_PF_MODEL_ID = os.getenv("OPENAI_PF_MODEL_ID", "openai/privacy-filter")
+
+# Map model's label vocabulary onto the playground's display types so the
+# existing entity legend / colour map covers it without a second taxonomy.
+_OPENAI_PF_TYPE_MAP = {
+    "private_person": "PERSON",
+    "private_email": "EMAIL_ADDRESS",
+    "private_phone": "PHONE_NUMBER",
+    "private_address": "ADDRESS",
+    "private_url": "URL",
+    "private_date": "DATE_TIME",
+    "account_number": "ACCOUNT_NUMBER",
+    "secret": "SECRET",
+}
+
+
+def _get_openai_pf_pipeline():
+    global _openai_pf_pipeline
+    if _openai_pf_pipeline is not None:
+        return _openai_pf_pipeline
+    with _openai_pf_lock:
+        if _openai_pf_pipeline is not None:
+            return _openai_pf_pipeline
+        from transformers import (
+            AutoModelForTokenClassification,
+            AutoTokenizer,
+            pipeline,
+        )
+
+        tokenizer = AutoTokenizer.from_pretrained(_OPENAI_PF_MODEL_ID)
+        model = AutoModelForTokenClassification.from_pretrained(_OPENAI_PF_MODEL_ID)
+        # aggregation_strategy="first": merge BIOES subword tags into full entity
+        # spans whose offsets correspond to the original text. Other strategies
+        # ("simple", "max", "average") drop sub-token alignment metadata needed
+        # for the playground's character-level highlight overlay.
+        _openai_pf_pipeline = pipeline(
+            task="token-classification",
+            model=model,
+            tokenizer=tokenizer,
+            aggregation_strategy="first",
+        )
+        return _openai_pf_pipeline
+
+
+def _analyze_openai_pf(text: str) -> list[dict]:
+    pipe = _get_openai_pf_pipeline()
+    raw = pipe(text)
+    out: list[dict] = []
+    for span in raw:
+        group = span.get("entity_group") or span.get("entity")
+        if not group or group == "O":
+            continue
+        etype = _OPENAI_PF_TYPE_MAP.get(group, group.upper())
+        start = int(span["start"])
+        end = int(span["end"])
+        # Playground returns codepoint offsets elsewhere; the HF tokenizer here
+        # reports UTF-16-agnostic codepoint offsets too because Python str is
+        # codepoint-indexed. text[start:end] therefore preserves the original
+        # span exactly.
+        out.append(
+            {
+                "entity_type": etype,
+                "start": start,
+                "end": end,
+                "score": float(span.get("score", 0.0)),
+                "text": text[start:end],
+            }
+        )
+    return out
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Warm up NER models in background after startup."""
@@ -346,8 +422,12 @@ class AnalyzeRequest(BaseModel):
     entities: Optional[List[str]] = None
     engine: str = Field(
         default="default",
-        pattern=r"^(default|appi)$",
-        description="NER engine: 'default' (spaCy + Presidio) or 'appi' (APPI Art. 2(3) DeBERTa)",
+        pattern=r"^(default|appi|openai-privacy-filter)$",
+        description=(
+            "NER engine: 'default' (spaCy + Presidio), "
+            "'appi' (APPI Art. 2(3) DeBERTa), or "
+            "'openai-privacy-filter' (openai/privacy-filter 1.5B MoE)"
+        ),
     )
 
 
@@ -360,8 +440,12 @@ class RedactRequest(BaseModel):
     fill_color: Optional[List[int]] = [0, 0, 0]  # RGB for image redaction
     engine: str = Field(
         default="default",
-        pattern=r"^(default|appi)$",
-        description="NER engine: 'default' (spaCy + Presidio) or 'appi' (APPI Art. 2(3) DeBERTa)",
+        pattern=r"^(default|appi|openai-privacy-filter)$",
+        description=(
+            "NER engine: 'default' (spaCy + Presidio), "
+            "'appi' (APPI Art. 2(3) DeBERTa), or "
+            "'openai-privacy-filter' (openai/privacy-filter 1.5B MoE)"
+        ),
     )
 
     @field_validator("fill_color")
@@ -406,6 +490,11 @@ async def analyze(req: AnalyzeRequest):
 
     if req.engine == "appi":
         return await loop.run_in_executor(None, partial(_analyze_appi, req.text))
+
+    if req.engine == "openai-privacy-filter":
+        return await loop.run_in_executor(
+            None, partial(_analyze_openai_pf, req.text)
+        )
 
     entities_key = tuple(req.entities) if req.entities else None
     results = await loop.run_in_executor(
@@ -460,10 +549,13 @@ async def redact(req: RedactRequest):
     result = {}
 
     if req.text:
-        if req.engine == "appi":
+        if req.engine in {"appi", "openai-privacy-filter"}:
+            analyze_fn = (
+                _analyze_appi if req.engine == "appi" else _analyze_openai_pf
+            )
 
-            def _redact_appi():
-                entities = _analyze_appi(req.text)
+            def _redact_from_entities():
+                entities = analyze_fn(req.text)
                 text = req.text
                 for ent in sorted(entities, key=lambda e: e["start"], reverse=True):
                     et = ent["entity_type"]
@@ -471,7 +563,7 @@ async def redact(req: RedactRequest):
                 return text
 
             loop = asyncio.get_event_loop()
-            result["text"] = await loop.run_in_executor(None, _redact_appi)
+            result["text"] = await loop.run_in_executor(None, _redact_from_entities)
             result["items"] = []
         else:
             entities_key = tuple(req.entities) if req.entities else None
