@@ -115,6 +115,24 @@ const ENTITY_COLORS: Record<string, { bg: string; text: string; border: string; 
     border: 'rgba(139, 92, 246, 0.3)',
     glow: 'rgba(139, 92, 246, 0.15)',
   },
+  ACCOUNT_NUMBER: {
+    bg: 'rgba(20, 184, 166, 0.12)',
+    text: '#2dd4bf',
+    border: 'rgba(20, 184, 166, 0.3)',
+    glow: 'rgba(20, 184, 166, 0.15)',
+  },
+  SECRET: {
+    bg: 'rgba(234, 179, 8, 0.12)',
+    text: '#facc15',
+    border: 'rgba(234, 179, 8, 0.3)',
+    glow: 'rgba(234, 179, 8, 0.15)',
+  },
+  ADDRESS: {
+    bg: 'rgba(251, 146, 60, 0.12)',
+    text: '#fb923c',
+    border: 'rgba(251, 146, 60, 0.3)',
+    glow: 'rgba(251, 146, 60, 0.15)',
+  },
   DEFAULT: {
     bg: 'rgba(148, 163, 184, 0.12)',
     text: '#94a3b8',
@@ -151,6 +169,16 @@ const MODELS: ModelDef[] = [
       '患者 山田太郎はうつ病と診断され、2023年より通院中である。',
       '佐藤花子様の健康診断結果: HbA1c 7.2%、血圧 152/96mmHg。要精密検査。',
       '被告人 渡辺健は窃盗罪で懲役1年6月の判決を受けた。',
+    ],
+  },
+  {
+    engine: 'openai-privacy-filter',
+    name: 'OpenAI Privacy Filter (1.5B MoE)',
+    description: 'openai/privacy-filter — 8 PII spans (person/email/phone/address/url/date/account/secret)',
+    samples: [
+      'My name is Harry Potter and my email is harry.potter@hogwarts.edu. Call me at +1-555-0142.',
+      'Wire $4,500 to account 0123-456789 owned by Jane Doe. Internal ref: ORDER-77821-XB.',
+      'Patient Yamada Taro (DOB 1985-03-12) visited clinic on 2024-09-01. Contact: taro@example.com.',
     ],
   },
 ];
@@ -727,7 +755,10 @@ export default function PlaygroundPage() {
                       if (hasResult) return true;
                       const appiTypes = ['MEDICAL_HISTORY', 'HEALTH_CHECKUP', 'DISABILITY', 'CRIMINAL_RECORD', 'CRIME_VICTIM', 'RACE', 'CREED', 'SOCIAL_STATUS', 'PERSON', 'ADDRESS', 'ORGANIZATION', 'DATE_OF_BIRTH', 'BANK_ACCOUNT'];
                       const defaultTypes = ['PERSON', 'EMAIL_ADDRESS', 'PHONE_NUMBER', 'LOCATION', 'DATE_TIME', 'URL'];
-                      return engine === 'appi' ? appiTypes.includes(k) : defaultTypes.includes(k);
+                      const openaiTypes = ['PERSON', 'EMAIL_ADDRESS', 'PHONE_NUMBER', 'ADDRESS', 'URL', 'DATE_TIME', 'ACCOUNT_NUMBER', 'SECRET'];
+                      if (engine === 'appi') return appiTypes.includes(k);
+                      if (engine === 'openai-privacy-filter') return openaiTypes.includes(k);
+                      return defaultTypes.includes(k);
                     })
                     .map(([type, color]) => (
                       <div key={type} className="flex items-center justify-between">
