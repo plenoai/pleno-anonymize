@@ -16,10 +16,10 @@ COPY server/pyproject.toml server/pyproject.toml
 # Server image excludes OSS baselines (ginza / ja-ginza / ja_core_news_trf)
 # to keep the image small. `bench` lives in packages/training's
 # `[project.optional-dependencies]`, so without `--extra bench` it is skipped.
-RUN uv sync --frozen --no-dev --no-install-project --extra image --package pleno-anonymize-server
+RUN uv sync --frozen --no-dev --no-install-project --extra image --extra appi --package pleno-anonymize-server
 
 COPY server/ server/
-RUN uv sync --frozen --no-dev --extra image --package pleno-anonymize-server
+RUN uv sync --frozen --no-dev --extra image --extra appi --package pleno-anonymize-server
 
 # spaCy / NER model wheels install AFTER the last uv sync. A prior layout
 # placed them between syncs, and `uv sync --frozen` pruned wheels not in the
@@ -31,6 +31,13 @@ RUN uv pip install https://github.com/explosion/spacy-models/releases/download/e
 RUN uv pip install \
     https://huggingface.co/0xhikae/pleno_anonymize_ja/resolve/main/pleno_anonymize_ja-0.2.0-py3-none-any.whl \
     https://huggingface.co/0xhikae/pleno_anonymize_en/resolve/main/pleno_anonymize_en-0.2.1-py3-none-any.whl
+
+# Pre-download APPI ONNX model into HF cache so the first /api/analyze?engine=appi
+# request doesn't block on a network fetch.
+RUN uv run --no-sync python -c "\
+from huggingface_hub import snapshot_download; \
+snapshot_download('0xhikae/ja-ner-appi-v1-onnx'); \
+print('APPI ONNX model cached')"
 
 # Build-time smoke test surfaces model-load failures at image build instead of
 # runtime. `--no-sync` is required: `uv run` defaults to re-syncing the
@@ -63,11 +70,10 @@ RUN apt-get update \
 
 WORKDIR /workspace
 COPY --from=builder /workspace /workspace
-# NOTE: /root is intentionally NOT copied from builder — it contains only the
-# uv download cache (/root/.cache/uv) which is not needed at runtime: the venv
-# is already fully installed in /workspace/.venv and CMD uses --no-sync.
-# Copying it added hundreds of MB of duplicated wheel bytes against the 8GB
-# fly.io rootfs limit (#226 item 4).
+# HF Hub cache for the APPI ONNX model (~164MB quantized). Only the
+# huggingface subdir is copied — the uv download cache is NOT needed
+# (the venv is already installed) and would waste hundreds of MB.
+COPY --from=builder /root/.cache/huggingface /root/.cache/huggingface
 
 EXPOSE 8080
 # `--no-sync` mirrors the build-time smoke: the runtime image already has all

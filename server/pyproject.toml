@@ -21,6 +21,10 @@ image = [
     "presidio-image-redactor>=0.0.53",
     "pillow>=10.0.0",
 ]
+appi = [
+    "optimum[onnxruntime]>=1.24",
+    "transformers>=4.50",
+]
 proxy = [
     "openai>=1.0.0",
     "langchain>=0.3.27",

@@ -67,6 +67,54 @@ const ENTITY_COLORS: Record<string, { bg: string; text: string; border: string; 
     border: 'rgba(56, 189, 248, 0.3)',
     glow: 'rgba(56, 189, 248, 0.15)',
   },
+  MEDICAL_HISTORY: {
+    bg: 'rgba(239, 68, 68, 0.12)',
+    text: '#f87171',
+    border: 'rgba(239, 68, 68, 0.3)',
+    glow: 'rgba(239, 68, 68, 0.15)',
+  },
+  HEALTH_CHECKUP: {
+    bg: 'rgba(245, 158, 11, 0.12)',
+    text: '#fbbf24',
+    border: 'rgba(245, 158, 11, 0.3)',
+    glow: 'rgba(245, 158, 11, 0.15)',
+  },
+  DISABILITY: {
+    bg: 'rgba(217, 70, 239, 0.12)',
+    text: '#e879f9',
+    border: 'rgba(217, 70, 239, 0.3)',
+    glow: 'rgba(217, 70, 239, 0.15)',
+  },
+  CRIMINAL_RECORD: {
+    bg: 'rgba(220, 38, 38, 0.12)',
+    text: '#dc2626',
+    border: 'rgba(220, 38, 38, 0.3)',
+    glow: 'rgba(220, 38, 38, 0.15)',
+  },
+  CRIME_VICTIM: {
+    bg: 'rgba(190, 18, 60, 0.12)',
+    text: '#fb7185',
+    border: 'rgba(190, 18, 60, 0.3)',
+    glow: 'rgba(190, 18, 60, 0.15)',
+  },
+  RACE: {
+    bg: 'rgba(14, 165, 233, 0.12)',
+    text: '#38bdf8',
+    border: 'rgba(14, 165, 233, 0.3)',
+    glow: 'rgba(14, 165, 233, 0.15)',
+  },
+  CREED: {
+    bg: 'rgba(99, 102, 241, 0.12)',
+    text: '#818cf8',
+    border: 'rgba(99, 102, 241, 0.3)',
+    glow: 'rgba(99, 102, 241, 0.15)',
+  },
+  SOCIAL_STATUS: {
+    bg: 'rgba(139, 92, 246, 0.12)',
+    text: '#a78bfa',
+    border: 'rgba(139, 92, 246, 0.3)',
+    glow: 'rgba(139, 92, 246, 0.15)',
+  },
   DEFAULT: {
     bg: 'rgba(148, 163, 184, 0.12)',
     text: '#94a3b8',
@@ -77,11 +125,25 @@ const ENTITY_COLORS: Record<string, { bg: string; text: string; border: string; 
 
 const getEntityColor = (type: string) => ENTITY_COLORS[type] || ENTITY_COLORS.DEFAULT;
 
-const SAMPLE_TEXTS = [
-  '山田太郎さんの電話番号は090-1234-5678です。メールはtaro@example.comまでお願いします。',
-  'John Doe lives at 123 Main Street, New York. His email is john.doe@company.com and phone is 555-0123.',
-  '田中花子（hanako.tanaka@gmail.com）に連絡してください。電話は03-1234-5678です。',
-];
+type Engine = 'default' | 'appi';
+
+const ENGINE_LABELS: Record<Engine, string> = {
+  default: 'Default',
+  appi: 'APPI 要配慮',
+};
+
+const SAMPLE_TEXTS: Record<Engine, string[]> = {
+  default: [
+    '山田太郎さんの電話番号は090-1234-5678です。メールはtaro@example.comまでお願いします。',
+    'John Doe lives at 123 Main Street, New York. His email is john.doe@company.com and phone is 555-0123.',
+    '田中花子（hanako.tanaka@gmail.com）に連絡してください。電話は03-1234-5678です。',
+  ],
+  appi: [
+    '患者 山田太郎はうつ病と診断され、2023年より通院中である。',
+    '佐藤花子様の健康診断結果: HbA1c 7.2%、血圧 152/96mmHg。要精密検査。',
+    '被告人 渡辺健は窃盗罪で懲役1年6月の判決を受けた。',
+  ],
+};
 
 type Mode = 'analyze' | 'redact';
 
@@ -181,6 +243,7 @@ function buildHighlightedText(text: string, entities: AnalyzeResult[]) {
 interface PlaygroundState {
   inputText: string;
   mode: Mode;
+  engine: Engine;
   entities: AnalyzeResult[];
   redactedText: string;
   loading: boolean;
@@ -194,6 +257,7 @@ interface PlaygroundState {
 type PlaygroundAction =
   | { type: 'SET_INPUT_TEXT'; payload: string }
   | { type: 'SET_MODE'; payload: Mode }
+  | { type: 'SET_ENGINE'; payload: Engine }
   | { type: 'RESET_RESULTS' }
   | { type: 'START_SCAN' }
   | { type: 'ADVANCE_SCAN_PROGRESS'; payload: number }
@@ -208,6 +272,7 @@ type PlaygroundAction =
 const initialState: PlaygroundState = {
   inputText: '',
   mode: 'analyze',
+  engine: 'default',
   entities: [],
   redactedText: '',
   loading: false,
@@ -224,6 +289,8 @@ function playgroundReducer(state: PlaygroundState, action: PlaygroundAction): Pl
       return { ...state, inputText: action.payload };
     case 'SET_MODE':
       return { ...state, mode: action.payload };
+    case 'SET_ENGINE':
+      return { ...state, engine: action.payload };
     case 'RESET_RESULTS':
       return { ...state, entities: [], redactedText: '', hasResult: false, error: '' };
     case 'START_SCAN':
@@ -254,7 +321,7 @@ function playgroundReducer(state: PlaygroundState, action: PlaygroundAction): Pl
 
 export default function PlaygroundPage() {
   const [state, dispatch] = useReducer(playgroundReducer, initialState);
-  const { inputText, mode, entities, redactedText, loading, error, hasResult, copied, scanProgress, sampleOpen } = state;
+  const { inputText, mode, engine, entities, redactedText, loading, error, hasResult, copied, scanProgress, sampleOpen } = state;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scanInterval = useRef<ReturnType<typeof setInterval>>();
 
@@ -275,7 +342,7 @@ export default function PlaygroundPage() {
     }, 250);
 
     try {
-      const body = JSON.stringify({ text: inputText });
+      const body = JSON.stringify({ text: inputText, engine });
       const headers = { 'Content-Type': 'application/json' };
 
       if (mode === 'analyze') {
@@ -303,7 +370,7 @@ export default function PlaygroundPage() {
       dispatch({ type: 'SCAN_COMPLETE' });
       setTimeout(() => dispatch({ type: 'FINISH_LOADING' }), 300);
     }
-  }, [inputText, mode]);
+  }, [inputText, mode, engine]);
 
   const handleCopy = useCallback(() => {
     const text = mode === 'redact' && redactedText ? redactedText : JSON.stringify(entities, null, 2);
@@ -404,7 +471,7 @@ export default function PlaygroundPage() {
                             aria-label="サンプルテキスト一覧"
                             className="absolute top-full left-0 mt-2 w-80 z-20 rounded-lg border border-[#2a2a2a] bg-[#161616] shadow-2xl overflow-hidden"
                           >
-                            {SAMPLE_TEXTS.map((sample, i) => (
+                            {SAMPLE_TEXTS[engine].map((sample, i) => (
                               <button
                                 key={i}
                                 role="option"
@@ -452,7 +519,7 @@ export default function PlaygroundPage() {
               </div>
 
               {/* Controls */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex items-center rounded-lg border border-[#1f1f1f] bg-[#111] p-0.5" role="radiogroup" aria-label="処理モード">
                   {(['analyze', 'redact'] as Mode[]).map((m) => (
                     <button
@@ -470,6 +537,27 @@ export default function PlaygroundPage() {
                       }`}
                     >
                       {m === 'analyze' ? 'Analyze' : 'Redact'}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex items-center rounded-lg border border-[#1f1f1f] bg-[#111] p-0.5" role="radiogroup" aria-label="検出エンジン">
+                  {(['default', 'appi'] as Engine[]).map((e) => (
+                    <button
+                      key={e}
+                      role="radio"
+                      aria-checked={engine === e}
+                      onClick={() => {
+                        dispatch({ type: 'SET_ENGINE', payload: e });
+                        resetResults();
+                      }}
+                      className={`px-4 py-2 text-sm font-medium rounded-md transition-all focus-visible:ring-2 focus-visible:ring-emerald-500/50 ${
+                        engine === e
+                          ? 'bg-[#1f1f1f] text-[#ededed]'
+                          : 'text-[#666] hover:text-[#999]'
+                      }`}
+                    >
+                      {ENGINE_LABELS[e]}
                     </button>
                   ))}
                 </div>
@@ -626,7 +714,13 @@ export default function PlaygroundPage() {
                 <h3 className="text-xs font-mono text-[#666] uppercase tracking-wider mb-4">Entity Types</h3>
                 <div className="space-y-2">
                   {Object.entries(ENTITY_COLORS)
-                    .filter(([k]) => k !== 'DEFAULT')
+                    .filter(([k]) => {
+                      if (k === 'DEFAULT') return false;
+                      if (hasResult) return true;
+                      const appiTypes = ['MEDICAL_HISTORY', 'HEALTH_CHECKUP', 'DISABILITY', 'CRIMINAL_RECORD', 'CRIME_VICTIM', 'RACE', 'CREED', 'SOCIAL_STATUS', 'PERSON', 'ADDRESS', 'ORGANIZATION', 'DATE_OF_BIRTH', 'BANK_ACCOUNT'];
+                      const defaultTypes = ['PERSON', 'EMAIL_ADDRESS', 'PHONE_NUMBER', 'LOCATION', 'DATE_TIME', 'URL'];
+                      return engine === 'appi' ? appiTypes.includes(k) : defaultTypes.includes(k);
+                    })
                     .map(([type, color]) => (
                       <div key={type} className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">

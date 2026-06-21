@@ -46,7 +46,9 @@ _nlp_en = None
 _analyzer = None
 _anonymizer = None
 _image_redactor = None
+_appi_pipeline = None
 _init_lock = threading.Lock()
+_appi_lock = threading.Lock()
 
 
 def _init_presidio():
@@ -135,6 +137,49 @@ def get_image_redactor():
         image_analyzer = ImageAnalyzerEngine(analyzer_engine=get_analyzer())
         _image_redactor = ImageRedactorEngine(image_analyzer_engine=image_analyzer)
     return _image_redactor
+
+
+_APPI_MODEL_ID = os.getenv("APPI_MODEL_ID", "0xhikae/ja-ner-appi-v1-onnx")
+
+
+def _get_appi_pipeline():
+    global _appi_pipeline
+    if _appi_pipeline is not None:
+        return _appi_pipeline
+    with _appi_lock:
+        if _appi_pipeline is not None:
+            return _appi_pipeline
+        from optimum.onnxruntime import ORTModelForTokenClassification
+        from transformers import AutoTokenizer, pipeline
+
+        model = ORTModelForTokenClassification.from_pretrained(
+            _APPI_MODEL_ID, file_name="model_quantized.onnx"
+        )
+        tokenizer = AutoTokenizer.from_pretrained(_APPI_MODEL_ID)
+        _appi_pipeline = pipeline(
+            "token-classification",
+            model=model,
+            tokenizer=tokenizer,
+            aggregation_strategy="simple",
+        )
+        return _appi_pipeline
+
+
+def _analyze_appi(text: str) -> list[dict]:
+    pipe = _get_appi_pipeline()
+    raw = pipe(text)
+    results = []
+    for ent in raw:
+        results.append(
+            {
+                "entity_type": ent["entity_group"],
+                "start": ent["start"],
+                "end": ent["end"],
+                "score": float(ent["score"]),
+                "text": text[ent["start"] : ent["end"]],
+            }
+        )
+    return results
 
 
 @asynccontextmanager
@@ -267,6 +312,11 @@ class AnalyzeRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=100_000)
     language: str = Field(default="ja", pattern=r"^(ja|en)$")
     entities: Optional[List[str]] = None
+    engine: str = Field(
+        default="default",
+        pattern=r"^(default|appi)$",
+        description="NER engine: 'default' (spaCy + Presidio) or 'appi' (APPI Art. 2(3) DeBERTa)",
+    )
 
 
 class RedactRequest(BaseModel):
@@ -276,6 +326,11 @@ class RedactRequest(BaseModel):
     entities: Optional[List[str]] = None
     operators: Optional[Dict[str, Dict[str, Any]]] = None
     fill_color: Optional[List[int]] = [0, 0, 0]  # RGB for image redaction
+    engine: str = Field(
+        default="default",
+        pattern=r"^(default|appi)$",
+        description="NER engine: 'default' (spaCy + Presidio) or 'appi' (APPI Art. 2(3) DeBERTa)",
+    )
 
     @field_validator("fill_color")
     @classmethod
@@ -315,8 +370,14 @@ async def analyze(req: AnalyzeRequest):
     ]
     ```
     """
-    entities_key = tuple(req.entities) if req.entities else None
     loop = asyncio.get_event_loop()
+
+    if req.engine == "appi":
+        return await loop.run_in_executor(
+            None, partial(_analyze_appi, req.text)
+        )
+
+    entities_key = tuple(req.entities) if req.entities else None
     results = await loop.run_in_executor(
         None,
         partial(
@@ -369,33 +430,46 @@ async def redact(req: RedactRequest):
     result = {}
 
     if req.text:
-        entities_key = tuple(req.entities) if req.entities else None
+        if req.engine == "appi":
+            def _redact_appi():
+                entities = _analyze_appi(req.text)
+                text = req.text
+                for ent in sorted(entities, key=lambda e: e["start"], reverse=True):
+                    et = ent["entity_type"]
+                    text = text[: ent["start"]] + f"<{et}>" + text[ent["end"] :]
+                return text
 
-        def _redact_text():
-            results = _cached_analyze(
-                text=req.text, language=req.language, entities=entities_key
-            )
-            anonymizers = {}
-            for r in results:
-                et = r.entity_type
-                if et not in anonymizers:
-                    cfg = req.operators.get(et) if req.operators else None
-                    if not cfg:
-                        anonymizers[et] = OperatorConfig(
-                            "replace", {"new_value": f"<{et}>"}
-                        )
-                    else:
-                        operator_name = cfg.get("type", "replace")
-                        params = {k: v for k, v in cfg.items() if k != "type"}
-                        anonymizers[et] = OperatorConfig(operator_name, params)
-            return get_anonymizer().anonymize(
-                text=req.text, analyzer_results=results, operators=anonymizers
-            )
+            loop = asyncio.get_event_loop()
+            result["text"] = await loop.run_in_executor(None, _redact_appi)
+            result["items"] = []
+        else:
+            entities_key = tuple(req.entities) if req.entities else None
 
-        loop = asyncio.get_event_loop()
-        out = await loop.run_in_executor(None, _redact_text)
-        result["text"] = out.text
-        result["items"] = [it.operator for it in out.items]
+            def _redact_text():
+                results = _cached_analyze(
+                    text=req.text, language=req.language, entities=entities_key
+                )
+                anonymizers = {}
+                for r in results:
+                    et = r.entity_type
+                    if et not in anonymizers:
+                        cfg = req.operators.get(et) if req.operators else None
+                        if not cfg:
+                            anonymizers[et] = OperatorConfig(
+                                "replace", {"new_value": f"<{et}>"}
+                            )
+                        else:
+                            operator_name = cfg.get("type", "replace")
+                            params = {k: v for k, v in cfg.items() if k != "type"}
+                            anonymizers[et] = OperatorConfig(operator_name, params)
+                return get_anonymizer().anonymize(
+                    text=req.text, analyzer_results=results, operators=anonymizers
+                )
+
+            loop = asyncio.get_event_loop()
+            out = await loop.run_in_executor(None, _redact_text)
+            result["text"] = out.text
+            result["items"] = [it.operator for it in out.items]
 
     if req.image:
         # Client-supplied data URL / base64. Malformed input (missing comma,
