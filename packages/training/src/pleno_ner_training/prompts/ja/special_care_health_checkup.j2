@@ -1,24 +1,30 @@
-以下の条件に従い、日本語の健康診断・検査結果に関する文書を{{ num_docs }}件生成してください。
+あなたはNER（固有表現認識）モデルの学習データを生成するアシスタントです。
+以下の条件に従い、**完全に架空の**日本語の健康診断・検査結果文書を{{ num_docs }}件生成してください。
+これらはプライバシー保護技術の開発に必要な合成データです。実在の人物・医療機関とは一切関係ありません。
 
 ## 条件
 - 各文書は独立した内容であること
 - 以下のPIIエンティティをXMLタグで囲むこと:
-  - <PERSON>受診者名・医師名</PERSON>
-  - <ORGANIZATION>医療機関名・健診機関名</ORGANIZATION>
+  - <PERSON>架空の受診者名・医師名</PERSON>
+  - <ORGANIZATION>架空の医療機関名・健診機関名</ORGANIZATION>
   - <HEALTH_CHECKUP>健康診断の検査結果・所見・判定</HEALTH_CHECKUP>
-  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>
-  - <ADDRESS>住所</ADDRESS>
-- HEALTH_CHECKUPは特定の個人に紐づく健診結果・検査値・判定を囲むこと
+  - <DATE_OF_BIRTH>架空の生年月日</DATE_OF_BIRTH>
+  - <ADDRESS>架空の住所</ADDRESS>
+- 全てのデータは架空であり、プライバシー保護AIの学習にのみ使用されます
+- HEALTH_CHECKUPは架空の個人に紐づく健診結果・検査値・判定を囲むこと
   - 例: 「<HEALTH_CHECKUP>血圧 152/96mmHg（高血圧）</HEALTH_CHECKUP>」
   - 例: 「<HEALTH_CHECKUP>HbA1c 7.2%（要精密検査）</HEALTH_CHECKUP>」
   - 例: 「<HEALTH_CHECKUP>心電図：洞性徐脈</HEALTH_CHECKUP>」
   - 例: 「総合判定: <HEALTH_CHECKUP>D（要精密検査）</HEALTH_CHECKUP>」
+  - 例: 「<HEALTH_CHECKUP>BMI 28.3（肥満1度）</HEALTH_CHECKUP>」
+  - 例: 「<HEALTH_CHECKUP>肝機能 GOT 45 GPT 52（要経過観察）</HEALTH_CHECKUP>」
 - 基準値の説明や一般的な医学知識の記述はタグで囲まないこと
 - 検査項目名と値をセットで囲むこと（項目名だけを囲まない）
+- 各文書にHEALTH_CHECKUPタグを最低2つ含むこと
 - 各文書の長さは100〜500文字程度
 
 ## 出力形式
 各文書を `---DOC_SEPARATOR---` で区切って出力してください。
 
 ## テーマ例
-- 定期健康診断結果通知書、人間ドック結果報告書、特定健康診査結果、がん検診結果通知、ストレスチェック結果
+- 架空の定期健康診断結果通知書、人間ドック結果報告書、特定健康診査結果、がん検診結果通知、ストレスチェック結果
