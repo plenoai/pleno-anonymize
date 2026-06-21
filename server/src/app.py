@@ -253,7 +253,7 @@ def _get_openai_pf_pipeline():
             return _openai_pf_pipeline
         import onnxruntime as ort
         from huggingface_hub import hf_hub_download
-        from transformers import AutoConfig, AutoTokenizer
+        from tokenizers import Tokenizer
 
         # External-data ONNX: model.onnx is a small graph header that references
         # weights stored in the sibling `.onnx_data` blob. Both must sit in the
@@ -261,10 +261,21 @@ def _get_openai_pf_pipeline():
         # path. Fetch the data file first so the loader sees it on first open.
         hf_hub_download(_OPENAI_PF_MODEL_ID, filename=_OPENAI_PF_ONNX_DATA)
         model_path = hf_hub_download(_OPENAI_PF_MODEL_ID, filename=_OPENAI_PF_ONNX_FILE)
+        # transformers' AutoTokenizer rejects this repo because tokenizer_config
+        # sets `tokenizer_class: TokenizersBackend` (an internal placeholder, not
+        # a registered subclass). Load `tokenizer.json` directly via the
+        # underlying `tokenizers` Rust library — same fast-path AutoTokenizer
+        # would use internally, and it returns the offsets/ids we need.
+        tokenizer_path = hf_hub_download(_OPENAI_PF_MODEL_ID, filename="tokenizer.json")
+        config_path = hf_hub_download(_OPENAI_PF_MODEL_ID, filename="config.json")
+        with open(config_path, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+        # config.json keys id2label by str — cast to int so argmax lookups hit.
+        id2label = {int(k): v for k, v in cfg.get("id2label", {}).items()}
+        tokenizer = Tokenizer.from_file(tokenizer_path)
+        tokenizer.enable_truncation(max_length=512)
         session = ort.InferenceSession(model_path, providers=["CPUExecutionProvider"])
-        tokenizer = AutoTokenizer.from_pretrained(_OPENAI_PF_MODEL_ID)
-        config = AutoConfig.from_pretrained(_OPENAI_PF_MODEL_ID)
-        _openai_pf_pipeline = (session, tokenizer, config.id2label)
+        _openai_pf_pipeline = (session, tokenizer, id2label)
         return _openai_pf_pipeline
 
 
@@ -280,12 +291,17 @@ def _analyze_openai_pf(text: str) -> list[dict]:
     import numpy as np
 
     session, tokenizer, id2label = _get_openai_pf_pipeline()
-    encoding = tokenizer(text, return_tensors="np", truncation=True, max_length=512)
-    inputs = {k: v for k, v in encoding.items() if k in {"input_ids", "attention_mask"}}
-    outputs = session.run(None, inputs)
+    encoding = tokenizer.encode(text)
+    # `tokenizers.Encoding` exposes lists; wrap in [..] to add the batch axis
+    # ONNX expects, then cast to int64 to match the model's input dtype.
+    input_ids = np.asarray([encoding.ids], dtype=np.int64)
+    attention_mask = np.asarray([encoding.attention_mask], dtype=np.int64)
+    outputs = session.run(
+        None, {"input_ids": input_ids, "attention_mask": attention_mask}
+    )
     logits = outputs[0][0]
     preds = np.argmax(logits, axis=-1)
-    offsets = encoding.encodings[0].offsets
+    offsets = encoding.offsets
 
     entities: list[dict] = []
     current: dict | None = None
