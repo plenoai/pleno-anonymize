@@ -102,10 +102,7 @@ jobs:
       # have rejected the image during unpack (rootfs > 8GB, registry race) and
       # left the previous image running. Assert the running image ref differs
       # from the pre-deploy snapshot — this is the signal that the new image
-      # was accepted by fly's registry, since flyctl tags with
-      # `deployment-<ts>` per push. Application-level health (new machine is
-      # actually serving) is verified by the /ready check below; we don't
-      # double-wait for "started" state here.
+      # actually became live, since flyctl tags with `deployment-<ts>` per push.
       - name: Verify deployed image ref changed
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
@@ -113,16 +110,36 @@ jobs:
           set -eu
           EXPECTED_SHA="${{ github.sha }}"
           BEFORE='${{ steps.pre_deploy.outputs.before }}'
-          flyctl machine list --app pleno-anonymize --json > machines.json
-          AFTER=$(jq -r '[.[] | .config.image] | sort | unique | join(",")' machines.json)
+          # `flyctl deploy --strategy immediate` returns once the platform has
+          # accepted the request, but machines pass through "replacing" before
+          # reaching "started" — the previous one-shot check on commit 7836162
+          # caught machines mid-replace and reported a false "no started
+          # machine" error. Poll for up to ~2 min so the verification only
+          # fires after fly's machine state has settled.
+          STARTED=0
+          AFTER=""
+          for i in $(seq 1 24); do
+            flyctl machine list --app pleno-anonymize --json > machines.json
+            STARTED=$(jq '[.[] | select(.state=="started")] | length' machines.json)
+            AFTER=$(jq -r '[.[] | .config.image] | sort | unique | join(",")' machines.json)
+            echo "attempt $i: started=${STARTED} after=${AFTER}"
+            [ "$STARTED" -ge 1 ] && break
+            sleep 5
+          done
           cat machines.json
           echo "before=${BEFORE}"
           echo "after=${AFTER}"
+          echo "started_count=${STARTED}"
+          if [ "$STARTED" -lt 1 ]; then
+            echo "::error::no started machine after deploy within 2min (sha=${EXPECTED_SHA})"
+            exit 1
+          fi
+          # Empty BEFORE = first deploy / pre-snapshot failed; skip drift check
+          # but still require AFTER to be non-empty.
           if [ -z "$AFTER" ]; then
             echo "::error::no image ref on any machine after deploy (sha=${EXPECTED_SHA})"
             exit 1
           fi
-          # Empty BEFORE = first deploy / pre-snapshot failed; skip drift check.
           if [ -n "$BEFORE" ] && [ "$BEFORE" = "$AFTER" ]; then
             echo "::error::image ref unchanged after deploy (silent fly reject suspected; sha=${EXPECTED_SHA}, image=${AFTER})"
             exit 1
