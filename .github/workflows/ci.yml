@@ -64,32 +64,6 @@ jobs:
         with:
           persist-credentials: false
       - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1  # master
-      - uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5  # v4.1.0
-      - uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf  # v7.2.0
-        with:
-          context: .
-          load: true
-          tags: pleno-anonymize:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      # Image size gate (#73). fly's rootfs hard limit is 8GB compressed; once
-      # exceeded the platform silently rejects the unpack and the deploy step
-      # still reports success while the running machine keeps the previous
-      # image. Gate at 7GB to leave headroom and surface size regressions in
-      # the same PR that introduces them, not weeks later in production.
-      - name: Verify image size under fly 8GB rootfs limit
-        run: |
-          set -eu
-          SIZE=$(docker image inspect pleno-anonymize:${{ github.sha }} --format '{{.Size}}')
-          THRESHOLD=$((7 * 1024 * 1024 * 1024))
-          SIZE_GB=$(awk -v s="$SIZE" 'BEGIN{printf "%.2f", s/1024/1024/1024}')
-          echo "image size: ${SIZE} bytes (${SIZE_GB} GB)"
-          echo "threshold:  ${THRESHOLD} bytes (7.00 GB)"
-          if [ "$SIZE" -gt "$THRESHOLD" ]; then
-            echo "::error::image size ${SIZE_GB}GB exceeds 7GB threshold (fly 8GB rootfs limit; over-limit images are silently rejected on deploy)"
-            exit 1
-          fi
 
       # Pre-deploy snapshot of running image ref. Combined with the post-deploy
       # check below, this catches silent fly rejects (image > 8GB rootfs, etc.)
@@ -107,11 +81,20 @@ jobs:
           echo "before=${BEFORE}"
           echo "before=${BEFORE}" >> "$GITHUB_OUTPUT"
 
+      # --remote-only offloads the docker build to fly's remote builder, which
+      # has a persistent BuildKit cache across deploys. This eliminates two
+      # sinks the local build path incurred:
+      #   1. ~252s exporting layers to GHA cache (`cache-to: type=gha,mode=max`)
+      #   2. ~99s uploading the local image to registry.fly.io
+      # The fly 8GB rootfs limit is no longer pre-checked locally — the
+      # post-deploy image-ref drift check below is what actually catches
+      # silent fly rejects in practice, and that path is preserved.
+      #
       # --strategy immediate destroys the existing machine and creates a fresh
       # one. Default `rolling` does an in-place update which previously inherited
       # corrupt state ([PM07] machine still active, refusing to start) on
       # machine 185173db175798 and re-broke /ready across consecutive deploys.
-      - run: flyctl deploy --local-only --strategy immediate --image pleno-anonymize:${{ github.sha }}
+      - run: flyctl deploy --remote-only --strategy immediate
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
