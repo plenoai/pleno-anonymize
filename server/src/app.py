@@ -375,6 +375,22 @@ async def lifespan(app: FastAPI):
     def _warmup():
         _init_presidio()
         logger.info("Models loaded successfully")
+        # openai/privacy-filter ships as quantized ONNX with a 1.6 GB external
+        # data blob. Even with the build-time prefetch (see Dockerfile), the
+        # first onnxruntime.InferenceSession load takes ~60 s on the fly
+        # machine — past the gateway timeout, so the first user request after
+        # a cold start would 502. Eager-load it during lifespan so the cold
+        # request burn lands on the machine boot, not on a real user.
+        try:
+            _get_openai_pf_pipeline()
+            logger.info("openai/privacy-filter session ready")
+        except Exception as e:
+            # Best-effort: if this engine fails to load (e.g. HF transient),
+            # the default + appi engines must still come up. The lazy path
+            # in _analyze_openai_pf will surface the real error on demand.
+            logger.error(
+                json.dumps({"event": "openai_pf_warmup_failed", "error": str(e)})
+            )
 
     threading.Thread(target=_warmup, daemon=True).start()
     yield
