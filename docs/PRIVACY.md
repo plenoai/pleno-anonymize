@@ -48,7 +48,7 @@ The pleno-anonymize API processes the following data:
 
 ## 5. Self-Hosting
 
-pleno-anonymize is open source (AGPL-3.0) and can be self-hosted on your own infrastructure. When self-hosted, all data is processed within your infrastructure.
+pleno-anonymize is open source (Apache-2.0) and can be self-hosted on your own infrastructure. When self-hosted, all data is processed within your infrastructure.
 
 ## 6. User Rights
 
