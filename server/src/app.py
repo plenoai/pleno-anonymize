@@ -492,9 +492,7 @@ async def analyze(req: AnalyzeRequest):
         return await loop.run_in_executor(None, partial(_analyze_appi, req.text))
 
     if req.engine == "openai-privacy-filter":
-        return await loop.run_in_executor(
-            None, partial(_analyze_openai_pf, req.text)
-        )
+        return await loop.run_in_executor(None, partial(_analyze_openai_pf, req.text))
 
     entities_key = tuple(req.entities) if req.entities else None
     results = await loop.run_in_executor(
@@ -550,9 +548,7 @@ async def redact(req: RedactRequest):
 
     if req.text:
         if req.engine in {"appi", "openai-privacy-filter"}:
-            analyze_fn = (
-                _analyze_appi if req.engine == "appi" else _analyze_openai_pf
-            )
+            analyze_fn = _analyze_appi if req.engine == "appi" else _analyze_openai_pf
 
             def _redact_from_entities():
                 entities = analyze_fn(req.text)
