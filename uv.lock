@@ -2595,7 +2595,7 @@ dependencies = [
 
 [package.optional-dependencies]
 appi = [
-    { name = "optimum", extra = ["onnxruntime"] },
+    { name = "onnxruntime" },
     { name = "transformers" },
 ]
 image = [
@@ -2620,8 +2620,8 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "langchain", marker = "extra == 'proxy'", specifier = ">=0.3.27" },
     { name = "langchain-community", marker = "extra == 'proxy'", specifier = ">=0.3.27" },
+    { name = "onnxruntime", marker = "extra == 'appi'", specifier = ">=1.19" },
     { name = "openai", marker = "extra == 'proxy'", specifier = ">=1.0.0" },
-    { name = "optimum", extras = ["onnxruntime"], marker = "extra == 'appi'", specifier = ">=1.24" },
     { name = "pillow", marker = "extra == 'image'", specifier = ">=10.0.0" },
     { name = "pleno-anonymize", editable = "packages/sdk" },
     { name = "presidio-analyzer", specifier = ">=2.2" },

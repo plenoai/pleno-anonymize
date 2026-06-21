@@ -22,7 +22,7 @@ image = [
     "pillow>=10.0.0",
 ]
 appi = [
-    "optimum[onnxruntime]>=1.24",
+    "onnxruntime>=1.19",
     "transformers>=4.50",
 ]
 proxy = [

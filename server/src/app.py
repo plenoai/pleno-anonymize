@@ -149,37 +149,75 @@ def _get_appi_pipeline():
     with _appi_lock:
         if _appi_pipeline is not None:
             return _appi_pipeline
-        from optimum.onnxruntime import ORTModelForTokenClassification
-        from transformers import AutoTokenizer, pipeline
+        import onnxruntime as ort
+        from huggingface_hub import hf_hub_download
+        from transformers import AutoConfig, AutoTokenizer
 
-        model = ORTModelForTokenClassification.from_pretrained(
-            _APPI_MODEL_ID, file_name="model_quantized.onnx"
+        model_path = hf_hub_download(
+            _APPI_MODEL_ID, filename="model_quantized.onnx"
+        )
+        session = ort.InferenceSession(
+            model_path, providers=["CPUExecutionProvider"]
         )
         tokenizer = AutoTokenizer.from_pretrained(_APPI_MODEL_ID)
-        _appi_pipeline = pipeline(
-            "token-classification",
-            model=model,
-            tokenizer=tokenizer,
-            aggregation_strategy="simple",
-        )
+        config = AutoConfig.from_pretrained(_APPI_MODEL_ID)
+        _appi_pipeline = (session, tokenizer, config.id2label)
         return _appi_pipeline
 
 
 def _analyze_appi(text: str) -> list[dict]:
-    pipe = _get_appi_pipeline()
-    raw = pipe(text)
-    results = []
-    for ent in raw:
-        results.append(
-            {
-                "entity_type": ent["entity_group"],
-                "start": ent["start"],
-                "end": ent["end"],
-                "score": float(ent["score"]),
-                "text": text[ent["start"] : ent["end"]],
+    import numpy as np
+
+    session, tokenizer, id2label = _get_appi_pipeline()
+    encoding = tokenizer(
+        text, return_tensors="np", truncation=True, max_length=512
+    )
+    outputs = session.run(
+        None,
+        {k: v for k, v in encoding.items() if k in {"input_ids", "attention_mask"}},
+    )
+    logits = outputs[0][0]
+    preds = np.argmax(logits, axis=-1)
+
+    tokens = tokenizer.convert_ids_to_tokens(encoding["input_ids"][0])
+    offsets = encoding.encodings[0].offsets
+
+    entities: list[dict] = []
+    current: dict | None = None
+
+    for i, (token, pred_id) in enumerate(zip(tokens, preds)):
+        label = id2label.get(int(pred_id), "O")
+        start, end = offsets[i]
+        if start == end:
+            if current:
+                entities.append(current)
+                current = None
+            continue
+
+        if label.startswith("B-"):
+            if current:
+                entities.append(current)
+            etype = label[2:]
+            score = float(np.max(np.exp(logits[i]) / np.sum(np.exp(logits[i]))))
+            current = {
+                "entity_type": etype,
+                "start": start,
+                "end": end,
+                "score": score,
+                "text": text[start:end],
             }
-        )
-    return results
+        elif label.startswith("I-") and current and label[2:] == current["entity_type"]:
+            current["end"] = end
+            current["text"] = text[current["start"] : end]
+        else:
+            if current:
+                entities.append(current)
+                current = None
+
+    if current:
+        entities.append(current)
+
+    return entities
 
 
 @asynccontextmanager

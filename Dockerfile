@@ -32,11 +32,13 @@ RUN uv pip install \
     https://huggingface.co/0xhikae/pleno_anonymize_ja/resolve/main/pleno_anonymize_ja-0.2.0-py3-none-any.whl \
     https://huggingface.co/0xhikae/pleno_anonymize_en/resolve/main/pleno_anonymize_en-0.2.1-py3-none-any.whl
 
-# Pre-download APPI ONNX model into HF cache so the first /api/analyze?engine=appi
-# request doesn't block on a network fetch.
+# Pre-download APPI ONNX model files into HF cache so the first
+# /api/analyze?engine=appi request doesn't block on a network fetch.
+# Only download the quantized ONNX model and tokenizer files (~170MB total).
 RUN uv run --no-sync python -c "\
-from huggingface_hub import snapshot_download; \
-snapshot_download('0xhikae/ja-ner-appi-v1-onnx'); \
+from huggingface_hub import hf_hub_download; \
+repo = '0xhikae/ja-ner-appi-v1-onnx'; \
+[hf_hub_download(repo, f) for f in ['model_quantized.onnx', 'config.json', 'tokenizer.json', 'tokenizer_config.json', 'special_tokens_map.json', 'spm.model']]; \
 print('APPI ONNX model cached')"
 
 # Build-time smoke test surfaces model-load failures at image build instead of
