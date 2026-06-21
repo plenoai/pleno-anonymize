@@ -235,6 +235,15 @@ _OPENAI_PF_TYPE_MAP = {
 }
 
 
+# Quantized INT8 ONNX export (~1.6 GB). The fp32 model is 2.8 GB safetensors —
+# loading via torch would also pull in PyTorch (~1 GB) and likely push the fly
+# rootfs past its 8 GB limit (see Dockerfile #177 rollback comment). The
+# openai/privacy-filter repo ships quantized ONNX under `onnx/`, so we mirror
+# the appi engine pattern (onnxruntime + transformers tokenizer, no torch).
+_OPENAI_PF_ONNX_FILE = "onnx/model_quantized.onnx"
+_OPENAI_PF_ONNX_DATA = "onnx/model_quantized.onnx_data"
+
+
 def _get_openai_pf_pipeline():
     global _openai_pf_pipeline
     if _openai_pf_pipeline is not None:
@@ -242,52 +251,104 @@ def _get_openai_pf_pipeline():
     with _openai_pf_lock:
         if _openai_pf_pipeline is not None:
             return _openai_pf_pipeline
-        from transformers import (
-            AutoModelForTokenClassification,
-            AutoTokenizer,
-            pipeline,
-        )
+        import onnxruntime as ort
+        from huggingface_hub import hf_hub_download
+        from transformers import AutoConfig, AutoTokenizer
 
+        # External-data ONNX: model.onnx is a small graph header that references
+        # weights stored in the sibling `.onnx_data` blob. Both must sit in the
+        # same directory, which hf_hub_download guarantees by caching by repo +
+        # path. Fetch the data file first so the loader sees it on first open.
+        hf_hub_download(_OPENAI_PF_MODEL_ID, filename=_OPENAI_PF_ONNX_DATA)
+        model_path = hf_hub_download(_OPENAI_PF_MODEL_ID, filename=_OPENAI_PF_ONNX_FILE)
+        session = ort.InferenceSession(model_path, providers=["CPUExecutionProvider"])
         tokenizer = AutoTokenizer.from_pretrained(_OPENAI_PF_MODEL_ID)
-        model = AutoModelForTokenClassification.from_pretrained(_OPENAI_PF_MODEL_ID)
-        # aggregation_strategy="first": merge BIOES subword tags into full entity
-        # spans whose offsets correspond to the original text. Other strategies
-        # ("simple", "max", "average") drop sub-token alignment metadata needed
-        # for the playground's character-level highlight overlay.
-        _openai_pf_pipeline = pipeline(
-            task="token-classification",
-            model=model,
-            tokenizer=tokenizer,
-            aggregation_strategy="first",
-        )
+        config = AutoConfig.from_pretrained(_OPENAI_PF_MODEL_ID)
+        _openai_pf_pipeline = (session, tokenizer, config.id2label)
         return _openai_pf_pipeline
 
 
 def _analyze_openai_pf(text: str) -> list[dict]:
-    pipe = _get_openai_pf_pipeline()
-    raw = pipe(text)
-    out: list[dict] = []
-    for span in raw:
-        group = span.get("entity_group") or span.get("entity")
-        if not group or group == "O":
+    """Run openai/privacy-filter ONNX inference and aggregate BIOES tags.
+
+    The model emits BIOES-tagged subword predictions (`B-private_person`,
+    `I-private_person`, `E-private_person`, `S-private_email`, plus `O`).
+    We walk the predictions left-to-right and merge adjacent same-type tags
+    into character-offset spans aligned to the original text, matching the
+    shape `_analyze_appi` produces.
+    """
+    import numpy as np
+
+    session, tokenizer, id2label = _get_openai_pf_pipeline()
+    encoding = tokenizer(text, return_tensors="np", truncation=True, max_length=512)
+    inputs = {k: v for k, v in encoding.items() if k in {"input_ids", "attention_mask"}}
+    outputs = session.run(None, inputs)
+    logits = outputs[0][0]
+    preds = np.argmax(logits, axis=-1)
+    offsets = encoding.encodings[0].offsets
+
+    entities: list[dict] = []
+    current: dict | None = None
+
+    def _flush():
+        nonlocal current
+        if current is not None:
+            entities.append(current)
+            current = None
+
+    def _softmax_score(i: int) -> float:
+        # Stable softmax over a single row; safer than naive exp/sum when logits
+        # are large positive (quantized models can produce wide ranges).
+        row = logits[i]
+        m = float(np.max(row))
+        e = np.exp(row - m)
+        return float(np.max(e) / float(np.sum(e)))
+
+    for i, pred_id in enumerate(preds):
+        label = id2label.get(int(pred_id), "O")
+        start, end = offsets[i]
+        if start == end:
+            # Special tokens (CLS/SEP/PAD) have zero-width offsets — they
+            # cannot belong to any span and must not extend the current one.
+            _flush()
             continue
-        etype = _OPENAI_PF_TYPE_MAP.get(group, group.upper())
-        start = int(span["start"])
-        end = int(span["end"])
-        # Playground returns codepoint offsets elsewhere; the HF tokenizer here
-        # reports UTF-16-agnostic codepoint offsets too because Python str is
-        # codepoint-indexed. text[start:end] therefore preserves the original
-        # span exactly.
-        out.append(
-            {
+        if label == "O":
+            _flush()
+            continue
+
+        tag = label[:2] if len(label) >= 2 and label[1] == "-" else ""
+        etype_raw = label[2:] if tag else label
+        etype = _OPENAI_PF_TYPE_MAP.get(etype_raw, etype_raw.upper())
+
+        if tag in ("B-", "S-"):
+            _flush()
+            current = {
                 "entity_type": etype,
-                "start": start,
-                "end": end,
-                "score": float(span.get("score", 0.0)),
+                "start": int(start),
+                "end": int(end),
+                "score": _softmax_score(i),
                 "text": text[start:end],
             }
-        )
-    return out
+            if tag == "S-":
+                _flush()
+        elif (
+            tag in ("I-", "E-")
+            and current is not None
+            and current["entity_type"] == etype
+        ):
+            current["end"] = int(end)
+            current["text"] = text[current["start"] : end]
+            if tag == "E-":
+                _flush()
+        else:
+            # Mis-ordered tag (I-/E- without an open span, or same-position
+            # type switch). Drop the open span rather than extend it with a
+            # mismatched type — silent extension would leak the wrong label
+            # onto a subword boundary.
+            _flush()
+
+    _flush()
+    return entities
 
 
 @asynccontextmanager

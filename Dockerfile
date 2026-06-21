@@ -41,6 +41,18 @@ repo = '0xhikae/ja-ner-appi-v1-onnx'; \
 [hf_hub_download(repo, f) for f in ['model_quantized.onnx', 'config.json', 'tokenizer.json', 'tokenizer_config.json', 'special_tokens_map.json', 'spm.model']]; \
 print('APPI ONNX model cached')"
 
+# Pre-download OpenAI Privacy Filter quantized ONNX (~1.6GB) for the
+# /api/analyze?engine=openai-privacy-filter path. The .onnx file is a small
+# header that references weights in the sibling .onnx_data blob, so both must
+# land in the same cache directory; hf_hub_download handles that automatically.
+# Skipping this would force the first request to download 1.6GB inline, well
+# past any reasonable HTTP timeout.
+RUN uv run --no-sync python -c "\
+from huggingface_hub import hf_hub_download; \
+repo = 'openai/privacy-filter'; \
+[hf_hub_download(repo, f) for f in ['onnx/model_quantized.onnx', 'onnx/model_quantized.onnx_data', 'config.json', 'tokenizer.json', 'tokenizer_config.json']]; \
+print('OpenAI Privacy Filter ONNX cached')"
+
 # Build-time smoke test surfaces model-load failures at image build instead of
 # runtime. `--no-sync` is required: `uv run` defaults to re-syncing the
 # workspace, which would clobber the wheels we just installed.
