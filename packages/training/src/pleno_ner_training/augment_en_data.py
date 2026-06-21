@@ -205,45 +205,46 @@ SHORT_NAME_TEMPLATES = [
 
 def _build_doc(template: str, **kwargs) -> dict | None:
     """Build a document with proper entity offsets from a template."""
-    entities = []
-    remaining = template
+    import re
 
-    # Simple tag-based approach: replace {key} with value and track offsets
-
-    tag_map = {
-        "person": ("PERSON", kwargs.get("person", "")),
-        "dob": ("DATE_OF_BIRTH", kwargs.get("dob", "")),
-        "address": ("ADDRESS", kwargs.get("address", "")),
-        "org": ("ORGANIZATION", kwargs.get("org", "")),
-        "bank": ("BANK_ACCOUNT", kwargs.get("bank", "")),
+    tag_labels = {
+        "person": "PERSON",
+        "dob": "DATE_OF_BIRTH",
+        "address": "ADDRESS",
+        "org": "ORGANIZATION",
+        "bank": "BANK_ACCOUNT",
     }
 
-    # First pass: handle dob_prefix (not an entity)
+    # Handle non-entity prefix first (no offset tracking needed).
+    result = template
     if "dob_prefix" in kwargs:
-        remaining = remaining.replace("{dob_prefix}", kwargs["dob_prefix"])
+        result = result.replace("{dob_prefix}", kwargs["dob_prefix"])
 
-    # Build text with entity tracking
-    result = ""
-    for tag_name, (label, value) in tag_map.items():
-        placeholder = "{" + tag_name + "}"
-        if placeholder not in remaining:
-            continue
+    # Replace placeholders in template order so that a {bank} before {address}
+    # does not get swallowed into the pre-{address} prefix (the old dict-order
+    # bug dropped BANK_ACCOUNT from every BANK_TEMPLATES doc).
+    entities = []
+    for m in re.finditer(r"\{(\w+)\}", result):
+        key = m.group(1)
+        value = kwargs.get(key, "")
         if not value:
             continue
-        parts = remaining.split(placeholder, 1)
-        result += parts[0]
-        start = len(result)
-        result += value
-        end = len(result)
-        entities.append({
-            "start": start,
-            "end": end,
-            "label": label,
-            "text": value,
-        })
-        remaining = parts[1] if len(parts) > 1 else ""
+        placeholder = m.group(0)
+        pos = result.find(placeholder)
+        if pos == -1:
+            continue
+        result = result[:pos] + value + result[pos + len(placeholder):]
+        label = tag_labels.get(key)
+        if label:
+            entities.append({
+                "start": pos,
+                "end": pos + len(value),
+                "label": label,
+                "text": value,
+            })
 
-    result += remaining
+    # Strip any remaining unfilled placeholders.
+    result = re.sub(r"\{\w+\}", "", result)
 
     if not entities:
         return None

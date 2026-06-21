@@ -44,8 +44,10 @@ JA_MY_NUMBER = PiiRecognizer(
     entity="MY_NUMBER",
     language="ja",
     patterns=(
-        PiiPattern("my_number_spaced", r"\b\d{4}[ 　\-]\d{4}[ 　\-]\d{4}\b", 0.5),
-        PiiPattern("my_number_continuous", r"\b\d{12}\b", 0.3),
+        PiiPattern(
+            "my_number_spaced", r"(?<!\d)\d{4}[ 　\-]\d{4}[ 　\-]\d{4}(?!\d)", 0.5
+        ),
+        PiiPattern("my_number_continuous", r"(?<!\d)\d{12}(?!\d)", 0.3),
     ),
     context=("マイナンバー", "個人番号", "my number", "通知カード"),
 )
@@ -57,12 +59,12 @@ JA_CREDIT_CARD = PiiRecognizer(
     patterns=(
         PiiPattern(
             "credit_card_dashed",
-            r"\b\d{4}[ 　\-]\d{4}[ 　\-]\d{4}[ 　\-]\d{4}\b",
+            r"(?<!\d)\d{4}[ 　\-]\d{4}[ 　\-]\d{4}[ 　\-]\d{4}(?!\d)",
             0.6,
         ),
         PiiPattern(
             "credit_card_continuous",
-            r"\b(?:4\d{3}|5[1-5]\d{2}|3[47]\d{2}|6(?:011|5\d{2}))\d{8,12}\b",
+            r"(?<!\d)(?:4\d{3}|5[1-5]\d{2}|3[47]\d{2}|6(?:011|5\d{2}))\d{8,12}(?!\d)",
             0.5,
         ),
     ),
@@ -73,7 +75,11 @@ JA_CREDIT_CARD = PiiRecognizer(
 JA_PASSPORT = PiiRecognizer(
     entity="PASSPORT",
     language="ja",
-    patterns=(PiiPattern("ja_passport", r"\b[A-Z]{2}\d{7}\b", 0.4),),
+    patterns=(
+        PiiPattern(
+            "ja_passport", r"(?<![A-Za-z])(?-i:[A-Z]{2})\d{7}(?![A-Za-z0-9])", 0.4
+        ),
+    ),
     context=("パスポート", "旅券", "passport", "旅券番号"),
 )
 
@@ -81,7 +87,7 @@ JA_PASSPORT = PiiRecognizer(
 JA_DRIVER_LICENSE = PiiRecognizer(
     entity="DRIVER_LICENSE",
     language="ja",
-    patterns=(PiiPattern("ja_driver_license", r"\b\d{12}\b", 0.2),),
+    patterns=(PiiPattern("ja_driver_license", r"(?<!\d)\d{12}(?!\d)", 0.2),),
     context=("運転免許", "免許証", "免許番号", "driver license"),
 )
 
@@ -92,7 +98,7 @@ JA_IP_ADDRESS = PiiRecognizer(
     patterns=(
         PiiPattern(
             "ipv4",
-            r"\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b",
+            r"(?<!\d)(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)(?!\d)",
             0.6,
         ),
     ),
@@ -106,7 +112,7 @@ JA_EMAIL = PiiRecognizer(
     patterns=(
         PiiPattern(
             "email",
-            r"\b[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b",
+            r"(?<![a-zA-Z0-9._%+\-])[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}(?![a-zA-Z])",
             0.9,
         ),
     ),
@@ -120,10 +126,10 @@ JA_CORPORATE_NUMBER = PiiRecognizer(
     patterns=(
         PiiPattern(
             "corporate_number_spaced",
-            r"\b\d[ 　\-]\d{4}[ 　\-]\d{4}[ 　\-]\d{4}\b",
+            r"(?<!\d)\d[ 　\-]\d{4}[ 　\-]\d{4}[ 　\-]\d{4}(?!\d)",
             0.5,
         ),
-        PiiPattern("corporate_number_continuous", r"\b\d{13}\b", 0.3),
+        PiiPattern("corporate_number_continuous", r"(?<!\d)\d{13}(?!\d)", 0.3),
     ),
     context=("法人番号", "法人マイナンバー", "corporate number"),
 )
@@ -133,7 +139,7 @@ JA_HEALTH_INSURANCE = PiiRecognizer(
     entity="HEALTH_INSURANCE",
     language="ja",
     patterns=(
-        PiiPattern("insurer_number", r"\b\d{8}\b", 0.1),
+        PiiPattern("insurer_number", r"(?<!\d)\d{8}(?!\d)", 0.1),
         PiiPattern(
             "insurance_symbol_number",
             r"記号[ 　]*\d{1,6}[ 　]*番号[ 　]*\d{1,7}",
@@ -155,7 +161,13 @@ JA_HEALTH_INSURANCE = PiiRecognizer(
 JA_RESIDENCE_CARD = PiiRecognizer(
     entity="RESIDENCE_CARD",
     language="ja",
-    patterns=(PiiPattern("residence_card", r"\b[A-Z]{2}\d{8}[A-Z]{2}\b", 0.6),),
+    patterns=(
+        PiiPattern(
+            "residence_card",
+            r"(?<![A-Za-z])(?-i:[A-Z]{2}\d{8}[A-Z]{2})(?![A-Za-z])",
+            0.6,
+        ),
+    ),
     context=("在留カード", "在留番号", "residence card", "在留資格"),
 )
 
@@ -165,7 +177,7 @@ JA_POSTAL_CODE = PiiRecognizer(
     language="ja",
     patterns=(
         PiiPattern("postal_code_with_symbol", r"〒\d{3}[‐\-ー]\d{4}", 0.9),
-        PiiPattern("postal_code_half", r"\b\d{3}[‐\-ー]\d{4}\b", 0.3),
+        PiiPattern("postal_code_half", r"(?<!\d)\d{3}[‐\-ー]\d{4}(?![‐\-ー\d])", 0.3),
         PiiPattern("postal_code_fullwidth", r"〒[０-９]{3}[‐\-ー－−][０-９]{4}", 0.9),
     ),
     context=("郵便番号", "〒", "zip", "postal"),
@@ -177,6 +189,38 @@ JA_URL = PiiRecognizer(
     language="ja",
     patterns=(PiiPattern("url_with_scheme", r"https?://[^\s<>\"']+", 0.8),),
     context=("URL", "リンク", "サイト", "ホームページ"),
+)
+
+# --- 生年月日 (DATE_OF_BIRTH) ---
+JA_DATE_OF_BIRTH = PiiRecognizer(
+    entity="DATE_OF_BIRTH",
+    language="ja",
+    patterns=(
+        PiiPattern(
+            "ja_dob_jp_era",
+            r"(?<!\d)(?:昭和|平成|令和)(?:\d{1,2}|元)年\d{1,2}月\d{1,2}日(?!\d)",
+            0.8,
+        ),
+        PiiPattern(
+            "ja_dob_western_year",
+            r"(?<!\d)\d{4}年\d{1,2}月\d{1,2}日(?!\d)",
+            0.4,
+        ),
+        PiiPattern(
+            "ja_dob_slash",
+            r"(?<!\d)\d{4}[/／]\d{1,2}[/／]\d{1,2}(?!\d)",
+            0.3,
+        ),
+    ),
+    context=(
+        "生年月日",
+        "誕生日",
+        "生まれ",
+        "birthday",
+        "birth date",
+        "date of birth",
+        "生年月",
+    ),
 )
 
 # --- 銀行口座 (BANK_ACCOUNT) ---
@@ -312,6 +356,7 @@ ALL_JA_RECOGNIZERS: tuple[PiiRecognizer, ...] = (
     JA_RESIDENCE_CARD,
     JA_POSTAL_CODE,
     JA_URL,
+    JA_DATE_OF_BIRTH,
     JA_BANK_ACCOUNT,
     JA_PERSON_LATIN,
 )

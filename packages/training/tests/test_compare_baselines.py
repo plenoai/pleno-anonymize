@@ -738,3 +738,82 @@ def test_build_measurement_rows_emits_exact_span_tp_fp_fn() -> None:
             "fn": 1,
         }
     ]
+
+
+# ============================================================================
+# Regression: cross-doc span pooling (#217)
+# ============================================================================
+
+
+def test_no_cross_doc_span_matching_in_build_template_rows() -> None:
+    """Regression for #217: spans must be matched within each document.
+
+    Two docs share template "t1".  Both have a gold ORGANIZATION span at
+    (0, 4).  Only doc-0 has a matching prediction at (0, 4); doc-1 has no
+    prediction.  Before the fix, pooling collapsed both gold spans into one
+    set entry (deduplication) and matched the single prediction against the
+    deduplicated set, yielding TP=1, FN=0 (recall=1.0).  Correct per-doc
+    accounting gives TP=1, FN=1 (recall=0.5).
+    """
+    predictions_by_variant = {
+        "custom_a": [
+            {
+                "doc_idx": 0,
+                "template": "t1",
+                "predictions": [(0, 4, "ORGANIZATION", None, 0)],
+                "gold": [(0, 4, "ORGANIZATION")],
+            },
+            {
+                "doc_idx": 1,
+                "template": "t1",
+                "predictions": [],
+                "gold": [(0, 4, "ORGANIZATION")],
+            },
+        ]
+    }
+    specs = _stub_specs({"custom_a": False})
+    rows = cb._build_measurement_rows(predictions_by_variant, specs)
+    org_rows = [r for r in rows if r["entity"] == "ORGANIZATION"]
+    assert len(org_rows) == 1
+    r = org_rows[0]
+    # Per-doc: doc-0 → tp=1, fn=0; doc-1 → tp=0, fn=1.  Aggregated: tp=1, fp=0, fn=1.
+    assert r["tp"] == 1, f"expected tp=1, got {r['tp']}"
+    assert r["fp"] == 0, f"expected fp=0, got {r['fp']}"
+    assert r["fn"] == 1, f"expected fn=1, got {r['fn']}"
+
+
+def test_no_cross_doc_span_matching_in_aggregate_recall() -> None:
+    """Regression for #217: _aggregate_recall must not inflate recall via cross-doc matching.
+
+    Two docs share template "t1".  Each doc has 5 gold ORGANIZATION spans at
+    the same offsets (0,4), (4,8), (8,12), (12,16), (16,20).  Only doc-0 has
+    matching predictions; doc-1 has none.
+
+    Before the fix, pooling the two docs' gold spans into a set collapsed all
+    duplicates down to 5 unique offsets, and the 5 predictions from doc-0
+    matched all 5, giving recall=1.0.  Correct per-doc accounting:
+      doc-0: TP=5, FN=0
+      doc-1: TP=0, FN=5
+    aggregated TP=5, FN=5 → recall=0.5.
+    """
+    offsets = [(i * 4, i * 4 + 4, "ORGANIZATION") for i in range(5)]
+    rows_by_template: dict[str, dict] = {
+        "t1": {
+            "docs": [
+                {
+                    "pred_spans": list(offsets),
+                    "gold_spans": list(offsets),
+                },
+                {
+                    "pred_spans": [],
+                    "gold_spans": list(offsets),
+                },
+            ]
+        }
+    }
+    result = cb._aggregate_recall(rows_by_template, "ORGANIZATION")
+    assert "t1" in result
+    recall = result["t1"]
+    assert recall is not None, "expected a numeric recall (total_gold=10 >= MIN_SPANS=5)"
+    # TP=5, FN=5 → 0.5
+    assert abs(recall - 0.5) < 1e-9, f"expected recall=0.5, got {recall}"

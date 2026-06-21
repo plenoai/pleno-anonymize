@@ -21,7 +21,7 @@ Usage:
         --output ../../output/pii-300k-eval.json
 
 Requires:
-    pip install "pleno-anonymize[openai]" datasets
+    pip install pleno-anonymize 'opf @ git+https://github.com/openai/privacy-filter@main' datasets
 """
 
 from __future__ import annotations

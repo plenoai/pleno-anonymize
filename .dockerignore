@@ -5,6 +5,10 @@ docs
 flake.nix
 flake.lock
 .gitmodules
+.env
+.env.*
+.venv
+website/
 # packages/training is needed (recognizers_ja.py + workspace pyproject), but
 # heavy data / outputs / artifacts are excluded to keep image small.
 packages/training/data
@@ -17,3 +21,6 @@ packages/training/CHANGELOG.md
 packages/training/__pycache__
 packages/training/**/__pycache__
 packages/models/pleno_anonymize_ja-0.2.0/pleno_anonymize_ja/__pycache__
+# Local model build artifacts — wheels are fetched from HF at build time;
+# local copies would only bloat the Docker build context (#226 item 7).
+packages/models/

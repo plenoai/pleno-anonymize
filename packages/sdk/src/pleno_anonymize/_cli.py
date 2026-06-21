@@ -125,7 +125,7 @@ def _add_engine_args(p: argparse.ArgumentParser, *, include_io: bool) -> None:
         help=(
             "detection backend (default: builtin = Presidio + spaCy NER). "
             "openai-privacy-filter uses the open-source OPF model "
-            "(requires `pip install pleno-anonymize[openai]`)"
+            "(requires: pip install 'opf @ git+https://github.com/openai/privacy-filter@main')"
         ),
     )
     p.add_argument(

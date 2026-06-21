@@ -238,7 +238,8 @@ def _collect(
 
 
 def _ext_match(path: Path, allow: frozenset[str]) -> bool:
-    ext = path.suffix.lower()
+    # suffix is "" for dotfiles (e.g. .env); fall back to name for those
+    ext = path.suffix.lower() or path.name.lower()
     return ext in allow
 
 
@@ -288,13 +289,31 @@ def _scan_one(
     try:
         text = chunk.decode("utf-8")
     except UnicodeDecodeError:
-        return FileScanResult(
-            path=display,
-            bytes=size,
-            language=language,
-            truncated=truncated,
-            skipped="binary",
-        )
+        if truncated:
+            # Truncation may have split a multibyte sequence (UTF-8 chars are ≤4 bytes).
+            # Strip up to 3 trailing bytes and retry before declaring binary.
+            for _trim in range(1, 4):
+                try:
+                    text = chunk[:-_trim].decode("utf-8")
+                    break
+                except UnicodeDecodeError:
+                    continue
+            else:
+                return FileScanResult(
+                    path=display,
+                    bytes=size,
+                    language=language,
+                    truncated=truncated,
+                    skipped="binary",
+                )
+        else:
+            return FileScanResult(
+                path=display,
+                bytes=size,
+                language=language,
+                truncated=truncated,
+                skipped="binary",
+            )
     if not text.strip():
         return FileScanResult(
             path=display,

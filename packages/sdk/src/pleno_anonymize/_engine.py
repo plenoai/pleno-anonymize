@@ -74,7 +74,7 @@ def PlenoAnonymize(  # noqa: N802 - factory disguised as a class for ergonomics
 
     ``engine="openai-privacy-filter"``: :class:`OpfEngine` running the
     open-source `openai/privacy-filter` checkpoint via the `opf` package.
-    Requires the ``[openai]`` extra; the model auto-downloads on first call.
+    Requires the ``opf`` package (install separately; see _opf.py for instructions).
 
     Pass ``base_url`` (e.g. ``"https://pleno-anonymize.fly.dev"``) to
     instead use a hosted server via HTTP. The remote engine takes

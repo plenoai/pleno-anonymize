@@ -138,19 +138,39 @@ const Header = memo(function Header() {
   );
 });
 
+// Build a mapping from Unicode codepoint index → UTF-16 code-unit index.
+// The server returns Python (codepoint) offsets; JS String.slice uses UTF-16 units.
+// Astral chars (emoji, some CJK) are 1 codepoint but 2 UTF-16 units, so a direct
+// slice with server offsets would misalign highlights for any text containing them.
+function buildCpToUtf16Map(text: string): number[] {
+  const map: number[] = [0];
+  let u = 0;
+  for (const cp of text) {
+    u += cp.length;
+    map.push(u);
+  }
+  return map;
+}
+
 function buildHighlightedText(text: string, entities: AnalyzeResult[]) {
   if (entities.length === 0) return [{ text, type: null as string | null, score: 0 }];
+
+  const cpMap = buildCpToUtf16Map(text);
+  const toU16 = (cp: number) => cpMap[cp] ?? text.length;
 
   const sorted = [...entities].sort((a, b) => a.start - b.start);
   const segments: { text: string; type: string | null; score: number }[] = [];
   let cursor = 0;
 
   for (const entity of sorted) {
-    if (entity.start > cursor) {
-      segments.push({ text: text.slice(cursor, entity.start), type: null, score: 0 });
+    const start = toU16(entity.start);
+    const end = toU16(entity.end);
+    if (end <= cursor) continue;
+    if (start > cursor) {
+      segments.push({ text: text.slice(cursor, start), type: null, score: 0 });
     }
-    segments.push({ text: text.slice(entity.start, entity.end), type: entity.entity_type, score: entity.score });
-    cursor = entity.end;
+    segments.push({ text: text.slice(start, end), type: entity.entity_type, score: entity.score });
+    cursor = end;
   }
   if (cursor < text.length) {
     segments.push({ text: text.slice(cursor), type: null, score: 0 });
@@ -238,6 +258,10 @@ export default function PlaygroundPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scanInterval = useRef<ReturnType<typeof setInterval>>();
 
+  useEffect(() => {
+    return () => clearInterval(scanInterval.current);
+  }, []);
+
   const resetResults = useCallback(() => {
     dispatch({ type: 'RESET_RESULTS' });
   }, []);
@@ -259,13 +283,17 @@ export default function PlaygroundPage() {
         if (!res.ok) throw new Error(`API error: ${res.status}`);
         dispatch({ type: 'ANALYZE_SUCCESS', payload: { entities: await res.json() } });
       } else {
-        const [redactRes, analyzeRes] = await Promise.all([
+        const [redactResult, analyzeResult] = await Promise.allSettled([
           fetch(`${API_BASE}/api/redact`, { method: 'POST', headers, body }),
           fetch(`${API_BASE}/api/analyze`, { method: 'POST', headers, body }),
         ]);
-        if (!redactRes.ok) throw new Error(`API error: ${redactRes.status}`);
-        const redacted = (await redactRes.json() as RedactResult).text;
-        const analyzedEntities = analyzeRes.ok ? await analyzeRes.json() : [];
+        if (redactResult.status === 'rejected') throw new Error('Network error');
+        if (!redactResult.value.ok) throw new Error(`API error: ${redactResult.value.status}`);
+        const redacted = (await redactResult.value.json() as RedactResult).text;
+        const analyzedEntities =
+          analyzeResult.status === 'fulfilled' && analyzeResult.value.ok
+            ? await analyzeResult.value.json()
+            : [];
         dispatch({ type: 'REDACT_SUCCESS', payload: { redactedText: redacted, entities: analyzedEntities } });
       }
     } catch (e) {
@@ -279,9 +307,10 @@ export default function PlaygroundPage() {
 
   const handleCopy = useCallback(() => {
     const text = mode === 'redact' && redactedText ? redactedText : JSON.stringify(entities, null, 2);
-    navigator.clipboard.writeText(text);
-    dispatch({ type: 'SET_COPIED', payload: true });
-    setTimeout(() => dispatch({ type: 'SET_COPIED', payload: false }), 2000);
+    navigator.clipboard.writeText(text).then(() => {
+      dispatch({ type: 'SET_COPIED', payload: true });
+      setTimeout(() => dispatch({ type: 'SET_COPIED', payload: false }), 2000);
+    }).catch(() => {});
   }, [mode, redactedText, entities]);
 
   const segments = useMemo(

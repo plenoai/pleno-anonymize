@@ -154,9 +154,16 @@ def score(rows, iou_thr, gold_filter=None):
     for r in rows:
         gold = [(s, e, l) for s, e, l in r["gold"]
                 if gold_filter is None or l in gold_filter]
+        # Filter pred to the same label subset so that correct non-PII predictions
+        # from baseline models are not counted as FPs in the pii-subset protocol.
+        pred = r["pred"] if gold_filter is None else [
+            p for p in r["pred"] if p[2] in gold_filter
+        ]
         if not gold:
+            # Doc has no PII-gold but may have PII predictions — those are FPs.
+            if pred:
+                per_doc.append((0, len(pred), 0))
             continue
-        pred = r["pred"]
         matched = set(); tp = fn = 0
         for g_s, g_e, _ in gold:
             best_i, best_iou = -1, 0.0

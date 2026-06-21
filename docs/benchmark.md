@@ -1,6 +1,6 @@
 # Backend Comparison on ai4privacy/pii-masking-300k
 
-**Last updated:** 2026-05-12
+**Last updated:** 2026-06-20
 **Authors:** pleno-anonymize team
 **Status:** Initial release. Sample size will grow as additional runs land
 (see [§7](#7-reproducibility)).
@@ -138,18 +138,22 @@ documents, single-threaded, no batching. Cold model load is excluded
 
 ### 4.3 Hardware
 
-| Component | Spec |
-|---|---|
-| CPU | Apple M-series, 12 cores |
-| RAM | 64 GB |
-| GPU | None (deliberately — establishes the CPU-only floor) |
-| OS | macOS 25.3 (Darwin) |
-| Python | 3.12.8 |
-| PyTorch | 2.11.0 (CPU build) |
+Two hardware configurations are reported. Machine A is the original
+CPU-only baseline; Machine B adds the Apple MPS (Metal Performance
+Shaders) GPU measurement.
 
-GPU numbers are interpolated from the OPF model card claim of ≈30 ms/doc
-on a single A100 [\[1\]](#references); we have not measured them
-ourselves and flag this as future work.
+| Component | Machine A | Machine B |
+|---|---|---|
+| CPU | Apple M-series, 12 cores | Apple M3, 8P+2E cores |
+| RAM | 64 GB | 24 GB |
+| GPU | None (CPU-only floor) | Apple M3, 10-core GPU (Metal 4) |
+| OS | macOS 25.3 (Darwin) | macOS 26.3 (Darwin) |
+| Python | 3.12.8 | 3.12.8 |
+| PyTorch | 2.11.0 (CPU build) | 2.12.0 (MPS-capable) |
+
+CUDA GPU numbers are interpolated from the OPF model card claim of
+≈30 ms/doc on a single A100 [\[1\]](#references); we have not measured
+them ourselves and flag this as future work.
 
 ## 5. Results
 
@@ -176,6 +180,36 @@ in-house EN NER simply does not cover the dataset's vocabulary. The
 latency gap (≈200× at n = 300, partly inflated by `builtin` running
 warmer on the larger sample) remains qualitatively the same: OPF runs a
 1.5B-parameter transformer per call.
+
+### 5.1a Apple MPS (Metal) latency (English, τ = 0.5, Machine B)
+
+To evaluate whether Apple's Metal Performance Shaders backend can
+accelerate OPF on Apple Silicon, we measured OPF on Machine B with
+`--opf-device mps` and `--opf-device cpu` in sequential (non-concurrent)
+runs. OPF's MoE layer requires Triton kernels for GPU-optimized
+inference; Triton is unavailable on macOS, so MPS falls back to a
+pure-PyTorch codepath (`OPF_MOE_TRITON=0`).
+
+| Device | Precision | Recall | F1 | Latency / doc | n |
+|---|---:|---:|---:|---:|---:|
+| CPU (Machine B) | 0.904 | 0.747 | 0.818 | **1,151 ms** | 300 |
+| MPS (Machine B) | 0.904 | 0.748 | 0.818 | 1,848 ms | 300 |
+
+**CPU is 38 % faster than MPS on this workload.** Quality metrics are
+identical (deterministic model, same checkpoint). The MPS slowdown is
+attributed to three factors: (i) the pure-PyTorch MoE fallback performs
+many small per-expert matrix multiplications that do not amortize MPS
+kernel launch overhead; (ii) the Viterbi CRF decoder runs sequentially
+on CPU for non-CUDA devices, introducing MPS→CPU synchronization stalls;
+(iii) Apple M3 CPU cores are fast enough at bf16 matmuls that the
+overhead of dispatching to MPS exceeds the compute benefit for this model
+shape.
+
+MPS is therefore **not supported** as a device option. The operational
+recommendation for macOS is `--opf-device cpu` (the default on non-CUDA
+machines). MPS may become viable if OPF upstream ships a Metal-native or
+fused MoE kernel, or if a future PyTorch version improves MPS dispatch
+overhead for sparse workloads.
 
 ### 5.4 Sample-size sensitivity
 
@@ -254,15 +288,23 @@ artifact of taxonomy mismatch.
 
 ### 6.2 Latency-quality tradeoff
 
-OPF's 2.2 s/doc on CPU is incompatible with interactive workloads (the
-LLM proxy budgets <100 ms for preprocessing). The model card reports
-≈30 ms on a single A100 GPU, which would close the gap entirely; we
-defer the empirical GPU number to a follow-up that runs on a RunPod A100
-or H100 pod. Until that lands, the operational recommendation is:
+OPF's 1.2–2.2 s/doc on CPU (hardware-dependent) is incompatible with
+interactive workloads (the LLM proxy budgets <100 ms for preprocessing).
+The model card reports ≈30 ms on a single A100 GPU, which would close
+the gap entirely; we defer the empirical CUDA GPU number to a follow-up
+that runs on a RunPod A100 or H100 pod.
+
+**Apple MPS does not help.** On Apple M3, MPS is 38 % slower than CPU
+(§5.1a). The root cause is OPF's 128-expert sparse MoE architecture: the
+Triton-optimized kernel is unavailable on macOS, and the pure-PyTorch
+fallback generates many small per-expert matmuls that do not amortize MPS
+dispatch overhead. MPS is not offered as a device option. Until CUDA GPU
+inference is on the operational menu, the
+recommendation is:
 
 * **Latency-bound traffic (Japanese proxy hot path, default):** `builtin`
 * **Accuracy-bound traffic (English-heavy, batch redaction, audit logs):**
-  `openai-privacy-filter`
+  `openai-privacy-filter` (CPU)
 * **Secret detection (API keys, credentials):** `openai-privacy-filter`
   is currently the only path — `builtin` has no `SECRET` class.
 
@@ -292,8 +334,8 @@ or H100 pod. Until that lands, the operational recommendation is:
   should degrade more gracefully.
 * **No batching.** OPF supports batched inference; our latency numbers
   are the worst-case single-call regime.
-* **CPU-only.** GPU latency is interpolated from the OPF model card, not
-  measured.
+* **No CUDA GPU.** CUDA latency is interpolated from the OPF model card,
+  not measured. Apple MPS was measured but is slower than CPU (§5.1a).
 * **No fine-tuning.** OPF supports task-specific fine-tuning; we
   evaluate the off-the-shelf checkpoint. A fine-tune on JP-first data
   could close the language gap and is in scope for follow-up work.

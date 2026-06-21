@@ -1,4 +1,5 @@
 import asyncio
+import itertools
 import logging
 import os
 import json
@@ -7,6 +8,7 @@ import binascii
 import io
 import ipaddress
 import socket
+import threading
 import time
 import uuid
 from urllib.parse import urlsplit
@@ -44,53 +46,67 @@ _nlp_en = None
 _analyzer = None
 _anonymizer = None
 _image_redactor = None
+_init_lock = threading.Lock()
 
 
 def _init_presidio():
     """Lazy initialization of Presidio components."""
-    global _nlp_ja, _nlp_en, _analyzer, _anonymizer, _image_redactor
+    global _nlp_ja, _nlp_en, _analyzer, _anonymizer
 
     if _analyzer is not None:
         return
 
-    import spacy
-    from presidio_analyzer import AnalyzerEngine
-    from presidio_analyzer.nlp_engine import SpacyNlpEngine
-    from presidio_anonymizer import AnonymizerEngine
-    from pleno_anonymize.recognizers.presidio_adapter import all_ja_presidio
+    with _init_lock:
+        if (
+            _analyzer is not None
+        ):  # double-checked: another thread may have won the race
+            return
 
-    class MultiLangSpacyNlpEngine(SpacyNlpEngine):
-        def __init__(self, models: dict):
-            super().__init__()
-            self.nlp = models
+        import spacy
+        from presidio_analyzer import AnalyzerEngine
+        from presidio_analyzer.nlp_engine import SpacyNlpEngine
+        from presidio_anonymizer import AnonymizerEngine
+        from pleno_anonymize.recognizers.presidio_adapter import all_ja_presidio
 
-    # Models are installed as Python packages from HF wheels (see Dockerfile);
-    # resolve via spaCy entry_point lookup, not filesystem path.
-    _nlp_ja = spacy.load("pleno_anonymize_ja")
+        class MultiLangSpacyNlpEngine(SpacyNlpEngine):
+            def __init__(self, models: dict):
+                super().__init__()
+                self.nlp = models
 
-    try:
-        _nlp_en = spacy.load("pleno_anonymize_en")
-    except OSError:
-        _nlp_en = None
+        # Models are installed as Python packages from HF wheels (see Dockerfile);
+        # resolve via spaCy entry_point lookup, not filesystem path.
+        nlp_ja = spacy.load("pleno_anonymize_ja")
 
-    models = {"ja": _nlp_ja}
-    if _nlp_en is not None:
-        models["en"] = _nlp_en
+        try:
+            nlp_en = spacy.load("pleno_anonymize_en")
+        except OSError:
+            nlp_en = None
 
-    supported_languages = list(models.keys())
-    engine = MultiLangSpacyNlpEngine(models)
-    _analyzer = AnalyzerEngine(
-        nlp_engine=engine,
-        supported_languages=supported_languages,
-    )
+        models = {"ja": nlp_ja}
+        if nlp_en is not None:
+            models["en"] = nlp_en
 
-    for recognizer in all_ja_presidio():
-        _analyzer.registry.add_recognizer(recognizer)
+        supported_languages = list(models.keys())
+        engine = MultiLangSpacyNlpEngine(models)
+        analyzer = AnalyzerEngine(
+            nlp_engine=engine,
+            supported_languages=supported_languages,
+        )
 
-    if "en" in supported_languages:
-        _analyzer.registry.load_predefined_recognizers(languages=["en"])
+        for recognizer in all_ja_presidio():
+            analyzer.registry.add_recognizer(recognizer)
 
-    _anonymizer = AnonymizerEngine()
+        if "en" in supported_languages:
+            analyzer.registry.load_predefined_recognizers(languages=["en"])
+
+        anonymizer = AnonymizerEngine()
+
+        # Assign module globals only after fully configured so concurrent
+        # get_analyzer() callers never observe a partially-initialised engine.
+        _nlp_ja = nlp_ja
+        _nlp_en = nlp_en
+        _anonymizer = anonymizer
+        _analyzer = analyzer  # publish last — acts as the visibility fence
 
 
 def get_analyzer():
@@ -346,7 +362,9 @@ async def redact(req: RedactRequest):
     The response will contain a redacted image with PII blacked out.
     """
     if not req.text and not req.image:
-        return {"error": "Either 'text' or 'image' must be provided"}
+        raise HTTPException(
+            status_code=400, detail="Either 'text' or 'image' must be provided"
+        )
 
     result = {}
 
@@ -422,6 +440,8 @@ async def redact(req: RedactRequest):
         elif "webp" in mime_type:
             fmt = "WEBP"
 
+        if fmt == "JPEG" and redacted_img.mode in ("RGBA", "P", "LA"):
+            redacted_img = redacted_img.convert("RGB")
         redacted_img.save(output_buffer, format=fmt)
         output_buffer.seek(0)
         encoded = base64.b64encode(output_buffer.read()).decode("utf-8")
@@ -437,10 +457,28 @@ GEMINI_API_BASE = os.getenv(
 )
 
 
+_placeholder_counter: itertools.count = itertools.count(0)
+
+
+def _detect_language(text: str) -> str:
+    """Heuristic: return 'ja' when Japanese script characters are present, else 'en'."""
+    for ch in text:
+        cp = ord(ch)
+        if (
+            0x3040 <= cp <= 0x30FF  # Hiragana + Katakana
+            or 0x4E00 <= cp <= 0x9FFF  # CJK Unified Ideographs (basic)
+            or 0x3400 <= cp <= 0x4DBF  # CJK Extension A
+        ):
+            return "ja"
+    return "en"
+
+
 def redact_text_with_mapping(
-    text: str, language: str = "en"
+    text: str, language: str | None = None
 ) -> Tuple[str, Dict[str, str]]:
     """Redact PII from text and return mapping for de-anonymization."""
+    if language is None:
+        language = _detect_language(text)
     results = _cached_analyze(text=text, language=language)
 
     # Sort by start position descending to replace from end
@@ -451,7 +489,12 @@ def redact_text_with_mapping(
 
     for r in results_sorted:
         original = text[r.start : r.end]
-        placeholder = f"<{r.entity_type}_{r.start}>"
+        # Use a global counter so placeholders are unique across all texts in
+        # a single proxy request.  A key of (entity_type, offset) collides when
+        # two different messages contain the same entity type at the same byte
+        # offset, causing combined_mapping.update() to silently overwrite the
+        # first value and restore the wrong PII in the response.
+        placeholder = f"<{r.entity_type}_{next(_placeholder_counter)}>"
         mapping[placeholder] = original
         redacted_text = redacted_text[: r.start] + placeholder + redacted_text[r.end :]
 
@@ -464,6 +507,33 @@ def deanonymize_text(text: str, mapping: Dict[str, str]) -> str:
     for placeholder, original in mapping.items():
         result = result.replace(placeholder, original)
     return result
+
+
+_HOP_BY_HOP_HEADERS = frozenset(
+    [
+        "content-length",
+        "content-encoding",
+        "transfer-encoding",
+        "connection",
+        "keep-alive",
+        "proxy-authenticate",
+        "proxy-authorization",
+        "te",
+        "trailers",
+        "upgrade",
+    ]
+)
+
+
+def _safe_response_headers(headers) -> dict:
+    """Return upstream headers with hop-by-hop and body-framing headers stripped.
+
+    The proxy mutates the response body (de-anonymization), so the upstream
+    Content-Length / Content-Encoding / Transfer-Encoding no longer apply.
+    Starlette uses the caller-provided content-length as-is and does not
+    recompute it, so forwarding stale values causes client decode failures.
+    """
+    return {k: v for k, v in headers.items() if k.lower() not in _HOP_BY_HOP_HEADERS}
 
 
 def _is_disallowed_ip(ip: ipaddress._BaseAddress) -> bool:
@@ -553,6 +623,8 @@ async def redact_image(image_url: str, http_client: httpx.AsyncClient) -> str:
     elif "gif" in mime_type:
         fmt = "GIF"
 
+    if fmt == "JPEG" and redacted_image.mode in ("RGBA", "P", "LA"):
+        redacted_image = redacted_image.convert("RGB")
     redacted_image.save(output_buffer, format=fmt)
     output_buffer.seek(0)
     encoded = base64.b64encode(output_buffer.read()).decode("utf-8")
@@ -612,8 +684,15 @@ async def redact_openai_request(
                                     "detail"
                                 ]
                             redacted_parts.append(redacted_part)
-                        except Exception:
-                            redacted_parts.append(part)
+                        except Exception as e:
+                            logger.error(
+                                json.dumps(
+                                    {"event": "image_redaction_failed", "error": str(e)}
+                                )
+                            )
+                            raise HTTPException(
+                                status_code=500, detail="image redaction failed"
+                            )
                     else:
                         redacted_parts.append(part)
                 else:
@@ -711,8 +790,18 @@ async def redact_anthropic_request(
                                     "data": redacted_data,
                                 }
                                 redacted_parts.append(redacted_part)
-                            except Exception:
-                                redacted_parts.append(part)
+                            except Exception as e:
+                                logger.error(
+                                    json.dumps(
+                                        {
+                                            "event": "image_redaction_failed",
+                                            "error": str(e),
+                                        }
+                                    )
+                                )
+                                raise HTTPException(
+                                    status_code=500, detail="image redaction failed"
+                                )
                         else:
                             redacted_parts.append(part)
                     else:
@@ -843,8 +932,18 @@ async def redact_responses_api_request(
                                     redacted_part = part.copy()
                                     redacted_part["image_url"] = redacted_url
                                     redacted_parts.append(redacted_part)
-                                except Exception:
-                                    redacted_parts.append(part)
+                                except Exception as e:
+                                    logger.error(
+                                        json.dumps(
+                                            {
+                                                "event": "image_redaction_failed",
+                                                "error": str(e),
+                                            }
+                                        )
+                                    )
+                                    raise HTTPException(
+                                        status_code=500, detail="image redaction failed"
+                                    )
                             else:
                                 redacted_parts.append(part)
                         else:
@@ -956,8 +1055,18 @@ async def redact_gemini_request(
                                     "data": redacted_data,
                                 }
                                 redacted_parts.append(redacted_part)
-                            except Exception:
-                                redacted_parts.append(part)
+                            except Exception as e:
+                                logger.error(
+                                    json.dumps(
+                                        {
+                                            "event": "image_redaction_failed",
+                                            "error": str(e),
+                                        }
+                                    )
+                                )
+                                raise HTTPException(
+                                    status_code=500, detail="image redaction failed"
+                                )
                         else:
                             redacted_parts.append(part)
                     else:
@@ -1117,7 +1226,7 @@ async def openai_proxy(request: Request, path: str):
     return Response(
         content=response_content,
         status_code=response.status_code,
-        headers=dict(response.headers),
+        headers=_safe_response_headers(response.headers),
         media_type=response.headers.get("content-type"),
     )
 
@@ -1186,7 +1295,7 @@ async def anthropic_proxy(request: Request, path: str):
     return Response(
         content=response_content,
         status_code=response.status_code,
-        headers=dict(response.headers),
+        headers=_safe_response_headers(response.headers),
         media_type=response.headers.get("content-type"),
     )
 
@@ -1253,6 +1362,6 @@ async def gemini_proxy(request: Request, path: str):
     return Response(
         content=response_content,
         status_code=response.status_code,
-        headers=dict(response.headers),
+        headers=_safe_response_headers(response.headers),
         media_type=response.headers.get("content-type"),
     )

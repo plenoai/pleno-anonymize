@@ -78,7 +78,7 @@ Full API surface: [`packages/sdk`](packages/sdk).
 | Engine | Install | Speed | Notes |
 |---|---|---|---|
 | `builtin` (default) | `pip install pleno-anonymize` | ~50 ms/doc CPU | Regex + checksum validators for structured IDs; slim deps |
-| `openai-privacy-filter` | `pip install pleno-anonymize 'opf @ git+https://github.com/openai/privacy-filter@main'` | ~2 s/doc CPU, ~30 ms GPU | English prose, secret detection, higher recall |
+| `openai-privacy-filter` | `pip install pleno-anonymize 'opf @ git+https://github.com/openai/privacy-filter@main'` | ~1.2 s/doc CPU, ~30 ms GPU | English prose, secret detection, higher recall |
 
 ```bash
 # default — builtin Presidio + pleno_anonymize_ja
@@ -128,6 +128,12 @@ docker run -p 8080:8080 pleno-anonymize
 ```
 
 `fly.toml` is included. `flyctl deploy --local-only` ships the same image to fly.io.
+
+## FAQ
+
+### Why doesn't the OPF engine support Apple MPS (Metal)?
+
+OPF's 128-expert sparse MoE layer relies on [Triton](https://github.com/triton-lang/triton) JIT kernels for GPU-accelerated inference. Triton only targets NVIDIA CUDA — it cannot compile for Apple Metal. Without Triton, OPF falls back to a pure-PyTorch codepath that dispatches many small per-expert matrix multiplications. On Apple M3, we measured this fallback on MPS at **1,848 ms/doc vs 1,151 ms/doc on CPU** (n = 300, sequential runs) — MPS is 38 % slower because the kernel launch overhead for many small ops exceeds the compute benefit. Use `--opf-device cpu` on macOS (the default) or a CUDA GPU for production throughput. Full methodology: [`docs/benchmark.md`](docs/benchmark.md) §5.1a.
 
 ## License
 
