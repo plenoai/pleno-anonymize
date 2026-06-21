@@ -28,6 +28,9 @@ packages/training/data/raw/ja-300k-supervised/
 # Re-dumpable via `make dump-supervised-en`.
 packages/training/data/raw/en-300k-supervised/
 
+# SPECIAL_CARE synthetic data — reproducible via `make generate-special-care`
+packages/training/data/raw/ja-special-care/
+
 # External hardneg mining outputs (#64) — reproducible via
 # `make mine-external-hardneg-ja`, large (~MB), not committed.
 packages/training/data/raw/ja-v02/external_hardneg.json

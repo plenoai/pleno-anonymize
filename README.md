@@ -106,6 +106,20 @@ Both models are spaCy tok2vec NER trained on `ai4privacy/pii-masking-300k` (EN) 
 
 The **APPI Art. 2(3) 要配慮個人情報** (special care-required personal information) row covers categories that Japan's Act on the Protection of Personal Information regulates more strictly than ordinary PII. These are context-dependent attributes — the same vocabulary (e.g., a disease name) is only tagged when it describes a specific individual, not in general medical or legal commentary. OpenAI Privacy Filter has structurally zero coverage for these categories.
 
+**APPI Art. 2(3) per-subtype quality** (DeBERTa v2 base, 10 epochs, held-out test set):
+
+| Entity | Precision | Recall | F1 | Support |
+|---|---|---|---|---|
+| RACE | 0.906 | 0.897 | 0.902 | 97 |
+| CREED | 0.910 | 0.929 | 0.919 | 98 |
+| SOCIAL_STATUS | 0.918 | 0.927 | 0.922 | 96 |
+| MEDICAL_HISTORY | 0.726 | 0.871 | 0.792 | 70 |
+| HEALTH_CHECKUP | 0.933 | 0.963 | 0.948 | 320 |
+| DISABILITY | 0.939 | 0.939 | 0.939 | 33 |
+| CRIMINAL_RECORD | 1.000 | 1.000 | 1.000 | 13 |
+| CRIME_VICTIM | 0.625 | 0.714 | 0.667 | 14 |
+| **micro avg** | **0.968** | **0.976** | **0.972** | **4740** |
+
 ## Self-host
 
 ```bash
