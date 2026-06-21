@@ -16,6 +16,8 @@ from pathlib import Path
 from datasets import Dataset, DatasetDict, ClassLabel, Features, Sequence, Value
 from transformers import AutoTokenizer, PreTrainedTokenizerFast
 
+from pleno_ner_training.entity_types import NER_LABELS
+
 # Heuristic patterns to drop zero-entity docs that actually contain PII text
 # (label-miss noise). Keeping these as O-only examples would teach the model
 # to NOT tag real PII -- the opposite of what we want.
@@ -78,15 +80,24 @@ PII_HINT_RE = re.compile(
             r"[一-龥]{1,4}\s*[一-龥]{1,4}[（(][ァ-ヶー\s]{2,15}[)）]",
             # 名義 + 漢字/カナ name.
             r"名義[はがでも:：\s]+[一-龥ァ-ヶー]{2,8}",
+            # --- SPECIAL_CARE: medical / disability keywords --------------------
+            r"(病歴|既往歴|診断名|主訴|現病歴|治療歴|手術歴)",
+            r"(障害者手帳|身体障害|知的障害|精神障害|要介護|障害等級)",
+            r"(健康診断|健診結果|人間ドック|検査結果|要精密検査|要再検査)",
+            # --- SPECIAL_CARE: criminal keywords --------------------------------
+            r"(前科|前歴|犯罪歴|逮捕歴|起訴|有罪|懲役|禁錮|執行猶予|少年院)",
+            r"(被害届|被害に遭|DV被害|ストーカー被害|性犯罪被害)",
+            # --- SPECIAL_CARE: race / creed / social status ---------------------
+            r"(在日|系日本人|民族|人種|部落出身)",
+            r"(信仰|信条|宗教[はをがで]|教徒|信者)",
             # --- #67: residual PII XML/《》 prompt-template artefacts ---------
-            r"<(PERSON|ADDRESS|ORGANIZATION|DATE_OF_BIRTH|BANK_ACCOUNT)\b",
-            r"《(PERSON|ADDRESS|ORGANIZATION|DATE_OF_BIRTH|BANK_ACCOUNT)>",
+            r"<(" + "|".join(NER_LABELS) + r")\b",
+            r"《(" + "|".join(NER_LABELS) + r")>",
         ]
     )
 )
 
-# BIOラベル定義: O + 5エンティティ × 2 (B/I)
-ENTITY_LABELS = ["ADDRESS", "BANK_ACCOUNT", "DATE_OF_BIRTH", "ORGANIZATION", "PERSON"]
+ENTITY_LABELS = sorted(NER_LABELS)
 BIO_LABELS = ["O"] + [
     f"{prefix}-{label}" for label in ENTITY_LABELS for prefix in ("B", "I")
 ]

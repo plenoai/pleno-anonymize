@@ -159,6 +159,7 @@ def generate_dataset(
     batches_per_template: int = 50,
     model: str = "gpt-5.4-nano",
     max_workers: int = 5,
+    template_filter: list[str] | None = None,
 ) -> None:
     """指定言語のテンプレートからデータセットを生成する."""
     if language not in LANG_CONFIGS:
@@ -176,7 +177,9 @@ def generate_dataset(
 
     lang_config = LANG_CONFIGS[language]
     prompts_subdir = PROMPTS_DIR / lang_config.prompts_subdir
-    templates = list(prompts_subdir.glob("*.j2"))
+    templates = sorted(prompts_subdir.glob("*.j2"))
+    if template_filter:
+        templates = [t for t in templates if any(f in t.name for f in template_filter)]
     if not templates:
         print(f"[ERROR] No templates found in {prompts_subdir}", file=sys.stderr)
         raise SystemExit(1)
@@ -251,6 +254,11 @@ def main() -> None:
     parser.add_argument("--batches-per-template", type=int, default=50)
     parser.add_argument("--model", default="gpt-5.4-nano")
     parser.add_argument("--max-workers", type=int, default=5)
+    parser.add_argument(
+        "--template-filter",
+        nargs="+",
+        help="Only process templates whose names contain any of these substrings",
+    )
     args = parser.parse_args()
 
     output_dir = args.output_dir or (Path(__file__).parents[2] / "data" / "raw" / args.language)
@@ -262,6 +270,7 @@ def main() -> None:
         batches_per_template=args.batches_per_template,
         model=args.model,
         max_workers=args.max_workers,
+        template_filter=args.template_filter,
     )
 
 

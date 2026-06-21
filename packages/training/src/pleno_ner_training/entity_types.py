@@ -91,6 +91,65 @@ NER_ENTITIES: tuple[EntityType, ...] = (
     ),
 )
 
+# APPI Art. 2(3) 要配慮個人情報 — context-dependent, NER model only
+SPECIAL_CARE_ENTITIES: tuple[EntityType, ...] = (
+    EntityType(
+        label="RACE",
+        description_ja="人種・民族",
+        examples=("在日韓国人", "アイヌ民族", "中国系", "ブラジル系日系人"),
+    ),
+    EntityType(
+        label="CREED",
+        description_ja="信条・信仰",
+        examples=("キリスト教徒", "イスラム教を信仰", "創価学会員", "共産主義者"),
+    ),
+    EntityType(
+        label="SOCIAL_STATUS",
+        description_ja="社会的身分",
+        examples=("被差別部落出身", "非嫡出子", "婚外子"),
+    ),
+    EntityType(
+        label="MEDICAL_HISTORY",
+        description_ja="病歴・医療歴・治療歴",
+        examples=(
+            "うつ病と診断", "糖尿病の治療中", "胃がんの手術歴あり",
+            "統合失調症で通院", "B型肝炎キャリア",
+        ),
+    ),
+    EntityType(
+        label="HEALTH_CHECKUP",
+        description_ja="健康診断・検査結果",
+        examples=(
+            "HbA1c 7.2%", "血圧 150/95mmHg", "要精密検査",
+            "心電図異常所見", "肝機能 GOT 45",
+        ),
+    ),
+    EntityType(
+        label="DISABILITY",
+        description_ja="心身の機能の障害",
+        examples=(
+            "身体障害者手帳1級", "知的障害B判定", "精神障害者保健福祉手帳2級",
+            "右下肢機能全廃", "視覚障害",
+        ),
+    ),
+    EntityType(
+        label="CRIMINAL_RECORD",
+        description_ja="犯罪歴",
+        examples=(
+            "窃盗罪で起訴", "傷害罪の前科あり", "詐欺罪で懲役2年の判決",
+            "少年院に送致", "執行猶予中",
+        ),
+    ),
+    EntityType(
+        label="CRIME_VICTIM",
+        description_ja="犯罪被害の事実",
+        examples=(
+            "暴行の被害に遭った", "性犯罪の被害者", "DV被害を受けた",
+            "ストーカー被害", "詐欺被害に遭った",
+        ),
+    ),
+)
+
 # Presidio PatternRecognizerが担当するパターンベースエンティティ
 PATTERN_ENTITIES: tuple[EntityType, ...] = (
     EntityType(
@@ -155,6 +214,8 @@ PATTERN_ENTITIES: tuple[EntityType, ...] = (
     ),
 )
 
-ALL_ENTITIES = NER_ENTITIES + PATTERN_ENTITIES
-NER_LABELS: list[str] = [e.label for e in NER_ENTITIES]
+ALL_NER_ENTITIES = NER_ENTITIES + SPECIAL_CARE_ENTITIES
+ALL_ENTITIES = ALL_NER_ENTITIES + PATTERN_ENTITIES
+NER_LABELS: list[str] = [e.label for e in ALL_NER_ENTITIES]
+SPECIAL_CARE_LABELS: list[str] = [e.label for e in SPECIAL_CARE_ENTITIES]
 PATTERN_LABELS: list[str] = [e.label for e in PATTERN_ENTITIES]
