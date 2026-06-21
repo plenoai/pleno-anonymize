@@ -1,8 +1,6 @@
-"""HuggingFace Transformers TokenClassification で NER モデルを fine-tune する.
+"""Fine-tune a HuggingFace TokenClassification NER model.
 
-- base_model: ku-nlp/deberta-v2-base-japanese (SentencePiece, ブラウザ互換)
-- BIOタグ 11クラス (5 entity types x 2 + O)
-- seqeval によるエンティティレベル F1 評価
+Uses seqeval entity-level F1 with per-entity-type classification report.
 """
 
 from __future__ import annotations
@@ -13,6 +11,7 @@ from pathlib import Path
 import numpy as np
 from datasets import DatasetDict, load_from_disk
 from seqeval.metrics import (
+    classification_report,
     f1_score,
     precision_score,
     recall_score,
@@ -166,8 +165,29 @@ def main() -> None:
     print("\nEvaluating on test set...")
     test_results = trainer.evaluate(dataset["test"], metric_key_prefix="test")
 
+    # Per-entity evaluation
+    preds = trainer.predict(dataset["test"])
+    logits, labels_arr = preds.predictions, preds.label_ids
+    predictions = np.argmax(logits, axis=-1)
+
+    true_labels: list[list[str]] = []
+    true_predictions: list[list[str]] = []
+    for pred_seq, label_seq in zip(predictions, labels_arr):
+        tl, tp = [], []
+        for p, lbl in zip(pred_seq, label_seq):
+            if lbl == IGNORE_INDEX:
+                continue
+            tl.append(id2label[int(lbl)])
+            tp.append(id2label[int(p)])
+        true_labels.append(tl)
+        true_predictions.append(tp)
+
+    report = classification_report(true_labels, true_predictions, digits=4, output_dict=True)
+    print("\n=== Per-Entity Results ===")
+    print(classification_report(true_labels, true_predictions, digits=4))
+
     # 結果の詳細レポート
-    print("\n=== Test Results ===")
+    print("=== Test Results ===")
     for key, value in sorted(test_results.items()):
         print(f"  {key}: {value:.4f}" if isinstance(value, float) else f"  {key}: {value}")
 
@@ -178,6 +198,10 @@ def main() -> None:
             k: v for k, v in train_result.metrics.items()
         },
         "test": test_results,
+        "per_entity": {
+            k: v for k, v in report.items()
+            if isinstance(v, dict) and k not in ("micro avg", "macro avg", "weighted avg")
+        },
         "config": {
             "model": args.model,
             "num_labels": num_labels,
