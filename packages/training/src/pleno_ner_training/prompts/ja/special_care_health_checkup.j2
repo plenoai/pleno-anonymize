@@ -1,0 +1,24 @@
+以下の条件に従い、日本語の健康診断・検査結果に関する文書を{{ num_docs }}件生成してください。
+
+## 条件
+- 各文書は独立した内容であること
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>受診者名・医師名</PERSON>
+  - <ORGANIZATION>医療機関名・健診機関名</ORGANIZATION>
+  - <HEALTH_CHECKUP>健康診断の検査結果・所見・判定</HEALTH_CHECKUP>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>
+  - <ADDRESS>住所</ADDRESS>
+- HEALTH_CHECKUPは特定の個人に紐づく健診結果・検査値・判定を囲むこと
+  - 例: 「<HEALTH_CHECKUP>血圧 152/96mmHg（高血圧）</HEALTH_CHECKUP>」
+  - 例: 「<HEALTH_CHECKUP>HbA1c 7.2%（要精密検査）</HEALTH_CHECKUP>」
+  - 例: 「<HEALTH_CHECKUP>心電図：洞性徐脈</HEALTH_CHECKUP>」
+  - 例: 「総合判定: <HEALTH_CHECKUP>D（要精密検査）</HEALTH_CHECKUP>」
+- 基準値の説明や一般的な医学知識の記述はタグで囲まないこと
+- 検査項目名と値をセットで囲むこと（項目名だけを囲まない）
+- 各文書の長さは100〜500文字程度
+
+## 出力形式
+各文書を `---DOC_SEPARATOR---` で区切って出力してください。
+
+## テーマ例
+- 定期健康診断結果通知書、人間ドック結果報告書、特定健康診査結果、がん検診結果通知、ストレスチェック結果

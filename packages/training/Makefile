@@ -18,7 +18,8 @@
        train-hf-en-v01-tiny train-hf-en-v01-tiny-hardneg-ext train-hf-en-v01-tiny-aug-ext \
        export-onnx-en-v01-tiny push-hf-en-v01-tiny all-hf-en-v01-tiny \
        train-supervised-ja eval-300k-ja eval-stockmark-ja push-model-hf \
-       dump-supervised-en train-supervised-en eval-300k-en push-model-hf-en
+       dump-supervised-en train-supervised-en eval-300k-en push-model-hf-en \
+       generate-special-care convert-hf-special-care train-special-care eval-special-care all-special-care
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
@@ -819,3 +820,48 @@ eval-300k-en:
 		--dataset $(BENCH_DATASET_EN) \
 		--language English --limit $(BENCH_LIMIT_EN) \
 		--output $(BENCH_OUT_EN)
+
+# === SPECIAL_CARE (APPI Art. 2(3) 要配慮個人情報) ===
+# Generate synthetic data including special-care entity types, then train
+# a new model version with all 13 NER labels.
+
+SC_RAW        ?= $(DATA_RAW)/ja-special-care
+SC_HF_DATASET ?= data/hf/ja-special-care
+SC_OUT        ?= output/ja-ner-special-care-v1
+SC_BASE       ?= ku-nlp/deberta-v2-base-japanese
+SC_EPOCHS     ?= 10
+SC_SEED       ?= 42
+
+generate-special-care:
+	$(DOTENVX) uv run --extra training python -m pleno_ner_training.generate_data \
+		--language ja \
+		--output-dir $(SC_RAW) \
+		--docs-per-template $(DOCS_PER_TEMPLATE) \
+		--batches-per-template $(BATCHES_PER_TEMPLATE) \
+		--model $(MODEL) \
+		--max-workers $(MAX_WORKERS)
+
+convert-hf-special-care:
+	uv run --extra training --extra hf python -m pleno_ner_training.convert_to_hf_dataset \
+		--input $(SC_RAW)/generated.json \
+		--output $(SC_HF_DATASET) \
+		--tokenizer $(SC_BASE) \
+		--include-negatives
+
+train-special-care:
+	uv run --extra training --extra hf python -m pleno_ner_training.train_hf \
+		--dataset $(SC_HF_DATASET) \
+		--model $(SC_BASE) \
+		--output $(SC_OUT) \
+		--num-epochs $(SC_EPOCHS) \
+		--seed $(SC_SEED) \
+		--fp16
+
+eval-special-care:
+	uv run --extra training --extra hf python -m pleno_ner_training.evaluate \
+		--model $(SC_OUT) \
+		--language ja \
+		--test-data $(DATA_PROCESSED)/ja/test.spacy \
+		--output-json $(SC_OUT)/scores.json
+
+all-special-care: generate-special-care convert-hf-special-care train-special-care eval-special-care

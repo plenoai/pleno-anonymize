@@ -1,0 +1,27 @@
+以下の条件に従い、日本語の犯罪歴・犯罪被害に関する文書を{{ num_docs }}件生成してください。
+
+## 条件
+- 各文書は独立した内容であること
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>氏名</PERSON>
+  - <ORGANIZATION>組織名（裁判所、警察署、弁護士事務所など）</ORGANIZATION>
+  - <CRIMINAL_RECORD>犯罪歴（罪名、判決、刑罰、前科情報）</CRIMINAL_RECORD>
+  - <CRIME_VICTIM>犯罪被害の事実（被害の種類、被害状況）</CRIME_VICTIM>
+  - <ADDRESS>住所</ADDRESS>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>
+- CRIMINAL_RECORDは特定の個人に紐づく犯罪歴・前科を囲むこと
+  - 例: 「<CRIMINAL_RECORD>窃盗罪で懲役1年6月の判決</CRIMINAL_RECORD>を受けた」
+  - 例: 「前科: <CRIMINAL_RECORD>傷害罪（2019年、罰金30万円）</CRIMINAL_RECORD>」
+  - 例: 「<CRIMINAL_RECORD>少年院に2年間送致</CRIMINAL_RECORD>された」
+- CRIME_VICTIMは特定の個人が被った犯罪被害の事実を囲むこと
+  - 例: 「<CRIME_VICTIM>暴行事件の被害に遭い全治3週間の怪我</CRIME_VICTIM>を負った」
+  - 例: 「<CRIME_VICTIM>DV被害を5年間受け続けた</CRIME_VICTIM>」
+  - 例: 「<CRIME_VICTIM>詐欺被害により300万円の損害</CRIME_VICTIM>が生じた」
+- 犯罪統計や法律の一般論はタグで囲まないこと
+- 各文書の長さは100〜400文字程度
+
+## 出力形式
+各文書を `---DOC_SEPARATOR---` で区切って出力してください。
+
+## テーマ例
+- 犯罪経歴証明書、判決文の要約、被害届、示談書、保護観察記録、被害者支援記録、DV相談記録
