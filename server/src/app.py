@@ -153,12 +153,8 @@ def _get_appi_pipeline():
         from huggingface_hub import hf_hub_download
         from transformers import AutoConfig, AutoTokenizer
 
-        model_path = hf_hub_download(
-            _APPI_MODEL_ID, filename="model_quantized.onnx"
-        )
-        session = ort.InferenceSession(
-            model_path, providers=["CPUExecutionProvider"]
-        )
+        model_path = hf_hub_download(_APPI_MODEL_ID, filename="model_quantized.onnx")
+        session = ort.InferenceSession(model_path, providers=["CPUExecutionProvider"])
         tokenizer = AutoTokenizer.from_pretrained(_APPI_MODEL_ID)
         config = AutoConfig.from_pretrained(_APPI_MODEL_ID)
         _appi_pipeline = (session, tokenizer, config.id2label)
@@ -169,9 +165,7 @@ def _analyze_appi(text: str) -> list[dict]:
     import numpy as np
 
     session, tokenizer, id2label = _get_appi_pipeline()
-    encoding = tokenizer(
-        text, return_tensors="np", truncation=True, max_length=512
-    )
+    encoding = tokenizer(text, return_tensors="np", truncation=True, max_length=512)
     outputs = session.run(
         None,
         {k: v for k, v in encoding.items() if k in {"input_ids", "attention_mask"}},
@@ -411,9 +405,7 @@ async def analyze(req: AnalyzeRequest):
     loop = asyncio.get_event_loop()
 
     if req.engine == "appi":
-        return await loop.run_in_executor(
-            None, partial(_analyze_appi, req.text)
-        )
+        return await loop.run_in_executor(None, partial(_analyze_appi, req.text))
 
     entities_key = tuple(req.entities) if req.entities else None
     results = await loop.run_in_executor(
@@ -469,6 +461,7 @@ async def redact(req: RedactRequest):
 
     if req.text:
         if req.engine == "appi":
+
             def _redact_appi():
                 entities = _analyze_appi(req.text)
                 text = req.text
