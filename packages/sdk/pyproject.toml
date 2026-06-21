@@ -3,14 +3,14 @@ name = "pleno-anonymize"
 version = "0.2.3"
 description = "Local-first Japanese PII detection and redaction. SDK + `pleno-anonymize` CLI sharing the same recognizer registry and NER pipeline as the pleno-anonymize server."
 readme = "README.md"
-license = { text = "AGPL-3.0-or-later" }
+license = { text = "Apache-2.0" }
 requires-python = ">=3.12"
 authors = [{ name = "pleno", email = "ai@egahika.dev" }]
 keywords = ["pii", "redaction", "anonymize", "presidio", "japanese", "ner", "scanner", "cli"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
     "Topic :: Security",

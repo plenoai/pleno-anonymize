@@ -137,4 +137,4 @@ OPF's 128-expert sparse MoE layer relies on [Triton](https://github.com/triton-l
 
 ## License
 
-[AGPL-3.0](LICENSE) · [Privacy Policy](docs/PRIVACY.md) · [DPIA](docs/DPIA.md)
+[Apache-2.0](LICENSE) · [Privacy Policy](docs/PRIVACY.md) · [DPIA](docs/DPIA.md)
