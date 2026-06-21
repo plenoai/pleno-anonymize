@@ -127,6 +127,8 @@ def load(**overrides):
 def _rewrite_meta_name(meta_path: Path, name: str) -> None:
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
     meta["name"] = name
+    if not meta.get("license"):
+        meta["license"] = "Apache-2.0"
     meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
 
