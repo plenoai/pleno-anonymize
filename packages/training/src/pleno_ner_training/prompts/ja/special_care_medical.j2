@@ -1,0 +1,26 @@
+以下の条件に従い、日本語の医療・病歴に関する文書を{{ num_docs }}件生成してください。
+
+## 条件
+- 各文書は独立した内容であること
+- 以下のPIIエンティティをXMLタグで囲むこと:
+  - <PERSON>患者名・医師名</PERSON>
+  - <ORGANIZATION>病院名・医療機関名</ORGANIZATION>
+  - <MEDICAL_HISTORY>病歴・診断名・治療歴・手術歴</MEDICAL_HISTORY>
+  - <DISABILITY>心身の機能の障害（障害者手帳の等級、障害名など）</DISABILITY>
+  - <DATE_OF_BIRTH>生年月日</DATE_OF_BIRTH>
+  - <ADDRESS>住所</ADDRESS>
+- MEDICAL_HISTORYは特定の個人に紐づく病歴・治療歴を囲むこと
+  - 例: 「<PERSON>田中太郎</PERSON>は<MEDICAL_HISTORY>2型糖尿病</MEDICAL_HISTORY>と診断された」
+  - 例: 「既往歴: <MEDICAL_HISTORY>高血圧症（2018年〜）</MEDICAL_HISTORY>」
+- DISABILITYは特定の個人に紐づく障害情報を囲むこと
+  - 例: 「<DISABILITY>身体障害者手帳1級（右下肢機能全廃）</DISABILITY>を所持」
+  - 例: 「<DISABILITY>視覚障害2級</DISABILITY>と認定」
+- 病院名はORGANIZATIONで囲むこと（MEDICAL_HISTORYではない）
+- 一般的な医学知識の記述はタグで囲まないこと（「糖尿病は生活習慣病の一つである」等）
+- 各文書の長さは100〜400文字程度
+
+## 出力形式
+各文書を `---DOC_SEPARATOR---` で区切って出力してください。
+
+## テーマ例
+- 診察カルテ、紹介状、診断書、退院サマリー、障害者手帳申請書、障害年金申請書、介護保険主治医意見書

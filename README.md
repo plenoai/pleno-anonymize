@@ -100,8 +100,11 @@ Both models are spaCy tok2vec NER trained on `ai4privacy/pii-masking-300k` (EN) 
 | Class | Backend | Entities |
 |---|---|---|
 | Free text | spaCy NER `pleno_anonymize_ja` plus Presidio | `PERSON` `ADDRESS` `ORGANIZATION` `DATE_OF_BIRTH` `BANK_ACCOUNT` |
+| APPI Art. 2(3) 要配慮個人情報 | spaCy NER (context-dependent) | `RACE` `CREED` `SOCIAL_STATUS` `MEDICAL_HISTORY` `HEALTH_CHECKUP` `DISABILITY` `CRIMINAL_RECORD` `CRIME_VICTIM` |
 | Structured | regex plus checksum (Luhn, My Number, corporate number) | `PHONE_NUMBER` `MY_NUMBER` `MY_NUMBER_CORPORATE` `CREDIT_CARD` `PASSPORT` `DRIVER_LICENSE` `HEALTH_INSURANCE` `RESIDENCE_CARD` `POSTAL_CODE` `EMAIL_ADDRESS` `IP_ADDRESS` `URL` |
 | OPF (opt-in) | `openai/privacy-filter` 1.5B (50M active MoE) | `PERSON` `ADDRESS` `EMAIL_ADDRESS` `PHONE_NUMBER` `URL` `DATE_OF_BIRTH` `BANK_ACCOUNT` `SECRET` |
+
+The **APPI Art. 2(3) 要配慮個人情報** (special care-required personal information) row covers categories that Japan's Act on the Protection of Personal Information regulates more strictly than ordinary PII. These are context-dependent attributes — the same vocabulary (e.g., a disease name) is only tagged when it describes a specific individual, not in general medical or legal commentary. OpenAI Privacy Filter has structurally zero coverage for these categories.
 
 ## Self-host
 
