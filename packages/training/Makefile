@@ -864,4 +864,19 @@ eval-special-care:
 		--test-data $(DATA_PROCESSED)/ja/test.spacy \
 		--output-json $(SC_OUT)/scores.json
 
+export-onnx-special-care:
+	uv run --extra training --extra hf python -m pleno_ner_training.export_onnx \
+		--model $(SC_OUT) \
+		--output $(SC_OUT)-onnx
+
+push-hf-special-care:
+	uv run --extra training --extra hf python -m pleno_ner_training.export_onnx \
+		--model $(SC_OUT) \
+		--output $(SC_OUT)-onnx \
+		--push-to 0xhikae/ja-ner-appi-v1-onnx
+
+push-model-hf-special-care:
+	uv run --extra training --extra hf python scripts/push_model_to_hf.py \
+		--model-dir $(SC_OUT) --repo 0xhikae/ja-ner-appi-v1
+
 all-special-care: generate-special-care convert-hf-special-care train-special-care eval-special-care
