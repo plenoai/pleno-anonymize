@@ -827,7 +827,7 @@ eval-300k-en:
 
 SC_RAW        ?= $(DATA_RAW)/ja-special-care
 SC_HF_DATASET ?= data/hf/ja-special-care
-SC_OUT        ?= output/ja-ner-special-care-v1
+SC_OUT        ?= output/ja-ner-appi-v1
 SC_BASE       ?= ku-nlp/deberta-v2-base-japanese
 SC_EPOCHS     ?= 10
 SC_SEED       ?= 42
