@@ -6,7 +6,6 @@ import {
   Eraser,
   Copy,
   Check,
-  Scan,
   Github,
   Star,
   AlertTriangle,
@@ -457,12 +456,6 @@ export default function PlaygroundPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                <Scan className="h-3.5 w-3.5 text-emerald-400" />
-                <span className="text-xs font-mono text-emerald-400 tracking-wide uppercase">Live</span>
-              </div>
-            </div>
             <h1
               className="text-3xl md:text-4xl font-light tracking-tight text-[#ededed]"
               style={{ fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" }}
