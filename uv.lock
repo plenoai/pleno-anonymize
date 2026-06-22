@@ -2564,7 +2564,7 @@ requires-dist = [
     { name = "httpx", marker = "extra == 'remote'", specifier = ">=0.27" },
     { name = "presidio-analyzer", specifier = ">=2.2" },
     { name = "presidio-anonymizer", specifier = ">=2.2" },
-    { name = "spacy", extras = ["ja"], specifier = ">=3.8" },
+    { name = "spacy", extras = ["ja"], specifier = ">=3.8.14" },
 ]
 provides-extras = ["remote"]
 
@@ -2624,7 +2624,7 @@ requires-dist = [
     { name = "presidio-anonymizer", specifier = ">=2.2" },
     { name = "presidio-image-redactor", marker = "extra == 'image'", specifier = ">=0.0.53" },
     { name = "scalar-fastapi", specifier = ">=1.6.0" },
-    { name = "spacy", extras = ["ja"], specifier = ">=3.8" },
+    { name = "spacy", extras = ["ja"], specifier = ">=3.8.14" },
     { name = "transformers", marker = "extra == 'appi'", specifier = ">=4.50" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.35.0" },
 ]
@@ -2694,10 +2694,10 @@ requires-dist = [
     { name = "scipy", marker = "extra == 'bench'", specifier = ">=1.11" },
     { name = "sentencepiece", marker = "extra == 'hf'", specifier = ">=0.2" },
     { name = "seqeval", marker = "extra == 'hf'", specifier = ">=1.2" },
-    { name = "spacy", extras = ["ja"], specifier = ">=3.8" },
+    { name = "spacy", extras = ["ja"], specifier = ">=3.8.14" },
     { name = "spacy-transformers", marker = "extra == 'training'", specifier = ">=1.3" },
     { name = "tiktoken", marker = "extra == 'hf'", specifier = ">=0.7" },
-    { name = "tqdm", specifier = ">=4.68.3" },
+    { name = "tqdm", specifier = ">=4.66" },
     { name = "transformers", marker = "extra == 'hf'", specifier = ">=4.40" },
 ]
 provides-extras = ["training", "hf", "bench"]
