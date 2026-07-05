@@ -1,5 +1,6 @@
 .PHONY: generate convert train train-cnn evaluate benchmark-external benchmark-huggingface package clean \
-       generate-en augment-en convert-en train-en evaluate-en benchmark-external-en package-en all-en \
+       generate-en augment-en convert-en train-en train-en-cnn evaluate-en benchmark-external-en package-en all-en \
+       runpod-train-ja runpod-train-en \
        benchmark-v02-generate benchmark-v02-generate-en benchmark-v02-evaluate benchmark-v02-evaluate-en \
        benchmark-v03-generate benchmark-v03-generate-en benchmark-v03-evaluate benchmark-v03-evaluate-en \
        benchmark-v04-generate benchmark-v04-generate-en benchmark-v04-evaluate benchmark-v04-evaluate-en \
@@ -28,6 +29,20 @@ BATCHES_PER_TEMPLATE ?= 50
 MAX_WORKERS ?= 5
 GPU_ID ?= 0
 DOTENVX = dotenvx run -f ../../.env --
+
+# CLAUDE.md: "do not train on local machine". The four in-process spaCy
+# train targets below (train, train-cnn, train-en, train-en-cnn) refuse to
+# run unless LOCAL=1 is passed explicitly (see the guard at the top of each
+# recipe) — use `make runpod-train-en` / `make runpod-train-ja` instead
+# (#292). LOCAL is opt-in per invocation, e.g. `make train-cnn LOCAL=1`.
+LOCAL ?=
+LOCAL_TRAIN_GUARD = @test "$(LOCAL)" = "1" || { echo "CLAUDE.md: do not train on local machine. Use \`make runpod-train-*\` or pass LOCAL=1 to override." >&2; exit 1; }
+
+# Set DRY_RUN=1 to have the runpod-train-* targets print their execution
+# plan (pod spec, upload paths, remote commands) and exit without calling
+# the RunPod API or spending money.
+DRY_RUN ?=
+RUNPOD_DRY_RUN_FLAG = $(if $(DRY_RUN),--dry-run,)
 
 # Path (or spaCy package name) used by the en benchmark evaluate targets.
 # Default mirrors the ja side which uses $(OUTPUT_DIR)/model-best — i.e. the
@@ -65,6 +80,7 @@ convert:
 		--output-dir $(DATA_PROCESSED)/ja
 
 train:
+	$(LOCAL_TRAIN_GUARD)
 	uv run --extra training python -m spacy train configs/train_transformer.cfg \
 		--output $(OUTPUT_DIR) \
 		--paths.train $(DATA_PROCESSED)/ja/train.spacy \
@@ -72,6 +88,7 @@ train:
 		--gpu-id $(GPU_ID)
 
 train-cnn:
+	$(LOCAL_TRAIN_GUARD)
 	uv run python -m spacy train configs/train_cnn.cfg \
 		--output $(OUTPUT_DIR) \
 		--paths.train $(DATA_PROCESSED)/ja/train.spacy \
@@ -181,6 +198,7 @@ convert-en:
 		--output-dir $(DATA_PROCESSED)/en
 
 train-en:
+	$(LOCAL_TRAIN_GUARD)
 	uv run --extra training python -m spacy train configs/train_transformer_en.cfg \
 		--output $(OUTPUT_DIR)/en \
 		--paths.train $(DATA_PROCESSED)/en/train.spacy \
@@ -188,10 +206,29 @@ train-en:
 		--gpu-id $(GPU_ID)
 
 train-en-cnn:
+	$(LOCAL_TRAIN_GUARD)
 	uv run python -m spacy train configs/train_cnn_en.cfg \
 		--output $(OUTPUT_DIR)/en \
 		--paths.train $(DATA_PROCESSED)/en/train.spacy \
 		--paths.dev $(DATA_PROCESSED)/en/dev.spacy
+
+runpod-train-ja:
+	uv run --extra training python scripts/runpod_train.py \
+		--language ja \
+		--train-config configs/train_cnn.cfg \
+		--data-dir $(DATA_PROCESSED)/ja \
+		--remote-output-dir $(OUTPUT_DIR) \
+		--local-output-dir $(OUTPUT_DIR)/model-best \
+		$(RUNPOD_DRY_RUN_FLAG)
+
+runpod-train-en:
+	uv run --extra training python scripts/runpod_train.py \
+		--language en \
+		--train-config configs/train_cnn_en.cfg \
+		--data-dir $(DATA_PROCESSED)/en \
+		--remote-output-dir $(OUTPUT_DIR)/en \
+		--local-output-dir $(OUTPUT_DIR)/en/model-best \
+		$(RUNPOD_DRY_RUN_FLAG)
 
 evaluate-en:
 	uv run python -m pleno_ner_training.evaluate \

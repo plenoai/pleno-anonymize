@@ -142,11 +142,12 @@ Log the hypothesis to the experiment log, then proceed immediately. Do NOT ask f
 
 2. **Implement** the specific change (recognizer, prompts, augmented data, config).
 
-3. **Train** the language being improved:
+3. **Train** the language being improved, on RunPod (per CLAUDE.md: do **not** train on the local machine). `make runpod-train-en` / `make runpod-train-ja` is the single path — it wraps `scripts/runpod_train.py`, which does create-pod → upload → train (CNN config, ~5–10 min) → collect `model-best` → delete-pod as one command, deleting the pod even on failure:
    ```bash
-   cd packages/training && make train-en   # or the appropriate Makefile target
+   cd packages/training
+   RUNPOD_API_KEY=... make runpod-train-en   # or runpod-train-ja
    ```
-   Use the CNN config for rapid iteration (~5–10 min). Use RunPod via the `mcp__runpod__*` MCP tools (`create-pod`, `start-pod`, `get-pod`, `delete-pod`) for GPU training (per CLAUDE.md: do **not** train on the local machine).
+   To see the pod spec / upload list / train command without spending anything, run `make runpod-train-en DRY_RUN=1` first. See `packages/training/docs/runpod-training.md` for details.
 
 4. **Evaluate against the baseline** (the only metric that gates Phase 3):
    ```bash
