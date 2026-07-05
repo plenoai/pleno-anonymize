@@ -29,7 +29,7 @@ RUN uv pip install https://github.com/explosion/spacy-models/releases/download/e
 # image stays well under fly's 8GB rootfs limit. v0.2.1 EN replaced the
 # transformer build that pushed image size to 15.7GB (#177 rollback).
 RUN uv pip install \
-    https://huggingface.co/0xhikae/pleno_anonymize_ja/resolve/main/pleno_anonymize_ja-0.2.0-py3-none-any.whl \
+    https://huggingface.co/0xhikae/pleno_anonymize_ja/resolve/main/pleno_anonymize_ja-0.3.0-py3-none-any.whl \
     https://huggingface.co/0xhikae/pleno_anonymize_en/resolve/main/pleno_anonymize_en-0.3.0-py3-none-any.whl
 
 # Pre-download APPI ONNX model files into HF cache so the first

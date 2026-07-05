@@ -603,6 +603,9 @@ async def analyze(req: AnalyzeRequest):
             _cached_analyze, text=req.text, language=req.language, entities=entities_key
         ),
     )
+    from pleno_anonymize._local import _dedupe_overlaps
+
+    results = _dedupe_overlaps(list(results))
     return [
         {
             "entity_type": r.entity_type,
