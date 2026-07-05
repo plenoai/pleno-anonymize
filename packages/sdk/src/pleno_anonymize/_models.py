@@ -24,7 +24,10 @@ Language = Literal["ja", "en"]
 # bumping this dict — never read pleno-anonymize-server's Dockerfile at
 # runtime, the SDK must work standalone.
 MODEL_WHEELS: dict[str, str] = {
-    "pleno_anonymize_ja": "https://huggingface.co/0xhikae/pleno_anonymize_ja/resolve/main/pleno_anonymize_ja-0.2.0-py3-none-any.whl",
+    # 0.3.0 = iter10 データ (org_boundary/hard-negative 済み 28k docs) +
+    # Faker ja_JP 合成 10k を統合再訓練。凍結ベンチ v0.4.0 / v0.13.0-held-out
+    # の両方で出荷 0.2.0 を上回る (実測は experiments/log.jsonl 参照)。
+    "pleno_anonymize_ja": "https://huggingface.co/0xhikae/pleno_anonymize_ja/resolve/main/pleno_anonymize_ja-0.3.0-py3-none-any.whl",
     # 0.3.0 = license-clean synthetic retrain (Faker component-granularity
     # spans + LLM-generated docs, ~25MB wheel). pii-masking-300k EN F1
     # 0.32→0.58 together with the Presidio taxonomy mapping fix; the
