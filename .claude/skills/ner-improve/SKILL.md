@@ -252,6 +252,10 @@ Next steps:
   - Remaining gaps to the next acceptance tier
 ```
 
+KEEP された改善を出荷 (release-model / HF push / tag push) する場合は、その前に
+必ず `/release-gate` (敵対的学術査読) を通すこと。KEEP は実験の成功であって
+出荷許可ではない。
+
 ## Constraints
 
 - **Never** modify the baseline dataset, the evaluator (`packages/sdk/scripts/eval_pii_masking_300k.py`), or the IoU threshold — the public ruler is fixed.

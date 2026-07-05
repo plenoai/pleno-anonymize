@@ -4,6 +4,7 @@ packages/training/output/train-v1.log
 CLAUDE.md
 **/.claude/*
 !**/.claude/skills/
+!**/.claude/agents/
 .mcp.json
 .compound-engineering/
 
