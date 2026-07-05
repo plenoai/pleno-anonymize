@@ -18,6 +18,11 @@ from __future__ import annotations
 
 import pytest
 
+# convert_to_hf_dataset needs the `hf` extra; plain `uv run pytest` (dev group
+# only) must skip cleanly instead of failing collection.
+pytest.importorskip("datasets")
+pytest.importorskip("transformers")
+
 from pleno_ner_training.convert_to_hf_dataset import PII_HINT_RE
 
 
