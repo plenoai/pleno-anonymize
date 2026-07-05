@@ -12,12 +12,12 @@ ai4privacy/pii-masking-300k は非商用・派生物公開に書面許諾が必�
 ## en-model-030-release-complete ([[en-model-030-release-complete]])
 2026-07-05 ner-improve ループ完了: EN/JA 0.3.0 + SDK 0.2.5 全リリース完了 (HF/PyPI/本番)
 
-## en-model-030-release-pending ([[en-model-030-release-pending]])
-2026-07-05 ner-improve ループ完了: EN/JA 0.3.0 + SDK 0.2.5 全リリース済み (HF/PyPI/本番)
-
 ## face-redaction-feature ([[face-redaction-feature]])
 Face redaction via OpenCV YuNet merged in PR #195; README banner uses presidio OCR redaction
 
 ## readme-redact-banner ([[readme-redact-banner]])
 README before/after presidio OCR redaction banner + reproducible generator script
+
+## release-gate-flow ([[release-gate-flow]])
+リリース前は /release-gate (academic-validity-reviewer による敵対的学術査読) が必須。KEEP は出荷許可ではない
 <!-- agentops:dreaming:end -->

@@ -18,6 +18,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
+# convert_to_hf_dataset needs the `hf` extra; plain `uv run pytest` (dev group
+# only) must skip cleanly instead of failing collection.
+pytest.importorskip("datasets")
+pytest.importorskip("transformers")
+
 from pleno_ner_training.convert_to_hf_dataset import load_and_convert
 from pleno_ner_training.mine_external_hardneg import (
     MAX_CHARS,
