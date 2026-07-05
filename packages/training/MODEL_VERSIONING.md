@@ -83,3 +83,28 @@ pleno_ner_training.export_onnx` 呼び出しに `--revision` / `--dry-run` を
 scaffolding として #71 PR は merge する。実 push は trained artifact が
 `packages/training/output/hf-ja-v02-tiny/` に生成された後 (#48 完了後) に
 最初の `model/v*` tag を切って発火する。
+
+## SDK wheel (`pleno_anonymize_ja`/`_en`) の version single source of truth (#296)
+
+上記の `model/v*` tag flow は ONNX artifact (`0xhikae/ja-ner-onnx`) 向けで、
+SDK が pip install する spaCy wheel (`0xhikae/pleno_anonymize_ja` /
+`_en`) とは別チャネル。こちらは出荷のたびに (1) `make package(-en)` の
+`--version` 手打ち (2) `packages/sdk/src/pleno_anonymize/_models.py` の
+`MODEL_WHEELS` URL 手編集、の2箇所が独立に乖離しうる問題があった (#296)。
+
+`packages/models/versions.json` を言語ごとの `{version, hf_repo, wheel_url}`
+の single source of truth とし、以下のフローに統一する:
+
+1. `make release-model MODEL_LANG=<ja|en> MODEL_VERSION=<x.y.z>`
+   (`packages/training/` から実行) — versions.json を更新し、その version
+   で該当言語の package target を実行し、SDK 側の整合性テスト
+   (`packages/sdk/tests/test_model_versions.py`) を流す。
+2. テストが落ちた場合 (version を上げた直後は必ず落ちる):
+   `packages/sdk/src/pleno_anonymize/_models.py` の `MODEL_WHEELS` を
+   versions.json の新しい wheel_url に手編集する。`_models.py` は SDK が
+   standalone で動くために versions.json を実行時に読まない設計 (同ファイル
+   23-25行のコメント参照) なので、生成ではなくこのテストで両者を拘束する。
+3. 上の 1〜2 コマンドが最後に案内する既存フロー — `push_model_to_hf.py` で
+   wheel を HF Hub に push し、`packages/sdk/pyproject.toml` の version を
+   上げて `sdk/vX.Y.Z` tag を push (trusted publishing で PyPI に出荷) —
+   を実行する。ここは #296 の変更範囲外で、既存の手順のまま。

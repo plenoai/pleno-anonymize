@@ -19,7 +19,8 @@
        export-onnx-en-v01-tiny push-hf-en-v01-tiny all-hf-en-v01-tiny \
        train-supervised-ja eval-300k-ja eval-stockmark-ja push-model-hf \
        dump-supervised-en train-supervised-en eval-300k-en push-model-hf-en \
-       generate-special-care convert-hf-special-care train-special-care eval-special-care all-special-care
+       generate-special-care convert-hf-special-care train-special-care eval-special-care all-special-care \
+       release-model
 
 MODEL ?= gpt-5.4-nano
 DOCS_PER_TEMPLATE ?= 20
@@ -40,6 +41,11 @@ DATA_RAW = data/raw
 DATA_PROCESSED = data/processed
 OUTPUT_DIR = output
 MODELS_DIR = ../models
+
+# Single source of truth for shipped model version / HF repo / wheel URL
+# (#296). package / package-en read the version from here instead of a
+# hardcoded --version flag; release-model writes to it.
+VERSIONS_JSON = $(MODELS_DIR)/versions.json
 
 # === 日本語 (既存) ===
 
@@ -96,7 +102,7 @@ package:
 		--model $(OUTPUT_DIR)/model-best \
 		--output $(MODELS_DIR) \
 		--language ja \
-		--version 0.1.0 \
+		--version $(shell jq -r '.ja.version' $(VERSIONS_JSON)) \
 		--build-wheel
 
 # === 日本語 v0.2.0 ===
@@ -206,7 +212,7 @@ package-en:
 		--model $(OUTPUT_DIR)/en/model-best \
 		--output $(MODELS_DIR) \
 		--language en \
-		--version 0.1.1 \
+		--version $(shell jq -r '.en.version' $(VERSIONS_JSON)) \
 		--build-wheel
 
 all-en: generate-en augment-en convert-en train-en evaluate-en package-en
@@ -743,6 +749,45 @@ clean:
 	rm -rf $(OUTPUT_DIR) $(DATA_RAW) $(DATA_PROCESSED)
 
 all: generate convert train evaluate package
+
+# Single-command model version bump (#296): updates versions.json (the
+# source of truth), rebuilds the language's wheel from that version, then
+# re-runs the sdk drift test. HF push and git tag stay manual — the closing
+# echo spells out exactly what's left, since automating those means holding
+# HF_TOKEN / write-tag credentials here instead of in the existing dedicated
+# flows (push_model_to_hf.py, sdk/v* tag CI).
+#
+# Usage: make release-model MODEL_LANG=en MODEL_VERSION=0.4.0
+release-model:
+	@if [ "$(MODEL_LANG)" != "ja" ] && [ "$(MODEL_LANG)" != "en" ]; then \
+		echo "usage: make release-model MODEL_LANG=<ja|en> MODEL_VERSION=<x.y.z>"; \
+		exit 1; \
+	fi
+	@if [ -z "$(MODEL_VERSION)" ]; then \
+		echo "usage: make release-model MODEL_LANG=<ja|en> MODEL_VERSION=<x.y.z>"; \
+		exit 1; \
+	fi
+	@repo=$$(jq -r '.$(MODEL_LANG).hf_repo' $(VERSIONS_JSON)); \
+	jq --arg v '$(MODEL_VERSION)' \
+	   --arg url "https://huggingface.co/$$repo/resolve/main/pleno_anonymize_$(MODEL_LANG)-$(MODEL_VERSION)-py3-none-any.whl" \
+	   '.$(MODEL_LANG).version = $$v | .$(MODEL_LANG).wheel_url = $$url' \
+	   $(VERSIONS_JSON) > $(VERSIONS_JSON).tmp && mv $(VERSIONS_JSON).tmp $(VERSIONS_JSON); \
+	echo "versions.json updated: $(MODEL_LANG) -> $(MODEL_VERSION)"
+	$(MAKE) $(if $(filter en,$(MODEL_LANG)),package-en,package)
+	-cd ../sdk && uv run pytest tests/test_model_versions.py -q
+	@echo ""
+	@echo "== release-model $(MODEL_LANG) $(MODEL_VERSION): versions.json + wheel built =="
+	@echo "if the test above failed (expected on a real bump): hand-edit MODEL_WHEELS in"
+	@echo "  packages/sdk/src/pleno_anonymize/_models.py"
+	@echo "to the new wheel_url — the SDK never reads versions.json at runtime (must stay"
+	@echo "standalone, see _models.py:23-25) — then re-run:"
+	@echo "  cd ../sdk && uv run pytest tests/test_model_versions.py"
+	@echo "remaining manual steps (existing flows, unchanged by this target):"
+	@echo "  1. push the wheel to HF: uv run python scripts/push_model_to_hf.py \\"
+	@echo "       --model-dir $(MODELS_DIR)/pleno_anonymize_$(MODEL_LANG)-$(MODEL_VERSION) \\"
+	@echo "       --repo $$(jq -r '.$(MODEL_LANG).hf_repo' $(VERSIONS_JSON))"
+	@echo "  2. bump packages/sdk/pyproject.toml version, then:"
+	@echo "       git tag sdk/vX.Y.Z && git push origin sdk/vX.Y.Z"
 
 # Supervised JP NER on 0xhikae/pii-masking-300k-ja train split.
 # Dataset is private; dump to local JSONL first, then scp to RunPod.
