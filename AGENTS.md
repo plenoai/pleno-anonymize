@@ -9,8 +9,11 @@ do not train on local machine
 ## ai4privacy-license-constraint ([[ai4privacy-license-constraint]])
 ai4privacy/pii-masking-300k は非商用・派生物公開に書面許諾が必要 — 訓練には使えず評価専用
 
+## en-model-030-release-complete ([[en-model-030-release-complete]])
+2026-07-05 ner-improve ループ完了: EN/JA 0.3.0 + SDK 0.2.5 全リリース完了 (HF/PyPI/本番)
+
 ## en-model-030-release-pending ([[en-model-030-release-pending]])
-EN/JA v0.3.0 は HF 公開・マージ・デプロイ済み。残タスク: `sdk/v0.2.5` タグ push (ユーザー操作)
+2026-07-05 ner-improve ループ完了: EN/JA 0.3.0 + SDK 0.2.5 全リリース済み (HF/PyPI/本番)
 
 ## face-redaction-feature ([[face-redaction-feature]])
 Face redaction via OpenCV YuNet merged in PR #195; README banner uses presidio OCR redaction
