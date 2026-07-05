@@ -50,6 +50,16 @@ bench = [
     "en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.8.0/en_core_web_lg-3.8.0-py3-none-any.whl",
 ]
 
+[dependency-groups]
+# `uv run pytest` must resolve from within packages/training itself — this
+# package ships its own uv.lock so it can be scp'd to a RunPod pod standalone
+# (project CLAUDE.md: do not train on local machine); the workspace-root
+# sdk dev group does not carry over here. Mirrors
+# packages/sdk/pyproject.toml's dev group.
+dev = [
+    "pytest>=8.0",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

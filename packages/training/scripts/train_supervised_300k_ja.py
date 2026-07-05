@@ -1,5 +1,8 @@
 """Supervised v2: train on local JSONL dump of 0xhikae/pii-masking-300k-ja JP split.
 
+WARNING: pii-masking-300k is evaluation-only for this project. Training on
+it requires written permission from AI4Privacy (non-commercial license).
+
 Iteration 1 trained on 2,014 synthetic samples and hit F1 0.352 on the
 validation split — domain-shift-limited. This script trains directly
 on the train split of the same dataset (label-agnostic IoU eval on
@@ -74,7 +77,22 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=5e-5)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--i-have-written-permission", action="store_true",
+                        help="Confirms you hold written permission from AI4Privacy to train on "
+                             "pii-masking-300k (non-commercial license). Required to proceed.")
     args = parser.parse_args()
+
+    if not args.i_have_written_permission:
+        print(
+            "ERROR: 0xhikae/pii-masking-300k-ja is derived from ai4privacy/pii-masking-300k, "
+            "which is non-commercially licensed; training on it (and publishing any derivative "
+            "model) requires written permission from AI4Privacy. This project treats the "
+            "dataset as evaluation-only (see packages/sdk/src/pleno_anonymize/_models.py). "
+            "Re-run with --i-have-written-permission only if you have obtained that permission "
+            "in writing.",
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
 
     # Reproducibility: fix all RNGs we touch.
     import os, random

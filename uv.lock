@@ -22,6 +22,10 @@ resolution-markers = [
     "python_full_version < '3.13' and platform_machine == 's390x' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 
+[options]
+exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
+exclude-newer-span = "P1D"
+
 [manifest]
 members = [
     "pleno-anonymize",
@@ -2626,7 +2630,7 @@ wheels = [
 
 [[package]]
 name = "pleno-anonymize"
-version = "0.2.3"
+version = "0.2.5"
 source = { editable = "packages/sdk" }
 dependencies = [
     { name = "presidio-analyzer" },
@@ -2760,6 +2764,11 @@ training = [
     { name = "spacy-transformers" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "accelerate", marker = "extra == 'hf'", specifier = ">=0.30" },
@@ -2787,6 +2796,9 @@ requires-dist = [
     { name = "transformers", marker = "extra == 'hf'", specifier = ">=4.40" },
 ]
 provides-extras = ["training", "hf", "bench"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.0" }]
 
 [[package]]
 name = "pluggy"

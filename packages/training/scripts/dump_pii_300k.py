@@ -1,5 +1,8 @@
 """Dump a language slice of ai4privacy/pii-masking-300k to local JSONL.
 
+WARNING: the dumped data is for evaluation only; do not train on it
+without written permission from AI4Privacy (non-commercial license).
+
 Mirror of how the JP supervised v2 pipeline reads its data
 (`train_supervised_300k_ja.py`). The trainer reads from local
 ``train.jsonl`` / ``dev.jsonl`` so the dataset load happens once on a
@@ -81,6 +84,11 @@ def main() -> None:
     p.add_argument("--dev-limit", type=int, default=0, help="0 = no limit")
     p.add_argument("--output-dir", type=Path, required=True)
     args = p.parse_args()
+
+    print(
+        "[warning] dumped data is for evaluation only; do not train on it without "
+        "written permission from AI4Privacy (non-commercial license)."
+    )
 
     from datasets import load_dataset
 
