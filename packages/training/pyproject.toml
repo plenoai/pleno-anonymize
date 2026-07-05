@@ -60,8 +60,13 @@ bench = [
 # (project CLAUDE.md: do not train on local machine); the workspace-root
 # sdk dev group does not carry over here. Mirrors
 # packages/sdk/pyproject.toml's dev group.
+# jsonschema: validates experiment log entries against
+# experiments/log_schema.json before every log_experiment.py append (#293).
+# Not a runtime dependency of the shipped model/SDK, so it lives in dev
+# rather than [project.dependencies] or an extra.
 dev = [
     "pytest>=8.0",
+    "jsonschema>=4.18",
 ]
 
 [build-system]

@@ -1,0 +1,18 @@
+{
+  "en::ai4privacy/pii-masking-300k @ validation, n=300, IoU=0.5": {
+    "f1": 0.5812,
+    "id": "20260705_iter15_faker_component_spans_plus_dedup"
+  },
+  "ja::frozen internal benchmarks v0.4.0 (2976 docs) + v0.13.0-held-out, strict-span F1, 同一 RunPod 環境 ladder": {
+    "f1": 0.8543,
+    "id": "20260705_iter16_ja_combined_faker_retrain"
+  },
+  "ja::ja_frozen_benchmark_v0.4.0": {
+    "f1": 0.869,
+    "id": "20260403_iter10_error_analysis_org_boundary"
+  },
+  "ja::v0.12.0/ja": {
+    "f1": 0.452,
+    "id": "20260503_iter12_aug_ext_runpod_gpu"
+  }
+}

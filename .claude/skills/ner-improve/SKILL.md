@@ -189,25 +189,38 @@ If **DISCARD**: restore model-best from backup and re-evaluate to confirm scores
 
 ### Experiment log format
 
-Append to `packages/training/experiments/log.jsonl` (create if missing):
+`packages/training/experiments/log.jsonl` is normalized to a single schema
+(`experiments/log_schema.json`, #293). Never hand-write a JSON line into it —
+always append through `packages/training/scripts/log_experiment.py`, which
+hashes the input data file into `data_hash`, validates the row against the
+schema, and (only on success) appends the line and refreshes
+`experiments/best.json` — the `{language}::{baseline}` -> best-KEEP-run
+pointer you should read at the start of Phase 1 instead of re-parsing the
+whole log:
 
-```json
-{
-  "id": "20260512_143000_add_email_subaddress_aug",
-  "timestamp": "2026-05-12T14:30:00+09:00",
-  "hypothesis": "Add 1000 EMAIL subaddress/plus-tag examples",
-  "intervention_type": "data_augmentation",
-  "language": "en",
-  "baseline": "ai4privacy/pii-masking-300k @ validation, n=300, IoU=0.5",
-  "changes": ["packages/training/src/pleno_ner_training/augment_en_data.py"],
-  "metrics_before": {"overall_f1": 0.318, "EMAIL_recall": 0.71},
-  "metrics_after":  {"overall_f1": 0.341, "EMAIL_recall": 0.93},
-  "delta":          {"overall_f1": "+0.023", "EMAIL_recall": "+0.22"},
-  "verdict": "KEEP",
-  "reason": "EMAIL recall reached floor (within sample noise); overall F1 up 2.3pt",
-  "duration_minutes": 12
-}
+```bash
+cd packages/training
+uv run python scripts/log_experiment.py \
+  --id 20260512_143000_add_email_subaddress_aug \
+  --language en \
+  --baseline "ai4privacy/pii-masking-300k @ validation, n=300, IoU=0.5" \
+  --hypothesis "Add 1000 EMAIL subaddress/plus-tag examples" \
+  --intervention-type data_augmentation \
+  --data-file data/raw/en/augmented.json \
+  --metrics-before '{"overall_f1": 0.318, "EMAIL_recall": 0.71}' \
+  --metrics-after '{"overall_f1": 0.341, "EMAIL_recall": 0.93}' \
+  --verdict KEEP \
+  --reason "EMAIL recall reached floor (within sample noise); overall F1 up 2.3pt" \
+  --duration-minutes 12
 ```
+
+`--metrics-before`/`--metrics-after` also accept `@path/to/file.json` to read
+the object from a file instead of an inline string. `--verdict` must be one
+of `KEEP` / `DISCARD` / `NO_DECISION`. If validation fails, the script exits
+1 and leaves `log.jsonl` / `best.json` untouched — fix the entry and retry
+rather than editing the files directly. See `experiments/log_entry_template.json`
+for a filled-in example of both the hypothesis-test and baseline_comparison
+shapes.
 
 ### Final report
 

@@ -1,10 +1,11 @@
-"""U7 verification: log_entry_template.json round-trips through LogJsonlEntry.
+"""log_entry_template.json validates against log_schema.json (#293).
 
-Guards the post-decision artifact templates created by U7 of plan
-``docs/plans/2026-05-02-001-feat-ginza-presidio-baseline-measurement-plan.md``.
-The template MUST stay valid against U5's ``LogJsonlEntry`` pydantic model so
-maintainers can append it verbatim (with TBD placeholders filled) to
-``experiments/log.jsonl`` once measurement results land.
+The template is the canonical "shape to copy" reference for anyone writing a
+log.jsonl row by hand (or reviewing what scripts/log_experiment.py produces).
+It must always be schema-valid, and it must demonstrate both the common
+hypothesis-test shape and the baseline_comparison shape (metrics_before={}
+is a legitimate special case, not an oversight — see log_schema.json's
+description of that field).
 """
 
 from __future__ import annotations
@@ -12,23 +13,40 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from pleno_ner_training.artifact import LogJsonlEntry
+import jsonschema
+
+TRAINING_ROOT = Path(__file__).resolve().parents[1]
+TEMPLATE_PATH = TRAINING_ROOT / "experiments" / "log_entry_template.json"
+SCHEMA_PATH = TRAINING_ROOT / "experiments" / "log_schema.json"
+
+
+def _load_schema() -> dict:
+    return json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
 
 
 def test_log_entry_templates_validate() -> None:
-    template_path = (
-        Path(__file__).resolve().parents[1]
-        / "experiments"
-        / "log_entry_template.json"
-    )
-    data = json.loads(template_path.read_text(encoding="utf-8"))
-    assert len(data) == 2  # KILL + COMMIT
-    verdicts_seen: set[str] = set()
+    schema = _load_schema()
+    validator = jsonschema.Draft7Validator(schema)
+    data = json.loads(TEMPLATE_PATH.read_text(encoding="utf-8"))
+
+    assert isinstance(data, list)
+    assert len(data) == 2  # hypothesis-test example + baseline_comparison example
+
     for entry in data:
-        parsed = LogJsonlEntry.model_validate(entry)
-        assert parsed.intervention_type == "baseline_comparison"
-        assert parsed.verdict in {"KILL", "COMMIT"}
-        assert parsed.artifact_path is not None
-        assert parsed.language == "ja"
-        verdicts_seen.add(parsed.verdict)
-    assert verdicts_seen == {"KILL", "COMMIT"}
+        errors = list(validator.iter_errors(entry))
+        assert not errors, f"{entry.get('id')} failed schema validation: {errors}"
+
+
+def test_log_entry_templates_cover_both_intervention_shapes() -> None:
+    data = json.loads(TEMPLATE_PATH.read_text(encoding="utf-8"))
+    intervention_types = {entry["intervention_type"] for entry in data}
+    verdicts = {entry["verdict"] for entry in data}
+
+    assert "baseline_comparison" in intervention_types
+    # baseline_comparison example has no natural "before" state.
+    baseline_comparison_entry = next(
+        e for e in data if e["intervention_type"] == "baseline_comparison"
+    )
+    assert baseline_comparison_entry["metrics_before"] == {}
+    assert "NO_DECISION" in verdicts
+    assert "KEEP" in verdicts
