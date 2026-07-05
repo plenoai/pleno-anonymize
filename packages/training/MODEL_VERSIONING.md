@@ -1,8 +1,13 @@
 # Model Versioning
 
-ONNX NER モデルを HuggingFace Hub (`0xhikae/ja-ner-onnx`) に release する手順と
-バージョニング規約。Closes #71. CI 実装は
+spaCy CNN の ONNX NER モデルを HuggingFace Hub (`0xhikae/ja-ner-onnx`) に
+release する手順とバージョニング規約。Closes #71. CI 実装は
 `.github/workflows/release-model.yml` を参照。
+
+このリポジトリには他に 2 つの独立した HF 配布先があるが、いずれも本 doc の
+tag-push フローの対象外 (下記「他の配布先との関係」参照): SDK が自動
+ダウンロードする `pleno_anonymize_{ja,en}` wheel と、server の APPI エンジンが
+使う `ja-ner-appi-v1-onnx`。
 
 ## TL;DR
 
@@ -78,11 +83,27 @@ pleno_ner_training.export_onnx` 呼び出しに `--revision` / `--dry-run` を
 追加した形で実行する (Makefile target の wrapper にはしない — workflow で
 直接 flag を制御するほうが dry-run path が明示的になるため)。
 
-## 実 release は #48 完了後
+## 現状 (2026-07 時点)
 
-scaffolding として #71 PR は merge する。実 push は trained artifact が
-`packages/training/output/hf-ja-v02-tiny/` に生成された後 (#48 完了後) に
-最初の `model/v*` tag を切って発火する。
+`model/v0.13.0` tag で `0xhikae/ja-ner-onnx` への実 push が 1 回発火済み。
+このタグ運用は spaCy CNN (`ja-v02` / `hf-ja-v02-tiny*` 系) の ONNX 成果物専用
+であり、以下の「他の配布先との関係」で説明する ja/en 0.3.0 の出荷経路とは
+別系統である。
+
+## 他の配布先との関係
+
+同じ repo に、本 doc の tag-push フローとは別の HF 配布先が 2 つ存在する。
+混同しないこと。
+
+| 配布先 | 用途 | push 経路 | 参照元 |
+|---|---|---|---|
+| `0xhikae/ja-ner-onnx` | spaCy CNN の ONNX export (本 doc の対象) | `model/v*` tag → `release-model.yml` | `export_onnx.py` |
+| `0xhikae/pleno_anonymize_ja` / `pleno_anonymize_en` | SDK が実行時に自動 download する model wheel。ja/en とも 0.3.0 を出荷済み | `make push-model-hf` / `push-model-hf-en` → `scripts/push_model_to_hf.py` (tag 起点ではない ad-hoc push) | `packages/sdk/src/pleno_anonymize/_models.py` の `MODEL_WHEELS` |
+| `0xhikae/ja-ner-appi-v1-onnx` | server の APPI エンジン (要配慮個人情報, DeBERTa v2 ONNX) が読む transformer モデル。`APPI_MODEL_ID` 環境変数で上書き可能 | 単発 feature 実装時に手動 push (本 doc の release flow 対象外) | `server/src/app.py` の `_APPI_MODEL_ID` |
+
+ja/en 0.3.0 の出荷は `pleno_anonymize_{ja,en}` 経路で完了済みであり、本 doc の
+`model/v*` tag-push は spaCy CNN ONNX 成果物を追加 release したい場合にのみ
+使う。
 
 ## SDK wheel (`pleno_anonymize_ja`/`_en`) の version single source of truth (#296)
 

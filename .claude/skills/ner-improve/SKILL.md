@@ -60,8 +60,10 @@ generate_data / augment → convert_to_docbin → spacy train → evaluate → e
 - Training package: `packages/training/`
 - Prompts: `packages/training/src/pleno_ner_training/prompts/`
 - Training configs: `packages/training/configs/`
-- Raw / processed training data: `packages/training/data/raw/{language}/`, `data/processed/{language}/`
-- Model output: `packages/training/output/`
+- Raw training data: `packages/training/data/raw/` — not a uniform `{language}/` layout. On disk: `en/` (`generated.json`, `augmented.json`), `ja-v02/` (`generated.json`, `augmented.json`, `address_precision_extra.json`), `ja-v02-extra/` (`generated.json`). Gitignored and not yet materialized until their target runs: `ja-300k-supervised/`, `en-300k-supervised/` (`make dump-supervised-en`, `scripts/train_supervised_300k_{ja,en}.py --data-dir`), `ja-special-care/` (`make generate-special-care`).
+- Processed training data: `packages/training/data/processed/<name>/` — gitignored `.spacy` DocBins produced by `convert_to_docbin` (e.g. `ja-v02/train.spacy`).
+- Model output: `packages/training/output/` (the Makefile's `$(OUTPUT_DIR)`, gitignored). No fixed `{language}/` schema — each Makefile target writes its own subdir, e.g. `ja-v02/model-best` (`train-v02`), `en-ner-supervised-v2/` (`train-supervised-en`), `hf-ja-v02-tiny*/` (HF tracks). Currently populated: `output/scores.json`, `output/ja/`, `output/en/`, `output/en-transformer/` (see the `model-best` path used in Phase 2 below). Run `ls packages/training/output/` to confirm the current layout before assuming a path.
+- Baseline-eval JSON reports: repo-root `output/` (e.g. `output/pii-300k-eval-en-300.json`, written in Phase 0/2 below) — gitignored and **distinct from `packages/training/output/`** above. Root `output/` holds public-baseline eval results; `packages/training/output/` holds trained model checkpoints/scores. Same name, different directory — do not conflate them.
 - Experiment log: `packages/training/experiments/log.jsonl`
 - Baseline evaluator: `packages/sdk/scripts/eval_pii_masking_300k.py`
 - Makefile: `packages/training/Makefile`
