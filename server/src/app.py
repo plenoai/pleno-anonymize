@@ -109,6 +109,9 @@ def _init_presidio():
         if "en" in supported_languages:
             analyzer.registry.load_predefined_recognizers(languages=["en"])
 
+        for recognizer in pleno_ner_recognizers(supported_languages):
+            analyzer.registry.add_recognizer(recognizer)
+
         anonymizer = AnonymizerEngine()
 
         # Assign module globals only after fully configured so concurrent
