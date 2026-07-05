@@ -116,6 +116,9 @@ SDK が pip install する spaCy wheel (`0xhikae/pleno_anonymize_ja` /
 `packages/models/versions.json` を言語ごとの `{version, hf_repo, wheel_url}`
 の single source of truth とし、以下のフローに統一する:
 
+0. `/release-gate` (`.claude/skills/release-gate/`) — academic-validity-reviewer
+   subagent による敵対的学術査読。APPROVE が出るまで以降の手順に進まない。
+   verdict は `packages/training/experiments/artifacts/release-gate/` に残る。
 1. `make release-model MODEL_LANG=<ja|en> MODEL_VERSION=<x.y.z>`
    (`packages/training/` から実行) — versions.json を更新し、その version
    で該当言語の package target を実行し、SDK 側の整合性テスト
