@@ -46,6 +46,22 @@ def pleno_ner_model_configuration():
     )
 
 
+def _dedupe_overlaps(findings: list[Finding]) -> list[Finding]:
+    """Collapse character-overlapping findings to the strongest one.
+
+    Presidio returns every recognizer's hit independently, so one digit
+    string routinely surfaces as US_DRIVER_LICENSE + US_BANK_NUMBER +
+    US_SSN at once. Redaction masks the span either way; extra overlapping
+    findings are noise for API consumers. Higher score wins, longer span
+    breaks ties (an EMAIL_ADDRESS subsumes the URL inside it).
+    """
+    kept: list[Finding] = []
+    for f in sorted(findings, key=lambda f: (-f.score, f.start - f.end, f.start)):
+        if all(f.end <= k.start or f.start >= k.end for k in kept):
+            kept.append(f)
+    return sorted(kept, key=lambda f: f.start)
+
+
 def pleno_ner_recognizers(languages: Iterable[str]):
     """One SpacyRecognizer per language carrying the full wheel taxonomy."""
     from presidio_analyzer.predefined_recognizers import SpacyRecognizer
@@ -98,7 +114,7 @@ class LocalEngine:
         analyzer = self._get_analyzer()
         ent_list = list(entities) if entities is not None else None
         results = analyzer.analyze(text=text, language=language, entities=ent_list)
-        return [
+        findings = [
             Finding(
                 entity_type=r.entity_type,
                 start=r.start,
@@ -108,6 +124,7 @@ class LocalEngine:
             )
             for r in results
         ]
+        return _dedupe_overlaps(findings)
 
     def redact(
         self,
