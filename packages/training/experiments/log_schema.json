@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/plenoai/pleno-anonymize/packages/training/experiments/log_schema.json",
+  "title": "NER experiment log entry",
+  "description": "Single normalized schema for packages/training/experiments/log.jsonl (#293). Every row — hypothesis test, benchmark version change, or baseline comparison — is expressed through the same 10 fields so an agent can machine-parse 'previous best for {language, baseline}' without re-reading history in prose. Fields present in a pre-#293 row that do not map onto this shape are preserved verbatim, without alteration, under `legacy` so the migration loses zero information.",
+  "type": "object",
+  "required": [
+    "id",
+    "timestamp",
+    "language",
+    "baseline",
+    "hypothesis",
+    "intervention_type",
+    "metrics_before",
+    "metrics_after",
+    "verdict",
+    "data_hash"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique run identifier, conventionally {YYYYMMDD}_{slug} or {YYYYMMDD}_iterNN_{slug}."
+    },
+    "timestamp": {
+      "type": "string",
+      "minLength": 1,
+      "format": "date-time",
+      "description": "ISO 8601 timestamp, JST (+09:00) by convention for this project."
+    },
+    "language": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Target language of the run, e.g. 'ja' or 'en'."
+    },
+    "baseline": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifier of the benchmark/dataset this run's metrics are measured against. Combined with `language` this is the grouping key for experiments/best.json — every run sharing {language, baseline} is directly comparable."
+    },
+    "hypothesis": {
+      "type": "string",
+      "minLength": 1,
+      "description": "What the run changed and why, in one sentence."
+    },
+    "intervention_type": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Category of intervention (e.g. data_augmentation, data_generation, training_config, label_mapping, baseline_comparison, benchmark_versioning). Free-form string, not enum-constrained, since new intervention categories are expected as the project evolves."
+    },
+    "metrics_before": {
+      "type": "object",
+      "description": "Metric snapshot prior to the intervention. Empty object ({}) is valid when the run has no natural 'before' state (e.g. a one-shot baseline comparison)."
+    },
+    "metrics_after": {
+      "type": "object",
+      "description": "Metric snapshot after the intervention. Runs that participate in experiments/best.json ranking MUST include a numeric 'overall_f1' key here."
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["KEEP", "DISCARD", "NO_DECISION"],
+      "description": "KEEP: intervention adopted. DISCARD: intervention rejected/reverted. NO_DECISION: comparison/meta record with no keep-or-discard action (e.g. benchmark version bump, tied baseline comparison)."
+    },
+    "data_hash": {
+      "type": "string",
+      "minLength": 1,
+      "description": "sha256 hex digest of the training/eval input data file used for this run. 'unknown' for rows migrated from before this field existed (#293) — the original data is no longer hashable after the fact."
+    },
+    "reason": {
+      "type": "string",
+      "description": "Optional human-readable justification for the verdict."
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Optional wall-clock duration of the run."
+    },
+    "legacy": {
+      "type": "object",
+      "description": "Optional escape hatch. For rows migrated from the pre-#293 log format, this holds the *entire original JSON object* verbatim, so every field that existed before migration is still recoverable even though it is not part of the normalized schema above. New rows appended via scripts/log_experiment.py do not set this field."
+    }
+  }
+}

@@ -10,38 +10,33 @@ This module locks the on-disk schema for two outputs:
    P1-4 (per-entity verdict 8 required fields), P0-3 (leakage_check shape),
    and P0-4 (anchor_pr_sha pin).
 
-2. ``LogJsonlEntry`` — ``experiments/log.jsonl`` historical record. Backward
-   compatible with all 21 pre-existing entries (P1-1 acceptance criterion).
+2. ``LogJsonlEntry`` — ``experiments/log.jsonl`` historical record. Loosely
+   validates every row regardless of which of the pre-#293 shapes (or the
+   post-#293 ``experiments/log_schema.json`` shape) it uses.
 
-P1-1 verdict / intervention_type Literal source of truth
---------------------------------------------------------
-Pre-implementation enumeration of the 21 existing entries yielded::
+P1-1 verdict Literal source of truth
+-------------------------------------
+``verdict`` stays a closed Literal — ``{"KEEP", "DISCARD"}`` (legacy) plus
+``{"KILL", "COMMIT", "NO_DECISION"}`` (baseline_comparison) plus
+``"KEEP_PARTIAL"`` (see iter12) — because every schema this project has used
+for log.jsonl, including #293's ``log_schema.json``, treats the decision
+outcome as a genuinely closed set.
 
-    verdict           = {"DISCARD", "KEEP"}            (13/21 entries)
-    intervention_type = {"data_augmentation",
-                         "data_generation",
-                         "training_config"}            (13/21 entries)
-    type              = {"benchmark_evolution",
-                         "benchmark_expansion",
-                         "benchmark_refinement"}        (8/21 entries —
-                         these legacy records lack `verdict` / `intervention_type`
-                         entirely; only `id`, `timestamp`, `language` are universal.)
+``intervention_type`` was originally a matching closed Literal, enumerated
+from a 21-entry snapshot. It is now a plain ``str`` (see the field's
+docstring below): the Literal drifted out of sync with reality at least
+twice as new free-text categories were appended (``label_mapping``,
+``"training_data (ceiling experiment, NOT shippable)"``), undetected because
+``packages/training/tests/`` is not part of CI (only ``server/`` and
+``packages/sdk/`` are — see ``.github/workflows/ci.yml``). #293's
+``experiments/log_schema.json`` makes the same call deliberately from the
+start: ``intervention_type`` is intentionally free-form there too, since new
+intervention categories are expected as the project evolves.
 
-The Literal unions therefore are:
-
-    intervention_type ∈ legacy 3 ∪ {"baseline_comparison",
-                                    "rule_amendment",
-                                    "verdict_override"}
-    verdict           ∈ {"KEEP", "DISCARD"} ∪ {"KILL", "COMMIT", "NO_DECISION"}
-
-Per the plan's U5 documentation requirement:
-    "KEEP" / "DISCARD" are legacy verdicts for legacy intervention_types
-    (data_augmentation, data_generation, training_config).
-    "baseline_comparison" entries take only "KILL" / "COMMIT" / "NO_DECISION".
-
-Universal-only required fields (``id``, ``timestamp``, ``language``) keep all
-21 historical entries parseable; everything else is Optional with the proper
-Literal constraint when present.
+Universal-only required fields (``id``, ``timestamp``, ``language``) keep
+every historical entry parseable; everything else is Optional, with a
+Literal constraint only where the underlying concept is genuinely closed
+(``verdict``, the legacy ``type`` field).
 """
 
 from __future__ import annotations
@@ -159,10 +154,10 @@ class ComparisonArtifact(BaseModel):
 
 
 # Legacy values enumerated from the 21 pre-existing entries (P1-1).
+# (`_LEGACY_INTERVENTIONS` / `_NEW_INTERVENTIONS` were removed alongside
+# widening `intervention_type` to `str` below — #293.)
 _LEGACY_VERDICTS = ("KEEP", "DISCARD")
 _NEW_VERDICTS = ("KILL", "COMMIT", "NO_DECISION")
-_LEGACY_INTERVENTIONS = ("data_augmentation", "data_generation", "training_config")
-_NEW_INTERVENTIONS = ("baseline_comparison", "rule_amendment", "verdict_override")
 _LEGACY_TYPES = (
     "benchmark_evolution",
     "benchmark_expansion",
@@ -188,21 +183,18 @@ class LogJsonlEntry(BaseModel):
 
     # Hypothesis-test columns (13/21 entries).
     hypothesis: Optional[str] = None
-    intervention_type: Optional[
-        Literal[
-            "data_augmentation",
-            "data_generation",
-            "training_config",
-            "baseline_comparison",
-            "rule_amendment",
-            "verdict_override",
-            # Composite recorded when an iteration changed both the dataset and
-            # the training hardware in the same step (RunPod GPU adoption,
-            # iter12). Kept as a distinct enum rather than splitting the entry
-            # so the historical record is preserved verbatim.
-            "data_augmentation+training_hardware",
-        ]
-    ] = None
+    # `intervention_type` was originally a closed Literal enumerated from a
+    # 21-entry snapshot (P1-1). It silently drifted out of sync at least
+    # twice since (iter13's "label_mapping", iter14's free-text "training_data
+    # (ceiling experiment, NOT shippable)") without failing CI, because
+    # packages/training/tests/ is not wired into .github/workflows/ci.yml —
+    # only server/ and packages/sdk/ run there. #293's log_schema.json
+    # (experiments/log_schema.json) makes the same call deliberately: new
+    # intervention categories are expected as the project evolves, so the
+    # field is a plain string there, not an enum. Widened here to match —
+    # `verdict` stays a Literal because both schemas treat it as a genuinely
+    # closed decision set.
+    intervention_type: Optional[str] = None
     changes: Optional[Any] = None
     metrics_before: Optional[Any] = None
     metrics_after: Optional[Any] = None

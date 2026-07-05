@@ -1,32 +1,32 @@
 [
   {
-    "id": "baseline_comparison_<TBD>_kill_sample",
-    "timestamp": "<TBD: JST ISO8601>",
+    "id": "20260706_iter17_example_hypothesis",
+    "timestamp": "2026-07-06T10:00:00+09:00",
     "language": "ja",
-    "intervention_type": "baseline_comparison",
-    "hypothesis": "OSS NER (ja_core_news_trf + Presidio) outperforms custom CNN/BERT on ORG/DOB at v0.12.0 benchmark",
-    "verdict": "KILL",
-    "reason": "Both ORG and DOB show OSS-better with diff_ci.lo > 0 under Bonferroni alpha/35; all 4 gates pass; n_eligible_templates >= 4.",
-    "duration_minutes": 0,
-    "artifact_path": "packages/training/experiments/artifacts/<run_id>/comparison.json",
-    "metrics_after": {
-      "ORGANIZATION": {"verdict": "KILL", "r7_diff_sign": "oss_better"},
-      "DATE_OF_BIRTH": {"verdict": "KILL", "r7_diff_sign": "oss_better"}
-    }
+    "baseline": "ja_frozen_benchmark_v0.4.0",
+    "hypothesis": "One sentence: what changed and why it should move overall_f1.",
+    "intervention_type": "data_augmentation",
+    "metrics_before": {"overall_f1": 0.869},
+    "metrics_after": {"overall_f1": 0.881},
+    "verdict": "KEEP",
+    "data_hash": "3f9a1c2b6e7d4f0a8c5b9e2d1a6f3c8b0e7d4a2f9c1b6e3d8a5f2c7b0e9d4a1f",
+    "reason": "Overall F1 +1.2pt, no per-entity regressions beyond noise.",
+    "duration_minutes": 12
   },
   {
-    "id": "baseline_comparison_<TBD>_commit_sample",
-    "timestamp": "<TBD: JST ISO8601>",
+    "id": "20260706_baseline_comparison_example",
+    "timestamp": "2026-07-06T11:00:00+09:00",
     "language": "ja",
+    "baseline": "ja_benchmark_v0.13.0_heldout",
+    "hypothesis": "OSS NER (ja_core_news_trf + Presidio) outperforms custom CNN on ORG/DOB at the v0.13.0 held-out benchmark.",
     "intervention_type": "baseline_comparison",
-    "hypothesis": "Custom NER (CNN/BERT) holds within margin or beats OSS NER on ORG/DOB at v0.12.0 benchmark",
-    "verdict": "COMMIT",
-    "reason": "OSS does not exceed custom by >= 3pt under Bonferroni alpha/35; either custom_better or tied with diff_ci straddling zero.",
-    "duration_minutes": 0,
-    "artifact_path": "packages/training/experiments/artifacts/<run_id>/comparison.json",
+    "metrics_before": {},
     "metrics_after": {
-      "ORGANIZATION": {"verdict": "COMMIT", "r7_diff_sign": "tied"},
-      "DATE_OF_BIRTH": {"verdict": "COMMIT", "r7_diff_sign": "custom_better"}
-    }
+      "ORGANIZATION": {"verdict": "NO_DECISION", "custom_best_p_overlap": 1.0, "oss_best_p_overlap": null},
+      "DATE_OF_BIRTH": {"verdict": "NO_DECISION", "custom_best_p_overlap": 1.0, "oss_best_p_overlap": 0.909}
+    },
+    "verdict": "NO_DECISION",
+    "data_hash": "unknown",
+    "reason": "OSS cannot reach the precision budget on ORG on held-out templates; DOB ties at perfect recall."
   }
 ]
