@@ -1,5 +1,8 @@
 """Supervised v2 (EN): train on local JSONL dump of ai4privacy/pii-masking-300k EN split.
 
+WARNING: pii-masking-300k is evaluation-only for this project. Training on
+it requires written permission from AI4Privacy (non-commercial license).
+
 Mirrors `train_supervised_300k_ja.py` (same loader, same BIO encoding,
 same Trainer config, same seed pinning) but defaults to a *lightweight*
 English-only backbone — `distilbert-base-uncased` (~66M params, ~265 MB
@@ -26,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -64,7 +68,21 @@ def main() -> None:
     parser.add_argument("--lr", type=float, default=5e-5)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--train-limit", type=int, default=0, help="0 = use full train.jsonl")
+    parser.add_argument("--i-have-written-permission", action="store_true",
+                        help="Confirms you hold written permission from AI4Privacy to train on "
+                             "pii-masking-300k (non-commercial license). Required to proceed.")
     args = parser.parse_args()
+
+    if not args.i_have_written_permission:
+        print(
+            "ERROR: ai4privacy/pii-masking-300k is non-commercially licensed; training on it "
+            "(and publishing any derivative model) requires written permission from AI4Privacy. "
+            "This project treats the dataset as evaluation-only "
+            "(see packages/sdk/src/pleno_anonymize/_models.py). Re-run with "
+            "--i-have-written-permission only if you have obtained that permission in writing.",
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
 
     import os
     import random

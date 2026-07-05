@@ -797,13 +797,22 @@ SUPERVISED_BASE ?= FacebookAI/xlm-roberta-base
 SUPERVISED_EPOCHS ?= 2
 SUPERVISED_SEED ?= 42
 
+# Guarded: pii-masking-300k(-ja) is non-commercially licensed and evaluation-only
+# for this project (#294). Requires explicit written-permission acknowledgement.
 train-supervised-ja:
+	@if [ "$(I_HAVE_WRITTEN_PERMISSION)" != "1" ]; then \
+		echo "ERROR: pii-masking-300k-ja training requires written permission from" >&2; \
+		echo "AI4Privacy (non-commercial license). Re-run with I_HAVE_WRITTEN_PERMISSION=1" >&2; \
+		echo "only if you have obtained that permission in writing." >&2; \
+		exit 1; \
+	fi
 	uv run --extra training --extra hf python scripts/train_supervised_300k_ja.py \
 		--data-dir $(SUPERVISED_DATA) \
 		--output-dir $(SUPERVISED_OUT) \
 		--base-model $(SUPERVISED_BASE) \
 		--epochs $(SUPERVISED_EPOCHS) \
-		--seed $(SUPERVISED_SEED)
+		--seed $(SUPERVISED_SEED) \
+		--i-have-written-permission
 
 HF_MODEL_REPO ?= 0xhikae/pleno_anonymize_ja
 push-model-hf:
@@ -841,13 +850,22 @@ dump-supervised-en:
 		--language English \
 		--output-dir $(SUPERVISED_EN_DATA)
 
+# Guarded: pii-masking-300k is non-commercially licensed and evaluation-only
+# for this project (#294). Requires explicit written-permission acknowledgement.
 train-supervised-en:
+	@if [ "$(I_HAVE_WRITTEN_PERMISSION)" != "1" ]; then \
+		echo "ERROR: pii-masking-300k (EN) training requires written permission from" >&2; \
+		echo "AI4Privacy (non-commercial license). Re-run with I_HAVE_WRITTEN_PERMISSION=1" >&2; \
+		echo "only if you have obtained that permission in writing." >&2; \
+		exit 1; \
+	fi
 	uv run --extra training --extra hf python scripts/train_supervised_300k_en.py \
 		--data-dir $(SUPERVISED_EN_DATA) \
 		--output-dir $(SUPERVISED_EN_OUT) \
 		--base-model $(SUPERVISED_EN_BASE) \
 		--epochs $(SUPERVISED_EN_EPOCHS) \
-		--seed $(SUPERVISED_EN_SEED)
+		--seed $(SUPERVISED_EN_SEED) \
+		--i-have-written-permission
 
 HF_MODEL_REPO_EN ?= 0xhikae/pleno_anonymize_en
 push-model-hf-en:

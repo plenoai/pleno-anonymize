@@ -241,6 +241,7 @@ Next steps:
 - **Never** modify the baseline dataset, the evaluator (`packages/sdk/scripts/eval_pii_masking_300k.py`), or the IoU threshold — the public ruler is fixed.
 - **Never** modify the self-made benchmark data under `packages/training/data/benchmark/v0.*/` — frozen as of v0.13.0.
 - **Never** modify `packages/training/src/pleno_ner_training/entity_types.py` (entity definitions are stable).
+- **Never** train on `ai4privacy/pii-masking-300k` or its local dumps (`data/raw/*-300k-supervised/`) — evaluation-only license; derivative models require written permission.
 - Working directory for training commands: `packages/training/`.
 - Use `dotenvx run -f ../../.env --` for commands that call the OpenAI API.
 - Use `uv run` for all Python commands.
