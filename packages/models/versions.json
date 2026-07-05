@@ -1,0 +1,13 @@
+{
+  "_comment": "Single source of truth for shipped NER model versions (#296). packages/sdk/src/pleno_anonymize/_models.py:MODEL_WHEELS is NOT generated from this file at runtime (SDK must work standalone, see _models.py:23-25) — packages/sdk/tests/test_model_versions.py asserts the two stay in sync instead. Bump here first, then run `make release-model` in packages/training.",
+  "ja": {
+    "version": "0.3.0",
+    "hf_repo": "0xhikae/pleno_anonymize_ja",
+    "wheel_url": "https://huggingface.co/0xhikae/pleno_anonymize_ja/resolve/main/pleno_anonymize_ja-0.3.0-py3-none-any.whl"
+  },
+  "en": {
+    "version": "0.3.0",
+    "hf_repo": "0xhikae/pleno_anonymize_en",
+    "wheel_url": "https://huggingface.co/0xhikae/pleno_anonymize_en/resolve/main/pleno_anonymize_en-0.3.0-py3-none-any.whl"
+  }
+}
