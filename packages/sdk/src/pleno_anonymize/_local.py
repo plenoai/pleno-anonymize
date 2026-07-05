@@ -11,6 +11,70 @@ from ._models import Language, ensure, is_installed, model_for
 
 logger = logging.getLogger("pleno_anonymize")
 
+# Labels emitted by the bundled NER wheels (pleno_anonymize_ja / _en).
+# Presidio's default SpacyRecognizer only surfaces OntoNotes-style entities
+# (PERSON, LOCATION, ORGANIZATION …), so ADDRESS / DATE_OF_BIRTH /
+# BANK_ACCOUNT spans the wheels emit are silently dropped unless a
+# recognizer declares them — see pleno_ner_recognizers().
+PLENO_NER_LABELS: tuple[str, ...] = (
+    "PERSON",
+    "ORGANIZATION",
+    "ADDRESS",
+    "DATE_OF_BIRTH",
+    "BANK_ACCOUNT",
+)
+
+
+def pleno_ner_model_configuration():
+    """NerModelConfiguration that maps the wheel taxonomy onto itself.
+
+    Keeps Presidio's stock OntoNotes mapping (for users who swap in a
+    vanilla spaCy model) and adds identity entries for the pleno labels so
+    they reach recognizers under their product names instead of tripping
+    the "not mapped to a Presidio entity" warning per span.
+    """
+    from presidio_analyzer.nlp_engine import NerModelConfiguration
+    from presidio_analyzer.nlp_engine.ner_model_configuration import (
+        MODEL_TO_PRESIDIO_ENTITY_MAPPING,
+    )
+
+    return NerModelConfiguration(
+        model_to_presidio_entity_mapping={
+            **MODEL_TO_PRESIDIO_ENTITY_MAPPING,
+            **{label: label for label in PLENO_NER_LABELS},
+        }
+    )
+
+
+def _dedupe_overlaps(findings: list[Finding]) -> list[Finding]:
+    """Collapse character-overlapping findings to the strongest one.
+
+    Presidio returns every recognizer's hit independently, so one digit
+    string routinely surfaces as US_DRIVER_LICENSE + US_BANK_NUMBER +
+    US_SSN at once. Redaction masks the span either way; extra overlapping
+    findings are noise for API consumers. Higher score wins, longer span
+    breaks ties (an EMAIL_ADDRESS subsumes the URL inside it).
+    """
+    kept: list[Finding] = []
+    for f in sorted(findings, key=lambda f: (-f.score, f.start - f.end, f.start)):
+        if all(f.end <= k.start or f.start >= k.end for k in kept):
+            kept.append(f)
+    return sorted(kept, key=lambda f: f.start)
+
+
+def pleno_ner_recognizers(languages: Iterable[str]):
+    """One SpacyRecognizer per language carrying the full wheel taxonomy."""
+    from presidio_analyzer.predefined_recognizers import SpacyRecognizer
+
+    return [
+        SpacyRecognizer(
+            supported_language=lang,
+            supported_entities=list(PLENO_NER_LABELS),
+            name=f"PlenoNerRecognizer_{lang}",
+        )
+        for lang in languages
+    ]
+
 
 class LocalEngine:
     """Run Presidio analyzer/anonymizer in-process.
@@ -50,7 +114,7 @@ class LocalEngine:
         analyzer = self._get_analyzer()
         ent_list = list(entities) if entities is not None else None
         results = analyzer.analyze(text=text, language=language, entities=ent_list)
-        return [
+        findings = [
             Finding(
                 entity_type=r.entity_type,
                 start=r.start,
@@ -60,6 +124,7 @@ class LocalEngine:
             )
             for r in results
         ]
+        return _dedupe_overlaps(findings)
 
     def redact(
         self,
@@ -114,12 +179,23 @@ class LocalEngine:
     def _build_analyzer(self):
         import spacy
         from presidio_analyzer import AnalyzerEngine
-        from presidio_analyzer.nlp_engine import SpacyNlpEngine
+        from presidio_analyzer.nlp_engine import NerModelConfiguration, SpacyNlpEngine
+        from presidio_analyzer.nlp_engine.ner_model_configuration import (
+            MODEL_TO_PRESIDIO_ENTITY_MAPPING,
+        )
+        from presidio_analyzer.predefined_recognizers import SpacyRecognizer
         from pleno_anonymize.recognizers.presidio_adapter import all_ja_presidio
+
+        ner_configuration = NerModelConfiguration(
+            model_to_presidio_entity_mapping={
+                **MODEL_TO_PRESIDIO_ENTITY_MAPPING,
+                **{label: label for label in PLENO_NER_LABELS},
+            }
+        )
 
         class _MultiLangSpacyNlpEngine(SpacyNlpEngine):
             def __init__(self, models: dict[str, "spacy.Language"]):
-                super().__init__()
+                super().__init__(ner_model_configuration=ner_configuration)
                 self.nlp = models
 
         models: dict[str, "spacy.Language"] = {}
@@ -150,6 +226,16 @@ class LocalEngine:
             analyzer.registry.add_recognizer(recognizer)
         if "en" in models:
             analyzer.registry.load_predefined_recognizers(languages=["en"])
+        # The default SpacyRecognizer only surfaces OntoNotes-style entities;
+        # register one per language that also carries the wheel taxonomy.
+        for lang in models:
+            analyzer.registry.add_recognizer(
+                SpacyRecognizer(
+                    supported_language=lang,
+                    supported_entities=list(PLENO_NER_LABELS),
+                    name=f"PlenoNerRecognizer_{lang}",
+                )
+            )
         return analyzer
 
 

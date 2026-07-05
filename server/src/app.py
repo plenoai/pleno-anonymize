@@ -70,11 +70,17 @@ def _init_presidio():
         from presidio_analyzer import AnalyzerEngine
         from presidio_analyzer.nlp_engine import SpacyNlpEngine
         from presidio_anonymizer import AnonymizerEngine
+        from pleno_anonymize._local import (
+            pleno_ner_model_configuration,
+            pleno_ner_recognizers,
+        )
         from pleno_anonymize.recognizers.presidio_adapter import all_ja_presidio
 
         class MultiLangSpacyNlpEngine(SpacyNlpEngine):
             def __init__(self, models: dict):
-                super().__init__()
+                super().__init__(
+                    ner_model_configuration=pleno_ner_model_configuration()
+                )
                 self.nlp = models
 
         # Models are installed as Python packages from HF wheels (see Dockerfile);
@@ -102,6 +108,9 @@ def _init_presidio():
 
         if "en" in supported_languages:
             analyzer.registry.load_predefined_recognizers(languages=["en"])
+
+        for recognizer in pleno_ner_recognizers(supported_languages):
+            analyzer.registry.add_recognizer(recognizer)
 
         anonymizer = AnonymizerEngine()
 

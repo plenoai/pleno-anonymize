@@ -1,0 +1,52 @@
+{
+  "dataset": "ai4privacy/pii-masking-300k",
+  "split": "validation",
+  "language": "English",
+  "limit": 300,
+  "iou_threshold": 0.5,
+  "n_docs": 300,
+  "results": {
+    "builtin": {
+      "tp": 841,
+      "fp": 277,
+      "fn": 935,
+      "precision": 0.7522,
+      "recall": 0.4735,
+      "f1": 0.5812,
+      "n_docs": 300,
+      "n_gold_spans": 1776,
+      "n_pred_spans": 1118,
+      "errors": 0,
+      "avg_latency_ms": 23.31,
+      "per_label_recall": {
+        "BOD": 0.8316,
+        "BUILDING": 0.3273,
+        "CITY": 0.6182,
+        "COUNTRY": 0.5532,
+        "DATE": 0.5507,
+        "DRIVERLICENSE": 0.6389,
+        "EMAIL": 1.0,
+        "GEOCOORD": 0.0,
+        "GIVENNAME1": 0.2079,
+        "GIVENNAME2": 0.4091,
+        "IDCARD": 0.2346,
+        "IP": 1.0,
+        "LASTNAME1": 0.186,
+        "LASTNAME2": 0.4167,
+        "LASTNAME3": 0.1667,
+        "PASS": 0.1765,
+        "PASSPORT": 0.945,
+        "POSTCODE": 0.4561,
+        "SECADDRESS": 0.3333,
+        "SEX": 0.1546,
+        "SOCIALNUMBER": 0.9,
+        "STATE": 0.4355,
+        "STREET": 0.5472,
+        "TEL": 0.6071,
+        "TIME": 0.2,
+        "TITLE": 0.137,
+        "USERNAME": 0.2893
+      }
+    }
+  }
+}
