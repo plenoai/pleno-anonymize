@@ -28,7 +28,7 @@ appi = [
 proxy = [
     "openai>=2.44.0",
     "langchain>=1.3.9",
-    "langchain-community>=0.3.27",
+    "langchain-community>=0.4.2",
 ]
 
 [dependency-groups]
