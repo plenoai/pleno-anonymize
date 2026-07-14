@@ -35,7 +35,7 @@ hf = [
     # two backends. Without them, AutoTokenizer.from_pretrained raises
     # `Converting from SentencePiece and Tiktoken failed`. Required for
     # convert-hf-en-v01-tiny / train-hf-en-v01-tiny / export-onnx-en-v01-tiny.
-    "sentencepiece>=0.2",
+    "sentencepiece>=0.2.2",
     "tiktoken>=0.13.0",
 ]
 # OSS baseline + Presidio benchmarking deps. Excluded from server image build
