@@ -26,7 +26,7 @@ appi = [
     "transformers>=4.50",
 ]
 proxy = [
-    "openai>=2.44.0",
+    "openai>=2.45.0",
     "langchain>=1.3.11",
     "langchain-community>=0.4.2",
 ]
