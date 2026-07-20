@@ -142,8 +142,10 @@ def test_pii_hint_re_drop_rate_floor_on_ja_v02() -> None:
     if not data_path.exists():
         pytest.skip(f"raw data not available: {data_path}")
 
-    with open(data_path, encoding="utf-8") as f:
-        records = json.load(f)
+    raw = data_path.read_text(encoding="utf-8")
+    if raw.startswith("version https://git-lfs.github.com/spec/v1"):
+        pytest.skip(f"raw data is an LFS pointer (checkout without lfs: true): {data_path}")
+    records = json.loads(raw)
 
     zero = [r for r in records if not r.get("entities") and r.get("text")]
     if not zero:
@@ -155,3 +157,4 @@ def test_pii_hint_re_drop_rate_floor_on_ja_v02() -> None:
         f"PII_HINT_RE drop rate regressed: {rate:.3f} "
         f"(zero={len(zero)}, drop={dropped}); expected >= 0.22"
     )
+
