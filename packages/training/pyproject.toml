@@ -48,7 +48,7 @@ bench = [
     "ginza>=5.2",
     "ja-ginza>=5.2",
     "numpy>=1.26",
-    "scipy>=1.11",
+    "scipy>=1.18.0",
     "ja-core-news-trf @ https://github.com/explosion/spacy-models/releases/download/ja_core_news_trf-3.8.0/ja_core_news_trf-3.8.0-py3-none-any.whl",
     "ja-core-news-lg @ https://github.com/explosion/spacy-models/releases/download/ja_core_news_lg-3.8.0/ja_core_news_lg-3.8.0-py3-none-any.whl",
     "en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.8.0/en_core_web_lg-3.8.0-py3-none-any.whl",
