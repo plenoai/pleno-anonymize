@@ -21,7 +21,7 @@ training = [
     # scripts/runpod_train.py talks to the RunPod REST API directly. Already
     # present transitively via openai, but declared explicitly so it isn't
     # silently lost if that transitive path ever changes (#292).
-    "requests>=2.31",
+    "requests>=2.34.2",
 ]
 hf = [
     "transformers>=4.40",
