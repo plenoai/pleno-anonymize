@@ -6,3 +6,9 @@ members = [
     "packages/training",
     "packages/sdk",
 ]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "BLE", "SIM", "RUF"]
+# E501: line-length not enforced (pre-existing long doc-strings)
+# RUF001: ambiguous unicode chars — intentional in Japanese regex patterns (ja.py)
+ignore = ["E501", "RUF001"]

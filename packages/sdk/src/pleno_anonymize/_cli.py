@@ -14,7 +14,7 @@ import argparse
 import json
 import os
 import sys
-from typing import Sequence
+from collections.abc import Sequence
 
 from . import __version__
 from ._engine import Engine, Finding, PlenoAnonymize

@@ -11,7 +11,6 @@ from __future__ import annotations
 import re
 
 import pytest
-
 from pleno_anonymize.recognizers.ja import ALL_JA_RECOGNIZERS, JA_BANK_ACCOUNT
 
 

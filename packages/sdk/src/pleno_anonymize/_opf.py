@@ -18,7 +18,7 @@ of the underlying backend.
 from __future__ import annotations
 
 import logging
-from typing import Iterable
+from collections.abc import Iterable
 
 from ._engine import Finding, RedactResult
 
@@ -47,7 +47,7 @@ def _default_device() -> str:
 
         if torch.cuda.is_available():
             return "cuda"
-    except Exception:  # pragma: no cover - torch missing is handled in _build()
+    except Exception:  # noqa: BLE001  # pragma: no cover
         pass
     return "cpu"
 

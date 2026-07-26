@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 
 @dataclass(slots=True, frozen=True)
@@ -55,7 +56,7 @@ class Engine(Protocol):
     ) -> RedactResult: ...
 
 
-def PlenoAnonymize(  # noqa: N802 - factory disguised as a class for ergonomics
+def PlenoAnonymize(
     *,
     base_url: str | None = None,
     api_key: str | None = None,

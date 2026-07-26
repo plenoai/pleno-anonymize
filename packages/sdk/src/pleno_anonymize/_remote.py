@@ -5,7 +5,8 @@ from __future__ import annotations
 import json
 import urllib.error
 import urllib.request
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 from ._engine import Finding, RedactResult
 
@@ -154,7 +155,7 @@ class RemoteEngine:
         except urllib.error.HTTPError as e:
             try:
                 body = json.loads(e.read().decode("utf-8"))
-            except Exception:
+            except Exception:  # noqa: BLE001 - JSON parse error; body stays None
                 body = None
             raise PlenoAnonymizeError(
                 f"pleno-anonymize {req.get_method()} {path} failed: {e.code} {e.reason}",

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterable
 from functools import lru_cache
-from typing import Iterable
 
 from ._engine import Finding, RedactResult
 from ._models import Language, ensure, is_installed, model_for
@@ -184,6 +184,7 @@ class LocalEngine:
             MODEL_TO_PRESIDIO_ENTITY_MAPPING,
         )
         from presidio_analyzer.predefined_recognizers import SpacyRecognizer
+
         from pleno_anonymize.recognizers.presidio_adapter import all_ja_presidio
 
         ner_configuration = NerModelConfiguration(
@@ -194,11 +195,11 @@ class LocalEngine:
         )
 
         class _MultiLangSpacyNlpEngine(SpacyNlpEngine):
-            def __init__(self, models: dict[str, "spacy.Language"]):
+            def __init__(self, models: dict[str, spacy.Language]):
                 super().__init__(ner_model_configuration=ner_configuration)
                 self.nlp = models
 
-        models: dict[str, "spacy.Language"] = {}
+        models: dict[str, spacy.Language] = {}
         for raw in self._languages:
             if raw not in {"ja", "en"}:
                 raise ValueError(f"unsupported language: {raw!r}")

@@ -14,7 +14,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from pleno_anonymize._models import MODEL_WHEELS
 
 # packages/sdk/tests/test_model_versions.py -> packages/models/versions.json

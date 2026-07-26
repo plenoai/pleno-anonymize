@@ -1,20 +1,21 @@
 import asyncio
-import itertools
-import logging
-import os
-import json
 import base64
 import binascii
 import io
 import ipaddress
+import itertools
+import json
+import logging
+import os
 import socket
 import threading
 import time
 import uuid
-from urllib.parse import urlsplit
 from contextlib import asynccontextmanager
 from functools import lru_cache, partial
-from typing import List, Optional, Dict, Any, Tuple
+from typing import Any
+from urllib.parse import urlsplit
+
 import httpx
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -67,14 +68,14 @@ def _init_presidio():
             return
 
         import spacy
-        from presidio_analyzer import AnalyzerEngine
-        from presidio_analyzer.nlp_engine import SpacyNlpEngine
-        from presidio_anonymizer import AnonymizerEngine
         from pleno_anonymize._local import (
             pleno_ner_model_configuration,
             pleno_ner_recognizers,
         )
         from pleno_anonymize.recognizers.presidio_adapter import all_ja_presidio
+        from presidio_analyzer import AnalyzerEngine
+        from presidio_analyzer.nlp_engine import SpacyNlpEngine
+        from presidio_anonymizer import AnonymizerEngine
 
         class MultiLangSpacyNlpEngine(SpacyNlpEngine):
             def __init__(self, models: dict):
@@ -143,7 +144,7 @@ def _cached_analyze(text: str, language: str, entities: tuple | None = None):
 def get_image_redactor():
     global _image_redactor
     if _image_redactor is None:
-        from presidio_image_redactor import ImageRedactorEngine, ImageAnalyzerEngine
+        from presidio_image_redactor import ImageAnalyzerEngine, ImageRedactorEngine
 
         image_analyzer = ImageAnalyzerEngine(analyzer_engine=get_analyzer())
         _image_redactor = ImageRedactorEngine(image_analyzer_engine=image_analyzer)
@@ -277,7 +278,7 @@ def _get_openai_pf_pipeline():
         # would use internally, and it returns the offsets/ids we need.
         tokenizer_path = hf_hub_download(_OPENAI_PF_MODEL_ID, filename="tokenizer.json")
         config_path = hf_hub_download(_OPENAI_PF_MODEL_ID, filename="config.json")
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             cfg = json.load(f)
         # config.json keys id2label by str — cast to int so argmax lookups hit.
         id2label = {int(k): v for k, v in cfg.get("id2label", {}).items()}
@@ -393,7 +394,7 @@ async def lifespan(app: FastAPI):
         try:
             _get_openai_pf_pipeline()
             logger.info("openai/privacy-filter session ready")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - best-effort warmup; any failure is non-fatal
             # Best-effort: if this engine fails to load (e.g. HF transient),
             # the default + appi engines must still come up. The lazy path
             # in _analyze_openai_pf will surface the real error on demand.
@@ -497,7 +498,7 @@ async def readiness():
     try:
         _init_presidio()
         return {"status": "ready"}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - readiness probe must surface any init failure
         logger.error(json.dumps({"event": "readiness_check_failed", "error": str(e)}))
         return Response(
             content=json.dumps({"status": "not_ready"}),
@@ -521,7 +522,7 @@ SUPPORTED_LANGUAGES = {"ja", "en"}
 class AnalyzeRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=100_000)
     language: str = Field(default="ja", pattern=r"^(ja|en)$")
-    entities: Optional[List[str]] = None
+    entities: list[str] | None = None
     engine: str = Field(
         default="default",
         pattern=r"^(default|appi|openai-privacy-filter)$",
@@ -534,12 +535,12 @@ class AnalyzeRequest(BaseModel):
 
 
 class RedactRequest(BaseModel):
-    text: Optional[str] = Field(default=None, max_length=100_000)
-    image: Optional[str] = None  # base64 encoded image or data URL
+    text: str | None = Field(default=None, max_length=100_000)
+    image: str | None = None  # base64 encoded image or data URL
     language: str = Field(default="ja", pattern=r"^(ja|en)$")
-    entities: Optional[List[str]] = None
-    operators: Optional[Dict[str, Dict[str, Any]]] = None
-    fill_color: Optional[List[int]] = [0, 0, 0]  # RGB for image redaction
+    entities: list[str] | None = None
+    operators: dict[str, dict[str, Any]] | None = None
+    fill_color: list[int] | None = [0, 0, 0]  # RGB for image redaction
     engine: str = Field(
         default="default",
         pattern=r"^(default|appi|openai-privacy-filter)$",
@@ -552,7 +553,7 @@ class RedactRequest(BaseModel):
 
     @field_validator("fill_color")
     @classmethod
-    def _validate_fill_color(cls, v: Optional[List[int]]) -> Optional[List[int]]:
+    def _validate_fill_color(cls, v: list[int] | None) -> list[int] | None:
         # PIL silently wraps out-of-range channel values (mod 256), so a
         # request like [256, -1, 999] would redact with an unexpected colour
         # instead of failing. Reject malformed colours up front; pydantic turns
@@ -773,7 +774,7 @@ def _detect_language(text: str) -> str:
 
 def redact_text_with_mapping(
     text: str, language: str | None = None
-) -> Tuple[str, Dict[str, str]]:
+) -> tuple[str, dict[str, str]]:
     """Redact PII from text and return mapping for de-anonymization."""
     if language is None:
         language = _detect_language(text)
@@ -799,7 +800,7 @@ def redact_text_with_mapping(
     return redacted_text, mapping
 
 
-def deanonymize_text(text: str, mapping: Dict[str, str]) -> str:
+def deanonymize_text(text: str, mapping: dict[str, str]) -> str:
     """Restore original values from placeholders."""
     result = text
     for placeholder, original in mapping.items():
@@ -932,7 +933,7 @@ async def redact_image(image_url: str, http_client: httpx.AsyncClient) -> str:
 
 async def redact_openai_request(
     body: dict, http_client: httpx.AsyncClient
-) -> Tuple[dict, Dict[str, str]]:
+) -> tuple[dict, dict[str, str]]:
     combined_mapping = {}
 
     if "messages" not in body:
@@ -982,7 +983,7 @@ async def redact_openai_request(
                                     "detail"
                                 ]
                             redacted_parts.append(redacted_part)
-                        except Exception as e:
+                        except Exception as e:  # noqa: BLE001 - re-raised as HTTPException
                             logger.error(
                                 json.dumps(
                                     {"event": "image_redaction_failed", "error": str(e)}
@@ -1003,7 +1004,7 @@ async def redact_openai_request(
     return redacted_body, combined_mapping
 
 
-def deanonymize_openai_response(body: dict, mapping: Dict[str, str]) -> dict:
+def deanonymize_openai_response(body: dict, mapping: dict[str, str]) -> dict:
     if not mapping:
         return body
 
@@ -1040,7 +1041,7 @@ def deanonymize_openai_response(body: dict, mapping: Dict[str, str]) -> dict:
 
 async def redact_anthropic_request(
     body: dict, http_client: httpx.AsyncClient
-) -> Tuple[dict, Dict[str, str]]:
+) -> tuple[dict, dict[str, str]]:
     """Redact PII from Anthropic Messages API request."""
     combined_mapping = {}
 
@@ -1088,7 +1089,7 @@ async def redact_anthropic_request(
                                     "data": redacted_data,
                                 }
                                 redacted_parts.append(redacted_part)
-                            except Exception as e:
+                            except Exception as e:  # noqa: BLE001 - re-raised as HTTPException
                                 logger.error(
                                     json.dumps(
                                         {
@@ -1139,7 +1140,7 @@ async def redact_anthropic_request(
     return redacted_body, combined_mapping
 
 
-def deanonymize_anthropic_response(body: dict, mapping: Dict[str, str]) -> dict:
+def deanonymize_anthropic_response(body: dict, mapping: dict[str, str]) -> dict:
     """Restore PII in Anthropic Messages API response."""
     if not mapping:
         return body
@@ -1176,7 +1177,7 @@ def deanonymize_anthropic_response(body: dict, mapping: Dict[str, str]) -> dict:
 
 async def redact_responses_api_request(
     body: dict, http_client: httpx.AsyncClient
-) -> Tuple[dict, Dict[str, str]]:
+) -> tuple[dict, dict[str, str]]:
     """Redact PII from OpenAI Responses API request."""
     combined_mapping = {}
 
@@ -1230,7 +1231,7 @@ async def redact_responses_api_request(
                                     redacted_part = part.copy()
                                     redacted_part["image_url"] = redacted_url
                                     redacted_parts.append(redacted_part)
-                                except Exception as e:
+                                except Exception as e:  # noqa: BLE001 - re-raised as HTTPException
                                     logger.error(
                                         json.dumps(
                                             {
@@ -1265,7 +1266,7 @@ async def redact_responses_api_request(
     return redacted_body, combined_mapping
 
 
-def deanonymize_responses_api_response(body: dict, mapping: Dict[str, str]) -> dict:
+def deanonymize_responses_api_response(body: dict, mapping: dict[str, str]) -> dict:
     """Restore PII in OpenAI Responses API response."""
     if not mapping:
         return body
@@ -1310,7 +1311,7 @@ def deanonymize_responses_api_response(body: dict, mapping: Dict[str, str]) -> d
 
 async def redact_gemini_request(
     body: dict, http_client: httpx.AsyncClient
-) -> Tuple[dict, Dict[str, str]]:
+) -> tuple[dict, dict[str, str]]:
     """Redact PII from Gemini API request."""
     combined_mapping = {}
 
@@ -1353,7 +1354,7 @@ async def redact_gemini_request(
                                     "data": redacted_data,
                                 }
                                 redacted_parts.append(redacted_part)
-                            except Exception as e:
+                            except Exception as e:  # noqa: BLE001 - re-raised as HTTPException
                                 logger.error(
                                     json.dumps(
                                         {
@@ -1403,7 +1404,7 @@ async def redact_gemini_request(
     return redacted_body, combined_mapping
 
 
-def deanonymize_gemini_response(body: dict, mapping: Dict[str, str]) -> dict:
+def deanonymize_gemini_response(body: dict, mapping: dict[str, str]) -> dict:
     """Restore PII in Gemini API response."""
     if not mapping:
         return body

@@ -13,7 +13,7 @@ class _FakeEngine:
 
     pattern = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 
-    def analyze(self, text, *, language="ja", entities=None):  # noqa: ARG002
+    def analyze(self, text, *, language="ja", entities=None):
         out: list[Finding] = []
         for m in self.pattern.finditer(text):
             out.append(

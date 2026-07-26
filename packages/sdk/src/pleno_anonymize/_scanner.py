@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Callable, Iterable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable, Iterable
 
 from ._engine import Engine, Finding
 

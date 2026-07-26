@@ -7,7 +7,6 @@ import json
 from unittest.mock import patch
 
 import pytest
-
 from pleno_anonymize import PlenoAnonymize, RemoteEngine
 from pleno_anonymize._remote import PlenoAnonymizeError
 
@@ -38,7 +37,7 @@ def test_factory_returns_remote_engine_when_base_url_set() -> None:
 def test_remote_analyze_posts_payload_and_parses_findings() -> None:
     captured: dict[str, object] = {}
 
-    def fake_urlopen(req, timeout):  # noqa: ARG001
+    def fake_urlopen(req, timeout):
         captured["url"] = req.full_url
         captured["method"] = req.get_method()
         captured["body"] = json.loads(req.data.decode("utf-8"))
@@ -69,7 +68,7 @@ def test_remote_analyze_posts_payload_and_parses_findings() -> None:
 
 
 def test_remote_redact_returns_text() -> None:
-    def fake_urlopen(req, timeout):  # noqa: ARG001
+    def fake_urlopen(req, timeout):
         return _ok({"text": "<EMAIL_ADDRESS>", "items": []})
 
     engine = RemoteEngine(base_url="https://example.test")
@@ -81,7 +80,7 @@ def test_remote_redact_returns_text() -> None:
 def test_remote_http_error_becomes_pleno_error() -> None:
     import urllib.error
 
-    def fake_urlopen(req, timeout):  # noqa: ARG001
+    def fake_urlopen(req, timeout):
         raise urllib.error.HTTPError(
             url=req.full_url,
             code=422,
@@ -91,26 +90,30 @@ def test_remote_http_error_becomes_pleno_error() -> None:
         )
 
     engine = RemoteEngine(base_url="https://example.test")
-    with patch("urllib.request.urlopen", side_effect=fake_urlopen):
-        with pytest.raises(PlenoAnonymizeError) as exc:
-            engine.analyze("x")
+    with (
+        patch("urllib.request.urlopen", side_effect=fake_urlopen),
+        pytest.raises(PlenoAnonymizeError) as exc,
+    ):
+        engine.analyze("x")
     assert exc.value.status == 422
     assert exc.value.body == {"detail": "bad"}
 
 
 def test_remote_analyze_missing_field_raises_pleno_error() -> None:
-    def fake_urlopen(req, timeout):  # noqa: ARG001
+    def fake_urlopen(req, timeout):
         return _ok([{"entity_type": "EMAIL_ADDRESS", "start": 0, "end": 5}])
 
     engine = RemoteEngine(base_url="https://example.test")
-    with patch("urllib.request.urlopen", side_effect=fake_urlopen):
-        with pytest.raises(PlenoAnonymizeError) as exc:
-            engine.analyze("hello")
+    with (
+        patch("urllib.request.urlopen", side_effect=fake_urlopen),
+        pytest.raises(PlenoAnonymizeError) as exc,
+    ):
+        engine.analyze("hello")
     assert "score" in str(exc.value)
 
 
 def test_remote_analyze_invalid_field_type_raises_pleno_error() -> None:
-    def fake_urlopen(req, timeout):  # noqa: ARG001
+    def fake_urlopen(req, timeout):
         return _ok(
             [
                 {
@@ -123,35 +126,41 @@ def test_remote_analyze_invalid_field_type_raises_pleno_error() -> None:
         )
 
     engine = RemoteEngine(base_url="https://example.test")
-    with patch("urllib.request.urlopen", side_effect=fake_urlopen):
-        with pytest.raises(PlenoAnonymizeError):
-            engine.analyze("hello")
+    with (
+        patch("urllib.request.urlopen", side_effect=fake_urlopen),
+        pytest.raises(PlenoAnonymizeError),
+    ):
+        engine.analyze("hello")
 
 
 def test_remote_analyze_non_object_item_raises_pleno_error() -> None:
-    def fake_urlopen(req, timeout):  # noqa: ARG001
+    def fake_urlopen(req, timeout):
         return _ok(["not-a-dict"])
 
     engine = RemoteEngine(base_url="https://example.test")
-    with patch("urllib.request.urlopen", side_effect=fake_urlopen):
-        with pytest.raises(PlenoAnonymizeError):
-            engine.analyze("hello")
+    with (
+        patch("urllib.request.urlopen", side_effect=fake_urlopen),
+        pytest.raises(PlenoAnonymizeError),
+    ):
+        engine.analyze("hello")
 
 
 def test_remote_redact_missing_text_raises_pleno_error() -> None:
-    def fake_urlopen(req, timeout):  # noqa: ARG001
+    def fake_urlopen(req, timeout):
         return _ok({"items": []})
 
     engine = RemoteEngine(base_url="https://example.test")
-    with patch("urllib.request.urlopen", side_effect=fake_urlopen):
-        with pytest.raises(PlenoAnonymizeError):
-            engine.redact("a@b.example")
+    with (
+        patch("urllib.request.urlopen", side_effect=fake_urlopen),
+        pytest.raises(PlenoAnonymizeError),
+    ):
+        engine.redact("a@b.example")
 
 
 def test_remote_trailing_slash_normalized() -> None:
     seen: list[str] = []
 
-    def fake_urlopen(req, timeout):  # noqa: ARG001
+    def fake_urlopen(req, timeout):
         seen.append(req.full_url)
         return _ok([])
 

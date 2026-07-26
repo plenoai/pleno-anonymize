@@ -1,7 +1,7 @@
 from pleno_anonymize.recognizers.validators import (
+    corporate_number,
     luhn,
     my_number,
-    corporate_number,
     validate,
 )
 
