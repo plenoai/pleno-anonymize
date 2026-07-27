@@ -65,7 +65,7 @@ bench = [
 # Not a runtime dependency of the shipped model/SDK, so it lives in dev
 # rather than [project.dependencies] or an extra.
 dev = [
-    "pytest>=8.0",
+    "pytest>=9.1.1",
     "jsonschema>=4.18",
 ]
 
