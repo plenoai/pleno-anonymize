@@ -2707,7 +2707,7 @@ requires-dist = [
     { name = "pleno-anonymize", editable = "packages/sdk" },
     { name = "presidio-analyzer", specifier = ">=2.2.363" },
     { name = "presidio-anonymizer", specifier = ">=2.2.363" },
-    { name = "presidio-image-redactor", marker = "extra == 'image'", specifier = ">=0.0.53" },
+    { name = "presidio-image-redactor", marker = "extra == 'image'", specifier = ">=0.0.60" },
     { name = "scalar-fastapi", specifier = ">=1.6.0" },
     { name = "spacy", extras = ["ja"], specifier = ">=3.8" },
     { name = "transformers", marker = "extra == 'appi'", specifier = ">=4.50" },
@@ -2887,7 +2887,7 @@ wheels = [
 
 [[package]]
 name = "presidio-image-redactor"
-version = "0.0.58"
+version = "0.0.60"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "azure-ai-formrecognizer" },
@@ -2901,8 +2901,9 @@ dependencies = [
     { name = "python-gdcm" },
     { name = "spacy", marker = "python_full_version >= '3.13'" },
 ]
+sdist = { url = "https://files.pythonhosted.org/packages/f7/1e/9640b58ef0efd90c08b764dddfcc525559ea2be227638a6d7fb610a8ad0c/presidio_image_redactor-0.0.60.tar.gz", hash = "sha256:d30947ed8711dfcbc18a18fe8d606986543c976806e97e406ac2037e13499393", size = 28745, upload-time = "2026-07-22T07:54:42.328Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2d/1a/bca3ff29d627f238c8a36e86b63821d8f39b58406cabd1b9aea6d8348a77/presidio_image_redactor-0.0.58-py3-none-any.whl", hash = "sha256:2af74965527736d8dc2f2e3ccfe18f21f5986b89748e53c818f7787f3aae6ac7", size = 33929, upload-time = "2026-03-15T12:40:42.376Z" },
+    { url = "https://files.pythonhosted.org/packages/9a/50/d8b64150837c8e02633cd9da8786a7a65663ba43a16a574a12e8d12468de/presidio_image_redactor-0.0.60-py3-none-any.whl", hash = "sha256:8e323334472f2bd7cba79f1b0b0d7739223c166fdbfa55dcd2f17dfea8795bb1", size = 34266, upload-time = "2026-07-22T07:54:40.813Z" },
 ]
 
 [[package]]
