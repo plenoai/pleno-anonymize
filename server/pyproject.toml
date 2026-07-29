@@ -18,7 +18,7 @@ pleno-anonymize = { workspace = true }
 
 [project.optional-dependencies]
 image = [
-    "presidio-image-redactor>=0.0.53",
+    "presidio-image-redactor>=0.0.60",
     "pillow>=12.3.0",
 ]
 appi = [
