@@ -16,7 +16,7 @@ dependencies = [
 # Training-only deps. Use `uv sync --extra training` (or `--all-extras`).
 training = [
     "spacy-transformers>=1.3",
-    "openai>=2.52.0",
+    "openai>=2.53.0",
     "pyyaml>=6.0.3",
     # scripts/runpod_train.py talks to the RunPod REST API directly. Already
     # present transitively via openai, but declared explicitly so it isn't
