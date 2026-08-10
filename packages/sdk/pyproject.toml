@@ -5,7 +5,7 @@ description = "Local-first Japanese PII detection and redaction. SDK + `pleno-an
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.12"
-authors = [{ name = "pleno", email = "ai@egahika.dev" }]
+authors = [{ name = "pleno", email = "39324739+HikaruEgashira@users.noreply.github.com" }]
 keywords = ["pii", "redaction", "anonymize", "presidio", "japanese", "ner", "scanner", "cli"]
 classifiers = [
     "Development Status :: 4 - Beta",
