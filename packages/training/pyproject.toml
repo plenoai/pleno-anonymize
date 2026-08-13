@@ -25,7 +25,7 @@ training = [
 ]
 hf = [
     "transformers>=4.40",
-    "datasets>=2.19",
+    "datasets>=5.0.1",
     "seqeval>=1.2",
     "accelerate>=0.30",
     "optimum[onnxruntime]>=1.19",
