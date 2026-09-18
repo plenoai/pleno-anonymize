@@ -27,7 +27,7 @@ hf = [
     "transformers>=4.40",
     "datasets>=5.0.1",
     "seqeval>=1.2",
-    "accelerate>=0.30",
+    "accelerate>=1.15.0",
     "optimum[onnxruntime]>=1.19",
     "huggingface-hub>=0.23",
     # deberta-v3-xsmall (en) ships a SentencePiece tokenizer.model that
