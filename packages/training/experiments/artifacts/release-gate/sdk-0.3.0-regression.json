@@ -1,0 +1,46 @@
+{
+  "baseline_commit": "ba3a14bc125fd6c6eb80aa5b24c22f6b99801126",
+  "python": "3.13.13",
+  "command": "python -m pytest server/tests -q --tb=no --junitxml=<output>",
+  "environment": "Same candidate frozen server/image dependency environment for baseline and candidate, baseline SDK selected with PYTHONPATH=packages/sdk/src in original main checkout.",
+  "baseline": {
+    "tests": 236,
+    "failures": [
+      "tests.test_adversarial_ner.TestDateOfBirthEdgeCases::test_date_formats[heisei_slash]",
+      "tests.test_adversarial_ner.TestDateOfBirthEdgeCases::test_date_formats[reiwa]",
+      "tests.test_adversarial_ner.TestDateOfBirthEdgeCases::test_date_formats[reiwa_abbrev]",
+      "tests.test_adversarial_ner.TestDateOfBirthEdgeCases::test_date_formats[showa_abbrev]",
+      "tests.test_adversarial_ner.TestOrganizationEdgeCases::test_org_types",
+      "tests.test_adversarial_ner.TestOrganizationEdgeCases::test_well_known_company_short[ntt_docomo]",
+      "tests.test_adversarial_ner.TestOrganizationEdgeCases::test_well_known_company_short[sony]",
+      "tests.test_adversarial_ner.TestOrganizationEdgeCases::test_well_known_company_short[toyota]",
+      "tests.test_adversarial_ner.TestPersonEdgeCases::test_foreign_names_katakana[katakana_nakaguro]",
+      "tests.test_adversarial_ner.TestPersonEdgeCases::test_single_char_names[1char_go]",
+      "tests.test_adversarial_ner.TestPersonEdgeCases::test_single_char_names[1char_lee]",
+      "tests.test_adversarial_ner.TestPersonEdgeCases::test_single_char_names[1char_wang]"
+    ],
+    "skipped": 72,
+    "passed": 152
+  },
+  "candidate": {
+    "tests": 236,
+    "failures": [
+      "tests.test_adversarial_ner.TestDateOfBirthEdgeCases::test_date_formats[heisei_slash]",
+      "tests.test_adversarial_ner.TestDateOfBirthEdgeCases::test_date_formats[reiwa]",
+      "tests.test_adversarial_ner.TestDateOfBirthEdgeCases::test_date_formats[reiwa_abbrev]",
+      "tests.test_adversarial_ner.TestDateOfBirthEdgeCases::test_date_formats[showa_abbrev]",
+      "tests.test_adversarial_ner.TestOrganizationEdgeCases::test_org_types",
+      "tests.test_adversarial_ner.TestOrganizationEdgeCases::test_well_known_company_short[ntt_docomo]",
+      "tests.test_adversarial_ner.TestOrganizationEdgeCases::test_well_known_company_short[sony]",
+      "tests.test_adversarial_ner.TestOrganizationEdgeCases::test_well_known_company_short[toyota]",
+      "tests.test_adversarial_ner.TestPersonEdgeCases::test_foreign_names_katakana[katakana_nakaguro]",
+      "tests.test_adversarial_ner.TestPersonEdgeCases::test_single_char_names[1char_go]",
+      "tests.test_adversarial_ner.TestPersonEdgeCases::test_single_char_names[1char_lee]",
+      "tests.test_adversarial_ner.TestPersonEdgeCases::test_single_char_names[1char_wang]"
+    ],
+    "skipped": 72,
+    "passed": 152
+  },
+  "new_failures": [],
+  "note": "All 12 failures are in unchanged adversarial tests loading the checked-in JA 0.2.0 model directly. They do not use the SDK or Jev extension. No tests or model assets were modified."
+}

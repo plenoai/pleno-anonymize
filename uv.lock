@@ -2625,7 +2625,7 @@ wheels = [
 
 [[package]]
 name = "pleno-anonymize"
-version = "0.2.5"
+version = "0.3.0"
 source = { editable = "packages/sdk" }
 dependencies = [
     { name = "presidio-analyzer" },

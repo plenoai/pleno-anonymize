@@ -1,0 +1,242 @@
+{
+  "verdict": "APPROVE",
+  "package": "pleno-anonymize",
+  "version": "0.3.0",
+  "source_commit": "3250102bdf77e61ebcede01a617b472bb93d49b1",
+  "baseline_commit": "ba3a14bc125fd6c6eb80aa5b24c22f6b99801126",
+  "release_route": "sdk/v0.3.0 -> GitHub Actions trusted publishing -> PyPI",
+  "scope": "Opt-in Presidio SDK extension; no NER model or training changes. No production accuracy, recall, calibration, or latency improvement claimed.",
+  "experiment_ids": [],
+  "artifacts": [
+    "sdk-0.3.0-jev-smoke.json",
+    "sdk-0.3.0-jev-batch-smoke.json",
+    "sdk-0.3.0-regression.json"
+  ],
+  "validation": {
+    "sdk_tests": 106,
+    "installed_wheel_tests": 43,
+    "ruff": "passed",
+    "build": "wheel and sdist passed",
+    "initial_ci": "https://github.com/plenoai/pleno-anonymize/actions/runs/35428355589",
+    "local_server": "152 passed,72 skipped,12 pre-existing failures; exact baseline/candidate match"
+  },
+  "reviews": [
+    {
+      "verdict": "APPROVE",
+      "lens": "statistical",
+      "findings": [
+        {
+          "check": "1",
+          "severity": "minor",
+          "claim": "Jev feature has a model-quality experiment metric",
+          "evidence": "packages/training/experiments/artifacts/release-gate/sdk-0.3.0-jev-smoke.json:2-12; `rg -n -i 'jev|typesafe|context_filter|sdk-0\\.3\\.0' packages/training/experiments/log.jsonl packages/training/experiments/best.json` => no relevant Jev experiment records",
+          "conclusion": "Outside this statistical lens. The only evidence is explicitly a synthetic smoke report; no model-quality metric is claimed."
+        },
+        {
+          "check": "2",
+          "severity": "minor",
+          "claim": "Before/after baseline comparison",
+          "evidence": "`git diff --exit-code -- packages/models/versions.json packages/training/experiments/log.jsonl packages/training/experiments/best.json` => exit 0; packages/sdk/README.md:171-186",
+          "conclusion": "Not applicable. This SDK-only opt-in feature provides no before/after NER benchmark, split, IoU, or engine comparison and makes no production-improvement claim."
+        },
+        {
+          "check": "3",
+          "severity": "minor",
+          "claim": "Statistically significant F1 improvement",
+          "evidence": "sdk-0.3.0-jev-smoke.json:2-12 reports 15 synthetic candidates, 9/9 sensitive candidates retained, and 2/6 false positives removed; sdk-0.3.0-jev-batch-smoke.json:2-8 reports the same synthetic scope and 3/6 false positives removed; packages/sdk/README.md:171-186 explicitly says this is not a benchmark",
+          "conclusion": "No F1 difference or n=300 evaluation exists, so bootstrap CI is not applicable. The differing 2/6 versus 3/6 smoke outcomes further preclude statistical claims, which are explicitly disclaimed."
+        },
+        {
+          "check": "4",
+          "severity": "minor",
+          "claim": "Training-data contamination affects this release",
+          "evidence": "`git diff --exit-code -- packages/models/versions.json packages/training/experiments/log.jsonl packages/training/experiments/best.json` => exit 0; smoke artifacts identify hand-written synthetic inputs at sdk-0.3.0-jev-smoke.json:2 and sdk-0.3.0-jev-batch-smoke.json:2",
+          "conclusion": "Not applicable to this statistical review; no training or model artifact changed."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "Experiment reproducibility",
+          "evidence": "PYTHONPATH=packages/sdk/src /Users/hikae/ghq/github.com/plenoai/pleno-anonymize/.venv/bin/python -m pytest packages/sdk/tests -q => 105 passed; packages/sdk/scripts/eval_jev_context.py:113-171 is the checked-in smoke script",
+          "conclusion": "Statistically out of scope. The script and tests provide functional reproduction; model pinning/default drift belongs to the reproducibility lens."
+        },
+        {
+          "check": "6",
+          "severity": "minor",
+          "claim": "Metric or benchmark exaggeration",
+          "evidence": "packages/sdk/README.md:171-186; sdk-0.3.0-jev-smoke.json:2",
+          "conclusion": "No exaggeration found. Documentation explicitly calls the threshold uncalibrated and the live report a candidate-level smoke test, not a NER precision/recall benchmark."
+        },
+        {
+          "check": "7",
+          "severity": "minor",
+          "claim": "Per-label recall or latency regression is hidden",
+          "evidence": "packages/sdk/tests/test_jev_context.py:65-80 verifies threshold policy; packages/sdk/tests/test_jev_context.py:201-238 verifies Presidio score preservation and fail-retain behavior; sdk-0.3.0-regression.json:6-45 records identical baseline/candidate server failures with 152 passes and no new failures",
+          "conclusion": "No per-label recall floor or latency baseline is available for this opt-in Jev layer, so this cannot support a regression-improvement claim. The release makes no such claim; functional and differential checks show no observed regression."
+        }
+      ],
+      "required_actions": []
+    },
+    {
+      "verdict": "APPROVE",
+      "lens": "contamination",
+      "findings": [
+        {
+          "check": "1",
+          "severity": "minor",
+          "claim": "SDK 0.3.0 Jev context filtering",
+          "evidence": "packages/training/experiments/artifacts/release-gate/sdk-0.3.0-jev-smoke.json:2-12; checked-in count validation reported 15/15 evaluated, 9/9 true candidates retained, 2/6 synthetic false positives removed",
+          "conclusion": "No NER metric claim is made; the candidate smoke artifact is internally consistent and explicitly scoped as non-benchmark."
+        },
+        {
+          "check": "2",
+          "severity": "minor",
+          "claim": "Baseline comparison",
+          "evidence": "git diff --name-status ba3a14b..HEAD; packages/training/experiments/artifacts/release-gate/sdk-0.3.0-regression.json:2-45",
+          "conclusion": "Not applicable to a model metric claim: no model, benchmark, split, or training artifact changed. Server baseline and candidate have identical failures and no new failures."
+        },
+        {
+          "check": "3",
+          "severity": "minor",
+          "claim": "Statistical significance",
+          "evidence": "packages/sdk/README.md:171-186; smoke artifact:2",
+          "conclusion": "Not applicable: the 15 hand-written cases are explicitly not a held-out benchmark, and no F1, confidence interval, calibration, or significance claim is made."
+        },
+        {
+          "check": "4",
+          "severity": "minor",
+          "claim": "Training-data contamination and licensing",
+          "evidence": "AGENTS.md:9-10; git diff --quiet -- packages/models/versions.json packages/training/experiments/log.jsonl packages/training/experiments/best.json packages/training/data packages/training/src reported no tracked diff; packages/sdk/scripts/eval_jev_context.py:16-109 contains only hand-written synthetic cases",
+          "conclusion": "No contamination or license violation found. The feature does not train a model or consume ai4privacy/pii-masking-300k data."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "Reproducibility",
+          "evidence": "packages/sdk/scripts/eval_jev_context.py:113-167; packages/training/experiments/artifacts/release-gate/sdk-0.3.0-jev-smoke.json:2-12; packages/training/experiments/artifacts/release-gate/sdk-0.3.0-jev-batch-smoke.json:1-8",
+          "conclusion": "Adequate for an integration smoke only: the checked-in script, configuration, requested/resolved model, and records are available. Live model outputs differ between isolated and batched runs, so neither smoke count is an accuracy estimate; the documentation states this."
+        },
+        {
+          "check": "6",
+          "severity": "minor",
+          "claim": "Metric and accuracy presentation",
+          "evidence": "packages/sdk/README.md:171-186; packages/sdk/scripts/eval_jev_context.py:1-3,135-167; both smoke artifacts:2; changed-scope search found only disclaimer usage for accuracy/benchmark terms",
+          "conclusion": "No metric exaggeration found. Documentation explicitly says the threshold is not a calibrated accuracy guarantee and the smoke is not a NER precision/recall benchmark."
+        },
+        {
+          "check": "7",
+          "severity": "minor",
+          "claim": "Hidden regression",
+          "evidence": "packages/training/experiments/artifacts/release-gate/sdk-0.3.0-regression.json:6-45; env -u TYPESAFE_API_KEY PYTHONPATH=packages/sdk/src /Users/hikae/ghq/github.com/plenoai/pleno-anonymize/.venv/bin/python -m pytest -q packages/sdk/tests => 105 passed",
+          "conclusion": "No new server-test failures were observed, and no per-label recall or latency improvement claim is made. NER regression thresholds are not applicable to this opt-in SDK layer."
+        }
+      ],
+      "required_actions": []
+    },
+    {
+      "verdict": "APPROVE",
+      "lens": "reproducibility",
+      "findings": [
+        {
+          "check": "1",
+          "severity": "minor",
+          "claim": "SDK 0.3.0 ships the Jev Presidio extension with reproducible smoke and package artifacts.",
+          "evidence": "packages/sdk/pyproject.toml:1-3; packages/sdk/src/pleno_anonymize/presidio.py:29-211; packages/training/experiments/artifacts/release-gate/sdk-0.3.0-jev-smoke.json:2-12; sdk-0.3.0-jev-batch-smoke.json:2-8; `PYTHONPATH=packages/sdk/src /Users/hikae/ghq/github.com/plenoai/pleno-anonymize/.venv/bin/python -m pytest -q packages/sdk/tests` -> 105 passed; wheel listing contains pleno_anonymize/presidio.py and sdist listing contains presidio.py, eval_jev_context.py, and test_jev_context.py.",
+          "conclusion": "Source, wheel, sdist, smoke counts, response records, and tests agree. The smoke artifacts are candidate-level integration evidence and make no NER accuracy claim."
+        },
+        {
+          "check": "2",
+          "severity": "minor",
+          "claim": "Before/after benchmark comparability.",
+          "evidence": "The candidate diff changes SDK code and package metadata only; `git diff ba3a14b..HEAD -- packages/models/versions.json packages/sdk/src/pleno_anonymize/_models.py` is empty. No before/after benchmark is claimed.",
+          "conclusion": "Not applicable to this SDK-only change; no invalid baseline comparison."
+        },
+        {
+          "check": "3",
+          "severity": "minor",
+          "claim": "Statistical significance of an accuracy improvement.",
+          "evidence": "packages/sdk/scripts/eval_jev_context.py:1-4 and 134-167; smoke artifacts explicitly describe synthetic candidate tests rather than held-out NER benchmarks.",
+          "conclusion": "Not applicable; no F1, precision, recall, or significance claim is made."
+        },
+        {
+          "check": "4",
+          "severity": "minor",
+          "claim": "Training-data contamination or license compliance.",
+          "evidence": "`git diff --name-only ba3a14b..HEAD` contains no training data, generator, benchmark, or model asset changes. The smoke cases are checked-in synthetic strings in packages/sdk/scripts/eval_jev_context.py:16-110.",
+          "conclusion": "Not applicable to this non-training change; no evaluation dataset was used for training."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "A third party can reproduce the Jev filtering behavior and fail-open semantics.",
+          "evidence": "packages/sdk/src/pleno_anonymize/presidio.py:94-169 implements bounded context, duplicate grouping, serial batches of eight, and retention on failed or malformed responses; :171-211 validates the model/answers/probability contract. packages/sdk/tests/test_jev_context.py:36-62, :83-169, and :201-239 cover wire shape, Unicode context, duplicate and batch behavior, malformed answers, transport failures, and analyze/redact integration. `.../python -m pytest -q packages/sdk/tests/test_jev_context.py` -> 42 passed. packages/training/experiments/log_schema.json:7-18 governs NER experiment rows; this diff contains no model or training intervention. The pinned live batch artifact records 15 evaluated candidates, 9 retained true entities, and 3 removed false positives.",
+          "conclusion": "Reproducibility is established for the SDK scope by the committed source, offline tests, wheel/sdist, checked-in script, and pinned live artifact. The default jev-latest alias is documented as requiring pinning for repeatable live evaluation."
+        },
+        {
+          "check": "6",
+          "severity": "minor",
+          "claim": "The smoke result is an accuracy benchmark or unconditional F1 claim.",
+          "evidence": "packages/sdk/scripts/eval_jev_context.py:1-4; packages/sdk/README.md:171-186; smoke artifacts line 2 explicitly state that they are not held-out NER benchmarks.",
+          "conclusion": "Not applicable; documentation correctly limits the claim to candidate-level integration behavior."
+        },
+        {
+          "check": "7",
+          "severity": "minor",
+          "claim": "The Jev SDK change hides model regressions.",
+          "evidence": "packages/training/experiments/artifacts/release-gate/sdk-0.3.0-regression.json:2-45 reports identical baseline and candidate server results: 152 passed, 12 unchanged failures, and 72 skipped. Model versions remain unchanged in packages/models/versions.json:3-11.",
+          "conclusion": "No model or per-label accuracy/latency change is claimed; no new regression was observed in the differential server suite."
+        }
+      ],
+      "required_actions": []
+    }
+  ],
+  "final_delta_reviews": [
+    {
+      "verdict": "APPROVE",
+      "lens": "statistical",
+      "delta_evidence": [
+        "HEAD 3250102 changes only `packages/sdk/src/pleno_anonymize/presidio.py:142-144` to catch `RecursionError` and retain detections, plus `packages/sdk/tests/test_jev_context.py:115-140` adding deep JSON coverage.",
+        "`PYTHONPATH=packages/sdk/src /Users/hikae/ghq/github.com/plenoai/pleno-anonymize/.venv/bin/python -m pytest packages/sdk/tests -q` => 106 passed.",
+        "`git diff HEAD~1..HEAD --check` passed; evaluation scripts, smoke/regression artifacts, model files, experiment logs, and claims are unchanged (`git diff --exit-code` => 0)."
+      ],
+      "required_actions": []
+    },
+    {
+      "verdict": "APPROVE",
+      "lens": "contamination",
+      "delta_evidence": [
+        "HEAD 3250102 changes only presidio.py and test_jev_context.py versus 4ac71eb; no training, model, smoke artifact, documentation, or claim changes.",
+        "presidio.py:142-144 catches RecursionError and preserves detections; test_jev_context.py:115-152 adds a deeply nested malformed JSON case and verifies retention/no secret logging.",
+        "env -u TYPESAFE_API_KEY PYTHONPATH=packages/sdk/src /Users/hikae/ghq/github.com/plenoai/pleno-anonymize/.venv/bin/python -m pytest -q packages/sdk/tests => 106 passed; git diff --check => clean."
+      ],
+      "required_actions": []
+    },
+    {
+      "verdict": "APPROVE",
+      "lens": "reproducibility",
+      "delta_evidence": [
+        {
+          "file": "packages/sdk/src/pleno_anonymize/presidio.py:139-144",
+          "result": "RecursionError is fail-retained; detections remain kept and therefore still masked when Jev response parsing fails."
+        },
+        {
+          "file": "packages/sdk/tests/test_jev_context.py:117-153",
+          "result": "Added deeply nested JSON regression case. `.../python -m pytest -q packages/sdk/tests/test_jev_context.py` -> 43 passed."
+        },
+        {
+          "command": "PYTHONPATH=packages/sdk/src /Users/hikae/ghq/github.com/plenoai/pleno-anonymize/.venv/bin/python -m pytest -q packages/sdk/tests",
+          "result": "106 passed."
+        },
+        {
+          "command": "git diff 4ac71eb..HEAD --stat; git diff --quiet 4ac71eb..HEAD -- packages/sdk/scripts/eval_jev_context.py packages/training/experiments/artifacts/release-gate",
+          "result": "Only presidio.py and test_jev_context.py changed; prompts, evaluator, and live smoke artifacts are unchanged."
+        },
+        {
+          "command": "git diff --check 4ac71eb..HEAD; git status --porcelain=v1",
+          "result": "No whitespace errors; working tree clean."
+        }
+      ],
+      "required_actions": []
+    }
+  ]
+}
