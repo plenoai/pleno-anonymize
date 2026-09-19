@@ -117,6 +117,7 @@ def test_invalid_answer_retains_detection(monkeypatch, bad):
     [
         "timeout",
         "bad_json",
+        "deep_json",
         "bad_envelope",
         "oversized",
         "redirect",
@@ -130,9 +131,10 @@ def test_transport_failures_do_not_unmask_or_log_secrets(monkeypatch, caplog, fa
     response = connection.getresponse.return_value
     if failure == "timeout":
         connection.request.side_effect = TimeoutError("SECRET-CONTENT")
-    elif failure in {"bad_json", "bad_envelope", "oversized"}:
+    elif failure in {"bad_json", "deep_json", "bad_envelope", "oversized"}:
         response.read.return_value = {
             "bad_json": b"SECRET-CONTENT",
+            "deep_json": b"[" * 2000 + b"0" + b"]" * 2000,
             "bad_envelope": b"[]",
             "oversized": b"x" * 1_048_577,
         }[failure]

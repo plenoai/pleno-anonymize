@@ -139,7 +139,7 @@ class JevContextFilter(LemmaContextAwareEnhancer):
                 answers = response.get("answers")
                 if not isinstance(answers, dict):
                     raise ValueError("invalid answers")
-            except (OSError, http.client.HTTPException, ValueError):
+            except (OSError, http.client.HTTPException, ValueError, RecursionError):
                 logger.warning("Jev evaluation unavailable; preserving detections")
                 continue
 
