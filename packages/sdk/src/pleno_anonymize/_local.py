@@ -1,15 +1,19 @@
-"""Local engine — Presidio + spaCy + bundled recognizers, no network at scan time."""
+"""Local Presidio engine; network evaluation requires an explicit context enhancer."""
 
 from __future__ import annotations
 
 import logging
 from collections.abc import Iterable
 from functools import lru_cache
+from typing import TYPE_CHECKING
 
 from ._engine import Finding, RedactResult
 from ._models import Language, ensure, is_installed, model_for
 
 logger = logging.getLogger("pleno_anonymize")
+
+if TYPE_CHECKING:
+    from presidio_analyzer.context_aware_enhancers import ContextAwareEnhancer
 
 # Labels emitted by the bundled NER wheels (pleno_anonymize_ja / _en).
 # Presidio's default SpacyRecognizer only surfaces OntoNotes-style entities
@@ -92,11 +96,13 @@ class LocalEngine:
         *,
         languages: tuple[str, ...] = ("ja",),
         auto_download: bool = True,
+        context_aware_enhancer: ContextAwareEnhancer | None = None,
     ) -> None:
         if not languages:
             raise ValueError("at least one language must be requested")
         self._languages = tuple(languages)
         self._auto_download = auto_download
+        self._context_aware_enhancer = context_aware_enhancer
         self._analyzer = None
         self._anonymizer = None
 
@@ -222,6 +228,7 @@ class LocalEngine:
         analyzer = AnalyzerEngine(
             nlp_engine=engine,
             supported_languages=list(models.keys()),
+            context_aware_enhancer=self._context_aware_enhancer,
         )
         for recognizer in all_ja_presidio():
             analyzer.registry.add_recognizer(recognizer)

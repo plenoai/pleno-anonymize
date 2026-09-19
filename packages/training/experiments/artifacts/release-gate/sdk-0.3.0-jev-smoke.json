@@ -1,0 +1,285 @@
+{
+  "scope": "Hand-written synthetic candidate smoke test, not a held-out NER benchmark or evidence of production accuracy/calibration.",
+  "requested_model": "jev-latest",
+  "context_chars": 160,
+  "min_confidence": 0.9,
+  "candidates": 15,
+  "evaluated": 15,
+  "true_entities": 9,
+  "true_entities_retained": 9,
+  "false_positives": 6,
+  "false_positives_removed": 2,
+  "median_seconds_per_candidate": 0.5739,
+  "records": [
+    {
+      "id": "en_name",
+      "expected_keep": true,
+      "elapsed_seconds": 0.6268,
+      "decision": {
+        "status": "evaluated",
+        "keep": true,
+        "model": "jev-1.13.0",
+        "choice": "entity",
+        "confidence": 0.54,
+        "probabilities": {
+          "uncertain": 0.26,
+          "false_positive": 0.05,
+          "entity": 0.69
+        },
+        "min_confidence": 0.9
+      }
+    },
+    {
+      "id": "en_month",
+      "expected_keep": false,
+      "elapsed_seconds": 0.542,
+      "decision": {
+        "status": "evaluated",
+        "keep": false,
+        "model": "jev-1.13.0",
+        "choice": "false_positive",
+        "confidence": 0.96,
+        "probabilities": {
+          "false_positive": 0.97,
+          "entity": 0.02,
+          "uncertain": 0.01
+        },
+        "min_confidence": 0.9
+      }
+    },
+    {
+      "id": "en_rose_person",
+      "expected_keep": true,
+      "elapsed_seconds": 0.5537,
+      "decision": {
+        "status": "evaluated",
+        "keep": true,
+        "model": "jev-1.13.0",
+        "choice": "entity",
+        "confidence": 0.95,
+        "probabilities": {
+          "uncertain": 0.01,
+          "entity": 0.97,
+          "false_positive": 0.02
+        },
+        "min_confidence": 0.9
+      }
+    },
+    {
+      "id": "en_rose_flower",
+      "expected_keep": false,
+      "elapsed_seconds": 0.5739,
+      "decision": {
+        "status": "evaluated",
+        "keep": true,
+        "model": "jev-1.13.0",
+        "choice": "false_positive",
+        "confidence": 0.8,
+        "probabilities": {
+          "false_positive": 0.87,
+          "uncertain": 0.03,
+          "entity": 0.1
+        },
+        "min_confidence": 0.9
+      }
+    },
+    {
+      "id": "en_company",
+      "expected_keep": true,
+      "elapsed_seconds": 0.5855,
+      "decision": {
+        "status": "evaluated",
+        "keep": true,
+        "model": "jev-1.13.0",
+        "choice": "entity",
+        "confidence": 0.95,
+        "probabilities": {
+          "uncertain": 0.01,
+          "entity": 0.96,
+          "false_positive": 0.03
+        },
+        "min_confidence": 0.9
+      }
+    },
+    {
+      "id": "en_fruit",
+      "expected_keep": false,
+      "elapsed_seconds": 0.5833,
+      "decision": {
+        "status": "evaluated",
+        "keep": true,
+        "model": "jev-1.13.0",
+        "choice": "false_positive",
+        "confidence": 0.79,
+        "probabilities": {
+          "uncertain": 0.03,
+          "false_positive": 0.86,
+          "entity": 0.11
+        },
+        "min_confidence": 0.9
+      }
+    },
+    {
+      "id": "en_bank",
+      "expected_keep": true,
+      "elapsed_seconds": 0.5687,
+      "decision": {
+        "status": "evaluated",
+        "keep": true,
+        "model": "jev-1.13.0",
+        "choice": "entity",
+        "confidence": 0.72,
+        "probabilities": {
+          "entity": 0.8200000000000001,
+          "uncertain": 0.15,
+          "false_positive": 0.03
+        },
+        "min_confidence": 0.9
+      }
+    },
+    {
+      "id": "en_product",
+      "expected_keep": false,
+      "elapsed_seconds": 0.5514,
+      "decision": {
+        "status": "evaluated",
+        "keep": false,
+        "model": "jev-1.13.0",
+        "choice": "false_positive",
+        "confidence": 0.95,
+        "probabilities": {
+          "entity": 0.03,
+          "false_positive": 0.96,
+          "uncertain": 0.01
+        },
+        "min_confidence": 0.9
+      }
+    },
+    {
+      "id": "ja_person",
+      "expected_keep": true,
+      "elapsed_seconds": 0.5447,
+      "decision": {
+        "status": "evaluated",
+        "keep": true,
+        "model": "jev-1.13.0",
+        "choice": "entity",
+        "confidence": 0.82,
+        "probabilities": {
+          "uncertain": 0.05,
+          "entity": 0.88,
+          "false_positive": 0.07
+        },
+        "min_confidence": 0.9
+      }
+    },
+    {
+      "id": "ja_flower",
+      "expected_keep": false,
+      "elapsed_seconds": 0.5493,
+      "decision": {
+        "status": "evaluated",
+        "keep": true,
+        "model": "jev-1.13.0",
+        "choice": "false_positive",
+        "confidence": 0.88,
+        "probabilities": {
+          "entity": 0.06,
+          "false_positive": 0.92,
+          "uncertain": 0.02
+        },
+        "min_confidence": 0.9
+      }
+    },
+    {
+      "id": "ja_bank",
+      "expected_keep": true,
+      "elapsed_seconds": 0.5926,
+      "decision": {
+        "status": "evaluated",
+        "keep": true,
+        "model": "jev-1.13.0",
+        "choice": "entity",
+        "confidence": 0.96,
+        "probabilities": {
+          "false_positive": 0.02,
+          "uncertain": 0.01,
+          "entity": 0.97
+        },
+        "min_confidence": 0.9
+      }
+    },
+    {
+      "id": "ja_product",
+      "expected_keep": false,
+      "elapsed_seconds": 0.6174,
+      "decision": {
+        "status": "evaluated",
+        "keep": true,
+        "model": "jev-1.13.0",
+        "choice": "false_positive",
+        "confidence": 0.66,
+        "probabilities": {
+          "false_positive": 0.77,
+          "entity": 0.14,
+          "uncertain": 0.09
+        },
+        "min_confidence": 0.9
+      }
+    },
+    {
+      "id": "en_injection",
+      "expected_keep": true,
+      "elapsed_seconds": 0.6154,
+      "decision": {
+        "status": "evaluated",
+        "keep": true,
+        "model": "jev-1.13.0",
+        "choice": "entity",
+        "confidence": 0.5,
+        "probabilities": {
+          "false_positive": 0.21,
+          "uncertain": 0.13,
+          "entity": 0.66
+        },
+        "min_confidence": 0.9
+      }
+    },
+    {
+      "id": "ja_injection",
+      "expected_keep": true,
+      "elapsed_seconds": 0.5543,
+      "decision": {
+        "status": "evaluated",
+        "keep": true,
+        "model": "jev-1.13.0",
+        "choice": "entity",
+        "confidence": 0.95,
+        "probabilities": {
+          "uncertain": 0.01,
+          "false_positive": 0.02,
+          "entity": 0.97
+        },
+        "min_confidence": 0.9
+      }
+    },
+    {
+      "id": "mislabeled_sensitive",
+      "expected_keep": true,
+      "elapsed_seconds": 0.6178,
+      "decision": {
+        "status": "evaluated",
+        "keep": true,
+        "model": "jev-1.13.0",
+        "choice": "entity",
+        "confidence": 0.5,
+        "probabilities": {
+          "entity": 0.66,
+          "false_positive": 0.31,
+          "uncertain": 0.03
+        },
+        "min_confidence": 0.9
+      }
+    }
+  ]
+}

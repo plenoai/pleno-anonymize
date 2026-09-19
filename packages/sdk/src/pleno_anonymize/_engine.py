@@ -5,7 +5,10 @@ from __future__ import annotations
 import os
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+if TYPE_CHECKING:
+    from presidio_analyzer.context_aware_enhancers import ContextAwareEnhancer
 
 
 @dataclass(slots=True, frozen=True)
@@ -66,6 +69,7 @@ def PlenoAnonymize(
     engine: str = "builtin",
     opf_checkpoint: str | None = None,
     opf_device: str | None = None,
+    context_aware_enhancer: ContextAwareEnhancer | None = None,
 ) -> Engine:
     """Create an engine.
 
@@ -80,8 +84,13 @@ def PlenoAnonymize(
     Pass ``base_url`` (e.g. ``"https://pleno-anonymize.fly.dev"``) to
     instead use a hosted server via HTTP. The remote engine takes
     precedence over ``engine``.
+
+    ``context_aware_enhancer`` is passed to the local Presidio analyzer for
+    both analyze and redact. Remote and OPF engines do not support this option.
     """
     resolved = base_url or os.environ.get("PLENO_ANONYMIZE_BASE_URL")
+    if context_aware_enhancer is not None and (resolved or engine != "builtin"):
+        raise ValueError("context_aware_enhancer requires the local builtin engine")
     if resolved:
         from ._remote import RemoteEngine
 
@@ -107,4 +116,5 @@ def PlenoAnonymize(
     return LocalEngine(
         languages=languages,
         auto_download=auto_download,
+        context_aware_enhancer=context_aware_enhancer,
     )
