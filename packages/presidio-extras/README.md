@@ -11,6 +11,9 @@ Each element depends only on `presidio-analyzer`, so it works with a vanilla
 pip install pleno-presidio-extras
 ```
 
+The `PlenoAnonymize` example below also needs the SDK
+(`pip install pleno-anonymize`); the package itself does not depend on it.
+
 ## JevContextFilter
 
 `JevContextFilter` extends Presidio's `LemmaContextAwareEnhancer`. It preserves
@@ -69,17 +72,21 @@ type share an evaluation; separate occurrences retain their own context.
 Only the bounded text context is sent; Presidio's optional `context` keywords
 continue to affect the lemma enhancer locally.
 
-`model="jev-latest"` is the default. Pin a supported model ID for reproducible
-evaluation. The default threshold is a policy starting point, not a calibrated
+`model="jev-latest"` is the default. Pin a supported model ID to avoid
+model-version drift; results still vary between runs (see the smoke test
+below). The default threshold is a policy starting point, not a calibrated
 PII accuracy guarantee: measure false positives, retained true entities, and
 latency on representative held-out data before relying on removals. Prompt
 instructions cannot guarantee resistance to adversarial input.
 
-A reproducible live smoke test sends only checked-in synthetic EN/JA examples:
+A live smoke test sends only checked-in synthetic EN/JA examples. Pin a model
+ID: the API is non-deterministic, so choices, confidences, and removal counts
+vary between runs, and a transient `unavailable` answer fails the script's own
+gate — re-run it.
 
 ```sh
 dotenvx run -f .dev.vars -- python packages/presidio-extras/scripts/eval_jev_context.py \
-  --output /tmp/jev-context-smoke.json
+  --model jev-1.13.0 --output /tmp/jev-context-smoke.json
 ```
 
 It records every decision, including injection examples and a sensitive span
