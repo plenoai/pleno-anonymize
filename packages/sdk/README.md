@@ -123,6 +123,14 @@ For a ready-made false-positive filter, see the optional
 keeps the default lemma enhancement, then sends each span with bounded
 surrounding context to TypeSafe's Jev API and drops confident false positives.
 
+**Breaking change (0.3.0 → 0.4.0):** `pleno_anonymize.presidio.JevContextFilter`,
+which only ever shipped in 0.3.0, was removed from the SDK. The class moved
+unchanged to `pleno_presidio_extras.JevContextFilter`; install it separately:
+
+```sh
+pip install pleno-presidio-extras
+```
+
 ### API surface
 
 | Export | Purpose |
