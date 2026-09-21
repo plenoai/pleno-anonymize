@@ -1,6 +1,6 @@
 [project]
 name = "pleno-presidio-extras"
-version = "0.1.0"
+version = "0.1.1"
 description = "Optional Presidio custom elements from pleno. Currently JevContextFilter, a context-aware enhancer that removes confident false positives via TypeSafe's Jev API."
 readme = "README.md"
 license = { text = "Apache-2.0" }
