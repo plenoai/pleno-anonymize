@@ -1,0 +1,192 @@
+{
+  "verdict": "APPROVE",
+  "package": "pleno-presidio-extras",
+  "version": "0.1.1",
+  "source_commit": "1f7a10d0703c86f8c867098d3047498d9e567a27",
+  "baseline_commit": "bc072cc8b298624f7e5cb7a16c9a74b179e13121",
+  "previous_verdict": "presidio-extras-0.1.0.json",
+  "release_route": "presidio-extras/v0.1.1 -> GitHub Actions trusted publishing -> PyPI",
+  "scope": "Packaging-only patch release. Closes the three minors deferred by the 0.1.0 gate (bundled Apache-2.0 LICENSE, package-local .gitignore, pinned build backend). No product code, test, or claim change.",
+  "experiment_ids": [],
+  "delta": [
+    "PR #366: package-local LICENSE (sha256 cfc7749b...523d30, identical to the repo root) and .gitignore added to packages/sdk and packages/presidio-extras; [build-system] requires pinned to hatchling==1.32.4 for both published packages.",
+    "PR #367: packages/presidio-extras version 0.1.0 -> 0.1.1 and uv.lock follow-up.",
+    "git diff bc072cc..1f7a10d -- packages/presidio-extras/src packages/presidio-extras/tests packages/presidio-extras/scripts packages/presidio-extras/README.md => empty (product code, tests, and claims byte-identical to the approved 0.1.0)."
+  ],
+  "validation": {
+    "extras_tests": 43,
+    "sdk_tests": 63,
+    "total_tests": 106,
+    "ruff": "passed (check + format)",
+    "lock": "uv lock --check passed against pypi.org/simple",
+    "build": "wheel and sdist byte-reproducible across two builds; wheel Generator: hatchling 1.32.4",
+    "license": "wheel .dist-info/licenses/LICENSE (11358 B) and sdist LICENSE both sha256 cfc7749b...523d30 == repo root; METADATA has License: Apache-2.0 and License-File: LICENSE",
+    "sdist_gitignore": "package-local 4-line .gitignore; the 101-line repo-root .gitignore no longer leaks"
+  },
+  "reviews": [
+    {
+      "verdict": "APPROVE",
+      "lens": "statistical",
+      "findings": [
+        {
+          "check": "2",
+          "severity": "minor",
+          "claim": "No before/after baseline, eval logic, or threshold change in this delta.",
+          "evidence": "`git diff bc072cc..1f7a10d --stat` => LICENSE/.gitignore/pyproject.toml/uv.lock/gate json only; `git diff bc072cc..1f7a10d -- packages/presidio-extras/src packages/sdk/src` => empty; blob hashes for jev.py, eval_jev_context.py, test_jev_context.py identical; min_confidence 0.9 and the (0.5,1] check unchanged.",
+          "conclusion": "N/A. Packaging/version only; no baseline validity to assess."
+        },
+        {
+          "check": "3",
+          "severity": "minor",
+          "claim": "No F1/P/R, CI, or significance claim is added.",
+          "evidence": "`git diff bc072cc..1f7a10d --name-status` => packaging + the 0.1.0 gate record; extras README still states 'not a NER precision/recall benchmark'.",
+          "conclusion": "N/A. No new metric claim; 0.1.1 is a version string."
+        },
+        {
+          "check": "7",
+          "severity": "minor",
+          "claim": "No per-label recall floor breach or latency regression; no concealed regression.",
+          "evidence": "Product code byte-identical (blob hashes above); `pytest packages/presidio-extras/tests -q` => 43 passed, `packages/sdk/tests -q` => 63 passed; thresholds and evaluator unchanged.",
+          "conclusion": "N/A. No overall metric exists, so no label-level regression can be masked; test counts and thresholds match the 0.1.0 verdict."
+        },
+        {
+          "check": "1",
+          "severity": "minor",
+          "claim": "The 0.1.1 version/tag claim is consistent with the artifact.",
+          "evidence": "pyproject.toml:3 version 0.1.1; uv.lock 0.1.0 -> 0.1.1; release-presidio-extras.yml:66-74 verifies tag vs pyproject; `git tag -l 'presidio-extras/*'` => v0.1.0 only (v0.1.1 not yet cut).",
+          "conclusion": "No problem. tag/version align and no metric needs a source citation."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "The hatchling==1.32.4 pin is resolvable and does not affect the metrics.",
+          "evidence": "hatchling 1.32.4 is the latest on pypi.org; with the default local index the pin fails only because ~/.config/uv/uv.toml sets exclude-newer='1 days' and the mirror lags (pypi.flatt.tech has up to 1.32.3); `UV_INDEX_URL=https://pypi.org/simple uv build` succeeds and bundles LICENSE. CI uses pypi.org with no exclude-newer.",
+          "conclusion": "No statistical impact. The pin resolves on the release CI path; the local failure is an environment (mirror + exclude-newer) artifact."
+        }
+      ],
+      "required_actions": []
+    },
+    {
+      "verdict": "APPROVE",
+      "lens": "contamination",
+      "findings": [
+        {
+          "check": "4",
+          "severity": "minor",
+          "claim": "The 0.1.0 minor 'Apache-2.0 LICENSE text absent from wheel/sdist' is resolved.",
+          "evidence": "wheel => pleno_presidio_extras-0.1.1.dist-info/licenses/LICENSE (11358 B); sdist => pleno_presidio_extras-0.1.1/LICENSE; METADATA => License: Apache-2.0, License-File: LICENSE.",
+          "conclusion": "Resolved. The 0.1.0 finding no longer reproduces."
+        },
+        {
+          "check": "4",
+          "severity": "minor",
+          "claim": "The bundled LICENSE is the unmodified Apache-2.0 with no added terms.",
+          "evidence": "sha256 of repo-root LICENSE, packages/presidio-extras/LICENSE, packages/sdk/LICENSE, and both artifacts' LICENSE all cfc7749b...523d30; no NOTICE file, so Apache-2.0 section 4(d) is not triggered.",
+          "conclusion": "Identical to root, unmodified, no extra terms."
+        },
+        {
+          "check": "4",
+          "severity": "minor",
+          "claim": "The 0.1.0 minor 'repo-root .gitignore leaks internal paths into the sdist' is resolved.",
+          "evidence": "sdist .gitignore == the package-local 4-line file; the 101-line repo-root .gitignore (packages/training paths, .env.keys, etc.) is absent from `tar tzf`.",
+          "conclusion": "Resolved. Only the inert package-local ignore file ships."
+        },
+        {
+          "check": "4",
+          "severity": "minor",
+          "claim": "No training/eval data or model contamination; the eval-only ai4privacy/pii-masking-300k constraint is untouched.",
+          "evidence": "`git diff --name-status bc072cc..1f7a10d` => packaging + gate json only; `git diff bc072cc..HEAD -- packages/models packages/training` => empty; no dataset references in the package; no leaked secrets or internal paths in the unpacked sdist.",
+          "conclusion": "N/A. No dataset, model, or training change; the license-encumbered dataset is neither trained on nor shipped."
+        },
+        {
+          "check": "6",
+          "severity": "minor",
+          "claim": "No new accuracy/F1/benchmark claim; the synthetic smoke is not relabelled as a metric.",
+          "evidence": "`git diff --stat presidio-extras/v0.1.0..HEAD -- packages/presidio-extras/README.md src tests scripts` => empty; the script still self-labels 'not a NER accuracy benchmark'.",
+          "conclusion": "No exaggeration added; the documented surface is unchanged from the approved 0.1.0."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "The pinned hatchling==1.32.4 is not resolvable from the environment's configured mirror, so the pin is the one un-exercised part of the delta.",
+          "evidence": "default index => 'No solution found when resolving: hatchling==1.32.4'; pypi.flatt.tech has up to 1.32.3; pypi.org has 1.32.4; `UV_INDEX_URL=https://pypi.org/simple uv build` succeeds; the release workflow uses setup-uv with no UV_INDEX_URL (pypi.org).",
+          "conclusion": "Not a contamination issue and not a blocker on the pypi.org release path (reproduced the exact build command). The pin had not been built by CI yet because ci.yml only runs uv sync/ruff/pytest; a workflow_dispatch dry-run is recommended before the tag."
+        }
+      ],
+      "required_actions": []
+    },
+    {
+      "verdict": "APPROVE",
+      "lens": "reproducibility",
+      "findings": [
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "pyproject version 0.1.1 matches the tag presidio-extras/v0.1.1 and the workflow fails closed on mismatch.",
+          "evidence": "pyproject.toml:3 version 0.1.1; release-presidio-extras.yml:18 and :61-76 compare tag to pyproject; simulated REF_NAME=presidio-extras/v0.1.1 => MATCH; only v0.1.0 exists so far.",
+          "conclusion": "No problem. Version/tag alignment is validated mechanically before publish."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "uv.lock follows the 0.1.1 bump.",
+          "evidence": "uv.lock:2806-2808 version 0.1.1; `env -u UV_INDEX_URL uv lock --check --no-config` exit 0.",
+          "conclusion": "No problem. Lock matches pyproject."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "Wheel and sdist are byte-reproducible and the hatchling pin is applied.",
+          "evidence": "two builds => identical wheel/sdist sha256; wheel WHEEL metadata reports 'Generator: hatchling 1.32.4'; pyproject.toml requires hatchling==1.32.4.",
+          "conclusion": "No problem. The previously-deferred unpinned-hatchling item is resolved and observable in the artifact metadata."
+        },
+        {
+          "check": "1",
+          "severity": "minor",
+          "claim": "The build-system comment 'reproducible over time' is necessary but not fully sufficient because transitive build deps stay unpinned.",
+          "evidence": "hatchling is pinned but its runtime deps (packaging, pluggy, pathspec, trove-classifiers, editables) are not; uv.lock does not cover build isolation; two same-day rebuilds are byte-identical.",
+          "conclusion": "Minor wording overreach, not a defect; the realistic drift lever (hatchling's version string embedded in WHEEL) is pinned and verified. Does not block."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "LICENSE is bundled in both artifacts and the root .gitignore leak is gone.",
+          "evidence": "wheel .dist-info/licenses/LICENSE + METADATA License-File; sdist LICENSE sha256 == repo root; sdist .gitignore is the 4-line package-local file.",
+          "conclusion": "No problem. Both 0.1.0 packaging deferrals are fixed."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "Test and lint gates are green with counts unchanged from 0.1.0.",
+          "evidence": "`pytest packages/presidio-extras/tests -q` => 43 passed; ruff check/format pass (same commands as ci.yml:64-70).",
+          "conclusion": "No problem. Same 43 tests as the approved 0.1.0 verdict."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "Disposition of the 0.1.0 deferrals.",
+          "evidence": "license not bundled -> resolved; root .gitignore in sdist -> resolved; hatchling unpinned -> resolved; product code/tests/README unchanged (`git diff --stat bc072cc..1f7a10d -- ...` empty).",
+          "conclusion": "No problem. All three prior deferrals are closed; the delta is packaging-only."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "PR #366 also pins packages/sdk build-system and adds its LICENSE/.gitignore inside the extras-release commit.",
+          "evidence": "`git diff bc072cc..1f7a10d -- packages/sdk/pyproject.toml` => hatchling pin; packages/sdk/{LICENSE,.gitignore} added. No sdk tag is cut in this release.",
+          "conclusion": "No problem for this release: the extras artifact is unaffected and the SDK change is a strict improvement; noted only because it rides an extras commit."
+        },
+        {
+          "check": "1",
+          "severity": "minor",
+          "claim": "No model/NER metric or training claim in scope.",
+          "evidence": "delta touches only packaging/version/gate json; no packages/models or packages/training code change.",
+          "conclusion": "N/A. No statistical claim exists to reproduce."
+        }
+      ],
+      "required_actions": []
+    }
+  ],
+  "deferred": [
+    "Transitive build dependencies of hatchling remain unpinned (uv.lock does not cover build isolation); the comment wording is slightly broader than that guarantees."
+  ]
+}
