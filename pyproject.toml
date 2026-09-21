@@ -5,6 +5,7 @@ members = [
     "server",
     "packages/training",
     "packages/sdk",
+    "packages/presidio-extras",
 ]
 
 [tool.ruff.lint]

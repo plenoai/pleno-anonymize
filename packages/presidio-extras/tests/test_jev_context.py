@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from pleno_anonymize import PlenoAnonymize
-from pleno_anonymize.presidio import JevContextFilter
+from pleno_presidio_extras import JevContextFilter
 from presidio_analyzer import Pattern, PatternRecognizer, RecognizerResult
 
 
@@ -29,7 +29,9 @@ def wire(monkeypatch, answers, status=200):
         {"model": "jev-test-pinned", "answers": answers}
     ).encode()
     factory = MagicMock(return_value=connection)
-    monkeypatch.setattr("pleno_anonymize.presidio.http.client.HTTPSConnection", factory)
+    monkeypatch.setattr(
+        "pleno_presidio_extras.jev.http.client.HTTPSConnection", factory
+    )
     return connection, factory
 
 

@@ -31,9 +31,9 @@ The pleno-anonymize API processes the following data:
 - Placeholders in LLM responses are restored to original values
 - PII mappings are discarded from memory when the request completes
 
-### Optional SDK Jev Extension
-- Explicitly configuring `pleno_anonymize.presidio.JevContextFilter` sends unmasked candidate spans, entity types, and bounded surrounding text to TypeSafe's API for context evaluation.
-- This extension is not enabled by default in the SDK or hosted API. TypeSafe's processing and retention terms apply when enabled.
+### Optional Presidio Extras Package (Jev)
+- Explicitly configuring `pleno_presidio_extras.JevContextFilter` sends unmasked candidate spans, entity types, and bounded surrounding text to TypeSafe's API for context evaluation.
+- This extension lives in the separate, optional `pleno-presidio-extras` package and is not enabled by default in the SDK or hosted API. TypeSafe's processing and retention terms apply when enabled.
 - The extension does not log or cache submitted text, API keys, or remote error bodies.
 
 ### LLM Provider Data Retention

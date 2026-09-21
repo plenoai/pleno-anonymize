@@ -8,6 +8,7 @@ PII analysis and redaction for Japanese and English text.
 
 - **`pleno-anonymize` server** — HTTP API with `/api/analyze`, `/api/redact`, and OpenAI / Anthropic / Gemini proxies that mask PII before forwarding to upstream providers.
 - **`pleno-anonymize` Python package** — SDK and CLI (`uvx pleno-anonymize scan .`). See [`packages/sdk`](packages/sdk).
+- **`pleno-presidio-extras` package** — optional Presidio extensions installed separately (e.g. `JevContextFilter` false-positive filtering). See [`packages/presidio-extras`](packages/presidio-extras).
 - **`pleno_anonymize_ja` / `pleno_anonymize_en` models** — spaCy NER models for Japanese and English PII.
 
 Endpoint: https://pleno-anonymize.fly.dev (API reference at `/docs`).

@@ -13,7 +13,7 @@ from presidio_analyzer import EntityRecognizer, RecognizerResult
 from presidio_analyzer.context_aware_enhancers import LemmaContextAwareEnhancer
 from presidio_analyzer.nlp_engine import NlpArtifacts
 
-logger = logging.getLogger("pleno_anonymize")
+logger = logging.getLogger("pleno_presidio_extras")
 
 _CRITERIA = {
     "entity": "The span is an instance of the proposed entity type, or contains other sensitive identifying information. Keep it even if the proposed type is wrong.",

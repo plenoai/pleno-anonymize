@@ -27,6 +27,7 @@ members = [
     "pleno-anonymize",
     "pleno-anonymize-server",
     "pleno-ner-training",
+    "pleno-presidio-extras",
 ]
 
 [[package]]
@@ -2798,6 +2799,29 @@ provides-extras = ["training", "hf", "bench"]
 [package.metadata.requires-dev]
 dev = [
     { name = "jsonschema", specifier = ">=4.18" },
+    { name = "pytest", specifier = ">=9.1.1" },
+]
+
+[[package]]
+name = "pleno-presidio-extras"
+version = "0.1.0"
+source = { editable = "packages/presidio-extras" }
+dependencies = [
+    { name = "presidio-analyzer" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pleno-anonymize" },
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "presidio-analyzer", specifier = ">=2.2.364" }]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pleno-anonymize", editable = "packages/sdk" },
     { name = "pytest", specifier = ">=9.1.1" },
 ]
 
