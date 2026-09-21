@@ -2,8 +2,8 @@
 name: release-gate
 description: |
   モデル/SDK リリース前に academic-validity-reviewer subagent で敵対的評価を行う
-  必須ゲート。make release-model・HF push・model/v*・sdk/v* tag push の前に
-  自律的に発火する。
+  必須ゲート。make release-model・HF push・model/v*・sdk/v*・presidio-extras/v*
+  tag push の前に自律的に発火する。
 
   Trigger: release, リリース, 出荷, HF push, tag push, release-model, 公開前評価
 ---
@@ -20,7 +20,7 @@ KEEP 判定は「実験として成功」を意味するだけで「出荷して
 
 - `make release-model MODEL_LANG=... MODEL_VERSION=...`
 - HF Hub への wheel / model push (`push_model_to_hf.py`, `hf upload`)
-- `model/v*` または `sdk/v*` tag push
+- `model/v*`・`sdk/v*`・`presidio-extras/v*` tag push
 
 ## Phase 1: リリース主張の収集
 

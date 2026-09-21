@@ -10,7 +10,7 @@ import statistics
 import time
 from pathlib import Path
 
-from pleno_anonymize.presidio import JevContextFilter
+from pleno_presidio_extras import JevContextFilter
 from presidio_analyzer import RecognizerResult
 
 CASES = [

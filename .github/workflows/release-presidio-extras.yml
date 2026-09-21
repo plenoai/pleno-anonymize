@@ -1,0 +1,90 @@
+name: Release pleno-presidio-extras to PyPI
+
+# Trusted publishing for the optional Presidio extensions package.
+#
+#   pleno-presidio-extras (optional Presidio custom elements; currently
+#   JevContextFilter). Separate from the pleno-anonymize SDK so it is never
+#   installed by default and can be released on its own cadence.
+#
+# Tag convention:
+#   presidio-extras/vX.Y.Z -> packages/presidio-extras (PyPI name: pleno-presidio-extras)
+#
+# PyPI side: the project needs a GitHub Actions trusted publisher configured.
+# https://docs.pypi.org/trusted-publishers/
+
+on:
+  push:
+    tags:
+      - 'presidio-extras/v*'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Build wheel but skip PyPI upload'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      # Required for PyPI trusted publishing (OIDC).
+      id-token: write
+      contents: read
+    concurrency:
+      group: release-pypi-${{ github.ref_name }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+
+      - name: Resolve dry-run flag
+        id: resolve
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "push" ]; then
+            dry_run="false"
+          else
+            dry_run="${INPUT_DRY_RUN:-true}"
+          fi
+          echo "dry_run=$dry_run" >> "$GITHUB_OUTPUT"
+
+      - name: Verify tag matches package version
+        if: github.event_name == 'push'
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          tag_version="${REF_NAME##*/v}"
+          pkg_version=$(uvx --from "tomli>=2.0" python -c "
+          import sys, tomllib
+          with open(sys.argv[1], 'rb') as f:
+              print(tomllib.load(f)['project']['version'])
+          " packages/presidio-extras/pyproject.toml)
+          if [ "$tag_version" != "$pkg_version" ]; then
+            echo "::error::tag ${REF_NAME} does not match packages/presidio-extras/pyproject.toml version ${pkg_version}"
+            exit 1
+          fi
+
+      - name: Build wheel and sdist
+        working-directory: packages/presidio-extras
+        run: uv build --out-dir dist
+
+      - name: List build artifacts
+        working-directory: packages/presidio-extras
+        run: ls -la dist
+
+      - name: Publish to PyPI
+        if: steps.resolve.outputs.dry_run != 'true'
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33  # v1.14.2
+        with:
+          packages-dir: packages/presidio-extras/dist
