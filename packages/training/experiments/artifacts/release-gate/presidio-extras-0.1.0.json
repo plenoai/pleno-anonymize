@@ -1,0 +1,223 @@
+{
+  "verdict": "APPROVE",
+  "package": "pleno-presidio-extras",
+  "version": "0.1.0",
+  "source_commit": "bc072cc8b298624f7e5cb7a16c9a74b179e13121",
+  "baseline_commit": "a4d2851b874e1cc7262b828c9b83b813b6607169",
+  "release_route": "presidio-extras/v0.1.0 -> GitHub Actions trusted publishing -> PyPI",
+  "scope": "Extracts the opt-in Jev Presidio context filter out of the pleno-anonymize SDK into a standalone optional package. No NER model or training change. No production accuracy, recall, calibration, or latency claim.",
+  "experiment_ids": [],
+  "artifacts": [
+    "sdk-0.3.0-jev-smoke.json",
+    "sdk-0.3.0-jev-batch-smoke.json"
+  ],
+  "validation": {
+    "extras_tests": 43,
+    "sdk_tests": 63,
+    "total_tests": 106,
+    "ruff": "passed (check + format)",
+    "lock": "uv lock --check passed against pypi.org/simple",
+    "build": "wheel and sdist byte-reproducible across rebuilds; root .gitignore in sdist and missing LICENSE are pre-existing repo-wide hatchling behaviour, deferred",
+    "release_workflow_dry_run": "https://github.com/plenoai/pleno-anonymize/actions/runs/35548052771",
+    "content_ci": "https://github.com/plenoai/pleno-anonymize/actions/runs/35553276330",
+    "moved_code_identity": "git show 1873267^:packages/sdk/src/pleno_anonymize/presidio.py | diff - packages/presidio-extras/src/pleno_presidio_extras/jev.py => logger name only"
+  },
+  "reviews": [
+    {
+      "verdict": "APPROVE",
+      "lens": "statistical",
+      "findings": [
+        {
+          "check": "1",
+          "severity": "minor",
+          "claim": "The release claims model-quality experimental metrics.",
+          "evidence": "`git diff a4d2851 HEAD -- packages/models/ packages/training/` => empty (exit 0); packages/presidio-extras/README.md:86-87 'candidate-level integration smoke test, not a NER precision/recall benchmark'; no Jev experiment row in packages/training/experiments/log.jsonl or best.json.",
+          "conclusion": "N/A. No model or training change; Jev claims no model-quality metric (opt-in Presidio post-processing layer)."
+        },
+        {
+          "check": "2",
+          "severity": "minor",
+          "claim": "Baseline comparison validity (sdk/v0.3.0 -> pleno-presidio-extras 0.1.0 is a pure move).",
+          "evidence": "`git show sdk/v0.3.0:packages/sdk/src/pleno_anonymize/presidio.py | diff - packages/presidio-extras/src/pleno_presidio_extras/jev.py` => line 16 logger name only; test and script diffs are import lines only.",
+          "conclusion": "No problem. Moved code is byte-identical to the published tag except the logger name; no before/after NER metric comparison exists."
+        },
+        {
+          "check": "3",
+          "severity": "minor",
+          "claim": "Statistical significance (F1/CI/test).",
+          "evidence": "README:72-74 and :86-87 disclaim calibration and benchmark status; smoke artifacts recomputed: 9/9 retention, 2/6 and 3/6 false-positive removal. `pytest -q` => 43 passed.",
+          "conclusion": "N/A. No F1, confidence interval, or significance claim; the smoke is n=15 hand-written synthetic candidates."
+        },
+        {
+          "check": "4",
+          "severity": "minor",
+          "claim": "Training-data contamination / license.",
+          "evidence": "`git diff a4d2851 HEAD -- packages/models/ packages/training/` => empty; smoke cases are hand-written synthetic strings in scripts/eval_jev_context.py.",
+          "conclusion": "N/A. No training, evaluation-data, or model change."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "Reproducibility.",
+          "evidence": "`uv build` succeeds; wheel contains pleno_presidio_extras/{__init__,jev}.py only; `uv lock --check` matches HEAD commit; the one unpinned live smoke is documented as requiring a pin.",
+          "conclusion": "No problem. Lock matches HEAD; no statistical claim depends on re-running the live API."
+        },
+        {
+          "check": "6",
+          "severity": "minor",
+          "claim": "Metric or benchmark exaggeration.",
+          "evidence": "README:73-74,86-87; sdk-0.3.0-jev-smoke.json:2 'not a held-out NER benchmark or evidence of production accuracy/calibration'.",
+          "conclusion": "No exaggeration. The default threshold is explicitly uncalibrated and no removal-rate or accuracy guarantee is claimed."
+        },
+        {
+          "check": "7",
+          "severity": "minor",
+          "claim": "Hidden regression (threshold/aggregation/evaluation logic altered by the move; evidence tampering).",
+          "evidence": "Moved src/test/eval diffs are logger name and import path only; `_valid_answer`/`keep` logic is identical to sdk/v0.3.0; `git diff a4d2851 HEAD -- packages/training/experiments/artifacts/release-gate/` => empty; CI run 35553276330 all green; 106 passed.",
+          "conclusion": "No hidden regression. Aggregation, threshold, and fail-retain semantics are byte-identical; no model/training/log/benchmark/evidence diff."
+        }
+      ],
+      "required_actions": []
+    },
+    {
+      "verdict": "APPROVE",
+      "lens": "contamination",
+      "findings": [
+        {
+          "check": "4",
+          "severity": "minor",
+          "claim": "The release does not train on or derive from the eval-only ai4privacy/pii-masking-300k license.",
+          "evidence": "`git show 1873267 --name-only` contains no packages/training or packages/models path; `git diff --quiet 1873267^ 1873267 -- packages/models/versions.json packages/training/experiments/log.jsonl packages/training/experiments/best.json packages/training/data packages/training/src` => exit 0; no dataset/train/HF references in the package; `uv build` wheel contains only the module and dist-info.",
+          "conclusion": "No problem. No training, fine-tuning, or derived-model generation; the dataset is neither trained on nor evaluated; the distribution contains no eval-data content."
+        },
+        {
+          "check": "4",
+          "severity": "minor",
+          "claim": "Apache-2.0 redistribution includes the license text.",
+          "evidence": "`tar tzf .../pleno_presidio_extras-0.1.0.tar.gz | grep -i license` => none; wheel METADATA declares `License: Apache-2.0`; repo-root LICENSE exists.",
+          "conclusion": "Minor. Apache-2.0 section 4 asks for the license copy on redistribution and the wheel/sdist omit it. Not a data-contamination or eval-license violation and not a blocker; inclusion is desirable. Repo-wide (the SDK wheel/sdist have the same gap), deferred."
+        },
+        {
+          "check": "6",
+          "severity": "minor",
+          "claim": "Smoke results are not presented as benchmark accuracy/F1; character-IoU span matching is not relabelled as unconditional F1.",
+          "evidence": "All F1/IoU/precision/recall/accuracy/benchmark matches in packages/presidio-extras are disclaimers (README:73-74, README:87, scripts/eval_jev_context.py:1,135); README quotes no removal rate; documented parameters match jev.py (context_chars 160, min_confidence 0.9, timeout 10.0, span>2048 kept, batch 8, (0.5,1]); the endpoint matches jev.py:191; the top-level README F1 lines are unchanged by this commit and their metric definition is documented.",
+          "conclusion": "No exaggeration in scope. The package README/script/artifacts claim no accuracy, F1, or benchmark, mark the threshold uncalibrated, and state the smoke is not a benchmark."
+        },
+        {
+          "check": "1",
+          "severity": "minor",
+          "claim": "log.jsonl metrics_after cross-check.",
+          "evidence": "`git diff --quiet 1873267^ 1873267 -- packages/training/experiments/log.jsonl packages/training/experiments/best.json` => exit 0.",
+          "conclusion": "N/A. No model-metric claim and no experiment id (reproducibility lens scope)."
+        },
+        {
+          "check": "2",
+          "severity": "minor",
+          "claim": "Baseline comparison validity.",
+          "evidence": "packages/models/versions.json and _models.py unchanged; no dataset/split/engine before-after comparison.",
+          "conclusion": "N/A. Pure move with no before/after to compare."
+        },
+        {
+          "check": "3",
+          "severity": "minor",
+          "claim": "Statistical significance (n=300 F1 delta).",
+          "evidence": "No F1-delta claim; the only quantitative artifact is an n=15 synthetic candidate smoke with 2/6 vs 3/6 removal across runs.",
+          "conclusion": "N/A. No precision/recall improvement claim; the run-to-run instability is consistent with the README's non-guarantee wording."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "Reproducibility (log schema / data_hash / config).",
+          "evidence": "No new intervention in log.jsonl; `pytest packages/presidio-extras/tests -q` => 43 passed.",
+          "conclusion": "N/A (reproducibility lens scope). No model-experiment reproducibility record is due."
+        },
+        {
+          "check": "7",
+          "severity": "minor",
+          "claim": "Per-label recall floor / latency regression concealment.",
+          "evidence": "No NER model or recognizer change; presidio-extras is an opt-in post-filter that preserves Presidio scores (jev.py changes no score, only removal decisions).",
+          "conclusion": "N/A. No model change and no improvement claim that could mask a per-label regression."
+        }
+      ],
+      "required_actions": []
+    },
+    {
+      "verdict": "APPROVE",
+      "lens": "reproducibility",
+      "findings": [
+        {
+          "check": "1",
+          "severity": "minor",
+          "claim": "The README no longer claims the live smoke test is reproducible.",
+          "evidence": "commit bc072cc diff replaces the pin sentence with 'Pin a supported model ID to avoid model-version drift; results still vary between runs (see the smoke test below).'; `grep -rn -i reproduc packages/presidio-extras` => 0 matches; built wheel METADATA also has 0; README:82-85 states non-determinism.",
+          "conclusion": "No problem. No residual overclaim; README matches the observed run-to-run variance."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "The 'results vary between runs' statement holds even with a pinned model, and supporting artifacts exist.",
+          "evidence": "sdk-0.3.0-jev-smoke.json resolved model jev-1.13.0 with false_positives_removed=2; sdk-0.3.0-jev-batch-smoke.json requested jev-1.13.0 with false_positives_removed=3; same resolved model, different removal counts.",
+          "conclusion": "No problem. The non-determinism statement is supported; removing the 'reproducible' claim was correct."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "Wheel/sdist build reproducibility.",
+          "evidence": "`uv build` run twice: wheel and sdist sha256 identical across runs; sdist contents stable.",
+          "conclusion": "No problem. Byte-for-byte reproducible."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "tag presidio-extras/v0.1.0 matches pyproject version and the release workflow validates it.",
+          "evidence": "pyproject.toml:2 version 0.1.0; release-presidio-extras.yml:18 trigger 'presidio-extras/v*' and :61-76 compares tag_version to pyproject; simulated REF_NAME=presidio-extras/v0.1.0 => 0.1.0 MATCH; `git tag -l 'presidio-extras/*'` empty.",
+          "conclusion": "No problem. The workflow fails closed on any version mismatch."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "Test counts and CI coverage.",
+          "evidence": "`pytest packages/presidio-extras/tests -q` => 43 passed; ci.yml extras job runs ruff + pytest; `ruff check`/`format --check` pass.",
+          "conclusion": "No problem. 43 unit+integration tests green."
+        },
+        {
+          "check": "5",
+          "severity": "minor",
+          "claim": "sdist ships the repo-root .gitignore and no LICENSE.",
+          "evidence": "sdist contains .gitignore (101 lines, identical to repo root) and no LICENSE; the same holds for the SDK build; pyproject uses `license = { text = \"Apache-2.0\" }`.",
+          "conclusion": "No problem for release (not introduced by this PR; pre-existing repo-wide hatchling behaviour). Deferred as minor; does not affect reproducibility."
+        }
+      ],
+      "required_actions": []
+    }
+  ],
+  "revision_history": [
+    {
+      "lens": "statistical",
+      "verdict": "REVISE",
+      "round": 1,
+      "finding": "PR #362 removed the published SDK module pleno_anonymize/presidio.py at an unchanged version 0.3.0, hiding a backward-incompatible change.",
+      "resolution": "PR #363 bumped packages/sdk to 0.4.0 and documented the removal and replacement import path in the SDK README. No shim (the API shipped only in 0.3.0 two days earlier). Re-reviewed APPROVE."
+    },
+    {
+      "lens": "reproducibility",
+      "verdict": "REVISE",
+      "round": 1,
+      "finding": "The README called the live smoke test reproducible, but the API is non-deterministic (confidences and removal counts vary; a transient unavailable answer fails the script's own gate).",
+      "resolution": "PR #364 removed the 'reproducible' claim, pinned the example model, and documented the variance and transient failure. The historical sdk-0.3.0 smoke artifact was deliberately not rewritten. Re-reviewed APPROVE."
+    },
+    {
+      "lens": "reproducibility",
+      "verdict": "REVISE",
+      "round": 2,
+      "finding": "A residual 'reproducible' remained in the model-pinning sentence (README:75).",
+      "resolution": "Reworded to 'Pin a supported model ID to avoid model-version drift; results still vary between runs.' Re-reviewed APPROVE."
+    }
+  ],
+  "deferred": [
+    "Apache-2.0 license text is not bundled in the wheel/sdist (repo-wide; the SDK has the same gap).",
+    "The monorepo-root .gitignore is included in the sdist (repo-wide hatchling behaviour).",
+    "build-system hatchling is unpinned in uv.lock, so the published artifact is not time-hermetic."
+  ]
+}
