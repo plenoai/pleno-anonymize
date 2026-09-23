@@ -7,7 +7,7 @@ requires-python = ">=3.12"
 # moved to [training] extra. fly.io shared-cpu-1x rootfs 8GB limit was
 # silent-failing image unpack — root cause of stuck production deploys (#47).
 dependencies = [
-    "spacy[ja]>=3.8",
+    "spacy[ja]>=3.8.15",
     "jinja2>=3.1",
     "tqdm>=4.70.0",
 ]
