@@ -1,6 +1,7 @@
 name: CI/CD
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   pull_request:
@@ -85,7 +86,7 @@ jobs:
 
   deploy:
     needs: [check, test, sdk]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     concurrency:
       group: deploy-pleno-anonymize
