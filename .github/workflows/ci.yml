@@ -19,8 +19,8 @@ jobs:
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
           # Lint-only job: it never installs the project, so restoring the
-          # (large) shared uv cache is pure overhead. Disabling it also keeps
-          # this job out of the cache save race described on the `test` job.
+          # (large) uv cache is pure overhead. Disabling it also keeps this job
+          # out of the cache save race described on the `test` job.
           enable-cache: false
       - run: uvx ruff check server/src/
       - run: uvx ruff format --check server/src/
@@ -32,14 +32,22 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
-      # setup-uv defaults `cache-dependency-glob` to `**/uv.lock`, so every job
-      # in this workflow computes the *same* cache key. Jobs run in parallel;
-      # when several try to save that key GitHub only lets one reserve it and
-      # the rest log "Failed to save: Unable to reserve cache ... another job
-      # may be creating this cache" (observed on the `sdk` job). This job owns
-      # the cache for that key and is the workflow's only writer; every other
-      # uv-sync job below sets `save-cache: false`, and `check` opts out of
-      # caching entirely. Keep it that way when adding jobs.
+        with:
+          # setup-uv defaults `cache-dependency-glob` to `**/uv.lock`, so every
+          # job in this workflow would otherwise compute the *same* cache key.
+          # Jobs run in parallel; when several try to save that key GitHub only
+          # lets one reserve it and the rest log "Failed to save: Unable to
+          # reserve cache ... another job may be creating this cache".
+          #
+          # `save-cache` is NOT a setup-uv input (it only exposes
+          # `enable-cache`/`cache-suffix`), so the earlier `save-cache: false`
+          # guard was silently ignored and the job still saved the shared key
+          # (the warning came back, most recently on `extras`). Give every
+          # caching job a distinct `cache-suffix` so the keys can never collide;
+          # the lint-only `check` job disables caching entirely. Keep this
+          # invariant when adding jobs (guarded by
+          # packages/sdk/tests/test_ci_workflow.py).
+          cache-suffix: test
       # `--extra image` installs presidio-image-redactor + pillow so the image
       # OCR redaction tests run for real in CI. These deps also ship in the
       # runtime image (see Dockerfile), so CI exercises the same code path
@@ -57,10 +65,9 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
-          # Restore the cache the `test` job owns, but never save it: two
-          # concurrent writers for the same key trigger the reservation warning
-          # (see the `test` job comment).
-          save-cache: false
+          # Distinct key: setup-uv's default cache key collides across jobs and
+          # the concurrent save races (see the `test` job comment).
+          cache-suffix: sdk
       - name: Sync workspace
         run: uv sync
       - name: Lint
@@ -79,8 +86,9 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
-          # Restore-only: the `test` job is the sole writer (see its comment).
-          save-cache: false
+          # Distinct key: the default key collides with the other jobs and the
+          # concurrent save warns (see the `test` job comment).
+          cache-suffix: extras
       - name: Sync workspace
         run: uv sync
       - name: Lint
@@ -99,8 +107,9 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
-          # Restore-only: the `test` job is the sole writer (see its comment).
-          save-cache: false
+          # Distinct key: the default key collides with the other jobs and the
+          # concurrent save warns (see the `test` job comment).
+          cache-suffix: training
       # datasets/transformers unlock the 3 hf-dependent test modules without
       # pulling the full `hf` extra (accelerate→torch is ~2GB and needless
       # for unit tests). The rest of the suite runs on the dev group alone.
