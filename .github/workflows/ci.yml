@@ -20,8 +20,13 @@ jobs:
         with:
           # Lint-only job: it never installs the project, so restoring the
           # (large) uv cache is pure overhead. Disabling it also keeps this job
-          # out of the cache save race described on the `test` job.
+          # out of the cache save race described on the `test` job. A distinct
+          # `cache-suffix` is still declared so every setup-uv step in this
+          # workflow owns a unique key (guarded by
+          # packages/training/tests/test_ci_uv_cache.py) and re-enabling caching
+          # here can never collide with a sibling job.
           enable-cache: false
+          cache-suffix: ci-check
       - run: uvx ruff check server/src/
       - run: uvx ruff format --check server/src/
 
