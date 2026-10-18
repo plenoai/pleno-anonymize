@@ -9,6 +9,16 @@ on:
 permissions:
   contents: read
 
+# Every job below installs via uv against the same workspace `uv.lock`, so
+# `astral-sh/setup-uv` derives an identical cache key for each of them (the key
+# embeds a hash of the lock files). The jobs run concurrently, so they race to
+# save that one key and GitHub emits
+#   "Failed to save: Unable to reserve cache with key setup-uv-... another job
+#    may be creating this cache"
+# on whichever job loses the race (observed on the `extras` job). A distinct
+# `cache-suffix` per job namespaces the key so exactly one writer exists per
+# key, while still restoring per-job caches across runs.
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -17,6 +27,8 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          cache-suffix: ${{ github.job }}
       - run: uvx ruff check server/src/
       - run: uvx ruff format --check server/src/
 
@@ -27,6 +39,8 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          cache-suffix: ${{ github.job }}
       # `--extra image` installs presidio-image-redactor + pillow so the image
       # OCR redaction tests run for real in CI. These deps also ship in the
       # runtime image (see Dockerfile), so CI exercises the same code path
@@ -43,6 +57,8 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          cache-suffix: ${{ github.job }}
       - name: Sync workspace
         run: uv sync
       - name: Lint
@@ -60,6 +76,8 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          cache-suffix: ${{ github.job }}
       - name: Sync workspace
         run: uv sync
       - name: Lint
@@ -77,6 +95,8 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          cache-suffix: ${{ github.job }}
       # datasets/transformers unlock the 3 hf-dependent test modules without
       # pulling the full `hf` extra (accelerate→torch is ~2GB and needless
       # for unit tests). The rest of the suite runs on the dev group alone.

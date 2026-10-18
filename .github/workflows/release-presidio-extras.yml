@@ -43,6 +43,11 @@ jobs:
           persist-credentials: false
 
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          # Namespace the cache key to this workflow: the release workflows all
+          # share the workspace lock files, so without a suffix a concurrent
+          # run would collide on the same key ("Unable to reserve cache ...").
+          cache-suffix: release-presidio-extras
 
       - name: Resolve dry-run flag
         id: resolve
