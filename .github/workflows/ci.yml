@@ -58,14 +58,14 @@ jobs:
           # Jobs run in parallel; when several try to save that key GitHub only
           # lets one reserve it and the rest log "Failed to save: Unable to
           # reserve cache ... another job may be creating this cache" (observed
-          # on the `extras` job). setup-uv has **no `save-cache` input** — its
-          # only cache switch is `enable-cache`, which disables restore *and*
-          # save. The earlier `save-cache: false` "fix" was therefore a no-op,
-          # which is why the warning kept reappearing on each newly added uv
-          # job. Every uv job below declares its own unique `cache-suffix` (and
-          # `check` opts out of caching entirely) so no key is ever shared. Keep
-          # it that way when adding jobs (guarded by
-          # packages/training/tests/test_ci_workflow_cache.py).
+          # on the `sdk`, `training` and `extras` jobs). setup-uv has **no
+          # `save-cache` input** — its only cache switch is `enable-cache`,
+          # which disables restore *and* save. The earlier `save-cache: false`
+          # "fix" was therefore a no-op, which is why the warning kept
+          # reappearing on each newly added uv job. Every uv job below declares
+          # its own unique `cache-suffix` (and `check` opts out of caching
+          # entirely) so no key is ever shared. Keep it that way when adding
+          # jobs (guarded by packages/training/tests/test_ci_workflow_cache.py).
           cache-suffix: test
       # `--extra image` installs presidio-image-redactor + pillow so the image
       # OCR redaction tests run for real in CI. These deps also ship in the
