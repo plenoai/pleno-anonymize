@@ -18,10 +18,12 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
-          # Lint-only job: it never installs the project, so restoring the
-          # (large) uv cache is pure overhead. Disabling it also keeps this job
-          # out of the cache save race described on the `test` job.
-          enable-cache: false
+          # Unique per-job cache suffix. All five jobs derive the same
+          # OS/arch/Python/uv.lock cache key, so their parallel cache saves
+          # race and the losers log "Unable to reserve cache ... another
+          # job may be creating this cache". Distinct keys remove the race
+          # while restore-keys still warm each job from the others' caches.
+          cache-suffix: check
       - run: uvx ruff check server/src/
       - run: uvx ruff format --check server/src/
 
@@ -43,10 +45,10 @@ jobs:
           # `enable-cache`/`cache-suffix`), so the earlier `save-cache: false`
           # guard was silently ignored and the job still saved the shared key
           # (the warning came back, most recently on `extras`). Give every
-          # caching job a distinct `cache-suffix` so the keys can never collide;
-          # the lint-only `check` job disables caching entirely. Keep this
-          # invariant when adding jobs (guarded by
-          # packages/sdk/tests/test_ci_workflow.py).
+          # job a distinct `cache-suffix` so the keys can never collide. Keep
+          # this invariant when adding jobs (guarded by
+          # packages/sdk/tests/test_ci_workflow.py and
+          # packages/training/tests/test_ci_workflows.py).
           cache-suffix: test
       # `--extra image` installs presidio-image-redactor + pillow so the image
       # OCR redaction tests run for real in CI. These deps also ship in the
