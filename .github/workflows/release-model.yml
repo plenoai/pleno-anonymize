@@ -48,6 +48,11 @@ jobs:
           persist-credentials: false
 
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
+        with:
+          # Restore-only: never save the shared `**/uv.lock` cache key, or a
+          # release dispatched against the same ref as CI would race the CI
+          # `test` job (the only writer) for the cache reservation.
+          save-cache: false
 
       - name: Resolve revision and model path
         id: resolve

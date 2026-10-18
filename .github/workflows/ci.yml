@@ -33,13 +33,17 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
       # setup-uv defaults `cache-dependency-glob` to `**/uv.lock`, so every job
-      # in this workflow computes the *same* cache key. Jobs run in parallel;
-      # when several try to save that key GitHub only lets one reserve it and
-      # the rest log "Failed to save: Unable to reserve cache ... another job
-      # may be creating this cache" (observed on the `sdk` job). This job owns
-      # the cache for that key and is the workflow's only writer; every other
-      # uv-sync job below sets `save-cache: false`, and `check` opts out of
-      # caching entirely. Keep it that way when adding jobs.
+      # computes the *same* cache key. Jobs (and whole workflows on the same
+      # ref) run in parallel; when two try to save one key GitHub lets only the
+      # first reserve it and the rest log "Failed to save: Unable to reserve
+      # cache ... another job may be creating this cache". This job is the
+      # single writer of the *shared* (suffix-less) key; every other uv-sync
+      # job below additionally carries a unique `cache-suffix` so its key can
+      # never equal this one, and sets `save-cache: false` so it never writes
+      # at all. `check` opts out of caching entirely. The release workflows
+      # (release-*.yml) are likewise `save-cache: false`, so a release
+      # dispatched against this same ref cannot race this job for the
+      # reservation. Keep every one of those properties when adding jobs.
       # `--extra image` installs presidio-image-redactor + pillow so the image
       # OCR redaction tests run for real in CI. These deps also ship in the
       # runtime image (see Dockerfile), so CI exercises the same code path
@@ -57,10 +61,11 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
-          # Restore the cache the `test` job owns, but never save it: two
-          # concurrent writers for the same key trigger the reservation warning
-          # (see the `test` job comment).
+          # Restore-only: the `test` job owns the shared key. The `cache-suffix`
+          # is a second guard so this job's key can never collide with `test`
+          # (or any other job) even if `save-cache` is ignored.
           save-cache: false
+          cache-suffix: sdk
       - name: Sync workspace
         run: uv sync
       - name: Lint
@@ -79,8 +84,9 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
-          # Restore-only: the `test` job is the sole writer (see its comment).
+          # Restore-only + unique key: `test` is the sole writer (see its comment).
           save-cache: false
+          cache-suffix: extras
       - name: Sync workspace
         run: uv sync
       - name: Lint
@@ -99,8 +105,9 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
-          # Restore-only: the `test` job is the sole writer (see its comment).
+          # Restore-only + unique key: `test` is the sole writer (see its comment).
           save-cache: false
+          cache-suffix: training
       # datasets/transformers unlock the 3 hf-dependent test modules without
       # pulling the full `hf` extra (accelerate→torch is ~2GB and needless
       # for unit tests). The rest of the suite runs on the dev group alone.

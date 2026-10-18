@@ -44,6 +44,13 @@ jobs:
           persist-credentials: false
 
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
+        with:
+          # Restore the CI-owned uv cache read-only. This workflow can be
+          # dispatched against the same ref as CI (e.g. `main`); if it saved the
+          # shared `**/uv.lock` key it would race the CI `test` job and log
+          # "Unable to reserve cache ... another job may be creating this
+          # cache". `test` is the only writer (see .github/workflows/ci.yml).
+          save-cache: false
 
       - name: Resolve dry-run flag
         id: resolve
