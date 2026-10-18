@@ -9,6 +9,16 @@ on:
 permissions:
   contents: read
 
+# Every job below installs via uv against the same workspace `uv.lock`, so
+# `astral-sh/setup-uv` derives an identical cache key for each of them (the key
+# embeds a hash of the lock files). The jobs run concurrently, so they race to
+# save that one key and GitHub emits
+#   "Failed to save: Unable to reserve cache with key setup-uv-... another job
+#    may be creating this cache"
+# on whichever job loses the race (observed on the `extras` job). A distinct
+# `cache-suffix` per job namespaces the key so exactly one writer exists per
+# key, while still restoring per-job caches across runs.
+
 jobs:
   check:
     runs-on: [self-hosted, linux, arm64, hikae-flash]
@@ -16,6 +26,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
+      # cache-suffix keeps this job's uv cache key distinct from the other
+      # parallel jobs. All five jobs share the same runner image and root
+      # uv.lock, so without a suffix they collide on the identical cache key
+      # and race to save it — the loser logs
+      # "Unable to reserve cache ... another job may be creating this cache".
+      # Per-job suffixes give each job its own key, so saves never contend.
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
           # Unique per-job cache suffix. All five jobs derive the same
@@ -23,6 +39,15 @@ jobs:
           # race and the losers log "Unable to reserve cache ... another
           # job may be creating this cache". Distinct keys remove the race
           # while restore-keys still warm each job from the others' caches.
+          #
+          # Lint-only job: it never installs the project, so restoring the
+          # (large) uv cache is pure overhead. Disabling it also keeps this job
+          # out of the cache save race described on the `test` job. Keep a
+          # distinct `cache-suffix` even while caching is off so the invariant
+          # guarded by packages/sdk/tests/test_ci_workflow.py and
+          # packages/training/tests/test_ci_workflow_cache.py holds (no key is
+          # ever shared between jobs).
+          enable-cache: false
           cache-suffix: check
       - run: uvx ruff check server/src/
       - run: uvx ruff format --check server/src/
@@ -39,7 +64,8 @@ jobs:
           # job in this workflow would otherwise compute the *same* cache key.
           # Jobs run in parallel; when several try to save that key GitHub only
           # lets one reserve it and the rest log "Failed to save: Unable to
-          # reserve cache ... another job may be creating this cache".
+          # reserve cache ... another job may be creating this cache" (observed
+          # on the `extras` job).
           #
           # `save-cache` is NOT a setup-uv input (it only exposes
           # `enable-cache`/`cache-suffix`), so the earlier `save-cache: false`
@@ -47,8 +73,9 @@ jobs:
           # (the warning came back, most recently on `extras`). Give every
           # job a distinct `cache-suffix` so the keys can never collide. Keep
           # this invariant when adding jobs (guarded by
-          # packages/sdk/tests/test_ci_workflow.py and
-          # packages/training/tests/test_ci_workflows.py).
+          # packages/sdk/tests/test_ci_workflow.py,
+          # packages/training/tests/test_ci_workflows.py and
+          # packages/training/tests/test_ci_workflow_cache.py).
           cache-suffix: test
       # `--extra image` installs presidio-image-redactor + pillow so the image
       # OCR redaction tests run for real in CI. These deps also ship in the
@@ -67,8 +94,9 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
-          # Distinct key: setup-uv's default cache key collides across jobs and
-          # the concurrent save races (see the `test` job comment).
+          # Own key: setup-uv has no restore-only mode, so give this job its own
+          # `cache-suffix` so no two jobs share the default `**/uv.lock` key
+          # (see the `test` job comment).
           cache-suffix: sdk
       - name: Sync workspace
         run: uv sync
@@ -88,8 +116,9 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
-          # Distinct key: the default key collides with the other jobs and the
-          # concurrent save warns (see the `test` job comment).
+          # Own key: setup-uv has no restore-only mode, so give this job its own
+          # `cache-suffix` so no two jobs share the default `**/uv.lock` key
+          # (see the `test` job comment).
           cache-suffix: extras
       - name: Sync workspace
         run: uv sync
@@ -109,8 +138,9 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
-          # Distinct key: the default key collides with the other jobs and the
-          # concurrent save warns (see the `test` job comment).
+          # Own key: setup-uv has no restore-only mode, so give this job its own
+          # `cache-suffix` so no two jobs share the default `**/uv.lock` key
+          # (see the `test` job comment).
           cache-suffix: training
       # datasets/transformers unlock the 3 hf-dependent test modules without
       # pulling the full `hf` extra (accelerate→torch is ~2GB and needless
