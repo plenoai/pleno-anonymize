@@ -26,6 +26,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
+      # cache-suffix keeps this job's uv cache key distinct from the other
+      # parallel jobs. All five jobs share the same runner image and root
+      # uv.lock, so without a suffix they collide on the identical cache key
+      # and race to save it — the loser logs
+      # "Unable to reserve cache ... another job may be creating this cache".
+      # Per-job suffixes give each job its own key, so saves never contend.
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
           # Lint-only job: it never installs the project, so restoring the
