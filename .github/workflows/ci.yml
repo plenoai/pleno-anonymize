@@ -34,19 +34,23 @@ jobs:
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
           # setup-uv defaults `cache-dependency-glob` to `**/uv.lock`, so every
-          # job in this workflow would otherwise compute the *same* cache key.
-          # Jobs run in parallel; when several try to save that key GitHub only
-          # lets one reserve it and the rest log "Failed to save: Unable to
-          # reserve cache ... another job may be creating this cache".
+          # step that does not override the key derives the *same* uv cache
+          # key. The key is scoped to the repository ref, so the reservation
+          # warning can be produced by two jobs in this workflow, by two
+          # concurrent runs of it, or by a different workflow (e.g. a release)
+          # dispatched against the same ref. GitHub only lets one writer
+          # reserve a key and the losers log "Failed to save: Unable to reserve
+          # cache ... another job may be creating this cache".
           #
-          # `save-cache` is NOT a setup-uv input (it only exposes
-          # `enable-cache`/`cache-suffix`), so the earlier `save-cache: false`
+          # `save-cache` is NOT a setup-uv input (the action only exposes
+          # `enable-cache`/`cache-suffix`), so an earlier `save-cache: false`
           # guard was silently ignored and the job still saved the shared key
           # (the warning came back, most recently on `extras`). Give every
-          # caching job a distinct `cache-suffix` so the keys can never collide;
-          # the lint-only `check` job disables caching entirely. Keep this
-          # invariant when adding jobs (guarded by
-          # packages/sdk/tests/test_ci_workflow.py).
+          # caching job a distinct `cache-suffix` so the keys can never collide
+          # — here and in every other workflow that can be dispatched against
+          # the same ref (see .github/workflows/release-*.yml); the lint-only
+          # `check` job disables caching entirely. Keep this invariant when
+          # adding jobs (guarded by packages/sdk/tests/test_ci_workflow.py).
           cache-suffix: test
       # `--extra image` installs presidio-image-redactor + pillow so the image
       # OCR redaction tests run for real in CI. These deps also ship in the

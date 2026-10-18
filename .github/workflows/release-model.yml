@@ -48,6 +48,16 @@ jobs:
           persist-credentials: false
 
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
+        with:
+          # Distinct key: setup-uv's default `**/uv.lock` key is shared per
+          # repository ref, so a release dispatched against the same ref as CI
+          # (or as another workflow) could race to save it and log "Unable to
+          # reserve cache ... another job may be creating this cache". Every
+          # setup-uv step therefore carries a unique `cache-suffix` so no two
+          # can compute the same key (see .github/workflows/ci.yml, guarded by
+          # packages/sdk/tests/test_ci_workflow.py). `save-cache` is not a
+          # setup-uv input, so it cannot be used to opt out of saving.
+          cache-suffix: release-model
 
       - name: Resolve revision and model path
         id: resolve
