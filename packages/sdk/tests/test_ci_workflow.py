@@ -9,14 +9,14 @@ lets the first reserve it and the rest log::
     job may be creating this cache.
 
 That warning was observed first on the ``sdk`` job and then again on the
-``training`` job. The earlier fix set ``save-cache: false`` on the extra jobs,
-but ``astral-sh/setup-uv`` has **no ``save-cache`` input** — it was silently
-ignored, so every job kept saving the shared key. The workflow now avoids the
-race for real: the ``test`` job owns the suffix-less key, every other uv job
-gets a unique ``cache-suffix`` (a distinct key cannot collide), and the
-lint-only ``check`` job disables caching entirely with ``enable-cache: false``.
-These tests fail if a future change reintroduces a second writer or reaches
-for the non-existent ``save-cache`` switch again.
+``training`` and ``extras`` jobs. The earlier fix set ``save-cache: false`` on
+the extra jobs, but ``astral-sh/setup-uv`` has **no ``save-cache`` input** — it
+was silently ignored, so every job kept saving the shared key. The workflow now
+avoids the race for real: every uv job owns a distinct ``cache-suffix`` so no
+two jobs ever compute the same key, while setup-uv's restore-keys still warm
+each job from the others' caches. These tests fail if a future change drops a
+suffix (leaving a shared, racing key) or reaches for the non-existent
+``save-cache`` switch again.
 """
 
 from __future__ import annotations
@@ -51,34 +51,41 @@ def test_no_job_uses_nonexistent_save_cache_input() -> None:
             offenders.append(job_name)
     assert not offenders, (
         "`save-cache` is not an astral-sh/setup-uv input; it is silently "
-        "ignored and does not stop a job from saving the cache. Use "
-        f"`enable-cache: false` or a unique `cache-suffix` instead: {offenders}"
+        "ignored and does not stop a job from saving the cache. Give every "
+        f"step a unique `cache-suffix` instead: {offenders}"
     )
 
 
-def test_exactly_one_setup_uv_cache_writer() -> None:
+def test_no_shared_setup_uv_cache_writer() -> None:
+    # A setup-uv step without `enable-cache: false` and without a
+    # `cache-suffix` saves the default `**/uv.lock` key. Any such step shares
+    # that key with sibling jobs, so a future change that forgets a suffix
+    # reintroduces the save race. There should be none.
     writers = []
     for job_name, with_ in _setup_uv_steps():
         if with_.get("enable-cache") is False:
             continue
-        # A per-job suffix yields a distinct key, so it cannot collide.
         if with_.get("cache-suffix"):
             continue
         writers.append(job_name)
 
-    assert writers == ["test"], (
-        "expected the `test` job to be the only writer of the shared "
-        "setup-uv cache key (default cache-dependency-glob `**/uv.lock`), got "
-        f"{writers}. Give every other uv job a unique `cache-suffix`, or set "
-        "`enable-cache: false` if it does not need the cache."
+    assert not writers, (
+        "every setup-uv step must own a unique `cache-suffix` so no two jobs "
+        "save the same `**/uv.lock` cache key; these still write the shared "
+        f"key: {writers}"
     )
 
 
-def test_restore_jobs_have_unique_cache_suffixes() -> None:
+def test_every_setup_uv_step_has_a_unique_cache_suffix() -> None:
     suffixes = []
-    for _, with_ in _setup_uv_steps():
-        if with_.get("cache-suffix"):
-            suffixes.append(with_["cache-suffix"])
+    for job_name, with_ in _setup_uv_steps():
+        suffix = with_.get("cache-suffix")
+        assert suffix, (
+            f"{job_name}: setup-uv step lacks a cache-suffix and would share "
+            "the default `**/uv.lock` cache key with its siblings"
+        )
+        suffixes.append(suffix)
+
     assert len(suffixes) == len(set(suffixes)), (
         "cache-suffix values must be unique per job, otherwise two jobs "
         f"collide on the same key again: {suffixes}"
