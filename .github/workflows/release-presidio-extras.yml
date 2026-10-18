@@ -29,7 +29,7 @@ permissions:
 
 jobs:
   build-and-publish:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, arm64, hikae-flash]
     permissions:
       # Required for PyPI trusted publishing (OIDC).
       id-token: write

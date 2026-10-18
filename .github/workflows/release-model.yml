@@ -35,7 +35,7 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, arm64, hikae-flash]
     concurrency:
       # Serialize per-revision so a re-run cannot race itself onto the same
       # HF branch. Tag-triggered runs have github.ref_name like
