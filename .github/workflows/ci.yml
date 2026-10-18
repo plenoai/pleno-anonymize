@@ -9,6 +9,16 @@ on:
 permissions:
   contents: read
 
+# Every job below installs via uv against the same workspace `uv.lock`, so
+# `astral-sh/setup-uv` derives an identical cache key for each of them (the key
+# embeds a hash of the lock files). The jobs run concurrently, so they race to
+# save that one key and GitHub emits
+#   "Failed to save: Unable to reserve cache with key setup-uv-... another job
+#    may be creating this cache"
+# on whichever job loses the race (observed on the `extras` job). A distinct
+# `cache-suffix` per job namespaces the key so exactly one writer exists per
+# key, while still restoring per-job caches across runs.
+
 jobs:
   check:
     runs-on: [self-hosted, linux, arm64, hikae-flash]
