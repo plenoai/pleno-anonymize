@@ -142,7 +142,7 @@ jobs:
   deploy:
     needs: [check, test, sdk]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    runs-on: [self-hosted, linux, arm64, hikae-economy]
+    runs-on: [self-hosted, linux, arm64, hikae-flash]
     concurrency:
       group: deploy-pleno-anonymize
       cancel-in-progress: true
