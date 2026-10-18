@@ -65,14 +65,16 @@ jobs:
           # Jobs run in parallel; when several try to save that key GitHub only
           # lets one reserve it and the rest log "Failed to save: Unable to
           # reserve cache ... another job may be creating this cache" (observed
-          # on the `extras` job).
+          # on the `sdk`, `training` and `extras` jobs).
           #
-          # `save-cache` is NOT a setup-uv input (it only exposes
-          # `enable-cache`/`cache-suffix`), so the earlier `save-cache: false`
-          # guard was silently ignored and the job still saved the shared key
-          # (the warning came back, most recently on `extras`). Give every
-          # job a distinct `cache-suffix` so the keys can never collide. Keep
-          # this invariant when adding jobs (guarded by
+          # `save-cache` is NOT a setup-uv input (its only cache switch is
+          # `enable-cache`, which disables restore *and* save), so the earlier
+          # `save-cache: false` guard was silently ignored and the job still
+          # saved the shared key — which is why the warning kept reappearing on
+          # each newly added uv job (most recently on `extras`). Give every job
+          # a distinct `cache-suffix` so the keys can never collide, and let the
+          # lint-only `check` job opt out of caching entirely. Keep this
+          # invariant when adding jobs (guarded by
           # packages/sdk/tests/test_ci_workflow.py,
           # packages/training/tests/test_ci_workflows.py and
           # packages/training/tests/test_ci_workflow_cache.py).
