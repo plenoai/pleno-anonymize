@@ -12,18 +12,17 @@ jobs inside one workflow, by two concurrent runs of one workflow, or by a
 different workflow dispatched against the same ref (e.g. a release workflow
 manually run on ``main`` while CI runs).
 
-That warning was observed first on the ``sdk`` job and then again on the
-``training`` and ``extras`` jobs. The earlier fix set ``save-cache: false`` on
-the extra jobs, but ``astral-sh/setup-uv`` has **no ``save-cache`` input** — it
-was silently ignored, so every job kept saving the shared key. The workflow now
-avoids the race for real: every uv job declares its own unique ``cache-suffix``
-(a distinct key cannot collide), and the lint-only ``check`` job disables
-caching entirely with ``enable-cache: false`` (while still declaring a suffix so
-no step is left on the shared default key).
+``save-cache`` is not an input of ``astral-sh/setup-uv`` (the action only
+exposes ``enable-cache``/``cache-suffix``), so an earlier attempt that set
+``save-cache: false`` was silently ignored and the shared key was still saved.
 
-These tests fail if a future change leaves any step on the shared key, reuses a
-suffix (within one workflow or across the whole repo), or reaches for the
-non-existent ``save-cache`` switch again.
+The repository therefore gives every caching step — across every workflow, not
+just ``ci.yml`` — a unique ``cache-suffix`` so no two steps can ever compute the
+same key. The lint-only ``check`` job additionally disables caching entirely
+with ``enable-cache: false`` (while still declaring a suffix so no step is left
+on the shared default key). These tests fail if a future change reintroduces a
+collision (a suffix-less saver or duplicate suffixes) or the unsupported
+``save-cache`` input, anywhere under ``.github/workflows``.
 """
 
 from __future__ import annotations
@@ -36,9 +35,12 @@ import yaml
 WORKFLOW_DIR = Path(__file__).resolve().parents[3] / ".github" / "workflows"
 CI_YML = WORKFLOW_DIR / "ci.yml"
 SETUP_UV_PREFIX = "astral-sh/setup-uv"
+# `save-cache` is not part of setup-uv's action.yml, so it is silently ignored.
+UNSUPPORTED_INPUTS = {"save-cache"}
 
 
 def _iter_setup_uv(path: Path) -> Iterator[tuple[str, dict]]:
+    """Yield ``(job_name, with)`` for every setup-uv step in ``path``."""
     workflow = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     for job_name, job in (workflow.get("jobs") or {}).items():
         for step in job.get("steps") or []:
@@ -77,16 +79,51 @@ def test_ci_yml_exists() -> None:
     assert CI_YML.is_file(), f"missing workflow: {CI_YML}"
 
 
-def test_no_job_uses_nonexistent_save_cache_input() -> None:
+def test_no_unsupported_save_cache_input() -> None:
+    """`save-cache` is not a setup-uv input, so it silently does nothing."""
     offenders = [
         f"{workflow}:{job}"
         for workflow, job, with_ in _all_setup_uv_steps()
-        if "save-cache" in with_
+        if UNSUPPORTED_INPUTS & with_.keys()
     ]
     assert not offenders, (
-        "`save-cache` is not an astral-sh/setup-uv input; it is silently "
-        "ignored and does not stop a job from saving the cache. Give every "
-        f"step a unique `cache-suffix` instead (offenders: {offenders})"
+        "astral-sh/setup-uv has no `save-cache` input, so it is ignored and the "
+        f"step still saves the shared key: {offenders}. Use `enable-cache: false` "
+        "or a distinct `cache-suffix` instead."
+    )
+
+
+def test_every_caching_job_has_a_unique_cache_suffix() -> None:
+    """Every step that enables caching must own a distinct cache key."""
+    by_suffix: dict[str, str] = {}
+    for workflow, job, with_ in _all_setup_uv_steps():
+        if with_.get("enable-cache") is False:
+            continue
+        suffix = with_.get("cache-suffix")
+        assert suffix, (
+            f"{workflow}:{job} caches under the default shared key, which races "
+            "with every other caching step; set a distinct `cache-suffix`"
+        )
+        assert suffix not in by_suffix, (
+            f"{by_suffix[suffix]} and {workflow}:{job} share cache-suffix "
+            f"{suffix!r}; their keys collide and the save race returns"
+        )
+        by_suffix[suffix] = f"{workflow}:{job}"
+
+
+def test_every_setup_uv_step_has_a_unique_cache_suffix() -> None:
+    suffixes: list[str] = []
+    for workflow, job, with_ in _all_setup_uv_steps():
+        suffix = with_.get("cache-suffix")
+        assert suffix, (
+            f"{workflow}:{job}: setup-uv step lacks a cache-suffix and would "
+            "share the default `**/uv.lock` cache key with its siblings"
+        )
+        suffixes.append(suffix)
+
+    assert len(suffixes) == len(set(suffixes)), (
+        "cache-suffix values must be unique per step, otherwise two jobs "
+        f"collide on the same key again: {suffixes}"
     )
 
 
@@ -100,29 +137,9 @@ def test_exactly_one_setup_uv_cache_writer() -> None:
     assert len(writers) <= 1, (
         "multiple jobs would race to save the same setup-uv cache key "
         "(default cache-dependency-glob is `**/uv.lock`): "
-        f"{writers}. Give every job a unique `cache-suffix`, or "
-        "`enable-cache: false` if it does not need the cache."
+        f"{writers}. Give every other step `enable-cache: false` or a unique "
+        "`cache-suffix`."
     )
-
-
-def test_sdk_job_is_not_a_second_cache_writer() -> None:
-    by_job = dict(_ci_setup_uv_steps())
-    assert "sdk" in by_job, "expected an astral-sh/setup-uv step in the sdk job"
-    with_ = by_job["sdk"]
-    assert (
-        with_.get("enable-cache") is False or with_.get("cache-suffix")
-    ), "sdk job must not save the shared uv cache (see ci.yml comment)"
-
-
-def test_training_job_is_not_a_second_cache_writer() -> None:
-    by_job = dict(_ci_setup_uv_steps())
-    assert "training" in by_job, (
-        "expected an astral-sh/setup-uv step in the training job"
-    )
-    with_ = by_job["training"]
-    assert (
-        with_.get("enable-cache") is False or with_.get("cache-suffix")
-    ), "training job must not save the shared uv cache (see ci.yml comment)"
 
 
 def test_no_job_writes_the_shared_setup_uv_cache_key() -> None:
@@ -148,20 +165,35 @@ def test_no_job_writes_the_shared_setup_uv_cache_key() -> None:
     )
 
 
-def test_every_setup_uv_step_has_a_unique_cache_suffix() -> None:
-    suffixes: list[str] = []
-    for workflow, job, with_ in _all_setup_uv_steps():
-        suffix = with_.get("cache-suffix")
-        assert suffix, (
-            f"{workflow}:{job}: setup-uv step lacks a cache-suffix and would "
-            "share the default `**/uv.lock` cache key with its siblings"
-        )
-        suffixes.append(suffix)
+def test_sdk_job_is_not_a_second_cache_writer() -> None:
+    by_job = dict(_ci_setup_uv_steps())
+    assert "sdk" in by_job, "expected an astral-sh/setup-uv step in the sdk job"
+    with_ = by_job["sdk"]
+    assert (
+        with_.get("enable-cache") is False
+        or with_.get("save-cache", True) is False
+        or with_.get("cache-suffix")
+    ), "sdk job must not save the shared uv cache (see ci.yml comment)"
 
-    assert len(suffixes) == len(set(suffixes)), (
-        "cache-suffix values must be unique per step, otherwise two jobs "
-        f"collide on the same key again: {suffixes}"
+
+def test_extras_job_is_not_a_shared_key_writer() -> None:
+    by_job = dict(_ci_setup_uv_steps())
+    assert "extras" in by_job, "expected an astral-sh/setup-uv step in the extras job"
+    with_ = by_job["extras"]
+    assert with_.get("enable-cache") is False or with_.get("cache-suffix"), (
+        "extras job must not save the shared uv cache (see ci.yml comment)"
     )
+
+
+def test_training_job_is_not_a_second_cache_writer() -> None:
+    by_job = dict(_ci_setup_uv_steps())
+    assert "training" in by_job, (
+        "expected an astral-sh/setup-uv step in the training job"
+    )
+    with_ = by_job["training"]
+    assert (
+        with_.get("enable-cache") is False or with_.get("cache-suffix")
+    ), "training job must not save the shared uv cache (see ci.yml comment)"
 
 
 def test_no_two_saving_steps_share_a_cache_key() -> None:
