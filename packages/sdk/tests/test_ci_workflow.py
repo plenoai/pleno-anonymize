@@ -12,11 +12,12 @@ That warning was observed first on the ``sdk`` job and then again on the
 ``training`` and ``extras`` jobs. The earlier fix set ``save-cache: false`` on
 the extra jobs, but ``astral-sh/setup-uv`` has **no ``save-cache`` input** — it
 was silently ignored, so every job kept saving the shared key. The workflow now
-avoids the race for real: every uv job owns a distinct ``cache-suffix`` so no
-two jobs ever compute the same key, while setup-uv's restore-keys still warm
-each job from the others' caches. These tests fail if a future change drops a
-suffix (leaving a shared, racing key) or reaches for the non-existent
-``save-cache`` switch again.
+avoids the race for real: every uv job declares its own unique ``cache-suffix``
+(a distinct key cannot collide), and the lint-only ``check`` job disables
+caching entirely with ``enable-cache: false`` (while still declaring a suffix so
+no step is left on the shared default key). These tests fail if a future change
+leaves a job on the shared key or reaches for the non-existent ``save-cache``
+switch again.
 """
 
 from __future__ import annotations
@@ -56,7 +57,7 @@ def test_no_job_uses_nonexistent_save_cache_input() -> None:
     )
 
 
-def test_no_shared_setup_uv_cache_writer() -> None:
+def test_no_job_writes_the_shared_setup_uv_cache_key() -> None:
     # A setup-uv step without `enable-cache: false` and without a
     # `cache-suffix` saves the default `**/uv.lock` key. Any such step shares
     # that key with sibling jobs, so a future change that forgets a suffix
@@ -70,9 +71,11 @@ def test_no_shared_setup_uv_cache_writer() -> None:
         writers.append(job_name)
 
     assert not writers, (
-        "every setup-uv step must own a unique `cache-suffix` so no two jobs "
-        "save the same `**/uv.lock` cache key; these still write the shared "
-        f"key: {writers}"
+        "no job may write the shared setup-uv cache key (default "
+        "cache-dependency-glob `**/uv.lock`), otherwise concurrent jobs race to "
+        f"reserve it and log 'Unable to reserve cache'. Give every uv job a "
+        "unique `cache-suffix`, or set `enable-cache: false` if it does not "
+        f"need the cache. Jobs still on the shared key: {writers}"
     )
 
 
