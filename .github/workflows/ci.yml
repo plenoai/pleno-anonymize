@@ -17,6 +17,13 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          # Unique per-job cache suffix. All five jobs derive the same
+          # OS/arch/Python/uv.lock cache key, so their parallel cache saves
+          # race and the losers log "Unable to reserve cache ... another
+          # job may be creating this cache". Distinct keys remove the race
+          # while restore-keys still warm each job from the others' caches.
+          cache-suffix: check
       - run: uvx ruff check server/src/
       - run: uvx ruff format --check server/src/
 
@@ -27,6 +34,8 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          cache-suffix: test
       # `--extra image` installs presidio-image-redactor + pillow so the image
       # OCR redaction tests run for real in CI. These deps also ship in the
       # runtime image (see Dockerfile), so CI exercises the same code path
@@ -43,6 +52,8 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          cache-suffix: sdk
       - name: Sync workspace
         run: uv sync
       - name: Lint
@@ -60,6 +71,8 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          cache-suffix: extras
       - name: Sync workspace
         run: uv sync
       - name: Lint
@@ -77,6 +90,8 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          cache-suffix: training
       # datasets/transformers unlock the 3 hf-dependent test modules without
       # pulling the full `hf` extra (accelerate→torch is ~2GB and needless
       # for unit tests). The rest of the suite runs on the dev group alone.
