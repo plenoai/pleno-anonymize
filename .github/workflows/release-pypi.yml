@@ -45,12 +45,10 @@ jobs:
 
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
-          # Restore the CI-owned uv cache read-only. This workflow can be
-          # dispatched against the same ref as CI (e.g. `main`); if it saved the
-          # shared `**/uv.lock` key it would race the CI `test` job and log
-          # "Unable to reserve cache ... another job may be creating this
-          # cache". `test` is the only writer (see .github/workflows/ci.yml).
-          save-cache: false
+          # Namespace the cache key to this workflow: the release workflows all
+          # share the workspace lock files, so without a suffix a concurrent
+          # run would collide on the same key ("Unable to reserve cache ...").
+          cache-suffix: release-pypi
 
       - name: Resolve dry-run flag
         id: resolve
