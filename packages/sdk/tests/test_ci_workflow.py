@@ -191,9 +191,9 @@ def test_training_job_is_not_a_second_cache_writer() -> None:
         "expected an astral-sh/setup-uv step in the training job"
     )
     with_ = by_job["training"]
-    assert (
-        with_.get("enable-cache") is False or with_.get("cache-suffix")
-    ), "training job must not save the shared uv cache (see ci.yml comment)"
+    assert with_.get("enable-cache") is False or with_.get("cache-suffix"), (
+        "training job must not save the shared uv cache (see ci.yml comment)"
+    )
 
 
 def test_no_two_saving_steps_share_a_cache_key() -> None:

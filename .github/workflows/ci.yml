@@ -18,10 +18,15 @@ permissions:
 # on whichever job loses the race (observed on the `extras` job). A distinct
 # `cache-suffix` per job namespaces the key so exactly one writer exists per
 # key, while still restoring per-job caches across runs.
+#
+# Runners: this repository is public, so every job runs on a GitHub-hosted
+# runner. Persistent self-managed runners in a public repo let any pull request
+# execute arbitrary code on infrastructure that survives between runs (reported
+# by sisakulint's runner rule). Keep the labels GitHub-hosted when adding jobs.
 
 jobs:
   check:
-    runs-on: [self-hosted, linux, arm64, hikae-flash]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -53,7 +58,7 @@ jobs:
       - run: uvx ruff format --check server/src/
 
   test:
-    runs-on: [self-hosted, linux, arm64, hikae-flash]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -89,7 +94,7 @@ jobs:
         working-directory: server
 
   sdk:
-    runs-on: [self-hosted, linux, arm64, hikae-flash]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -111,7 +116,7 @@ jobs:
         run: uv run pytest -q
 
   extras:
-    runs-on: [self-hosted, linux, arm64, hikae-flash]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -133,7 +138,7 @@ jobs:
         run: uv run pytest -q
 
   training:
-    runs-on: [self-hosted, linux, arm64, hikae-flash]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -154,7 +159,7 @@ jobs:
   deploy:
     needs: [check, test, sdk]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    runs-on: [self-hosted, linux, arm64, hikae-flash]
+    runs-on: ubuntu-latest
     concurrency:
       group: deploy-pleno-anonymize
       cancel-in-progress: true
