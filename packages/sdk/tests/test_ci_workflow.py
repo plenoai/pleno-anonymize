@@ -65,9 +65,14 @@ def _writes_cache(with_: dict) -> bool:
     """True if this setup-uv step may attempt to save a cache entry.
 
     ``enable-cache: false`` is setup-uv's only cache switch (there is no
-    ``save-cache`` input); it disables both restore and save.
+    ``save-cache`` input); it disables both restore and save. Treat a
+    (silently ignored) ``save-cache: false`` as non-writing too so the guard
+    stays conservative if the action ever grows the input.
     """
-    return with_.get("enable-cache") is not False
+    return (
+        with_.get("enable-cache") is not False
+        and with_.get("save-cache", True) is not False
+    )
 
 
 def _key(with_: dict) -> str:

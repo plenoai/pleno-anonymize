@@ -87,7 +87,9 @@ def test_every_setup_uv_step_has_cache_suffix() -> None:
         for job, suffixes in steps.items():
             for index, suffix in enumerate(suffixes):
                 if not suffix:
-                    missing.append(f"{workflow.name}: job {job!r} setup-uv step #{index + 1}")
+                    missing.append(
+                        f"{workflow.name}: job {job!r} setup-uv step #{index + 1}"
+                    )
     assert not missing, (
         "setup-uv steps are missing a cache-suffix — concurrent jobs collide on "
         "the same cache key and emit 'Unable to reserve cache' warnings:\n"
@@ -108,7 +110,9 @@ def test_cache_suffixes_unique_per_workflow() -> None:
                 owners.setdefault(resolved, []).append(job)
         for resolved, jobs in owners.items():
             if len(jobs) > 1:
-                collisions.append(f"{workflow.name}: suffix {resolved!r} used by jobs {jobs}")
+                collisions.append(
+                    f"{workflow.name}: suffix {resolved!r} used by jobs {jobs}"
+                )
     assert not collisions, (
         "cache-suffix values must be unique within a workflow so concurrent jobs "
         "never share a cache key:\n" + "\n".join(collisions)
@@ -117,8 +121,12 @@ def test_cache_suffixes_unique_per_workflow() -> None:
 
 def test_ci_setup_uv_jobs_are_covered() -> None:
     """Pin the exact jobs that regressed (`extras` emitted the warning)."""
-    steps = _parse_setup_uv_steps((WORKFLOWS_DIR / "ci.yml").read_text(encoding="utf-8"))
+    steps = _parse_setup_uv_steps(
+        (WORKFLOWS_DIR / "ci.yml").read_text(encoding="utf-8")
+    )
     expected = {"check", "test", "sdk", "extras", "training"}
-    assert expected <= steps.keys(), f"ci.yml is missing jobs: {expected - steps.keys()}"
+    assert expected <= steps.keys(), (
+        f"ci.yml is missing jobs: {expected - steps.keys()}"
+    )
     for job in sorted(expected):
         assert steps[job], f"ci.yml job {job!r} uses setup-uv without a cache-suffix"

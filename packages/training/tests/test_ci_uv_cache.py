@@ -44,8 +44,7 @@ def _setup_uv_cache_suffixes() -> list[str | None]:
     for match in _SETUP_UV_STEP_RE.finditer(text):
         found = _CACHE_SUFFIX_RE.findall(match.group("body"))
         assert len(found) <= 1, (
-            "a single setup-uv step declared cache-suffix more than once: "
-            f"{found!r}"
+            f"a single setup-uv step declared cache-suffix more than once: {found!r}"
         )
         suffixes.append(found[0] if found else None)
     return suffixes
