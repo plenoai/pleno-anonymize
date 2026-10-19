@@ -44,7 +44,7 @@ Issues = "https://github.com/plenoai/pleno-anonymize/issues"
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
-    "pytest-mock>=3.12",
+    "pytest-mock>=3.16.0",
 ]
 
 [tool.pytest.ini_options]
