@@ -2816,7 +2816,7 @@ requires-dist = [
     { name = "presidio-analyzer", specifier = ">=2.2.364" },
     { name = "presidio-anonymizer", specifier = ">=2.2.363" },
     { name = "presidio-image-redactor", marker = "extra == 'image'", specifier = ">=0.0.60" },
-    { name = "scalar-fastapi", specifier = ">=1.6.0" },
+    { name = "scalar-fastapi", specifier = ">=1.9.1" },
     { name = "spacy", extras = ["ja"], specifier = ">=3.8.16" },
     { name = "transformers", marker = "extra == 'appi'", specifier = ">=4.50" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.52.4" },
@@ -3774,7 +3774,7 @@ wheels = [
 
 [[package]]
 name = "scalar-fastapi"
-version = "1.8.2"
+version = "1.9.1"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/cc/81/c0c70776a3d7d371ee06d38d26a8d361c97439d46f79acb6d67cf6c760ad/scalar_fastapi-1.8.2.tar.gz", hash = "sha256:0de09b8c63f78c1052792faa200d740b2ccaeeb88ac54e7ea633ac4edc6fde82", size = 8371, upload-time = "2026-04-09T22:41:24.267Z" }
 wheels = [
