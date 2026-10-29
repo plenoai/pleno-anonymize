@@ -1,3 +1,8 @@
+[tool.uv]
+# Keep dependency selection reproducible without accepting distributions
+# uploaded in the last day. This used to live only in uv.lock metadata.
+exclude-newer = "1 days"
+
 [tool.uv.workspace]
 # `packages/recognizers` was merged into `packages/sdk` as
 # `pleno_anonymize.recognizers` (PR #138) and is intentionally not a member.

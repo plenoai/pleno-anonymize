@@ -54,6 +54,8 @@ jobs:
           # ever shared between jobs).
           enable-cache: false
           cache-suffix: check
+      - name: Check committed uv lock
+        run: uv lock --check
       - run: uvx ruff check server/src/
       - run: uvx ruff format --check server/src/
 
@@ -89,7 +91,7 @@ jobs:
       # OCR redaction tests run for real in CI. These deps also ship in the
       # runtime image (see Dockerfile), so CI exercises the same code path
       # production runs.
-      - run: uv sync --extra image
+      - run: uv sync --locked --extra image
         working-directory: server
       - run: uv run pytest tests/ -v
         working-directory: server
@@ -107,7 +109,7 @@ jobs:
           # workflow) for the shared `**/uv.lock` key (see the `test` job comment).
           cache-suffix: sdk
       - name: Sync workspace
-        run: uv sync
+        run: uv sync --locked
       - name: Lint
         run: |
           uvx ruff check packages/sdk/src packages/sdk/tests
@@ -129,7 +131,7 @@ jobs:
           # workflow) for the shared `**/uv.lock` key (see the `test` job comment).
           cache-suffix: extras
       - name: Sync workspace
-        run: uv sync
+        run: uv sync --locked
       - name: Lint
         run: |
           uvx ruff check packages/presidio-extras/src packages/presidio-extras/tests
@@ -155,7 +157,7 @@ jobs:
       # for unit tests). The rest of the suite runs on the dev group alone.
       - name: Test
         working-directory: packages/training
-        run: uv run --frozen --with datasets --with transformers pytest -q
+        run: uv run --locked --with datasets --with transformers pytest -q
 
   deploy:
     needs: [check, test, sdk]

@@ -12,13 +12,21 @@ on:
       - 'packages/training/output/ja/external_scores.json'
       - 'packages/training/output/en/external_scores.json'
       - '.github/workflows/website.yml'
+  pull_request:
+    paths:
+      - 'website/**'
+      - 'packages/training/output/scores.json'
+      - 'packages/training/output/en-transformer/scores.json'
+      - 'packages/training/output/en/scores.json'
+      - 'packages/training/output/ja/external_scores.json'
+      - 'packages/training/output/en/external_scores.json'
+      - '.github/workflows/website.yml'
 
 permissions:
-  pages: write
-  id-token: write
+  contents: read
 
 concurrency:
-  group: pages
+  group: pages-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -47,12 +55,17 @@ jobs:
       - run: pnpm build
       - run: cp dist/index.html dist/404.html
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         with:
           path: website/dist
 
   deploy:
     needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
