@@ -17,22 +17,47 @@ on:
   push:
     tags:
       - 'sdk/v*'
+  # Manual runs are build-only: there is deliberately no `dry_run` input, so a
+  # dispatch (from any branch or tag) can never reach PyPI. Publishing happens
+  # only in the `publish` job, which runs solely on a pushed version tag.
   workflow_dispatch:
-    inputs:
-      dry_run:
-        description: 'Build wheel but skip PyPI upload'
-        required: false
-        type: boolean
-        default: true
 
 permissions:
   contents: read
 
 jobs:
-  build-and-publish:
+  build:
+    # Dry run for manual dispatch. No `id-token` permission, so this job cannot
+    # obtain a PyPI trusted-publishing token.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
-      # Required for PyPI trusted publishing (OIDC).
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e  # v10.3.2
+        with:
+          # Unique per setup-uv step; see the comment in the `publish` job.
+          cache-suffix: release-pypi-build
+
+      - name: Build wheel and sdist
+        working-directory: packages/sdk
+        run: uv build --out-dir dist
+
+      - name: List build artifacts
+        working-directory: packages/sdk
+        run: ls -la dist
+
+  publish:
+    # Only a pushed `sdk/vX.Y.Z` tag may publish.
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/sdk/v')
+    runs-on: ubuntu-latest
+    permissions:
+      # Required for PyPI trusted publishing (OIDC). Scoped to this tag-push
+      # job only.
       id-token: write
       contents: read
     concurrency:
@@ -55,22 +80,7 @@ jobs:
           # setup-uv input, so it cannot be used to opt out of saving.
           cache-suffix: release-pypi
 
-      - name: Resolve dry-run flag
-        id: resolve
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
-        run: |
-          set -euo pipefail
-          if [ "$EVENT_NAME" = "push" ]; then
-            dry_run="false"
-          else
-            dry_run="${INPUT_DRY_RUN:-true}"
-          fi
-          echo "dry_run=$dry_run" >> "$GITHUB_OUTPUT"
-
       - name: Verify tag matches package version
-        if: github.event_name == 'push'
         env:
           REF_NAME: ${{ github.ref_name }}
         run: |
@@ -95,7 +105,9 @@ jobs:
         run: ls -la dist
 
       - name: Publish to PyPI
-        if: steps.resolve.outputs.dry_run != 'true'
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086  # v1.14.3
         with:
           packages-dir: packages/sdk/dist
+          # Duplicate-version protection: fail rather than silently skip if
+          # this version already exists on PyPI.
+          skip-existing: false
