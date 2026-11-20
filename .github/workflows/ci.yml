@@ -221,11 +221,12 @@ jobs:
           # accepted the request, but machines pass through "replacing" before
           # reaching "started" — the previous one-shot check on commit 7836162
           # caught machines mid-replace and reported a false "no started
-          # machine" error. Poll for up to ~2 min so the verification only
-          # fires after fly's machine state has settled.
+          # machine" error. Poll for up to ~6 min so the verification only
+          # fires after fly's machine state has settled (a 2.1 GB image pull
+          # can keep machines in "replacing" well past 2 min, see run 826).
           STARTED=0
           AFTER=""
-          for i in $(seq 1 24); do
+          for i in $(seq 1 72); do
             flyctl machine list --app pleno-anonymize --json > machines.json
             STARTED=$(jq '[.[] | select(.state=="started")] | length' machines.json)
             AFTER=$(jq -r '[.[] | .config.image] | sort | unique | join(",")' machines.json)
@@ -238,7 +239,9 @@ jobs:
           echo "after=${AFTER}"
           echo "started_count=${STARTED}"
           if [ "$STARTED" -lt 1 ]; then
-            echo "::error::no started machine after deploy within 2min (sha=${EXPECTED_SHA})"
+            flyctl machine status --app pleno-anonymize "$(jq -r '.[0].id' machines.json)" || true
+            timeout 30 flyctl logs --app pleno-anonymize --no-tail 2>&1 | tail -100 || true
+            echo "::error::no started machine after deploy within 6min (sha=${EXPECTED_SHA})"
             exit 1
           fi
           # Empty BEFORE = first deploy / pre-snapshot failed; skip drift check
