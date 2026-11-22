@@ -10,6 +10,10 @@ name: Release pleno-anonymize to PyPI
 # Tag convention:
 #   sdk/vX.Y.Z -> packages/sdk (PyPI name: pleno-anonymize)
 #
+# Only a tag push publishes; workflow_dispatch is a build-only check with no
+# OIDC token. The publish job fails if the tag does not match pyproject.toml
+# or the version is already on PyPI (skip-existing: false).
+#
 # PyPI side: the project needs a GitHub Actions trusted publisher configured.
 # https://docs.pypi.org/trusted-publishers/
 
@@ -18,21 +22,43 @@ on:
     tags:
       - 'sdk/v*'
   workflow_dispatch:
-    inputs:
-      dry_run:
-        description: 'Build wheel but skip PyPI upload'
-        required: false
-        type: boolean
-        default: true
 
 permissions:
   contents: read
 
 jobs:
-  build-and-publish:
+  build:
+    # Build-only check (dispatch or tag push): no id-token, no upload.
     runs-on: ubuntu-latest
     permissions:
-      # Required for PyPI trusted publishing (OIDC).
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2  # v10.3.3
+        with:
+          # Distinct key per job: setup-uv's default `**/uv.lock` key is shared
+          # per repository ref, so concurrent jobs could race to save it. Every
+          # setup-uv step carries a unique `cache-suffix` (guarded by
+          # packages/sdk/tests/test_ci_workflow.py).
+          cache-suffix: release-pypi-build
+
+      - name: Build wheel and sdist
+        working-directory: packages/sdk
+        run: uv build --out-dir dist
+
+      - name: List build artifacts
+        working-directory: packages/sdk
+        run: ls -la dist
+
+  publish:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/sdk/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      # Required for PyPI trusted publishing (OIDC). Only this job has it.
       id-token: write
       contents: read
     concurrency:
@@ -45,32 +71,13 @@ jobs:
 
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2  # v10.3.3
         with:
-          # Distinct key: setup-uv's default `**/uv.lock` key is shared per
-          # repository ref, so a release dispatched against the same ref as CI
-          # (or as another workflow) could race to save it and log "Unable to
-          # reserve cache ... another job may be creating this cache". Every
-          # setup-uv step therefore carries a unique `cache-suffix` so no two
-          # can compute the same key (see .github/workflows/ci.yml, guarded by
-          # packages/sdk/tests/test_ci_workflow.py). `save-cache` is not a
-          # setup-uv input, so it cannot be used to opt out of saving.
-          cache-suffix: release-pypi
-
-      - name: Resolve dry-run flag
-        id: resolve
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
-        run: |
-          set -euo pipefail
-          if [ "$EVENT_NAME" = "push" ]; then
-            dry_run="false"
-          else
-            dry_run="${INPUT_DRY_RUN:-true}"
-          fi
-          echo "dry_run=$dry_run" >> "$GITHUB_OUTPUT"
+          # Distinct key per job: setup-uv's default `**/uv.lock` key is shared
+          # per repository ref, so concurrent jobs could race to save it. Every
+          # setup-uv step carries a unique `cache-suffix` (guarded by
+          # packages/sdk/tests/test_ci_workflow.py).
+          cache-suffix: release-pypi-publish
 
       - name: Verify tag matches package version
-        if: github.event_name == 'push'
         env:
           REF_NAME: ${{ github.ref_name }}
         run: |
@@ -95,7 +102,8 @@ jobs:
         run: ls -la dist
 
       - name: Publish to PyPI
-        if: steps.resolve.outputs.dry_run != 'true'
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086  # v1.14.3
         with:
           packages-dir: packages/sdk/dist
+          # Re-publishing an existing version must fail, not silently pass.
+          skip-existing: false
